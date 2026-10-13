@@ -1,3 +1,28 @@
-fastapi>=0.115,<1
-uvicorn[standard]>=0.30,<1
-pytest>=8,<9
+# CARLA Simulation
+carla==0.9.16
+
+# Backend API
+fastapi
+uvicorn[standard]
+pydantic
+
+# Scenario Optimization
+optuna
+
+# Numerical Computation & Safety Metrics
+numpy
+scipy
+
+# Video and Image Processing
+opencv-python
+
+# Database
+sqlalchemy
+
+# Configuration
+python-dotenv
+pyyaml
+
+# Testing
+pytest
+httpx
