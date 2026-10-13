@@ -1,0 +1,4 @@
+name: pedestrian_crossing
+actors:
+  - type: vehicle
+  - type: pedestrian

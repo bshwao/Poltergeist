@@ -1,0 +1,1 @@
+"""Failure-report persistence model."""

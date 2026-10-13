@@ -1,0 +1,1 @@
+"""Baseline random-search optimizer."""

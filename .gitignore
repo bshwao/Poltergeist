@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+dist/
+node_modules/
+frontend/dist/
+
+storage/database/*
+storage/recordings/*
+storage/telemetry/*
+storage/reports/*
+!storage/**/.gitkeep
+

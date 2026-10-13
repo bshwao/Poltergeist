@@ -1,0 +1,5 @@
+name: intersection
+actors:
+  - type: ego_vehicle
+  - type: crossing_vehicle
+location: intersection

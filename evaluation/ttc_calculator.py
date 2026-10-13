@@ -1,0 +1,1 @@
+"""Time-to-collision calculations."""

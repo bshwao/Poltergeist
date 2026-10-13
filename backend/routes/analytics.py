@@ -1,0 +1,1 @@
+"""Dashboard analytics API routes."""

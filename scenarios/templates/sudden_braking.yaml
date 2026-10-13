@@ -1,0 +1,5 @@
+name: sudden_braking
+actors:
+  - type: ego_vehicle
+  - type: lead_vehicle
+event: lead_vehicle_brakes

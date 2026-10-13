@@ -1,0 +1,5 @@
+name: occluded_pedestrian
+actors:
+  - type: vehicle
+  - type: pedestrian
+occlusion: true
