@@ -1,5 +1,7 @@
 """Public, CARLA-free data contracts. Import models from this module."""
 
+from .evaluation import EvaluationCoverage, EvaluationSettings
+
 from .scenario import (
     ActorSpec,
     ActorType,
@@ -28,7 +30,7 @@ from .telemetry import (
 
 __all__ = [
     "ActorSpec", "ActorState", "ActorType", "ArtifactReference", "BoundingBoxExtent", "BrakingEvent",
-    "CollisionEvent", "ControlInput", "FailureKind", "FailureReport", "RelativeSpawn", "Rotation",
+    "CollisionEvent", "ControlInput", "EvaluationCoverage", "EvaluationSettings", "FailureKind", "FailureReport", "RelativeSpawn", "Rotation",
     "SafetyMetrics", "Scenario", "ScenarioEvent", "ScenarioTemplate", "Simulation", "SimulationResult",
     "SpeedChangeEvent",
     "SimulationStatus", "TelemetryFrame", "TrafficRule", "TrafficViolation", "Transform",

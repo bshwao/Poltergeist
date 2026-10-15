@@ -85,7 +85,7 @@ npm run dev
 
 API liveness: <http://localhost:8000/health>. Interactive API docs:
 <http://localhost:8000/docs>. The dashboard currently displays its starter screen.
-No CARLA server or database is required for sections 1–2. `/health` reports process
+No CARLA server or database is required for sections 1–3. `/health` reports process
 liveness, not simulator/database readiness.
 
 ## Verify
@@ -101,8 +101,11 @@ npm run build
 Tests cover scenario templates, model validation, wire round trips, lifecycle
 consistency, settings, CORS, health, and the CARLA connection helper with a fake
 client. Section 2 adds file parsing/normalization, actor/event references, parameter
-bounds, repeatable generation, and saved-scenario round trips. They do not claim
-to test real driving behavior. See [scenario engine usage](scenarios.md).
+bounds, repeatable generation, and saved-scenario round trips. Section 3 covers
+known 3D clearance/TTC cases, braking/stopping calculations, event deduplication,
+observation coverage, and severity thresholds. These tests do not claim to test
+real driving behavior. See [scenario engine usage](scenarios.md) and
+[evaluation methodology](methodology.md).
 
 After changing a Python contract, regenerate both tracked artifacts:
 

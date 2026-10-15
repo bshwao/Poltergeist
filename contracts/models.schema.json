@@ -90,7 +90,15 @@
       "additionalProperties": false,
       "properties": {
         "acceleration_mps2": {
-          "$ref": "#/$defs/Vector3"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Vector3"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "actor_id": {
           "minLength": 1,
@@ -108,11 +116,51 @@
           ],
           "default": null
         },
+        "bounding_box_transform": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "speed_limit_mps": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Speed Limit Mps"
+        },
         "transform": {
-          "$ref": "#/$defs/Transform"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "velocity_mps": {
-          "$ref": "#/$defs/Vector3"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Vector3"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -120,7 +168,9 @@
         "transform",
         "velocity_mps",
         "acceleration_mps2",
-        "bounding_box_extent"
+        "bounding_box_extent",
+        "bounding_box_transform",
+        "speed_limit_mps"
       ],
       "title": "ActorState",
       "type": "object"
@@ -233,6 +283,19 @@
     "CollisionEvent": {
       "additionalProperties": false,
       "properties": {
+        "event_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Id"
+        },
         "impulse_n_s": {
           "default": 0.0,
           "minimum": 0,
@@ -247,7 +310,8 @@
       },
       "required": [
         "other_actor_id",
-        "impulse_n_s"
+        "impulse_n_s",
+        "event_id"
       ],
       "title": "CollisionEvent",
       "type": "object"
@@ -295,6 +359,207 @@
         "reverse"
       ],
       "title": "ControlInput",
+      "type": "object"
+    },
+    "EvaluationCoverage": {
+      "additionalProperties": false,
+      "description": "Counts of actual observations; empty actor lists are observed empty scenes.\n\nA pair's TTC is evaluated even when its known trajectory has no predicted\ncontact. Missing geometry/velocity is not an evaluated pair.",
+      "properties": {
+        "actor_pairs": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Actor Pairs",
+          "type": "integer"
+        },
+        "braking_frames": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Braking Frames",
+          "type": "integer"
+        },
+        "clearance_frames": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Clearance Frames",
+          "type": "integer"
+        },
+        "clearance_pairs": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Clearance Pairs",
+          "type": "integer"
+        },
+        "collision_frames": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Collision Frames",
+          "type": "integer"
+        },
+        "has_gaps": {
+          "default": false,
+          "title": "Has Gaps",
+          "type": "boolean"
+        },
+        "total_frames": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Frames",
+          "type": "integer"
+        },
+        "traffic_rule_frames": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Traffic Rule Frames",
+          "type": "integer"
+        },
+        "ttc_frames": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Ttc Frames",
+          "type": "integer"
+        },
+        "ttc_pairs": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Ttc Pairs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_frames",
+        "collision_frames",
+        "traffic_rule_frames",
+        "braking_frames",
+        "clearance_frames",
+        "ttc_frames",
+        "actor_pairs",
+        "clearance_pairs",
+        "ttc_pairs",
+        "has_gaps"
+      ],
+      "title": "EvaluationCoverage",
+      "type": "object"
+    },
+    "EvaluationSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "braking_full_severity_mps2": {
+          "default": 8.0,
+          "exclusiveMinimum": 0,
+          "title": "Braking Full Severity Mps2",
+          "type": "number"
+        },
+        "braking_weight": {
+          "default": 15.0,
+          "minimum": 0,
+          "title": "Braking Weight",
+          "type": "number"
+        },
+        "clearance_warning_m": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Clearance Warning M",
+          "type": "number"
+        },
+        "clearance_weight": {
+          "default": 25.0,
+          "minimum": 0,
+          "title": "Clearance Weight",
+          "type": "number"
+        },
+        "collision_episode_gap_s": {
+          "default": 1.0,
+          "minimum": 0,
+          "title": "Collision Episode Gap S",
+          "type": "number"
+        },
+        "hard_braking_threshold_mps2": {
+          "default": 4.0,
+          "exclusiveMinimum": 0,
+          "title": "Hard Braking Threshold Mps2",
+          "type": "number"
+        },
+        "max_sample_gap_s": {
+          "default": 0.5,
+          "exclusiveMinimum": 0,
+          "title": "Max Sample Gap S",
+          "type": "number"
+        },
+        "method_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "speeding_tolerance_mps": {
+          "default": 0.5,
+          "minimum": 0,
+          "title": "Speeding Tolerance Mps",
+          "type": "number"
+        },
+        "stopped_speed_mps": {
+          "default": 0.1,
+          "minimum": 0,
+          "title": "Stopped Speed Mps",
+          "type": "number"
+        },
+        "traffic_rule_weight": {
+          "default": 15.0,
+          "minimum": 0,
+          "title": "Traffic Rule Weight",
+          "type": "number"
+        },
+        "ttc_horizon_s": {
+          "default": 10.0,
+          "exclusiveMinimum": 0,
+          "title": "Ttc Horizon S",
+          "type": "number"
+        },
+        "ttc_warning_s": {
+          "default": 3.0,
+          "exclusiveMinimum": 0,
+          "title": "Ttc Warning S",
+          "type": "number"
+        },
+        "ttc_weight": {
+          "default": 45.0,
+          "minimum": 0,
+          "title": "Ttc Weight",
+          "type": "number"
+        },
+        "violation_episode_gap_s": {
+          "default": 1.0,
+          "minimum": 0,
+          "title": "Violation Episode Gap S",
+          "type": "number"
+        },
+        "violations_for_full_severity": {
+          "default": 3,
+          "exclusiveMinimum": 0,
+          "minimum": 0,
+          "title": "Violations For Full Severity",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "method_version",
+        "collision_episode_gap_s",
+        "violation_episode_gap_s",
+        "speeding_tolerance_mps",
+        "hard_braking_threshold_mps2",
+        "stopped_speed_mps",
+        "max_sample_gap_s",
+        "ttc_horizon_s",
+        "ttc_warning_s",
+        "clearance_warning_m",
+        "braking_full_severity_mps2",
+        "violations_for_full_severity",
+        "ttc_weight",
+        "clearance_weight",
+        "braking_weight",
+        "traffic_rule_weight"
+      ],
+      "title": "EvaluationSettings",
       "type": "object"
     },
     "FailureKind": {
@@ -423,19 +688,86 @@
     },
     "SafetyMetrics": {
       "additionalProperties": false,
-      "description": "Null minima mean unavailable/no relevant interaction; never encode infinity.\n\nSeverity ranges from 0 (least severe) to 100 (most severe). The scoring\nalgorithm and detection thresholds will be implemented in section 3.",
+      "description": "Null minima mean unavailable/no relevant interaction; never encode infinity.\n\nSeverity is an observed collision score (100), or a score from a completely\nobserved trace. Otherwise it is null. Settings preserve scoring provenance.",
       "properties": {
         "collision_count": {
-          "default": 0,
-          "minimum": 0,
-          "title": "Collision Count",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Collision Count"
+        },
+        "coverage": {
+          "$ref": "#/$defs/EvaluationCoverage"
+        },
+        "evaluation_settings": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvaluationSettings"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hard_braking_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hard Braking Count"
         },
         "max_deceleration_mps2": {
-          "default": 0.0,
-          "minimum": 0,
-          "title": "Max Deceleration Mps2",
-          "type": "number"
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Deceleration Mps2"
+        },
+        "max_stopping_distance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Stopping Distance M"
+        },
+        "max_stopping_time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Stopping Time S"
         },
         "min_clearance_m": {
           "anyOf": [
@@ -464,17 +796,31 @@
           "title": "Min Ttc S"
         },
         "severity": {
-          "default": 0.0,
-          "maximum": 100,
-          "minimum": 0,
-          "title": "Severity",
-          "type": "number"
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Severity"
         },
         "traffic_violation_count": {
-          "default": 0,
-          "minimum": 0,
-          "title": "Traffic Violation Count",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traffic Violation Count"
         }
       },
       "required": [
@@ -483,7 +829,12 @@
         "min_clearance_m",
         "min_ttc_s",
         "max_deceleration_mps2",
-        "severity"
+        "hard_braking_count",
+        "max_stopping_distance_m",
+        "max_stopping_time_s",
+        "severity",
+        "coverage",
+        "evaluation_settings"
       ],
       "title": "SafetyMetrics",
       "type": "object"
@@ -848,18 +1199,34 @@
       "additionalProperties": false,
       "properties": {
         "actors": {
-          "items": {
-            "$ref": "#/$defs/ActorState"
-          },
-          "title": "Actors",
-          "type": "array"
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ActorState"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actors"
         },
         "collisions": {
-          "items": {
-            "$ref": "#/$defs/CollisionEvent"
-          },
-          "title": "Collisions",
-          "type": "array"
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CollisionEvent"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Collisions"
         },
         "control": {
           "$ref": "#/$defs/ControlInput"
@@ -878,11 +1245,19 @@
           "type": "number"
         },
         "traffic_violations": {
-          "items": {
-            "$ref": "#/$defs/TrafficViolation"
-          },
-          "title": "Traffic Violations",
-          "type": "array"
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TrafficViolation"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traffic Violations"
         }
       },
       "required": [
@@ -921,14 +1296,42 @@
           "title": "Details",
           "type": "string"
         },
+        "event_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Id"
+        },
         "rule": {
           "$ref": "#/$defs/TrafficRule"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Id"
         }
       },
       "required": [
         "rule",
         "actor_id",
-        "details"
+        "details",
+        "source_id",
+        "event_id"
       ],
       "title": "TrafficViolation",
       "type": "object"

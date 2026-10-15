@@ -6,6 +6,7 @@ from typing import Annotated, Self
 from pydantic import Field, StrictBool, model_validator
 
 from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat
+from .evaluation import EvaluationCoverage, EvaluationSettings
 from .scenario import Transform, Vector3
 
 
@@ -27,16 +28,21 @@ class BoundingBoxExtent(ContractModel):
 
 class ActorState(ContractModel):
     actor_id: NonEmptyString
-    transform: Transform = Field(default_factory=Transform)
-    velocity_mps: Vector3 = Field(default_factory=Vector3)
+    transform: Transform | None = None
+    velocity_mps: Vector3 | None = None
     # Signed world-space acceleration; braking metrics derive deceleration.
-    acceleration_mps2: Vector3 = Field(default_factory=Vector3)
+    acceleration_mps2: Vector3 | None = None
     bounding_box_extent: BoundingBoxExtent | None = None
+    # World pose of the actual box center, including CARLA's local box offset.
+    # If absent, geometry assumes the box is centered/oriented at transform.
+    bounding_box_transform: Transform | None = None
+    speed_limit_mps: PositiveFloat | None = None
 
 
 class CollisionEvent(ContractModel):
     other_actor_id: NonEmptyString
     impulse_n_s: NonNegativeFloat = 0.0
+    event_id: NonEmptyString | None = None
 
 
 class TrafficRule(StrEnum):
@@ -51,35 +57,45 @@ class TrafficViolation(ContractModel):
     rule: TrafficRule
     actor_id: NonEmptyString
     details: str = ""
+    source_id: NonEmptyString | None = None
+    event_id: NonEmptyString | None = None
 
 
 class TelemetryFrame(ContractModel):
     frame: NonNegativeInt
     time_s: NonNegativeFloat
     ego: ActorState
-    actors: list[ActorState] = Field(default_factory=list)
+    # None means unobserved; [] means observed with no other actors/events.
+    actors: list[ActorState] | None = None
     control: ControlInput = Field(default_factory=ControlInput)
-    collisions: list[CollisionEvent] = Field(default_factory=list)
-    traffic_violations: list[TrafficViolation] = Field(default_factory=list)
+    collisions: list[CollisionEvent] | None = None
+    traffic_violations: list[TrafficViolation] | None = None
 
     @model_validator(mode="after")
     def validate_actor_ids(self) -> Self:
-        ids = [self.ego.actor_id, *(actor.actor_id for actor in self.actors)]
+        ids = [self.ego.actor_id, *(actor.actor_id for actor in self.actors or [])]
         if len(ids) != len(set(ids)):
             raise ValueError("Telemetry actor IDs must be unique, including the ego")
+        if any(event.other_actor_id == self.ego.actor_id for event in self.collisions or []):
+            raise ValueError("An ego collision cannot reference the ego as the other actor")
         return self
 
 
 class SafetyMetrics(ContractModel):
     """Null minima mean unavailable/no relevant interaction; never encode infinity.
 
-    Severity ranges from 0 (least severe) to 100 (most severe). The scoring
-    algorithm and detection thresholds will be implemented in section 3.
+    Severity is an observed collision score (100), or a score from a completely
+    observed trace. Otherwise it is null. Settings preserve scoring provenance.
     """
 
-    collision_count: NonNegativeInt = 0
-    traffic_violation_count: NonNegativeInt = 0
+    collision_count: NonNegativeInt | None = None
+    traffic_violation_count: NonNegativeInt | None = None
     min_clearance_m: NonNegativeFloat | None = None
     min_ttc_s: NonNegativeFloat | None = None
-    max_deceleration_mps2: NonNegativeFloat = 0.0
-    severity: Annotated[float, Field(ge=0, le=100, strict=True)] = 0.0
+    max_deceleration_mps2: NonNegativeFloat | None = None
+    hard_braking_count: NonNegativeInt | None = None
+    max_stopping_distance_m: NonNegativeFloat | None = None
+    max_stopping_time_s: NonNegativeFloat | None = None
+    severity: Annotated[float, Field(ge=0, le=100, strict=True)] | None = None
+    coverage: EvaluationCoverage = Field(default_factory=EvaluationCoverage)
+    evaluation_settings: EvaluationSettings | None = None

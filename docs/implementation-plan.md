@@ -8,8 +8,8 @@ that section's scope is complete, not that the whole application is functional.
 | --- | --- | --- |
 | 1 | Foundation, configuration, dependency setup, shared data models, frontend build | Complete |
 | 2 | Scenario loading, validation, parameter constraints, seeded generation, full starter templates | Complete |
-| 3 | Collision, clearance, TTC, braking, rule metrics, severity scoring | Next |
-| 4 | CARLA world/actors/sensors, baseline agent, telemetry, lifecycle, cancellation, cleanup, test adapter | Planned |
+| 3 | Collision, clearance, TTC, braking, rule metrics, severity scoring | Complete |
+| 4 | CARLA world/actors/sensors, baseline agent, telemetry, lifecycle, cancellation, cleanup, test adapter | Next |
 | 5 | Database models, migrations, scenario/run/failure persistence, artifact storage | Planned |
 | 6 | Scenario APIs, single-worker simulation queue, progress/cancellation, results/failures/analytics | Planned |
 | 7 | Random/Optuna search, severity objectives, reproduction, failure minimization | Planned |
@@ -57,14 +57,41 @@ hosting, and training a custom ML agent are separate extensions.
   lane/junction, ground/overlap, visibility, and physics validation remain for
   the section 4 adapter. No CARLA execution is claimed.
 
-## Resume with section 3
+## Section 3 handoff
 
-Implement the `evaluation/` modules using `shared.models.TelemetryFrame` and
-`SafetyMetrics`. Specify collision/violation event deduplication, bounding-box
-clearance conventions, closing-speed TTC assumptions, signed acceleration versus
-deceleration magnitude, and missing-data/null semantics. Document severity weights
-and thresholds. Test known numeric cases, nonclosing motion, absent actor data,
-and repeated sensor events; do not infer safety from unmeasured default values.
+- Public `evaluation` APIs provide whole-window evaluation, pair clearance/TTC,
+  event summaries, braking/stopping summaries, severity calculation, and input
+  validation. See [methodology](methodology.md) for examples and assumptions.
+- Geometry uses full 3D oriented boxes and a constant-linear-velocity/fixed-
+  orientation TTC prediction. Missing boxes are not replaced with point actors.
+- Sensor contacts and map-reported ego rule events are grouped into episodes;
+  stable event IDs reject conflicting replays. Speeding can also be derived from
+  velocity/limit measurements, with partial rule coverage retained.
+- Measured or interval-derived braking supports reverse motion and separates
+  cornering acceleration. Stopping metrics use completed continuous observations.
+- Telemetry poses/velocities/accelerations and event/actor feeds now default to
+  null. Empty feeds mean observed empty. Existing consumers must handle those
+  nulls; generated JSON Schema/TypeScript are updated accordingly.
+- `SafetyMetrics` includes observation coverage, completed-stop maxima,
+  hard-braking count, and a snapshot of `EvaluationSettings`. Unknown observations
+  stay null. Only complete noncollision windows receive a severity score; known
+  sensor collisions score 100 even with partial coverage.
+
+## Resume with section 4
+
+Implement the CARLA adapter and lightweight test adapter around the scenario and
+evaluation contracts. Validate suitable road/junction spawn locations, actor
+blueprints, world/ground/box offsets, and relative placements. Apply initial target
+speeds and timed scenario events on the simulation clock. Collect every tick's
+world poses, true world bounding-box poses/extents, velocities, accelerations, and
+relevant speed limits. Preserve null for unavailable data.
+
+Synchronize sensor callbacks with frames. Supply `collisions: []` only when the
+sensor was functioning and silent; supply `traffic_violations: []` only after
+performing the supported map-aware ego rule checks. Emit stable per-observation
+event IDs and source IDs where available. Handle cleanup, cancellation, failure,
+and restoration of world settings. Run the evaluator on actual collected traces,
+retain its settings/coverage, and never coerce unscored severity to zero.
 
 Do not implement fake driving results in the API. The lightweight simulation
 adapter belongs in section 4 and must identify runs with `mode: "test"`.
@@ -88,3 +115,11 @@ production build, and Git whitespace checks passed. The new checks cover safe
 parsing and actor normalization, placement/event references, parameter bounds,
 seeded generation, binding consistency, and saved-scenario round trips. Real
 CARLA map validity and event execution remain section 4 work.
+
+Section 3 validation: 508 Python tests passed with warnings treated as errors.
+The suite includes analytical 3D geometry/TTC cases, measured and inferred
+braking/stops, collision/rule episode boundaries and replay/source transitions,
+unknown-data coverage, scoring thresholds, and JSON round trips. The tracked
+schema and TypeScript contracts were regenerated; frontend contract checks,
+TypeScript compilation, Vite production build, and whitespace checks passed.
+No real CARLA execution or map-aware sensor detection was performed.

@@ -64,12 +64,41 @@ export type Wetness = number;
 export type Severity = number;
 export type SimulationId = string;
 export type Summary = string;
-export type CollisionCount = number;
-export type MaxDecelerationMps2 = number;
+export type CollisionCount = number | null;
+export type ActorPairs = number;
+export type BrakingFrames = number;
+export type ClearanceFrames = number;
+export type ClearancePairs = number;
+export type CollisionFrames = number;
+export type HasGaps = boolean;
+export type TotalFrames = number;
+export type TrafficRuleFrames = number;
+export type TtcFrames = number;
+export type TtcPairs = number;
+export type BrakingFullSeverityMps2 = number;
+export type BrakingWeight = number;
+export type ClearanceWarningM = number;
+export type ClearanceWeight = number;
+export type CollisionEpisodeGapS = number;
+export type HardBrakingThresholdMps2 = number;
+export type MaxSampleGapS = number;
+export type MethodVersion = "1.0";
+export type SpeedingToleranceMps = number;
+export type StoppedSpeedMps = number;
+export type TrafficRuleWeight = number;
+export type TtcHorizonS = number;
+export type TtcWarningS = number;
+export type TtcWeight = number;
+export type ViolationEpisodeGapS = number;
+export type ViolationsForFullSeverity = number;
+export type HardBrakingCount = number | null;
+export type MaxDecelerationMps2 = number | null;
+export type MaxStoppingDistanceM = number | null;
+export type MaxStoppingTimeS = number | null;
 export type MinClearanceM = number | null;
 export type MinTtcS = number | null;
-export type Severity1 = number;
-export type TrafficViolationCount = number;
+export type Severity1 = number | null;
+export type TrafficViolationCount = number | null;
 export type Kind = "telemetry" | "recording" | "report";
 export type MediaType = string;
 export type Path = string;
@@ -85,14 +114,16 @@ export type Progress = number;
 export type StartedAt = string | null;
 export type SimulationStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
 export type TelemetryFrames = number;
+export type Actors1 = ActorState[] | null;
 export type ActorId2 = string;
 export type X1 = number;
 export type Y1 = number;
 export type Z1 = number;
-export type Actors1 = ActorState[];
+export type SpeedLimitMps = number | null;
+export type Collisions = CollisionEvent[] | null;
+export type EventId = string | null;
 export type ImpulseNS = number;
 export type OtherActorId = string;
-export type Collisions = CollisionEvent[];
 export type Brake = number;
 export type HandBrake = boolean;
 export type Reverse = boolean;
@@ -100,14 +131,16 @@ export type Steer = number;
 export type Throttle = number;
 export type Frame = number;
 export type TimeS = number;
+export type TrafficViolations = TrafficViolation[] | null;
 export type ActorId3 = string;
 export type Details = string;
+export type EventId1 = string | null;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "TrafficRule".
  */
 export type TrafficRule = "red_light" | "stop_sign" | "speeding" | "wrong_way" | "sidewalk";
-export type TrafficViolations = TrafficViolation[];
+export type SourceId = string | null;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "SimulationStatus".
@@ -253,19 +286,67 @@ export interface Weather {
 /**
  * Null minima mean unavailable/no relevant interaction; never encode infinity.
  *
- * Severity ranges from 0 (least severe) to 100 (most severe). The scoring
- * algorithm and detection thresholds will be implemented in section 3.
+ * Severity is an observed collision score (100), or a score from a completely
+ * observed trace. Otherwise it is null. Settings preserve scoring provenance.
  *
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "SafetyMetrics".
  */
 export interface SafetyMetrics {
   collision_count: CollisionCount;
+  coverage: EvaluationCoverage;
+  evaluation_settings: EvaluationSettings | null;
+  hard_braking_count: HardBrakingCount;
   max_deceleration_mps2: MaxDecelerationMps2;
+  max_stopping_distance_m: MaxStoppingDistanceM;
+  max_stopping_time_s: MaxStoppingTimeS;
   min_clearance_m: MinClearanceM;
   min_ttc_s: MinTtcS;
   severity: Severity1;
   traffic_violation_count: TrafficViolationCount;
+}
+/**
+ * Counts of actual observations; empty actor lists are observed empty scenes.
+ *
+ * A pair's TTC is evaluated even when its known trajectory has no predicted
+ * contact. Missing geometry/velocity is not an evaluated pair.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EvaluationCoverage".
+ */
+export interface EvaluationCoverage {
+  actor_pairs: ActorPairs;
+  braking_frames: BrakingFrames;
+  clearance_frames: ClearanceFrames;
+  clearance_pairs: ClearancePairs;
+  collision_frames: CollisionFrames;
+  has_gaps: HasGaps;
+  total_frames: TotalFrames;
+  traffic_rule_frames: TrafficRuleFrames;
+  ttc_frames: TtcFrames;
+  ttc_pairs: TtcPairs;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EvaluationSettings".
+ */
+export interface EvaluationSettings {
+  braking_full_severity_mps2: BrakingFullSeverityMps2;
+  braking_weight: BrakingWeight;
+  clearance_warning_m: ClearanceWarningM;
+  clearance_weight: ClearanceWeight;
+  collision_episode_gap_s: CollisionEpisodeGapS;
+  hard_braking_threshold_mps2: HardBrakingThresholdMps2;
+  max_sample_gap_s: MaxSampleGapS;
+  method_version: MethodVersion;
+  speeding_tolerance_mps: SpeedingToleranceMps;
+  stopped_speed_mps: StoppedSpeedMps;
+  traffic_rule_weight: TrafficRuleWeight;
+  ttc_horizon_s: TtcHorizonS;
+  ttc_warning_s: TtcWarningS;
+  ttc_weight: TtcWeight;
+  violation_episode_gap_s: ViolationEpisodeGapS;
+  violations_for_full_severity: ViolationsForFullSeverity;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -321,11 +402,13 @@ export interface TelemetryFrame {
  * via the `definition` "ActorState".
  */
 export interface ActorState {
-  acceleration_mps2: Vector3;
+  acceleration_mps2: Vector3 | null;
   actor_id: ActorId2;
   bounding_box_extent: BoundingBoxExtent | null;
-  transform: Transform;
-  velocity_mps: Vector3;
+  bounding_box_transform: Transform | null;
+  speed_limit_mps: SpeedLimitMps;
+  transform: Transform | null;
+  velocity_mps: Vector3 | null;
 }
 /**
  * Positive half-lengths of an actor's bounding box, in metres.
@@ -343,6 +426,7 @@ export interface BoundingBoxExtent {
  * via the `definition` "CollisionEvent".
  */
 export interface CollisionEvent {
+  event_id: EventId;
   impulse_n_s: ImpulseNS;
   other_actor_id: OtherActorId;
 }
@@ -364,5 +448,7 @@ export interface ControlInput {
 export interface TrafficViolation {
   actor_id: ActorId3;
   details: Details;
+  event_id: EventId1;
   rule: TrafficRule;
+  source_id: SourceId;
 }

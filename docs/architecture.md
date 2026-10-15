@@ -16,5 +16,11 @@ template parameter bindings, and produces seeded configurations with typed
 events and symbolic actor-relative geometry. It is independent of CARLA. See
 [scenario engine usage](scenarios.md).
 
+The section 3 evaluator consumes validated telemetry, groups ego events, computes
+3D clearance/TTC and braking/stopping metrics, and returns coverage-aware
+`SafetyMetrics` with versioned evaluation settings. It has no CARLA dependency;
+the section 4 adapter will supply map-aware rule observations and synchronized
+sensor frames. See [methodology](methodology.md).
+
 The execution pipeline, database, and feature routes are placeholders until their respective
 [implementation sections](implementation-plan.md).

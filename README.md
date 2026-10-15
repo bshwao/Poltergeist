@@ -2,11 +2,13 @@
 
 CARLA-based driving-safety simulation and failure-discovery platform.
 
-Sections 1 and 2 of 10 are implemented: shared models, configuration, API bootstrap,
-frontend build/types, and a validated scenario engine with seeded generation.
-Driving simulation, metrics computation, persistence, and dashboard features
+Sections 1–3 of 10 are implemented: shared models, configuration, API bootstrap,
+frontend build/types, a scenario engine with seeded generation, and safety
+evaluation with observation coverage and severity scoring.
+Driving simulation, persistence, and dashboard features
 remain to be implemented. See [the implementation plan](docs/implementation-plan.md)
-and [scenario engine usage](docs/scenarios.md).
+and [scenario engine usage](docs/scenarios.md). Evaluation usage and assumptions are
+documented in [the methodology](docs/methodology.md).
 
 ## Project layout
 

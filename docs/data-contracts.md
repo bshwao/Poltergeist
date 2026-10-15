@@ -61,14 +61,27 @@ These describe requested behavior for the section 4 adapter to execute.
 states, ego controls, collisions, and traffic violations. Actor IDs must be unique
 across ego and other actors in each frame. Velocity is in m/s; acceleration is
 signed world-space m/s². Bounding box extents are positive half-lengths in metres.
+Pose, velocity, and acceleration default to null when unobserved. Optional
+`bounding_box_transform` is the world pose of the actual bounding-box center;
+otherwise the box is assumed centered on the actor pose. A positive
+`speed_limit_mps` permits measured speeding detection.
 Collision impulse is newton-seconds. Throttle/brake range from 0 to 1 and steer
 from -1 to 1. Control flags are booleans.
 
 `SafetyMetrics` describes collision/violation counts, minimum clearance, minimum
-TTC, maximum deceleration magnitude, and severity. Severity ranges from 0 (least
-severe) to 100 (most severe); a default value is not evidence that a run was safe.
-The scoring formula, detection thresholds, repeated-event handling, and metrics
-computation are section 3 work.
+TTC, maximum deceleration, hard-braking episode count, maximum completed stopping
+time/distance, severity, and observation coverage. Missing counts and braking
+values default to null. Event/actor lists also default to null (unobserved), while
+an explicit empty list means observed with no entries. Collision/rule event IDs
+deduplicate observations; rule `source_id` distinguishes signals/signs/zones.
+
+`EvaluationCoverage` records observed frame and pair counts and trace gaps. Its
+Python `complete` property is derived from those counts and is not a serialized
+field. `EvaluationSettings` preserves versioned thresholds and weights.
+`evaluate_safety` scores sensor collisions at 100, complete noncollision windows
+from 0 through 99, and incomplete noncollision windows as null. Bare model defaults
+are not evaluated results. See [methodology](methodology.md) for algorithms,
+thresholds, coverage requirements, and event grouping.
 
 ## Simulation, results, and failures
 
