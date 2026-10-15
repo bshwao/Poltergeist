@@ -1,6 +1,6 @@
 services:
   carla:
-    image: carlasim/carla:latest
+    image: carlasim/carla:0.9.16
     command: ./CarlaUE4.sh -RenderOffScreen
     ports:
       - "2000:2000"
@@ -10,6 +10,8 @@ services:
     build: .
     env_file:
       - .env
+    environment:
+      CARLA_HOST: carla
     ports:
       - "8000:8000"
     depends_on:

@@ -1,14 +1,22 @@
-.PHONY: install test backend frontend
+.PHONY: install test check contracts backend frontend
 
 install:
 	python -m pip install -r requirements.txt
-	cd frontend && npm install
+	cd frontend && npm ci
 
 test:
 	python -m pytest
 
+check: test
+	python -m scripts.export_contracts --check
+	cd frontend && npm run contracts:check && npm run build
+
+contracts:
+	python -m scripts.export_contracts
+	cd frontend && npm run contracts:generate
+
 backend:
-	uvicorn backend.main:app --reload
+	python -m backend
 
 frontend:
 	cd frontend && npm run dev

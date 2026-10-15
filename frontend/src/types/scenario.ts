@@ -1,1 +1,1 @@
-export interface Scenario { name: string; actors: string[]; }
+export type { Scenario } from "./generated";

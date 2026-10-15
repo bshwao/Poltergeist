@@ -1,1 +1,7 @@
-export interface Simulation { id: string; status: string; }
+export type {
+  FailureReport,
+  SafetyMetrics,
+  Simulation,
+  SimulationResult,
+  TelemetryFrame,
+} from "./generated";

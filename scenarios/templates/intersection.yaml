@@ -1,5 +1,43 @@
+schema_version: "1.0"
 name: intersection
+template: intersection
+description: A crossing vehicle approaches a perpendicular conflict point ahead of the ego vehicle.
+map: Town03
+seed: 0
+duration_s: 30.0
+fixed_delta_seconds: 0.05
+weather:
+  cloudiness: 0.0
+  precipitation: 0.0
+  wetness: 0.0
+  fog_density: 0.0
+  sun_altitude_deg: 70.0
 actors:
-  - type: ego_vehicle
-  - type: crossing_vehicle
+  - id: ego
+    type: ego_vehicle
+    blueprint: vehicle.tesla.model3
+    spawn_point_index: 0
+    speed_mps: 12.0
+  - id: crossing
+    type: crossing_vehicle
+    blueprint: vehicle.audi.tt
+    relative_spawn:
+      anchor_actor_id: ego
+      offset_m: {x: 30.0, y: -25.0, z: 0.0}
+      yaw_offset_deg: 90.0
+    speed_mps: 0.0
+events:
+  - action: set_speed
+    actor_id: crossing
+    trigger_time_s: 0.0
+    speed_mps: 10.0
 location: intersection
+parameters:
+  ego_speed_mps: 12.0
+  precipitation_pct: 0.0
+  fog_density_pct: 0.0
+  sun_altitude_deg: 70.0
+  crossing_speed_mps: 10.0
+  intersection_distance_m: 30.0
+  crossing_distance_m: 25.0
+  crossing_delay_s: 0.0

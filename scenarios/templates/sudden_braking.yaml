@@ -1,5 +1,43 @@
+schema_version: "1.0"
 name: sudden_braking
+template: sudden_braking
+description: A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.
+map: Town03
+seed: 0
+duration_s: 30.0
+fixed_delta_seconds: 0.05
+weather:
+  cloudiness: 0.0
+  precipitation: 0.0
+  wetness: 0.0
+  fog_density: 0.0
+  sun_altitude_deg: 70.0
 actors:
-  - type: ego_vehicle
-  - type: lead_vehicle
+  - id: ego
+    type: ego_vehicle
+    blueprint: vehicle.tesla.model3
+    spawn_point_index: 0
+    speed_mps: 12.0
+  - id: lead
+    type: lead_vehicle
+    blueprint: vehicle.tesla.model3
+    relative_spawn:
+      anchor_actor_id: ego
+      offset_m: {x: 20.0, y: 0.0, z: 0.0}
+      yaw_offset_deg: 0.0
+    speed_mps: 12.0
+events:
+  - action: brake
+    actor_id: lead
+    trigger_time_s: 2.0
+    deceleration_mps2: 6.0
 event: lead_vehicle_brakes
+parameters:
+  ego_speed_mps: 12.0
+  precipitation_pct: 0.0
+  fog_density_pct: 0.0
+  sun_altitude_deg: 70.0
+  lead_speed_mps: 12.0
+  lead_distance_m: 20.0
+  brake_delay_s: 2.0
+  lead_deceleration_mps2: 6.0

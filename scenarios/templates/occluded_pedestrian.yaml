@@ -1,5 +1,52 @@
+schema_version: "1.0"
 name: occluded_pedestrian
+template: occluded_pedestrian
+description: A pedestrian crosses from behind a stationary vehicle on the ego vehicle's right.
+map: Town03
+seed: 0
+duration_s: 30.0
+fixed_delta_seconds: 0.05
+weather:
+  cloudiness: 0.0
+  precipitation: 0.0
+  wetness: 0.0
+  fog_density: 0.0
+  sun_altitude_deg: 70.0
 actors:
-  - type: vehicle
-  - type: pedestrian
+  - id: ego
+    type: ego_vehicle
+    blueprint: vehicle.tesla.model3
+    spawn_point_index: 0
+    speed_mps: 12.0
+  - id: pedestrian
+    type: pedestrian
+    blueprint: walker.pedestrian.0001
+    relative_spawn:
+      anchor_actor_id: ego
+      offset_m: {x: 18.0, y: 4.0, z: 0.0}
+      yaw_offset_deg: -90.0
+    speed_mps: 0.0
+  - id: occluder
+    type: vehicle
+    blueprint: vehicle.volkswagen.t2
+    relative_spawn:
+      anchor_actor_id: ego
+      offset_m: {x: 14.0, y: 3.111111111111111, z: 0.0}
+      yaw_offset_deg: 0.0
+    speed_mps: 0.0
+events:
+  - action: set_speed
+    actor_id: pedestrian
+    trigger_time_s: 1.0
+    speed_mps: 1.4
 occlusion: true
+parameters:
+  ego_speed_mps: 12.0
+  precipitation_pct: 0.0
+  fog_density_pct: 0.0
+  sun_altitude_deg: 70.0
+  pedestrian_speed_mps: 1.4
+  pedestrian_distance_m: 18.0
+  pedestrian_lateral_offset_m: 4.0
+  crossing_delay_s: 1.0
+  occlusion_gap_m: 4.0

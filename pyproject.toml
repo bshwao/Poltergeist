@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poltergeist"
+version = "0.1.0"
+description = "CARLA driving-safety simulation and failure discovery"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.34,<1",
+    "pydantic>=2.12,<3",
+    "pydantic-settings>=2.10,<3",
+    "PyYAML>=6,<7",
+    "sqlalchemy>=2,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.4,<10", "httpx>=0.28,<1", "httpx2>=2,<3"]
+simulation = ["carla==0.9.16", "numpy>=2,<3", "opencv-python>=4.10,<5"]
+optimization = ["optuna>=4,<5", "scipy>=1.15,<2"]
+
+[tool.setuptools.packages.find]
+include = ["backend*", "shared*", "simulator*", "scenarios*", "evaluation*", "optimization*", "scripts*"]
+
+[tool.setuptools.package-data]
+scenarios = ["templates/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

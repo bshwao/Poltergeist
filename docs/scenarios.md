@@ -1,0 +1,166 @@
+# Scenario engine
+
+Section 2 provides file loading, structural and template validation, parameter
+discovery, seeded generation, and saving. All operations are independent of CARLA.
+Public functions and error types are exported from `scenarios`.
+
+## Create and reproduce a scenario
+
+Use template defaults for a controlled configuration, or sample variations:
+
+```python
+from scenarios import (
+    build_scenario,
+    generate_scenario,
+    generate_scenarios,
+    get_parameter_specs,
+    load_scenario,
+    load_template,
+    save_scenario,
+)
+
+baseline = load_template("pedestrian_crossing")
+configured = build_scenario(
+    "pedestrian_crossing",
+    seed=42,
+    parameters={"ego_speed_mps": 15, "crossing_delay_s": 2},
+)
+variation = generate_scenario(
+    "pedestrian_crossing",
+    seed=42,
+    parameters={"ego_speed_mps": 15},
+    ranges={"pedestrian_speed_mps": (1, 2)},
+)
+save_scenario(variation, "scenario.yaml")
+assert load_scenario("scenario.yaml") == variation
+
+batch = generate_scenarios("sudden_braking", 5, seed=100)
+assert batch[0] == generate_scenario("sudden_braking", seed=100)
+
+for name, spec in get_parameter_specs("intersection").items():
+    print(name, spec.minimum, spec.maximum, spec.default, spec.unit)
+```
+
+`build_scenario` uses defaults for unspecified parameters; `generate_scenario`
+samples them uniformly from declared bounds. Fixed `parameters` override sampling
+and must satisfy the built-in bounds. `ranges` narrows sampling bounds only;
+fixed values take precedence, including when outside a narrowed range. All range
+definitions are validated even if the corresponding parameter is fixed.
+
+Sampling uses a local `random.Random(seed)` and never changes global RNG state.
+The same template version, seed, overrides, and ranges reproduce the same complete
+payload. Save the complete scenario as the durable record: changing templates or
+the generator can change later output for a seed. This does not guarantee CARLA
+physics determinism, which also needs synchronized simulator settings.
+
+Batch seeds are consecutive and wrap from 2,147,483,647 to 0. Each item can be
+regenerated independently, and increasing batch size preserves the earlier
+prefix. A count of zero returns an empty list; negative/fractional/boolean counts
+and invalid seeds are rejected.
+
+## Templates and parameter bounds
+
+Every bundled template uses `Town03`, a 30 second duration, a 0.05 second fixed
+step, stable actor IDs, and explicit blueprint choices. Generic custom scenarios
+retain the model's 60 second default duration. Blueprint names are drawn from the
+[CARLA 0.9.16 blueprint library](https://carla.readthedocs.io/en/0.9.16/bp_library/).
+
+All four templates share:
+
+| Parameter | Bounds | Default | Unit |
+| --- | --- | --- | --- |
+| `ego_speed_mps` | 1–25 | 12 | m/s |
+| `precipitation_pct` | 0–100 | 0 | % |
+| `fog_density_pct` | 0–60 | 0 | % |
+| `sun_altitude_deg` | -10–90 | 70 | degrees |
+
+Precipitation sets both rain intensity and road wetness. Cloudiness retains its
+template value. Parameter ranges are initial search bounds for these templates,
+not CARLA limits or a safety classification.
+
+`pedestrian_crossing` starts a stationary pedestrian to the ego's right, facing
+across its path; a timed event starts the crossing:
+
+| Parameter | Bounds | Default | Unit |
+| --- | --- | --- | --- |
+| `pedestrian_speed_mps` | 0.5–3 | 1.4 | m/s |
+| `pedestrian_distance_m` | 15–45 | 18 | m forward of ego |
+| `pedestrian_lateral_offset_m` | 2–8 | 4 | m right of ego |
+| `crossing_delay_s` | 0–8 | 1 | seconds |
+
+`occluded_pedestrian` uses the same bounds and adds `occlusion_gap_m` (1–8 m,
+default 4). A parked van is placed this distance closer to the ego along the
+forward axis, with its lateral position projected onto the initial ego-to-person
+sightline. This defines intended occlusion geometry; actual visibility depends
+on actor dimensions, map geometry, and sensor placement in the simulator.
+
+`intersection` starts a crossing vehicle to the ego's left, facing right across
+a conflict point ahead of the ego:
+
+| Parameter | Bounds | Default | Unit |
+| --- | --- | --- | --- |
+| `crossing_speed_mps` | 1–20 | 10 | m/s |
+| `intersection_distance_m` | 10–60 | 30 | m forward of ego |
+| `crossing_distance_m` | 5–40 | 25 | m left of conflict point |
+| `crossing_delay_s` | 0–8 | 0 | seconds |
+
+`sudden_braking` starts a moving lead vehicle directly ahead and triggers braking:
+
+| Parameter | Bounds | Default | Unit |
+| --- | --- | --- | --- |
+| `lead_speed_mps` | 1–25 | 12 | m/s |
+| `lead_distance_m` | 5–50 | 20 | m forward of ego |
+| `brake_delay_s` | 0.5–8 | 2 | seconds |
+| `lead_deceleration_mps2` | 1–10 | 6 | m/s² magnitude |
+
+## Placement and timed behavior
+
+An actor can specify one placement source: absolute `spawn`, map
+`spawn_point_index`, or `relative_spawn`. With none, the future adapter selects a
+map spawn. Built-in ego actors use map spawn-point index 0; other actors are
+positioned relative to that anchor. A relative offset is in the anchor's local
+frame: x forward, y right, z up, with a relative yaw in degrees. Relative actor
+references must exist, cannot reference themselves, and must form an acyclic
+dependency graph.
+
+These are symbolic layouts. Spawn-point 0 is not certified as a junction or
+crosswalk on Town03; the relative paths are not certified to follow its roads.
+The section 4 adapter must select/validate suitable road locations, blueprint
+availability, ground clearance, collision-free placements, and event execution
+before claiming a scenario is runnable in CARLA. No road coordinates or simulation
+results are fabricated during loading or generation.
+
+Events reference actor IDs. `set_speed` requests a target speed at an elapsed
+simulation time; `brake` requests positive deceleration until stopped. Triggers
+must be nonnegative and strictly before scenario end. The adapter will apply
+events against the simulation clock and control the resulting physical motion.
+Event ordering is retained in the saved record; executing simultaneous/custom
+events is part of the runner implementation.
+
+## File and validation behavior
+
+`load_scenario` accepts `.yaml`, `.yml`, and `.json` paths. `loads_scenario` accepts
+text with explicit `format="yaml"` or `format="json"`. Parsing uses safe YAML,
+rejects multiple documents, duplicate keys at every level, unsafe tags, and
+non-finite JSON numbers. Files are read as UTF-8 with optional BOM. Errors include
+their source path or supplied source name.
+
+`validate_scenario` accepts a mapping or existing `Scenario`, returns a fresh
+validated record, and leaves its input untouched. Missing actor IDs use roles
+such as `ego`, `pedestrian`, `lead`, `crossing`, or `vehicle`, with `_2`, `_3`, etc.
+for collisions. Explicit IDs are reserved first. Default blueprints are chosen
+by actor type; explicit IDs and blueprint selections are preserved. Spawn
+locations are never invented during normalization.
+
+For records with a built-in `template`, omitted parameter values are filled from
+the registry. Parameters must agree with materialized weather, actor roles,
+speeds, relative geometry, and the single primary event; contradictions are
+rejected. Use `build_scenario` to change parameters and materialize those changes
+together. Extra background actors are allowed, but arbitrary event programs and
+nonstandard layouts should use a custom record with `template: null`, where
+generic model validation applies and scalar parameters can be application-specific.
+
+`save_scenario` validates before writing, emits full defaults and parameters, and
+overwrites only the explicitly supplied file. Its parent directory must already
+exist. `ScenarioLoadError`, `ParameterValidationError`, and
+`ScenarioGenerationError` are `ValueError` subclasses for caller-facing errors.

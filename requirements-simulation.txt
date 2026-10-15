@@ -1,0 +1,3 @@
+# Use Python 3.12 and a matching CARLA 0.9.16 server.
+-r requirements.lock
+-e .[dev,simulation,optimization]

@@ -1,0 +1,1063 @@
+{
+  "$defs": {
+    "ActorSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "blueprint": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Blueprint"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "relative_spawn": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RelativeSpawn"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "spawn": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "spawn_point_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Spawn Point Index"
+        },
+        "speed_mps": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Speed Mps",
+          "type": "number"
+        },
+        "type": {
+          "$ref": "#/$defs/ActorType"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "blueprint",
+        "spawn",
+        "spawn_point_index",
+        "relative_spawn",
+        "speed_mps"
+      ],
+      "title": "ActorSpec",
+      "type": "object"
+    },
+    "ActorState": {
+      "additionalProperties": false,
+      "properties": {
+        "acceleration_mps2": {
+          "$ref": "#/$defs/Vector3"
+        },
+        "actor_id": {
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "bounding_box_extent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundingBoxExtent"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "transform": {
+          "$ref": "#/$defs/Transform"
+        },
+        "velocity_mps": {
+          "$ref": "#/$defs/Vector3"
+        }
+      },
+      "required": [
+        "actor_id",
+        "transform",
+        "velocity_mps",
+        "acceleration_mps2",
+        "bounding_box_extent"
+      ],
+      "title": "ActorState",
+      "type": "object"
+    },
+    "ActorType": {
+      "enum": [
+        "ego_vehicle",
+        "vehicle",
+        "lead_vehicle",
+        "crossing_vehicle",
+        "pedestrian"
+      ],
+      "title": "ActorType",
+      "type": "string"
+    },
+    "ArtifactReference": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "telemetry",
+            "recording",
+            "report"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "media_type": {
+          "minLength": 1,
+          "title": "Media Type",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "path",
+        "media_type"
+      ],
+      "title": "ArtifactReference",
+      "type": "object"
+    },
+    "BoundingBoxExtent": {
+      "additionalProperties": false,
+      "description": "Positive half-lengths of an actor's bounding box, in metres.",
+      "properties": {
+        "x": {
+          "exclusiveMinimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "exclusiveMinimum": 0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "exclusiveMinimum": 0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "title": "BoundingBoxExtent",
+      "type": "object"
+    },
+    "BrakingEvent": {
+      "additionalProperties": false,
+      "description": "Begin braking at a positive deceleration magnitude until stopped.",
+      "properties": {
+        "action": {
+          "const": "brake",
+          "default": "brake",
+          "title": "Action",
+          "type": "string"
+        },
+        "actor_id": {
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "deceleration_mps2": {
+          "exclusiveMinimum": 0,
+          "title": "Deceleration Mps2",
+          "type": "number"
+        },
+        "trigger_time_s": {
+          "minimum": 0,
+          "title": "Trigger Time S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "actor_id",
+        "trigger_time_s",
+        "deceleration_mps2"
+      ],
+      "title": "BrakingEvent",
+      "type": "object"
+    },
+    "CollisionEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "impulse_n_s": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Impulse N S",
+          "type": "number"
+        },
+        "other_actor_id": {
+          "minLength": 1,
+          "title": "Other Actor Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "other_actor_id",
+        "impulse_n_s"
+      ],
+      "title": "CollisionEvent",
+      "type": "object"
+    },
+    "ControlInput": {
+      "additionalProperties": false,
+      "properties": {
+        "brake": {
+          "default": 0.0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Brake",
+          "type": "number"
+        },
+        "hand_brake": {
+          "default": false,
+          "title": "Hand Brake",
+          "type": "boolean"
+        },
+        "reverse": {
+          "default": false,
+          "title": "Reverse",
+          "type": "boolean"
+        },
+        "steer": {
+          "default": 0.0,
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Steer",
+          "type": "number"
+        },
+        "throttle": {
+          "default": 0.0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Throttle",
+          "type": "number"
+        }
+      },
+      "required": [
+        "throttle",
+        "steer",
+        "brake",
+        "hand_brake",
+        "reverse"
+      ],
+      "title": "ControlInput",
+      "type": "object"
+    },
+    "FailureKind": {
+      "enum": [
+        "collision",
+        "near_miss",
+        "hard_braking",
+        "traffic_violation"
+      ],
+      "title": "FailureKind",
+      "type": "string"
+    },
+    "FailureReport": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/FailureKind"
+        },
+        "reproduced": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reproduced"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "severity": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Severity",
+          "type": "number"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "simulation_id",
+        "scenario",
+        "kind",
+        "summary",
+        "severity",
+        "reproduced",
+        "created_at"
+      ],
+      "title": "FailureReport",
+      "type": "object"
+    },
+    "RelativeSpawn": {
+      "additionalProperties": false,
+      "description": "Spawn in an anchor actor's local frame: x forward, y right, z up.\n\nThe simulation adapter resolves this placement after spawning the anchor.\nThese coordinates do not imply the position lies on a drivable road.",
+      "properties": {
+        "anchor_actor_id": {
+          "minLength": 1,
+          "title": "Anchor Actor Id",
+          "type": "string"
+        },
+        "offset_m": {
+          "$ref": "#/$defs/Vector3"
+        },
+        "yaw_offset_deg": {
+          "default": 0.0,
+          "title": "Yaw Offset Deg",
+          "type": "number"
+        }
+      },
+      "required": [
+        "anchor_actor_id",
+        "offset_m",
+        "yaw_offset_deg"
+      ],
+      "title": "RelativeSpawn",
+      "type": "object"
+    },
+    "Rotation": {
+      "additionalProperties": false,
+      "properties": {
+        "pitch_deg": {
+          "default": 0.0,
+          "title": "Pitch Deg",
+          "type": "number"
+        },
+        "roll_deg": {
+          "default": 0.0,
+          "title": "Roll Deg",
+          "type": "number"
+        },
+        "yaw_deg": {
+          "default": 0.0,
+          "title": "Yaw Deg",
+          "type": "number"
+        }
+      },
+      "required": [
+        "pitch_deg",
+        "yaw_deg",
+        "roll_deg"
+      ],
+      "title": "Rotation",
+      "type": "object"
+    },
+    "SafetyMetrics": {
+      "additionalProperties": false,
+      "description": "Null minima mean unavailable/no relevant interaction; never encode infinity.\n\nSeverity ranges from 0 (least severe) to 100 (most severe). The scoring\nalgorithm and detection thresholds will be implemented in section 3.",
+      "properties": {
+        "collision_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Collision Count",
+          "type": "integer"
+        },
+        "max_deceleration_mps2": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Max Deceleration Mps2",
+          "type": "number"
+        },
+        "min_clearance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Clearance M"
+        },
+        "min_ttc_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Ttc S"
+        },
+        "severity": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Severity",
+          "type": "number"
+        },
+        "traffic_violation_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Traffic Violation Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "collision_count",
+        "traffic_violation_count",
+        "min_clearance_m",
+        "min_ttc_s",
+        "max_deceleration_mps2",
+        "severity"
+      ],
+      "title": "SafetyMetrics",
+      "type": "object"
+    },
+    "Scenario": {
+      "additionalProperties": false,
+      "properties": {
+        "actors": {
+          "items": {
+            "$ref": "#/$defs/ActorSpec"
+          },
+          "minItems": 1,
+          "title": "Actors",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "duration_s": {
+          "default": 60.0,
+          "exclusiveMinimum": 0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "event": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event"
+        },
+        "events": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "brake": "#/$defs/BrakingEvent",
+                "set_speed": "#/$defs/SpeedChangeEvent"
+              },
+              "propertyName": "action"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SpeedChangeEvent"
+              },
+              {
+                "$ref": "#/$defs/BrakingEvent"
+              }
+            ]
+          },
+          "title": "Events",
+          "type": "array"
+        },
+        "fixed_delta_seconds": {
+          "default": 0.05,
+          "exclusiveMinimum": 0,
+          "maximum": 0.1,
+          "title": "Fixed Delta Seconds",
+          "type": "number"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "map": {
+          "default": "Town03",
+          "minLength": 1,
+          "title": "Map",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "occlusion": {
+          "default": false,
+          "title": "Occlusion",
+          "type": "boolean"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seed": {
+          "default": 0,
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "template": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScenarioTemplate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "weather": {
+          "$ref": "#/$defs/Weather"
+        }
+      },
+      "required": [
+        "schema_version",
+        "name",
+        "template",
+        "description",
+        "map",
+        "seed",
+        "duration_s",
+        "fixed_delta_seconds",
+        "weather",
+        "actors",
+        "events",
+        "location",
+        "event",
+        "occlusion",
+        "parameters"
+      ],
+      "title": "Scenario",
+      "type": "object"
+    },
+    "ScenarioTemplate": {
+      "enum": [
+        "intersection",
+        "pedestrian_crossing",
+        "occluded_pedestrian",
+        "sudden_braking"
+      ],
+      "title": "ScenarioTemplate",
+      "type": "string"
+    },
+    "Simulation": {
+      "additionalProperties": false,
+      "properties": {
+        "agent": {
+          "default": "baseline",
+          "enum": [
+            "baseline",
+            "custom"
+          ],
+          "title": "Agent",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "progress": {
+          "default": 0.0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Progress",
+          "type": "number"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "status": {
+          "$ref": "#/$defs/SimulationStatus",
+          "default": "queued"
+        }
+      },
+      "required": [
+        "id",
+        "scenario",
+        "agent",
+        "mode",
+        "status",
+        "progress",
+        "created_at",
+        "started_at",
+        "finished_at",
+        "error"
+      ],
+      "title": "Simulation",
+      "type": "object"
+    },
+    "SimulationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/ArtifactReference"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "measured_duration_s": {
+          "minimum": 0,
+          "title": "Measured Duration S",
+          "type": "number"
+        },
+        "metrics": {
+          "$ref": "#/$defs/SafetyMetrics"
+        },
+        "simulation": {
+          "$ref": "#/$defs/Simulation"
+        },
+        "telemetry_frames": {
+          "minimum": 0,
+          "title": "Telemetry Frames",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "simulation",
+        "metrics",
+        "telemetry_frames",
+        "measured_duration_s",
+        "artifacts"
+      ],
+      "title": "SimulationResult",
+      "type": "object"
+    },
+    "SimulationStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "title": "SimulationStatus",
+      "type": "string"
+    },
+    "SpeedChangeEvent": {
+      "additionalProperties": false,
+      "description": "Set an actor's target speed at simulation time trigger_time_s.",
+      "properties": {
+        "action": {
+          "const": "set_speed",
+          "default": "set_speed",
+          "title": "Action",
+          "type": "string"
+        },
+        "actor_id": {
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "speed_mps": {
+          "minimum": 0,
+          "title": "Speed Mps",
+          "type": "number"
+        },
+        "trigger_time_s": {
+          "minimum": 0,
+          "title": "Trigger Time S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "actor_id",
+        "trigger_time_s",
+        "speed_mps"
+      ],
+      "title": "SpeedChangeEvent",
+      "type": "object"
+    },
+    "TelemetryFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "actors": {
+          "items": {
+            "$ref": "#/$defs/ActorState"
+          },
+          "title": "Actors",
+          "type": "array"
+        },
+        "collisions": {
+          "items": {
+            "$ref": "#/$defs/CollisionEvent"
+          },
+          "title": "Collisions",
+          "type": "array"
+        },
+        "control": {
+          "$ref": "#/$defs/ControlInput"
+        },
+        "ego": {
+          "$ref": "#/$defs/ActorState"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "time_s": {
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "traffic_violations": {
+          "items": {
+            "$ref": "#/$defs/TrafficViolation"
+          },
+          "title": "Traffic Violations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "frame",
+        "time_s",
+        "ego",
+        "actors",
+        "control",
+        "collisions",
+        "traffic_violations"
+      ],
+      "title": "TelemetryFrame",
+      "type": "object"
+    },
+    "TrafficRule": {
+      "enum": [
+        "red_light",
+        "stop_sign",
+        "speeding",
+        "wrong_way",
+        "sidewalk"
+      ],
+      "title": "TrafficRule",
+      "type": "string"
+    },
+    "TrafficViolation": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "details": {
+          "default": "",
+          "title": "Details",
+          "type": "string"
+        },
+        "rule": {
+          "$ref": "#/$defs/TrafficRule"
+        }
+      },
+      "required": [
+        "rule",
+        "actor_id",
+        "details"
+      ],
+      "title": "TrafficViolation",
+      "type": "object"
+    },
+    "Transform": {
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "$ref": "#/$defs/Vector3"
+        },
+        "rotation": {
+          "$ref": "#/$defs/Rotation"
+        }
+      },
+      "required": [
+        "position",
+        "rotation"
+      ],
+      "title": "Transform",
+      "type": "object"
+    },
+    "Vector3": {
+      "additionalProperties": false,
+      "description": "CARLA coordinates: x forward, y right, z up; units depend on the field.",
+      "properties": {
+        "x": {
+          "default": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0.0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "default": 0.0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "title": "Vector3",
+      "type": "object"
+    },
+    "Weather": {
+      "additionalProperties": false,
+      "properties": {
+        "cloudiness": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Cloudiness",
+          "type": "number"
+        },
+        "fog_density": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Fog Density",
+          "type": "number"
+        },
+        "precipitation": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Precipitation",
+          "type": "number"
+        },
+        "sun_altitude_deg": {
+          "default": 70.0,
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Sun Altitude Deg",
+          "type": "number"
+        },
+        "wetness": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Wetness",
+          "type": "number"
+        }
+      },
+      "required": [
+        "cloudiness",
+        "precipitation",
+        "wetness",
+        "fog_density",
+        "sun_altitude_deg"
+      ],
+      "title": "Weather",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "failure": {
+      "$ref": "#/$defs/FailureReport"
+    },
+    "metrics": {
+      "$ref": "#/$defs/SafetyMetrics"
+    },
+    "result": {
+      "$ref": "#/$defs/SimulationResult"
+    },
+    "scenario": {
+      "$ref": "#/$defs/Scenario"
+    },
+    "simulation": {
+      "$ref": "#/$defs/Simulation"
+    },
+    "telemetry": {
+      "$ref": "#/$defs/TelemetryFrame"
+    }
+  },
+  "required": [
+    "scenario",
+    "simulation",
+    "telemetry",
+    "metrics",
+    "result",
+    "failure"
+  ],
+  "title": "PoltergeistContracts",
+  "type": "object"
+}
