@@ -9,8 +9,8 @@ that section's scope is complete, not that the whole application is functional.
 | 1 | Foundation, configuration, dependency setup, shared data models, frontend build | Complete |
 | 2 | Scenario loading, validation, parameter constraints, seeded generation, full starter templates | Complete |
 | 3 | Collision, clearance, TTC, braking, rule metrics, severity scoring | Complete |
-| 4 | CARLA world/actors/sensors, baseline agent, telemetry, lifecycle, cancellation, cleanup, test adapter | Next |
-| 5 | Database models, migrations, scenario/run/failure persistence, artifact storage | Planned |
+| 4 | CARLA world/actors/sensors, baseline agent, telemetry, lifecycle, cancellation, cleanup, test adapter | Complete |
+| 5 | Database models, migrations, scenario/run/failure persistence, artifact storage | Next |
 | 6 | Scenario APIs, single-worker simulation queue, progress/cancellation, results/failures/analytics | Planned |
 | 7 | Random/Optuna search, severity objectives, reproduction, failure minimization | Planned |
 | 8 | Dashboard navigation, scenario forms, validation, launch controls | Planned |
@@ -77,30 +77,69 @@ hosting, and training a custom ML agent are separate extensions.
   stay null. Only complete noncollision windows receive a severity score; known
   sensor collisions score 100 even with partial coverage.
 
-## Resume with section 4
+## Section 4 handoff
 
-Implement the CARLA adapter and lightweight test adapter around the scenario and
-evaluation contracts. Validate suitable road/junction spawn locations, actor
-blueprints, world/ground/box offsets, and relative placements. Apply initial target
-speeds and timed scenario events on the simulation clock. Collect every tick's
-world poses, true world bounding-box poses/extents, velocities, accelerations, and
-relevant speed limits. Preserve null for unavailable data.
+- `SimulationRunner` performs one run per instance using a copied scenario or
+  queued simulation, fixed ticks, stable timed-event ordering, baseline/custom
+  agents, cooperative cancellation, snapshot callbacks, finalization, cleanup,
+  and evaluation. `RunOutput` returns the terminal result plus finalized telemetry
+  in memory. See [simulation usage](simulation.md) for timing and callback details.
+- CARLA imports lazily and requires matching 0.9.16 versions. The world manager
+  configures synchronous steps/substeps/weather, guards map reload behind explicit
+  opt-in and an empty dynamic world, and restores the original map/settings/weather.
+  Owned resource cleanup continues through failures and retains failed handles
+  for retry; foreign road users are observed but never destroyed.
+- Actors use validated blueprints, dependency-ordered placements, map/ground/lane
+  and built-in layout checks, native snapshots, and true composed world bounding
+  boxes. Actual map/version/seed/step/resolved spawns are retained in optional
+  `SimulationRuntime`. Built-in spawn index 0 is still a symbolic anchor and may
+  be rejected; no real Town03 layout or physical behavior is certified.
+- Collision collection uses a periodic IMU heartbeat, bounded frame queues and
+  waits, a collision settling window, and final late-event merging. Optional
+  RGB/LiDAR capture streams deliver bounded raw byte samples through callbacks.
+  Camera capture requires rendering enabled. The independent-stream timing
+  assumption needs live validation; returned telemetry supersedes provisional
+  frame callbacks. Section 4 does not persist or encode captures.
+- The rule monitor supplies map-aware speeding, red-light crossing, stop-trigger,
+  wrong-way, and sidewalk observations with stable source/event IDs. Explicit
+  `rule_checks` preserves partial coverage when APIs or state are unavailable;
+  legacy null retains the previous full-feed convention. Failed/cancelled runs
+  keep noncollision severity null; known collisions still score 100.
+- The deterministic synthetic adapter exercises the same runner/evaluator with
+  explicit `mode: "test"`, virtual spawn anchors, approximate controls/kinematics,
+  and sampled box contacts. It has no real road network, meshes, continuous
+  contact physics, signals, perception, or renderer. Optional capture requests
+  require CARLA. It cannot certify a scenario's map validity or real driving safety.
+- `python -m simulator` accepts a template or saved scenario and explicit test/
+  CARLA mode. It emits result JSON or writes the requested result file. The API
+  still exposes no simulation launch routes, and the dashboard is unchanged.
 
-Synchronize sensor callbacks with frames. Supply `collisions: []` only when the
-sensor was functioning and silent; supply `traffic_violations: []` only after
-performing the supported map-aware ego rule checks. Emit stable per-observation
-event IDs and source IDs where available. Handle cleanup, cancellation, failure,
-and restoration of world settings. Run the evaluator on actual collected traces,
-retain its settings/coverage, and never coerce unscored severity to zero.
+## Resume with section 5
 
-Do not implement fake driving results in the API. The lightweight simulation
-adapter belongs in section 4 and must identify runs with `mode: "test"`.
+Implement database models, migrations, repositories/services, and artifact storage
+around the existing shared contracts. Persist normalized scenario snapshots,
+queued/terminal run records, runtime provenance, evaluation settings/coverage,
+and failure reports without losing explicit unknown values or execution mode.
+Use the configured database/storage paths and make initialization explicit.
+
+Define storage-owned relative artifact paths and enforce containment when writing
+or reading files. Store finalized telemetry after sensor merging, and design raw
+capture persistence around the existing `on_sensor` boundary. Include format/
+encoding metadata and failure cleanup; do not label raw bytes as an encoded video
+or a replay. Connect stored references to `SimulationResult.artifacts` only after
+their files exist. Cover migrations, round trips, isolation, and interrupted writes.
+
+Keep the synchronous runner independent of database ownership. Worker queue,
+feature API routes, and UI controls belong to later sections. Live CARLA map and
+sensor validation remains an integration task; do not replace it with synthetic
+success records or coerce unscored results to zero.
 
 ## Verification
 
 See [setup](setup.md) for exact commands. Run Python tests, schema drift check,
 frontend contract drift check, and frontend production build before handing off.
-The tests use a fake CARLA client; real simulation behavior remains unverified.
+Tests use deterministic synthetic runs and fake CARLA APIs; real CARLA simulation
+behavior remains unverified.
 
 Section 1 validation: 117 Python tests passed on Python 3.14. After updating the
 HTTP test client to match Starlette, all 35 backend/configuration/CARLA-helper
@@ -123,3 +162,14 @@ unknown-data coverage, scoring thresholds, and JSON round trips. The tracked
 schema and TypeScript contracts were regenerated; frontend contract checks,
 TypeScript compilation, Vite production build, and whitespace checks passed.
 No real CARLA execution or map-aware sensor detection was performed.
+
+Section 4 validation: 672 Python tests passed with warnings treated as errors.
+Tests cover lifecycle/event scheduling, cancellation,
+agent controls, mutation isolation, failure cleanup, synthetic scenarios, CARLA
+adapter orchestration, world/actor restoration, callback timing/overflow, and
+partial map-rule coverage. The schema/TypeScript contracts were regenerated,
+frontend contract checks and the production build passed, and a full 30 second
+synthetic sudden-braking CLI run completed with 601 telemetry frames. Schema and
+frontend contract drift checks also passed. CARLA is not installed in the
+current Python 3.14 environment; real client/server execution, GPU behavior, map
+anchors, and sensor timing have not been verified.

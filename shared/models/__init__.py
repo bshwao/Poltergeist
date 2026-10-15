@@ -16,7 +16,7 @@ from .scenario import (
     Vector3,
     Weather,
 )
-from .simulation import ArtifactReference, FailureKind, FailureReport, Simulation, SimulationResult, SimulationStatus
+from .simulation import ArtifactReference, FailureKind, FailureReport, Simulation, SimulationResult, SimulationRuntime, SimulationStatus
 from .telemetry import (
     ActorState,
     BoundingBoxExtent,
@@ -33,6 +33,6 @@ __all__ = [
     "CollisionEvent", "ControlInput", "EvaluationCoverage", "EvaluationSettings", "FailureKind", "FailureReport", "RelativeSpawn", "Rotation",
     "SafetyMetrics", "Scenario", "ScenarioEvent", "ScenarioTemplate", "Simulation", "SimulationResult",
     "SpeedChangeEvent",
-    "SimulationStatus", "TelemetryFrame", "TrafficRule", "TrafficViolation", "Transform",
+    "SimulationRuntime", "SimulationStatus", "TelemetryFrame", "TrafficRule", "TrafficViolation", "Transform",
     "Vector3", "Weather",
 ]

@@ -2,9 +2,9 @@
 
 The section 3 evaluator consumes measured `TelemetryFrame` records and returns
 `SafetyMetrics`. It runs without CARLA or numerical packages. Its public API is
-exported from `evaluation`; the simulator adapter will supply observations in
-section 4. The results describe the supplied observation window, which may be
-shorter than a complete run.
+exported from `evaluation`; the section 4 adapters now supply observations to it.
+The results describe the supplied observation window, which may be shorter than
+a complete run. See [simulation usage](simulation.md) for runtime assumptions.
 
 ## Usage
 
@@ -46,8 +46,13 @@ metrics. Inputs are revalidated and copied, including mutable model instances.
 Pose, velocity, acceleration, and event/actor feeds can be unobserved. Missing
 values remain `null`. For `actors`, `collisions`, and `traffic_violations`, an empty
 list means the source was observed and found none; `null` means the source was
-not observed. A producer must send an empty rule list only after performing its
-configured ego rule checks. A collision feed need not contain an event every tick,
+not observed. `rule_checks` explicitly enumerates the rule families observed in
+that frame: an empty set makes no compliance claim, a subset records partial
+coverage, and every family is required for full rule coverage. A null
+`rule_checks` preserves the legacy convention that a non-null violation feed
+covers all families. New producers should provide the explicit set. A known
+positive violation still counts when other checks are unavailable. A collision
+feed need not contain an event every tick,
 but its producer must distinguish a functioning sensor with no callback from a
 missing/unavailable sensor.
 
@@ -69,7 +74,9 @@ observations cover every frame and every listed actor pair, with no gaps.
 
 Collision counts use sensor events against ego, including static-world actors.
 Geometric overlap alone is reported as zero clearance/TTC, and does not create a
-sensor collision. CARLA can produce collision callbacks in each frame and against
+CARLA sensor collision. The synthetic test adapter explicitly produces test-mode
+contact events from tick-end overlap; these are approximate simulated contacts
+with zero impulse, not native sensor measurements. CARLA can produce collision callbacks in each frame and against
 multiple actors; see its [sensor reference](https://carla.readthedocs.io/en/0.9.16/ref_sensors/#collision-detector).
 
 Repeated contacts with the same other actor are one episode while successive
@@ -95,7 +102,7 @@ substitutes a point-sized vehicle.
 
 An explicit `bounding_box_transform` is the world pose of the actual box center.
 Otherwise the box is assumed centered on/aligned with `ActorState.transform`.
-The CARLA adapter must account for local bounding-box offsets and rotations before
+The CARLA adapter composes local bounding-box offsets and rotations before
 setting the world box pose. Rotation axes follow the
 [CARLA rotation implementation](https://carla.org/Doxygen/html/d0/d8f/Rotation_8h_source.html).
 
@@ -121,12 +128,25 @@ observed pairs; actor IDs must be unique within each frame.
 
 ## Traffic-rule episodes
 
-Red-light, stop-sign, wrong-way, and sidewalk events come from the future map-aware
+Red-light, stop-sign, wrong-way, and sidewalk events come from map-aware
 detectors. The evaluator counts reported ego events and does not infer those
 violations from actor coordinates alone. `source_id` identifies a light, sign,
 lane, or speed zone. Rule/source combinations are separate episodes. An observed
-clear rule list closes absent episodes immediately; an unobserved list leaves
-them pending, subject to a 1 second maximum gap between active samples.
+clear rule list closes absent episodes only for families in `rule_checks`
+(or all families under the legacy null convention). Unchecked families remain
+pending, subject to a 1 second maximum gap between active samples. Independently
+observed speed/limit samples can also close a speeding episode.
+
+The CARLA monitor compares velocity with mapped lane direction, recognizes moving
+ego occupancy on a sidewalk lane, and converts speed limits from km/h to m/s.
+Red-light detection requires the ego box front to cross a mapped stop line in an
+associated lane with a stable known red signal across the interval. Stop-sign
+detection tracks transformed trigger-volume entry/exit and requires a continuous
+0.5 second observed stop at no more than 0.1 m/s. A full trigger pass between
+samples can prove a violation only when the interval was too short to contain
+that stop. Missing APIs/map state or ambiguous transitions omit the affected
+checked family. These conservative project definitions still require validation
+on real maps and are not regulatory driving assessments.
 
 Speeding can additionally be derived from ego velocity magnitude and a measured
 positive `speed_limit_mps`. Speed must strictly exceed limit plus the configured
@@ -199,6 +219,14 @@ sensor-confirmed collisions. Weights must sum to 100, the TTC horizon must cover
 the warning threshold, and full braking severity must exceed the hard-braking
 threshold. Numeric outputs are finite and JSON-safe.
 
-Later optimization should reject or separately surface unscored windows rather
-than converting null severity to zero. Actual map-aware detection, callback/frame
-synchronization, and simulator behavior are section 4 work.
+The runner also leaves noncollision severity null on failed or cancelled runs,
+even if their shorter trace has complete sample coverage. Known collisions retain
+100. Later optimization should reject or separately surface unscored runs rather
+than converting null severity to zero.
+
+CARLA collision collection waits for periodic sensor data plus a bounded settling
+window and merges late callbacks into their original frames during finalization.
+This does not establish a perfect cross-stream callback barrier; use finalized
+returned telemetry for evaluation. Tests cover fake callback timing and map APIs,
+and deterministic synthetic runs. Real CARLA sensor delivery, map behavior, and
+driving performance remain unverified. See [sensor assumptions](simulation.md#sensor-observations-and-raw-capture).

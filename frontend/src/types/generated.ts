@@ -104,6 +104,13 @@ export type MediaType = string;
 export type Path = string;
 export type Artifacts = ArtifactReference[];
 export type MeasuredDurationS = number;
+export type Adapter = "carla" | "test";
+export type ClientVersion = string | null;
+export type FixedDeltaSeconds1 = number;
+export type MapName = string;
+export type Seed1 = number;
+export type SensorSamplesCount = number;
+export type ServerVersion = string | null;
 export type Agent = "baseline" | "custom";
 export type CreatedAt1 = string;
 export type Error = string | null;
@@ -130,16 +137,17 @@ export type Reverse = boolean;
 export type Steer = number;
 export type Throttle = number;
 export type Frame = number;
-export type TimeS = number;
-export type TrafficViolations = TrafficViolation[] | null;
-export type ActorId3 = string;
-export type Details = string;
-export type EventId1 = string | null;
+export type RuleChecks = TrafficRule[] | null;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "TrafficRule".
  */
 export type TrafficRule = "red_light" | "stop_sign" | "speeding" | "wrong_way" | "sidewalk";
+export type TimeS = number;
+export type TrafficViolations = TrafficViolation[] | null;
+export type ActorId3 = string;
+export type Details = string;
+export type EventId1 = string | null;
 export type SourceId = string | null;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -356,6 +364,7 @@ export interface SimulationResult {
   artifacts: Artifacts;
   measured_duration_s: MeasuredDurationS;
   metrics: SafetyMetrics;
+  runtime: SimulationRuntime | null;
   simulation: Simulation;
   telemetry_frames: TelemetryFrames;
 }
@@ -367,6 +376,23 @@ export interface ArtifactReference {
   kind: Kind;
   media_type: MediaType;
   path: Path;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "SimulationRuntime".
+ */
+export interface SimulationRuntime {
+  adapter: Adapter;
+  client_version: ClientVersion;
+  fixed_delta_seconds: FixedDeltaSeconds1;
+  map_name: MapName;
+  resolved_spawns: ResolvedSpawns;
+  seed: Seed1;
+  sensor_samples_count: SensorSamplesCount;
+  server_version: ServerVersion;
+}
+export interface ResolvedSpawns {
+  [k: string]: Transform;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -394,6 +420,7 @@ export interface TelemetryFrame {
   control: ControlInput;
   ego: ActorState;
   frame: Frame;
+  rule_checks: RuleChecks;
   time_s: TimeS;
   traffic_violations: TrafficViolations;
 }

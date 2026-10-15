@@ -39,7 +39,7 @@ unique within a scenario. The scenario loader now fills omitted IDs/blueprints
 deterministically. Placements can use one of an absolute transform, a map spawn
 point index, or a relative actor-local offset/yaw. Relative references must exist
 and be acyclic. Unspecified placements and map-specific validity are resolved by
-the simulator adapter in section 4. Existing `location`, `event`, and `occlusion`
+the simulator adapter. Existing `location`, `event`, and `occlusion`
 fields remain descriptive metadata alongside typed events.
 
 Distances/positions are metres, speeds are metres per second, time is seconds,
@@ -53,7 +53,9 @@ scenarios may retain application-specific scalar parameters.
 `Scenario.events` contains discriminated `set_speed` and `brake` actions, actor
 IDs, and elapsed `trigger_time_s` values before the end of the scenario. Speed
 changes specify `speed_mps`; braking specifies positive `deceleration_mps2`.
-These describe requested behavior for the section 4 adapter to execute.
+These describe requested behavior; the runner dispatches them on fixed tick
+boundaries, and physical controls approximate the requested motion. See
+[simulation timing](simulation.md#timing-and-events).
 
 ## Telemetry and metrics
 
@@ -75,6 +77,15 @@ values default to null. Event/actor lists also default to null (unobserved), whi
 an explicit empty list means observed with no entries. Collision/rule event IDs
 deduplicate observations; rule `source_id` distinguishes signals/signs/zones.
 
+`TelemetryFrame.rule_checks` identifies the `TrafficRule` families checked for
+that observation. An explicit empty list makes no compliance claim; a subset
+permits partial observations and known positive events. A full family list with
+an observed violation feed establishes full rule coverage for that frame. For
+compatibility with older traces, `rule_checks: null` retains the legacy meaning
+that a non-null `traffic_violations` feed covers every family. A null violation
+feed remains unobserved regardless of `rule_checks`. Producers should explicitly
+enumerate checked families. Duplicate family entries are rejected.
+
 `EvaluationCoverage` records observed frame and pair counts and trace gaps. Its
 Python `complete` property is derived from those counts and is not a serialized
 field. `EvaluationSettings` preserves versioned thresholds and weights.
@@ -87,7 +98,7 @@ thresholds, coverage requirements, and event grouping.
 
 `Simulation` stores a UUID, full scenario snapshot, agent, execution mode, status,
 progress, timestamps, and optional error. Modes are `carla` and `test`; the latter
-is reserved for the forthcoming lightweight adapter. Status invariants are:
+identifies the synthetic adapter. Status invariants are:
 
 | Status | Required state |
 | --- | --- |
@@ -102,6 +113,18 @@ terminal run and includes metrics, frame count, measured duration, and artifact
 references. Artifact paths are relative to configured storage, with absolute
 paths, parent traversal, and drive/URL prefixes rejected. These are references;
 file serving and storage containment checks belong to the storage/API sections.
+
+Optional `SimulationResult.runtime` contains a `SimulationRuntime`: adapter,
+server/client versions when applicable, actual map name, fixed time step, seed,
+resolved actor spawn transforms, and the number of raw camera/LiDAR samples drained
+by the runner. The adapter must match the run's mode. This preserves the normalized
+scenario as the requested recipe while recording actual resolved placements.
+Runtime metadata may be absent when setup fails before it can be measured; it is
+not a recording or replay artifact. `telemetry_frames` includes the initial sample
+at elapsed time zero, and `measured_duration_s` describes the returned trace.
+Failed or cancelled runs retain collected metrics, but their noncollision
+severity is null even if the shorter window was fully observed. A known collision
+still scores 100. No artifact files are created automatically by section 4.
 
 `FailureReport` contains the simulation UUID, a scenario snapshot with its seed,
 failure kind, severity, summary, and reproduction outcome. `reproduced: null`

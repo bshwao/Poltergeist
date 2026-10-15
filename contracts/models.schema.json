@@ -1130,6 +1130,17 @@
         "metrics": {
           "$ref": "#/$defs/SafetyMetrics"
         },
+        "runtime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SimulationRuntime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "simulation": {
           "$ref": "#/$defs/Simulation"
         },
@@ -1144,9 +1155,93 @@
         "metrics",
         "telemetry_frames",
         "measured_duration_s",
-        "artifacts"
+        "artifacts",
+        "runtime"
       ],
       "title": "SimulationResult",
+      "type": "object"
+    },
+    "SimulationRuntime": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Adapter",
+          "type": "string"
+        },
+        "client_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Client Version"
+        },
+        "fixed_delta_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Fixed Delta Seconds",
+          "type": "number"
+        },
+        "map_name": {
+          "minLength": 1,
+          "title": "Map Name",
+          "type": "string"
+        },
+        "resolved_spawns": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Transform"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Resolved Spawns",
+          "type": "object"
+        },
+        "seed": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "sensor_samples_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Sensor Samples Count",
+          "type": "integer"
+        },
+        "server_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Server Version"
+        }
+      },
+      "required": [
+        "adapter",
+        "server_version",
+        "client_version",
+        "map_name",
+        "fixed_delta_seconds",
+        "seed",
+        "resolved_spawns",
+        "sensor_samples_count"
+      ],
+      "title": "SimulationRuntime",
       "type": "object"
     },
     "SimulationStatus": {
@@ -1239,6 +1334,21 @@
           "title": "Frame",
           "type": "integer"
         },
+        "rule_checks": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TrafficRule"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rule Checks"
+        },
         "time_s": {
           "minimum": 0,
           "title": "Time S",
@@ -1267,7 +1377,8 @@
         "actors",
         "control",
         "collisions",
-        "traffic_violations"
+        "traffic_violations",
+        "rule_checks"
       ],
       "title": "TelemetryFrame",
       "type": "object"

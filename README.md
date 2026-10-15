@@ -2,13 +2,16 @@
 
 CARLA-based driving-safety simulation and failure-discovery platform.
 
-Sections 1–3 of 10 are implemented: shared models, configuration, API bootstrap,
+Sections 1–4 of 10 are implemented: shared models, configuration, API bootstrap,
 frontend build/types, a scenario engine with seeded generation, and safety
-evaluation with observation coverage and severity scoring.
-Driving simulation, persistence, and dashboard features
-remain to be implemented. See [the implementation plan](docs/implementation-plan.md)
-and [scenario engine usage](docs/scenarios.md). Evaluation usage and assumptions are
-documented in [the methodology](docs/methodology.md).
+evaluation with observation coverage and severity scoring. A synchronous runner
+now connects the CARLA adapter or a deterministic synthetic test adapter to
+baseline/custom agents, timed events, telemetry, cancellation, and cleanup.
+Persistence, feature APIs, optimization, and dashboard features remain planned.
+See [the implementation plan](docs/implementation-plan.md),
+[scenario engine usage](docs/scenarios.md), [running simulations](docs/simulation.md),
+and [evaluation methodology](docs/methodology.md). Real CARLA execution has not yet
+been validated; bundled spawn layouts still require a suitable map anchor.
 
 ## Project layout
 

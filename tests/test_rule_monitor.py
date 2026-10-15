@@ -1,0 +1,376 @@
+"""Map and actor fakes isolate crossing semantics and missing-data coverage."""
+
+from fnmatch import fnmatch
+from math import cos, radians, sin
+from types import SimpleNamespace as NS
+
+import pytest
+
+from shared.models import TrafficRule
+from simulator.rule_monitor import RuleMonitor
+
+
+def vector(x=0.0, y=0.0, z=0.0):
+    return NS(x=x, y=y, z=z)
+
+
+class Pose:
+    def __init__(self, location=None, yaw=0.0):
+        self.location, self.yaw = location or vector(), yaw
+
+    def get_forward_vector(self):
+        return vector(cos(radians(self.yaw)), sin(radians(self.yaw)))
+
+    def transform(self, point):
+        angle = radians(self.yaw)
+        return vector(
+            self.location.x + point.x * cos(angle) - point.y * sin(angle),
+            self.location.y + point.x * sin(angle) + point.y * cos(angle),
+            self.location.z + point.z,
+        )
+
+    def get_inverse_matrix(self):
+        angle = radians(self.yaw)
+        c, s = cos(angle), sin(angle)
+        x, y, z = self.location.x, self.location.y, self.location.z
+        return [[c, s, 0.0, -c*x - s*y], [-s, c, 0.0, s*x - c*y],
+                [0.0, 0.0, 1.0, -z], [0.0, 0.0, 0.0, 1.0]]
+
+
+class Box:
+    def __init__(self, location=None, extent=None):
+        self.location, self.extent = location or vector(), extent or vector(2.0, 1.5, 2.0)
+        self.rotation = NS(yaw=0.0)
+
+    def contains(self, point, transform):
+        angle = radians(transform.yaw)
+        dx, dy, dz = point.x - transform.location.x, point.y - transform.location.y, point.z - transform.location.z
+        local = vector(dx * cos(angle) + dy * sin(angle), -dx * sin(angle) + dy * cos(angle), dz)
+        return all(abs(getattr(local, axis) - getattr(self.location, axis)) <= getattr(self.extent, axis)
+                   for axis in ("x", "y", "z"))
+
+
+def waypoint(x=0.0, y=0.0, *, yaw=0.0, lane_id=1, lane_type="Driving"):
+    return NS(road_id=1, lane_id=lane_id, lane_type=lane_type,
+              transform=Pose(vector(x, y), yaw=yaw), lane_width=3.5)
+
+
+CARLA = NS(Location=vector, Transform=lambda location, rotation: Pose(location, yaw=rotation.yaw),
+           LaneType=NS(Any="Any", Driving="Driving", Sidewalk="Sidewalk"),
+           TrafficLightState=NS(Red="Red", Green="Green", Yellow="Yellow"))
+
+
+class Ego:
+    def __init__(self):
+        self.pose, self.velocity = Pose(vector(-5.0)), vector(5.0)
+        self.limit = 36.0
+        self.bounding_box = Box(extent=vector(2.0, 1.0, 1.0))
+
+    def get_transform(self):
+        return self.pose
+
+    def get_velocity(self):
+        return self.velocity
+
+    def get_speed_limit(self):
+        return self.limit
+
+
+class ActorList(list):
+    def filter(self, pattern):
+        return [actor for actor in self if fnmatch(actor.type_id, pattern)]
+
+
+class World:
+    def __init__(self, actors=()):
+        self.actors = ActorList(actors)
+        self.waypoint = waypoint()
+        self.map_missing = False
+
+    def get_actors(self):
+        return self.actors
+
+    def get_map(self):
+        if self.map_missing:
+            raise RuntimeError("map unavailable")
+        return self
+
+    def get_waypoint(self, location, *, project_to_road, lane_type):
+        assert lane_type in {"Any", "Driving"}
+        return self.waypoint
+
+
+class Light:
+    id, type_id = 81, "traffic.traffic_light"
+
+    def __init__(self, *, lane_id=1):
+        self.state, self.stops = "Red", [waypoint(lane_id=lane_id)]
+
+    def get_state(self):
+        return self.state
+
+    def get_stop_waypoints(self):
+        return self.stops
+
+
+class Stop:
+    id, type_id = 82, "traffic.stop"
+
+    def __init__(self, *, yaw=0.0):
+        self.trigger_volume, self.pose = Box(), Pose(yaw=yaw)
+
+    def get_transform(self):
+        return self.pose
+
+
+def test_speeding_wrong_way_and_sidewalk_use_map_and_si_units():
+    world, ego = World(), Ego()
+    ego.velocity = vector(11.0)
+    monitor = RuleMonitor(world, ego, CARLA, actor_id="hero")
+    events, checked = monitor.observe(1, 0.0)
+    assert [(event.rule, event.actor_id) for event in events] == [(TrafficRule.SPEEDING, "hero")]
+    assert TrafficRule.SPEEDING in checked
+    ego.velocity = vector(-5.0)
+    events, _ = monitor.observe(2, 0.05)
+    assert [event.rule for event in events] == [TrafficRule.WRONG_WAY]
+    assert events[0].source_id == "road:1:lane:1"
+    world.waypoint = waypoint(lane_type="Sidewalk")
+    events, checked = monitor.observe(3, 0.1)
+    assert [event.rule for event in events] == [TrafficRule.SIDEWALK]
+    assert TrafficRule.WRONG_WAY in checked
+
+
+def test_speeding_boundary_and_stationary_sidewalk_are_compliant():
+    world, ego = World(), Ego()
+    ego.velocity = vector(10.5)
+    monitor = RuleMonitor(world, ego, CARLA)
+    events, checked = monitor.observe(1, 0.0)
+    assert events == []
+    assert TrafficRule.SPEEDING in checked
+    world.waypoint = waypoint(lane_type="Sidewalk")
+    ego.velocity = vector()
+    assert monitor.observe(2, 0.05)[0] == []
+
+
+def test_speeding_threshold_uses_evaluator_settings():
+    world, ego = World(), Ego()
+    ego.velocity = vector(11.0)
+    monitor = RuleMonitor(world, ego, CARLA, speeding_tolerance_mps=2.0)
+    assert monitor.observe(1, 0.0)[0] == []
+
+
+def test_waiting_at_red_does_not_report_crossing_and_front_crossing_does():
+    light, ego = Light(), Ego()
+    monitor = RuleMonitor(World([light]), ego, CARLA)
+    ego.pose.location.x = -3.0  # Front bumper is at -1 m, before stop line.
+    assert monitor.observe(1, 0.0)[0] == []
+    ego.velocity = vector()
+    events, checked = monitor.observe(2, 0.05)
+    assert events == []
+    assert TrafficRule.RED_LIGHT in checked
+    ego.pose.location.x = -1.0
+    ego.velocity = vector(5.0)
+    events, _ = monitor.observe(3, 0.1)
+    assert len(events) == 1
+    assert events[0].rule == TrafficRule.RED_LIGHT
+    assert events[0].source_id == "carla:81"
+    assert events[0].event_id == "rule:ego:red_light:carla:81:3"
+    assert monitor.observe(4, 0.15)[0] == []
+
+
+def test_red_line_for_other_lane_is_not_ego_violation():
+    light, ego = Light(lane_id=-1), Ego()
+    monitor = RuleMonitor(World([light]), ego, CARLA)
+    ego.pose.location.x = -3.0
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = -1.0
+    assert monitor.observe(2, 0.05)[0] == []
+
+
+def test_stop_line_crossing_uses_rotated_offset_bounding_box_front():
+    light, ego = Light(), Ego()
+    ego.bounding_box.rotation.yaw = 90.0
+    ego.bounding_box.location.x = 0.1
+    ego.bounding_box.extent.x = 1.0
+    monitor = RuleMonitor(World([light]), ego, CARLA)
+    ego.pose.location.x = -0.5  # Actual rotated box front x=-.4; origin+x extent is already past line.
+    assert monitor.observe(1, 0.0)[0] == []
+    ego.pose.location.x = 0.5
+    events, checked = monitor.observe(2, 0.05)
+    assert [event.rule for event in events] == [TrafficRule.RED_LIGHT]
+    assert TrafficRule.RED_LIGHT in checked
+
+
+def test_signal_transition_during_crossing_is_unknown():
+    light, ego = Light(), Ego()
+    monitor = RuleMonitor(World([light]), ego, CARLA)
+    ego.pose.location.x = -3.0
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = -1.0
+    light.state = "Green"
+    events, checked = monitor.observe(2, 0.05)
+    assert events == []
+    assert TrafficRule.RED_LIGHT not in checked
+
+
+def test_map_failure_preserves_speeding_evidence_but_omits_map_checks():
+    world, ego = World(), Ego()
+    world.map_missing = True
+    ego.velocity = vector(15.0)
+    events, checked = RuleMonitor(world, ego, CARLA).observe(1, 0.0)
+    assert [event.rule for event in events] == [TrafficRule.SPEEDING]
+    assert checked == [TrafficRule.SPEEDING]
+
+
+def test_unknown_speed_limit_omits_speeding_check():
+    world, ego = World(), Ego()
+    ego.limit = 0.0
+    events, checked = RuleMonitor(world, ego, CARLA).observe(1, 0.0)
+    assert events == []
+    assert TrafficRule.SPEEDING not in checked
+
+
+def test_stop_trigger_roll_through_has_source_and_stable_frame_id():
+    sign, ego = Stop(), Ego()
+    monitor = RuleMonitor(World([sign]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = 0.0
+    events, checked = monitor.observe(2, 0.05)
+    assert events == []
+    assert TrafficRule.STOP_SIGN in checked
+    ego.pose.location.x = 4.0
+    events, checked = monitor.observe(3, 0.1)
+    assert len(events) == 1
+    assert events[0].rule == TrafficRule.STOP_SIGN
+    assert events[0].source_id == "carla:82"
+    assert events[0].event_id == "rule:ego:stop_sign:carla:82:3"
+    assert TrafficRule.STOP_SIGN in checked
+
+
+def test_observed_stop_satisfies_stop_sign():
+    sign, ego = Stop(), Ego()
+    monitor = RuleMonitor(World([sign]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location.x, ego.velocity = 0.0, vector()
+    monitor.observe(2, 0.05)
+    monitor.observe(3, 0.55)
+    ego.pose.location.x, ego.velocity = 4.0, vector(5.0)
+    events, checked = monitor.observe(4, 0.6)
+    assert events == []
+    assert TrafficRule.STOP_SIGN in checked
+
+
+def test_multiple_short_pauses_do_not_accumulate_into_full_stop():
+    sign, ego = Stop(), Ego()
+    monitor = RuleMonitor(World([sign]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location.x, ego.velocity = 0.0, vector()
+    monitor.observe(2, 0.05)
+    monitor.observe(3, 0.35)
+    ego.velocity = vector(1.0)
+    monitor.observe(4, 0.4)
+    ego.velocity = vector()
+    monitor.observe(5, 0.45)
+    monitor.observe(6, 0.75)
+    ego.pose.location.x, ego.velocity = 4.0, vector(5.0)
+    assert monitor.observe(7, 0.8)[0][0].rule == TrafficRule.STOP_SIGN
+
+
+def test_stop_trigger_skipped_between_ticks_still_reports_roll_through():
+    sign, ego = Stop(), Ego()
+    monitor = RuleMonitor(World([sign]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = 5.0
+    events, checked = monitor.observe(2, 0.1)
+    assert [event.rule for event in events] == [TrafficRule.STOP_SIGN]
+    assert TrafficRule.STOP_SIGN in checked
+
+
+def test_long_unobserved_stop_crossing_is_unknown():
+    sign, ego = Stop(), Ego()
+    monitor = RuleMonitor(World([sign]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = 5.0
+    events, checked = monitor.observe(2, 2.0)
+    assert events == []
+    assert TrafficRule.STOP_SIGN not in checked
+
+
+def test_spawn_inside_stop_trigger_cannot_assert_prior_noncompliance():
+    sign, ego = Stop(), Ego()
+    ego.pose.location.x = 0.0
+    monitor = RuleMonitor(World([sign]), ego, CARLA)
+    events, checked = monitor.observe(1, 0.0)
+    assert events == []
+    assert TrafficRule.STOP_SIGN not in checked
+    ego.pose.location.x = 4.0
+    events, checked = monitor.observe(2, 0.05)
+    assert events == []
+    assert TrafficRule.STOP_SIGN not in checked
+    assert TrafficRule.STOP_SIGN in monitor.observe(3, 0.1)[1]
+
+
+def test_missing_one_sign_does_not_discard_other_positive_events():
+    broken, sign, ego = Stop(), Stop(), Ego()
+    broken.id, broken.trigger_volume = 99, None
+    monitor = RuleMonitor(World([broken, sign]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = 0.0
+    monitor.observe(2, 0.05)
+    ego.pose.location.x = 4.0
+    events, checked = monitor.observe(3, 0.1)
+    assert [event.rule for event in events] == [TrafficRule.STOP_SIGN]
+    assert TrafficRule.STOP_SIGN not in checked
+
+
+def test_wrong_lane_stop_trigger_is_not_ego_obligation():
+    sign, ego, world = Stop(), Ego(), World()
+    world.actors.append(sign)
+    original = world.get_waypoint
+
+    def get_waypoint(location, *, project_to_road, lane_type):
+        return waypoint(lane_id=-1) if project_to_road else original(
+            location, project_to_road=project_to_road, lane_type=lane_type,
+        )
+
+    world.get_waypoint = get_waypoint
+    monitor = RuleMonitor(world, ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = 0.0
+    monitor.observe(2, 0.05)
+    ego.pose.location.x = 4.0
+    assert monitor.observe(3, 0.1)[0] == []
+
+
+def test_rotated_stop_trigger_uses_world_transformed_box():
+    sign, ego = Stop(yaw=90.0), Ego()
+    ego.pose.location = vector(0.0, -4.0)
+    monitor = RuleMonitor(World([sign]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    ego.pose.location = vector(0.0, 0.0)
+    monitor.observe(2, 0.05)
+    ego.pose.location = vector(0.0, 4.0)
+    assert monitor.observe(3, 0.1)[0][0].rule == TrafficRule.STOP_SIGN
+
+
+def test_runtime_missing_actor_set_does_not_assert_signal_or_stop_compliance():
+    world, ego = World(), Ego()
+
+    def unavailable():
+        raise RuntimeError("actor read failed")
+
+    world.get_actors = unavailable
+    monitor = RuleMonitor(world, ego, CARLA)
+    monitor.observe(1, 0.0)
+    events, checked = monitor.observe(2, 0.05)
+    assert events == []
+    assert TrafficRule.RED_LIGHT not in checked
+    assert TrafficRule.STOP_SIGN not in checked
+
+
+@pytest.mark.parametrize("frame,time_s", [(1, 0.05), (2, 0.0), (2, float("nan"))])
+def test_invalid_observation_order_is_rejected(frame, time_s):
+    monitor = RuleMonitor(World(), Ego(), CARLA)
+    monitor.observe(1, 0.0)
+    with pytest.raises(ValueError):
+        monitor.observe(frame, time_s)

@@ -116,7 +116,7 @@ a conflict point ahead of the ego:
 ## Placement and timed behavior
 
 An actor can specify one placement source: absolute `spawn`, map
-`spawn_point_index`, or `relative_spawn`. With none, the future adapter selects a
+`spawn_point_index`, or `relative_spawn`. With none, the adapter selects a
 map spawn. Built-in ego actors use map spawn-point index 0; other actors are
 positioned relative to that anchor. A relative offset is in the anchor's local
 frame: x forward, y right, z up, with a relative yaw in degrees. Relative actor
@@ -125,17 +125,23 @@ dependency graph.
 
 These are symbolic layouts. Spawn-point 0 is not certified as a junction or
 crosswalk on Town03; the relative paths are not certified to follow its roads.
-The section 4 adapter must select/validate suitable road locations, blueprint
-availability, ground clearance, collision-free placements, and event execution
-before claiming a scenario is runnable in CARLA. No road coordinates or simulation
-results are fabricated during loading or generation.
+The section 4 CARLA adapter now validates blueprint/type, ground, lane/heading,
+overlap, and built-in approach/junction/crossing geometry. It rejects unsuitable
+explicit placements rather than silently moving them. Select a suitable ego
+map anchor or supply a custom map-valid layout; the built-in defaults have not
+been certified on a real server. Test mode maps these symbols into its own
+virtual coordinates and cannot establish CARLA map validity. No road coordinates
+or simulation results are fabricated during loading or generation.
 
 Events reference actor IDs. `set_speed` requests a target speed at an elapsed
 simulation time; `brake` requests positive deceleration until stopped. Triggers
-must be nonnegative and strictly before scenario end. The adapter will apply
-events against the simulation clock and control the resulting physical motion.
-Event ordering is retained in the saved record; executing simultaneous/custom
-events is part of the runner implementation.
+must be nonnegative and strictly before scenario end. The runner dispatches
+events against the simulation clock; adapters control the resulting physical motion.
+Events now execute before integration at the first tick boundary at or after
+their trigger. Equal-time events retain saved list order, and the last command
+for an actor wins. A non-grid trigger can round to the terminal boundary and have
+no remaining interval to affect. Speed/deceleration requests become controls;
+actual measured motion can differ in CARLA. See [simulation timing](simulation.md#timing-and-events).
 
 ## File and validation behavior
 

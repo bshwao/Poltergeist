@@ -70,6 +70,9 @@ class TelemetryFrame(ContractModel):
     control: ControlInput = Field(default_factory=ControlInput)
     collisions: list[CollisionEvent] | None = None
     traffic_violations: list[TrafficViolation] | None = None
+    # None retains legacy full-feed semantics. Adapters explicitly enumerate
+    # the rule families they actually checked; [] makes no compliance claim.
+    rule_checks: list[TrafficRule] | None = None
 
     @model_validator(mode="after")
     def validate_actor_ids(self) -> Self:
@@ -78,6 +81,8 @@ class TelemetryFrame(ContractModel):
             raise ValueError("Telemetry actor IDs must be unique, including the ego")
         if any(event.other_actor_id == self.ego.actor_id for event in self.collisions or []):
             raise ValueError("An ego collision cannot reference the ego as the other actor")
+        if self.rule_checks is not None and len(set(self.rule_checks)) != len(self.rule_checks):
+            raise ValueError("rule_checks must not contain duplicate rule families")
         return self
 
 

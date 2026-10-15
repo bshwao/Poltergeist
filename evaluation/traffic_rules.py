@@ -67,6 +67,7 @@ def summarize_traffic_rules(
     active: dict[tuple[str, TrafficRule, str | None], int] = {}
     seen: dict[str, tuple[str, TrafficRule, str | None, str]] = {}
     observed_frames = 0
+    partially_observed = False
     speeding_observed_frames = 0
 
     for frame in validated:
@@ -74,7 +75,9 @@ def summarize_traffic_rules(
         reported: dict[tuple[str, TrafficRule, str | None], None] = {}
         fresh: dict[tuple[str, TrafficRule, str | None], None] = {}
         if frame.traffic_violations is not None:
-            observed_frames += 1
+            checked = set(TrafficRule) if frame.rule_checks is None else set(frame.rule_checks)
+            observed_frames += checked == set(TrafficRule)
+            partially_observed = partially_observed or bool(checked)
             for event in frame.traffic_violations:
                 replay = False
                 if event.event_id is not None:
@@ -87,6 +90,7 @@ def summarize_traffic_rules(
                         seen[event.event_id] = signature
                 if event.actor_id != frame.ego.actor_id:
                     continue
+                partially_observed = True
                 key = (event.actor_id, event.rule, event.source_id)
                 reported[key] = None
                 if not replay:
@@ -148,7 +152,11 @@ def summarize_traffic_rules(
                 fresh[key] = None
 
         for key in list(active):
-            if frame.traffic_violations is not None and key not in reported:
+            if (
+                frame.traffic_violations is not None
+                and (frame.rule_checks is None or key[1] in frame.rule_checks)
+                and key not in reported
+            ):
                 del active[key]
             elif speeding is False and key[1] == TrafficRule.SPEEDING and key not in reported:
                 del active[key]
@@ -168,7 +176,7 @@ def summarize_traffic_rules(
                 ))
 
     return TrafficRuleSummary(
-        count=len(episodes) if observed_frames or speeding_observed_frames else None,
+        count=len(episodes) if partially_observed or speeding_observed_frames else None,
         observed_frames=observed_frames,
         speeding_observed_frames=speeding_observed_frames,
         episodes=tuple(episodes),

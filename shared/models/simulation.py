@@ -7,8 +7,8 @@ from uuid import UUID, uuid4
 
 from pydantic import AwareDatetime, Field, StrictBool, model_validator
 
-from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt
-from .scenario import Scenario
+from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
+from .scenario import Scenario, Transform
 from .telemetry import SafetyMetrics
 
 
@@ -70,17 +70,31 @@ class ArtifactReference(ContractModel):
         return self
 
 
+class SimulationRuntime(ContractModel):
+    adapter: Literal["carla", "test"]
+    server_version: NonEmptyString | None = None
+    client_version: NonEmptyString | None = None
+    map_name: NonEmptyString
+    fixed_delta_seconds: PositiveFloat
+    seed: Seed
+    resolved_spawns: dict[NonEmptyString, Transform] = Field(default_factory=dict)
+    sensor_samples_count: NonNegativeInt = 0
+
+
 class SimulationResult(ContractModel):
     simulation: Simulation
     metrics: SafetyMetrics
     telemetry_frames: NonNegativeInt
     measured_duration_s: NonNegativeFloat
     artifacts: list[ArtifactReference] = Field(default_factory=list)
+    runtime: SimulationRuntime | None = None
 
     @model_validator(mode="after")
     def validate_terminal_run(self) -> Self:
         if self.simulation.status in {SimulationStatus.QUEUED, SimulationStatus.RUNNING}:
             raise ValueError("Results may only reference a terminal simulation")
+        if self.runtime is not None and self.runtime.adapter != self.simulation.mode:
+            raise ValueError("Runtime adapter must match the simulation mode")
         return self
 
 
