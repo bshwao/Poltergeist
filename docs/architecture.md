@@ -25,7 +25,7 @@ compliance. See [methodology](methodology.md).
 The section 4 `SimulationRunner` owns one synchronous run: scenario snapshot,
 fixed-step event dispatch, driving controls, cooperative cancellation, sensor
 finalization, resource cleanup, and evaluation. It returns a terminal result plus
-the finalized telemetry in memory. Frame/progress/raw sensor callbacks let future
+the finalized telemetry in memory. Frame/progress/raw sensor callbacks let
 orchestration and storage subscribe without putting database work in adapters.
 Callback failures fail the run and still execute cleanup.
 
@@ -43,6 +43,61 @@ baseline has no perception pipeline or complete route/intersection planner.
 Runtime metadata records versions, actual map, seed, step, and resolved spawns.
 See [simulation usage and limitations](simulation.md).
 
-The database, artifact persistence, worker queue, and feature routes remain for
-their respective [implementation sections](implementation-plan.md). The runner is
-currently invoked from Python or its local CLI; `/health` does not start it.
+Section 5 adds SQLAlchemy models, packaged versioned SQLite migrations, and
+transactional repositories. Saved scenarios are editable with revision checks;
+runs retain independent immutable recipes and terminal results. Full contract
+JSON preserves unknown observations, execution mode, settings, and runtime
+provenance alongside indexed lifecycle fields. Failure reports reference scored
+terminal runs and require matching recipes/severity and positive failure evidence.
+
+`PersistenceService` coordinates queued records, finalized `RunOutput`, and the
+`ArtifactStore`. It publishes finalized telemetry and optional streamed raw
+capture files before completing the database record with a revision check.
+Exceptions remove only this attempt's confirmed unreferenced files; uncertain
+commit outcomes retain them. Database/filesystem commit is not atomic, and
+abrupt termination may leave staging or orphaned files for manual reconciliation.
+References use generated kind/run/artifact paths with containment/link checks.
+See [persistence usage and limits](persistence.md).
+
+Initialization is explicit through `PersistenceService.initialize()` or
+`python -m backend.persistence init`, and lazy on the first persistence-backed
+API request. Constructing services and bootstrapping the API do not connect or
+create directories. `/health` and pure scenario template/validation/generation
+routes leave persistence untouched.
+
+Section 6 introduces `ApiRuntime` as the lazy owner of persistence and the
+`SimulationService` worker. Scenario CRUD, failure records/reproduction flags,
+results/artifacts, and analytics use short persistence operations. Queue,
+launch/list/detail/progress/cancellation routes also start the worker and recover
+its jobs. API launch DTOs validate exactly one saved scenario UUID or inline
+recipe, explicit CARLA/test mode, and serializable execution/evaluation options.
+The HTTP interface launches baseline agents only; Python still permits injected
+controllers. New API DTOs are part of the generated schema and TypeScript types.
+
+`SimulationService` owns one FIFO thread and a bounded waiting queue. A file-based
+OS lease prevents simultaneous workers against the same SQLite file; in-memory
+databases use object ownership. Job configuration, cancellation requests, and an
+execution claim are durable. Claiming precedes runner construction/native setup.
+Unclaimed waiting jobs resume after restart, whereas interrupted claimed/running
+jobs become failed. Recovery only adopts worker-owned jobs. Ordinary run failures
+are saved and the queue continues; storage/revision failures stop new acceptance
+and expose a fatal queue error until restart.
+
+Running progress uses throttled short updates; simulation ticks and raw sensor
+writes do not hold database transactions open. SQLite write units reserve writer
+intent before reading data they will update; read-only scopes use read
+transactions. This avoids a deferred read-to-write lock upgrade racing with
+progress/cancellation. Finalization publishes artifacts and saves the terminal
+result before that result is exposed as finished. Artifact download routes accept
+indexes into owned results/manifests and validate their storage references.
+
+Application lifespan requests cooperative active cancellation and bounded worker
+shutdown (15 seconds by default), leaving waiting jobs for restart. A native call
+cannot be forcibly interrupted, and a blocked worker retains its database/lease
+until exit. These lifecycle controls do not recover partial in-memory telemetry
+or repair CARLA resources after abrupt process loss. See [API behavior](api.md).
+
+Analytics read the complete persisted history in one read transaction, separate
+test/CARLA modes, and preserve unknown metrics. Mean severity includes all scored
+terminal results, including known collisions from incomplete runs. The frontend
+remains its starter screen; search and dashboard features are later sections.

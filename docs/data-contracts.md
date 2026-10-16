@@ -13,8 +13,9 @@ import paths. Do not hand-edit the generated files.
   strings are rejected for physical values, counts, scores, and seeds.
 - Python models accept omitted fields with documented defaults. Serialized
   payloads include those defaults and explicit nulls; generated TypeScript types
-  describe that complete wire format. Future create/update request models can
-  define narrower input shapes.
+  describe that complete wire format. The API's create/update request models
+  accept narrower input shapes with defaults; consult `/openapi.json` for request
+  requirements.
 - UUIDs and timezone-aware ISO 8601 timestamps serialize as strings. New timestamps
   default to UTC. Invalid lifecycle timestamp ordering is rejected.
 - Validation is performed at construction/deserialization. When changing an
@@ -111,8 +112,12 @@ identifies the synthetic adapter. Status invariants are:
 Errors are only allowed on failed records. A `SimulationResult` references a
 terminal run and includes metrics, frame count, measured duration, and artifact
 references. Artifact paths are relative to configured storage, with absolute
-paths, parent traversal, and drive/URL prefixes rejected. These are references;
-file serving and storage containment checks belong to the storage/API sections.
+paths, parent traversal, and drive/URL prefixes rejected. `ArtifactStore` further
+requires generated kind/run/artifact UUID layouts, matching media types, existing
+files, and containment without symlink/junction traversal. API downloads select
+zero-based artifact indexes from finalized results and sample indexes from raw
+recording manifests. They do not accept caller-supplied filesystem paths. See
+[artifact storage](persistence.md#artifact-layout-and-failure-handling).
 
 Optional `SimulationResult.runtime` contains a `SimulationRuntime`: adapter,
 server/client versions when applicable, actual map name, fixed time step, seed,
@@ -124,9 +129,55 @@ not a recording or replay artifact. `telemetry_frames` includes the initial samp
 at elapsed time zero, and `measured_duration_s` describes the returned trace.
 Failed or cancelled runs retain collected metrics, but their noncollision
 severity is null even if the shorter window was fully observed. A known collision
-still scores 100. No artifact files are created automatically by section 4.
+still scores 100. The runner creates no artifact files itself; explicitly passing
+finalized output to `PersistenceService.persist_output()` stores telemetry and
+returns a new result with valid storage-owned references.
 
 `FailureReport` contains the simulation UUID, a scenario snapshot with its seed,
 failure kind, severity, summary, and reproduction outcome. `reproduced: null`
 means no reproduction result is available. The optimization section will define
-how repeated runs establish reproducibility.
+how repeated runs establish reproducibility. Persistence requires a terminal
+parent result with matching scenario/severity and positive evidence for the
+selected failure kind; it does not infer failure from an unknown metric.
+
+Database records retain complete JSON contracts, including explicit nulls,
+evaluation settings/coverage, test mode, runtime, and scenario snapshots.
+Repository wrappers `StoredScenario` and `StoredSimulation` add database revision
+and storage timestamps. HTTP responses expose generated `ScenarioRecord` and
+`SimulationRecord` DTOs containing those fields. Editing a saved scenario does
+not change existing run recipes. Run updates/completion use revision checks and terminal records are
+immutable. Raw recording manifests are storage format `raw-sensor-v1`, separate
+from the shared result schema; `recording` references denote raw samples, not
+encoded video or CARLA replay files. See [local persistence](persistence.md).
+
+## API contracts and job settings
+
+`shared.models.api` defines generated request/response DTOs without changing the
+domain models' serialized shape. `ScenarioUpdate` wraps a normalized recipe and
+positive integer `expected_revision`. `ScenarioGenerate` provides template,
+seed, fixed scalar parameters, optional numeric ranges, and a `sample` flag.
+Ranges require sampling. The scenario loader normalizes missing actor IDs and
+blueprints before validating references.
+
+`SimulationLaunch` requires exactly one of `scenario_id` or inline `scenario`.
+Mode defaults to `carla`; `test` must be requested explicitly. Its `options`
+(`SimulationOptions` in `shared.models.runtime`) and `evaluation_settings`
+(`EvaluationSettings`) are persisted with the job. Camera/LiDAR requests require
+CARLA mode. API jobs always use `baseline`; no uploaded code or arbitrary agent
+name is part of this request.
+
+`SimulationRecord.job` contains stored options/settings, a cancellation-request
+flag, and a one-based queue position or null. It is null for manually stored runs
+outside worker ownership. `SimulationProgress` returns lifecycle, revision,
+timestamps, error, cancellation state, and queue position. Progress is persisted
+at a throttled wall-clock interval and can lag the current tick. Cancellation is
+a request, so callers continue polling until a terminal status. `QueueStatus`
+exposes started/accepting/worker-alive flags, pending count, active UUID, and an
+optional fatal error. Durable execution claims are internal worker metadata.
+
+`TelemetryPage` contains `frames`, `total`, `offset`, and `limit` (1–1000). Pages
+refer to finalized stored traces. `ReproductionUpdate.reproduced` is explicitly
+true, false, or null; patching it does not perform a rerun. `AnalyticsSummary`
+contains separate `ModeAnalytics` groups with lifecycle/evidence counts and mean
+severity across all scored terminal results. Missing scores stay null; observed
+metric counts can include partial lower bounds. See [API usage](api.md).

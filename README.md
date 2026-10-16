@@ -2,15 +2,22 @@
 
 CARLA-based driving-safety simulation and failure-discovery platform.
 
-Sections 1–4 of 10 are implemented: shared models, configuration, API bootstrap,
+Sections 1–6 of 10 provide shared models, configuration, API bootstrap,
 frontend build/types, a scenario engine with seeded generation, and safety
 evaluation with observation coverage and severity scoring. A synchronous runner
 now connects the CARLA adapter or a deterministic synthetic test adapter to
 baseline/custom agents, timed events, telemetry, cancellation, and cleanup.
-Persistence, feature APIs, optimization, and dashboard features remain planned.
+Local SQLite persistence now stores scenarios, runs, failures, finalized telemetry,
+and optional raw sensor captures. Feature APIs now expose saved scenarios, a
+durable single-worker simulation queue, progress/cancellation, results and artifact
+downloads, failures, and analytics. Optimization and dashboard features remain
+planned.
 See [the implementation plan](docs/implementation-plan.md),
 [scenario engine usage](docs/scenarios.md), [running simulations](docs/simulation.md),
-and [evaluation methodology](docs/methodology.md). Real CARLA execution has not yet
+and [local persistence](docs/persistence.md). Use the
+[API walkthrough](docs/api.md#generate-save-launch-and-read-a-test-run) to launch
+a synthetic run through the backend. See [evaluation methodology](docs/methodology.md)
+for scoring assumptions. Real CARLA execution has not yet
 been validated; bundled spawn layouts still require a suitable map anchor.
 
 ## Project layout
@@ -19,7 +26,7 @@ been validated; bundled spawn layouts still require a suitable map anchor.
 - `scenarios/` defines, validates, and generates driving scenarios.
 - `evaluation/` calculates safety metrics from simulation telemetry.
 - `optimization/` searches for severe and reproducible failures.
-- `backend/` exposes the REST API and orchestration services.
+- `backend/` contains the REST API, SQLite repositories, artifact storage, and services.
 - `frontend/` contains the React dashboard.
 - `shared/models/` defines the Python data contracts used across the application.
 - `contracts/models.schema.json` and `frontend/src/types/generated.ts` are generated

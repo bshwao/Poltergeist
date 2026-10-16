@@ -4,21 +4,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol
 
-from pydantic import Field
-
 from shared.models import ActorState, ControlInput, Scenario, TelemetryFrame, Transform
-from shared.models.base import ContractModel, NonNegativeInt, PositiveFloat
-
-
-class SimulationOptions(ContractModel):
-    allow_map_reload: bool = False
-    sensor_timeout_s: PositiveFloat = 2.0
-    sensor_settle_s: PositiveFloat = 0.02
-    max_ticks: NonNegativeInt = Field(default=100_000, gt=0, strict=True)
-    camera: bool = False
-    lidar: bool = False
-    camera_width: NonNegativeInt = Field(default=640, gt=0, le=4096, strict=True)
-    camera_height: NonNegativeInt = Field(default=360, gt=0, le=4096, strict=True)
+from shared.models.runtime import SimulationOptions
 
 
 @dataclass(frozen=True)

@@ -27,8 +27,9 @@ class RunOutput:
 class SimulationRunner:
     """One run per instance; callbacks receive snapshots and cancellation is cooperative."""
 
-    def __init__(self, adapter: SimulationAdapter | None = None, *, options=None, evaluation_settings=None):
+    def __init__(self, adapter: SimulationAdapter | None = None, *, options=None, evaluation_settings=None, connection_settings=None):
         self.adapter = adapter
+        self.connection_settings = connection_settings
         self.options = SimulationOptions() if options is None else SimulationOptions.model_validate(options.model_dump())
         self.evaluation_settings = EvaluationSettings() if evaluation_settings is None else EvaluationSettings.model_validate(evaluation_settings.model_dump())
         self._cancel = Event()
@@ -103,7 +104,7 @@ class SimulationRunner:
                 adapter = TestSimulationAdapter(options=self.options)
             else:
                 from .carla_adapter import CarlaSimulationAdapter
-                adapter = CarlaSimulationAdapter(options=self.options, evaluation_settings=self.evaluation_settings)
+                adapter = CarlaSimulationAdapter(options=self.options, evaluation_settings=self.evaluation_settings, connection_settings=self.connection_settings)
         self.adapter = adapter
 
         def update(**changes):

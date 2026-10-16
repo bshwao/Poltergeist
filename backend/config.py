@@ -44,6 +44,9 @@ class Settings(BaseSettings):
         ]
     )
     storage_dir: Path = Path("storage")
+    simulation_queue_size: int = Field(default=100, ge=1, le=1000)
+    simulation_progress_interval_s: float = Field(default=0.25, gt=0, le=60, allow_inf_nan=False)
+    simulation_shutdown_timeout_s: float = Field(default=15.0, gt=0, le=60, allow_inf_nan=False)
 
     @field_validator("carla_host", "api_host")
     @classmethod

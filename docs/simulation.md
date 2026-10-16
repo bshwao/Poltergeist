@@ -3,8 +3,11 @@
 Section 4 provides a synchronous simulation runner with two adapters. CARLA mode
 uses an optional 0.9.16 client/server; test mode runs deterministic synthetic
 kinematics without either. Both return the same shared result and telemetry
-contracts. Database persistence, an API worker queue, recordings, and replay
-artifacts are later sections.
+contracts. Section 5 adds explicit [local persistence](persistence.md) for results,
+finalized telemetry, and optional raw sensor recordings. Section 6 adds an API
+worker queue for durable baseline-agent launches, progress/cancellation, and
+result/artifact access. See the [API walkthrough](api.md#generate-save-launch-and-read-a-test-run).
+Encoded video and replay generation remain later work.
 
 ## Run locally
 
@@ -55,6 +58,11 @@ must return before that request is processed. `KeyboardInterrupt` also cancels.
 Validation failures before setup raise an exception. Setup, execution, callback,
 finalization, and cleanup failures return a failed result with diagnostics and
 any trace collected so far. Cleanup is attempted after partial setup as well.
+To save a run, create its queued record through `PersistenceService`, pass that
+record's `simulation` to the runner, then persist the returned output with the
+expected database revision. The [persistence example](persistence.md#save-run-and-reload)
+also shows reloading its finalized trace. Execution does not hold a database
+transaction open.
 
 ## Timing and events
 
@@ -104,6 +112,12 @@ assert output.result.simulation.agent == "custom"
 
 Custom control mappings are validated against `ControlInput`. Agent/controller
 exceptions fail the run and still trigger cleanup.
+
+Custom agents are available through the Python runner only. API launch requests
+use the baseline agent and accept no code or custom controller selector. They
+persist `SimulationOptions` and `EvaluationSettings` with the queued recipe and
+run each job through a fresh runner. Options live in `shared.models.runtime` and
+remain re-exported from `simulator` and `simulator.protocols` for Python callers.
 
 ## CARLA execution
 
@@ -193,8 +207,15 @@ is `bgra8` with width/height; LiDAR is `float32_xyzi` with channels. The runner
 drains samples every frame and after finalization, even without a subscriber.
 It stores their count in runtime metadata and does not retain/encode their bytes
 or write videos, replay files, telemetry, or database records. Consumers that need
-capture persistence must handle it explicitly; storage integration is section 5.
+capture persistence can pass a storage capture writer's `write` method as
+`on_sensor`, then submit that writer with finalized output to the persistence
+service. See [capture persistence](persistence.md#capture-raw-sensor-samples).
 Test mode rejects optional capture requests because it has no sensor renderer.
+
+The API worker wires enabled captures to the storage writer automatically.
+Finalized results expose artifact indexes for downloading the raw manifest and
+individual sample files. Live frame streaming and encoded playback are not
+provided by these endpoints. See [artifact access](api.md#results-and-artifacts).
 
 ## Rule coverage, results, and limitations
 

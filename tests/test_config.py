@@ -25,6 +25,9 @@ def test_defaults_are_valid_and_paths_are_anchored():
     assert settings.carla_timeout == 10.0
     assert settings.api_host == "0.0.0.0"
     assert settings.api_port == 8000
+    assert settings.simulation_queue_size == 100
+    assert settings.simulation_progress_interval_s == 0.25
+    assert settings.simulation_shutdown_timeout_s == 15.0
     assert settings.cors_origins == [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -87,6 +90,12 @@ def test_paths_and_default_env_file_do_not_follow_working_directory(tmp_path, mo
         {"carla_port": 0},
         {"carla_port": 65536},
         {"api_port": -1},
+        {"simulation_queue_size": 0},
+        {"simulation_queue_size": 1001},
+        {"simulation_progress_interval_s": 0},
+        {"simulation_progress_interval_s": float("inf")},
+        {"simulation_shutdown_timeout_s": -1},
+        {"simulation_shutdown_timeout_s": float("nan")},
         {"carla_timeout": 0},
         {"carla_timeout": float("nan")},
         {"carla_timeout": float("inf")},

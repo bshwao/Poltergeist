@@ -10,9 +10,9 @@ that section's scope is complete, not that the whole application is functional.
 | 2 | Scenario loading, validation, parameter constraints, seeded generation, full starter templates | Complete |
 | 3 | Collision, clearance, TTC, braking, rule metrics, severity scoring | Complete |
 | 4 | CARLA world/actors/sensors, baseline agent, telemetry, lifecycle, cancellation, cleanup, test adapter | Complete |
-| 5 | Database models, migrations, scenario/run/failure persistence, artifact storage | Next |
-| 6 | Scenario APIs, single-worker simulation queue, progress/cancellation, results/failures/analytics | Planned |
-| 7 | Random/Optuna search, severity objectives, reproduction, failure minimization | Planned |
+| 5 | Database models, migrations, scenario/run/failure persistence, artifact storage | Complete |
+| 6 | Scenario APIs, single-worker simulation queue, progress/cancellation, results/failures/analytics | Complete |
+| 7 | Random/Optuna search, severity objectives, reproduction, failure minimization | Next |
 | 8 | Dashboard navigation, scenario forms, validation, launch controls | Planned |
 | 9 | Live status, telemetry/metrics charts, failure browsing, comparisons, available recording playback | Planned |
 | 10 | Experiment/report CLI, exports, Docker integration, end-to-end checks, setup completion | Planned |
@@ -114,25 +114,99 @@ hosting, and training a custom ML agent are separate extensions.
   CARLA mode. It emits result JSON or writes the requested result file. The API
   still exposes no simulation launch routes, and the dashboard is unchanged.
 
-## Resume with section 5
+## Section 5 handoff
 
-Implement database models, migrations, repositories/services, and artifact storage
-around the existing shared contracts. Persist normalized scenario snapshots,
-queued/terminal run records, runtime provenance, evaluation settings/coverage,
-and failure reports without losing explicit unknown values or execution mode.
-Use the configured database/storage paths and make initialization explicit.
+- `Database` explicitly initializes local SQLite with packaged transactional
+  migrations, foreign keys, and history/checksum/schema verification. Unsupported
+  engines, unversioned populated databases, and incompatible schemas are rejected.
+  Imports, service construction, API startup, and `/health` create no database or
+  artifact directories. Use `python -m backend.persistence init` to opt in.
+- `ScenarioRepository`, `SimulationRepository`, and `FailureRepository` use
+  caller-owned short transactions, validated full contract JSON, bounded stable
+  listing, and indexed lifecycle fields. Scenario edits/deletes and run updates
+  use expected revisions. Run snapshots/identity stay immutable; terminal results
+  cannot be replaced, and referenced scenarios cannot be deleted. Null metrics,
+  test mode, settings/coverage, and available runtime provenance round-trip.
+- `PersistenceService` creates queued records from recipes or saved-scenario IDs,
+  validates finalized runner timelines including completed execution windows,
+  publishes artifacts, and saves terminal output with a revision check. It can
+  reload the result and finalized telemetry with artifact integrity checks.
+  Repository completion alone has no filesystem context; use the service for
+  runner output. See [local persistence](persistence.md) for runnable examples.
+- `ArtifactStore` writes NDJSON telemetry and JSON reports under generated
+  kind/run/artifact UUID paths, with containment and symlink/junction checks.
+  `CaptureWriter.write` subscribes to `on_sensor`, streams raw bytes/metadata,
+  and publishes `raw-sensor-v1` manifests with hashes, native frame/time, dimensions
+  or channels, and encoding metadata. It creates no encoded video or replay.
+  Healthy completed/cancelled captures must match telemetry frame IDs and runtime
+  sample counts; failed captures are discarded while partial telemetry is saved.
+- Files publish before the revision-checked database completion. Exception cleanup
+  removes only this attempt's confirmed unreferenced artifacts and retains files
+  when commit state is uncertain. Process/power loss can leave staging or orphans;
+  there is no durable reconciliation journal or automatic garbage collection.
+  Filesystem and SQLite commits are not one atomic transaction.
+- Failure reports require a scored terminal parent, matching scenario/severity,
+  and positive evidence for their selected kind. Reproduction remains an explicit
+  true/false/unknown observation, with search/reproduction policy in section 7.
+  The synchronous runner remains independent of database ownership. No feature
+  API worker queue or dashboard changes were added; live CARLA remains unverified.
 
-Define storage-owned relative artifact paths and enforce containment when writing
-or reading files. Store finalized telemetry after sensor merging, and design raw
-capture persistence around the existing `on_sensor` boundary. Include format/
-encoding metadata and failure cleanup; do not label raw bytes as an encoded video
-or a replay. Connect stored references to `SimulationResult.artifacts` only after
-their files exist. Cover migrations, round trips, isolation, and interrupted writes.
+## Section 6 handoff
 
-Keep the synchronous runner independent of database ownership. Worker queue,
-feature API routes, and UI controls belong to later sections. Live CARLA map and
-sensor validation remains an integration task; do not replace it with synthetic
-success records or coerce unscored results to zero.
+- The FastAPI routes now provide pure template/validation/seeded generation,
+  revision-checked saved scenario CRUD, queued baseline-agent launches,
+  progress/cancellation, finalized results/telemetry/artifacts, evidence-backed
+  failure records/reproduction flags, and analytics. Routes are rooted at
+  `/scenarios`, `/simulations`, `/failures`, and `/analytics`, without `/api`.
+  See the [API walkthrough](api.md#generate-save-launch-and-read-a-test-run).
+- `ApiRuntime` lazily initializes persistence for saved-data features and starts
+  the worker for queue/lifecycle requests. Imports, app startup, `/health`, and
+  pure scenario endpoints remain free of database/storage/CARLA side effects.
+  Launch requires one saved UUID or inline recipe; mode defaults to CARLA and
+  never falls back to synthetic test execution. Options/settings use generated
+  shared DTOs and are durable. API jobs use baseline agents only.
+- `SimulationService` provides one FIFO worker, pending capacity excluding the
+  active run, throttled revision-checked progress, cooperative cancellation,
+  capture streaming, and finalized persistence. A nonblocking OS lease protects
+  each SQLite file; in-memory databases use object ownership. Shutdown requests
+  active cancellation and waits up to 15 seconds by default, preserving waiting
+  jobs. A blocked native call retains its database/lease until it exits.
+- Migration 2 adds durable job configuration, cancellation requests, FIFO order,
+  and execution claims. A claim is written before runner construction/native
+  setup. Restart resumes unclaimed waiting jobs, fails interrupted claimed/running
+  jobs, and does not adopt manually stored runs. Ordinary runner failures let the
+  queue continue; storage/revision failures expose a fatal queue error and stop
+  acceptance until restart after the underlying issue is resolved. Abrupt-loss
+  artifact/native cleanup limits remain as documented in section 5.
+- SQLite write transactions reserve writer intent before repository reads, while
+  explicit read-only scopes use read transactions. Simulation ticks and captures
+  stay outside those transactions. This handles progress/cancellation concurrency
+  without a deferred read-to-write lock upgrade deadlock; expected revisions
+  remain authoritative for stale writes.
+- Artifact access uses result-owned indexes and contained storage references;
+  raw sample downloads validate manifest/sample integrity. Telemetry responses
+  are paginated to 1000 frames but currently validate/read the full trace in
+  memory. Raw captures remain bytes/manifests rather than encoded playback.
+  Analytics scan all history, separate CARLA/test modes, include every scored
+  terminal result in mean severity, and retain unknown counts/scores. Reproduction
+  patches record explicit observations without executing a rerun.
+- Integrated tests, contract checks, the frontend build, and a full synthetic API
+  save/launch/read/download/reopen smoke check passed. The dashboard remains its
+  starter UI, and live CARLA and container execution remain unverified.
+
+## Resume with section 7
+
+Implement bounded random/Optuna search over scenario parameters, severity
+objectives that handle unscored runs, explicit repeated-run reproduction policy,
+and failure minimization. Reuse normalized scenario generation and durable worker
+launches; preserve recipe/seed/options/evaluation snapshots and mode distinctions.
+Keep one CARLA tick owner and avoid database transactions during execution.
+
+Search should explain its trial budget, cancellation, objective values, and
+reproduction evidence without converting unknown observations into successful
+safety outcomes. Store supported failure records through existing evidence
+checks. Define how an interrupted search resumes and how it relates to the
+worker's existing claimed-job interruption policy. UI remains sections 8–9.
 
 ## Verification
 
@@ -173,3 +247,28 @@ synthetic sudden-braking CLI run completed with 601 telemetry frames. Schema and
 frontend contract drift checks also passed. CARLA is not installed in the
 current Python 3.14 environment; real client/server execution, GPU behavior, map
 anchors, and sensor timing have not been verified.
+
+Section 5 validation: 842 Python tests passed with warnings treated as errors.
+Schema/frontend contract drift checks and the frontend production build passed.
+The persistence tests exercise SQLite initialization/migration rejection,
+transactions/revisions, immutable snapshots/results, failure evidence, contained
+artifact paths, raw capture integrity, finalized trace validation, and cleanup
+after interrupted writes. A Windows concurrent-directory resolution issue was
+fixed with strict ancestor checks; repeated shared/independent-store concurrency
+checks completed 480 artifact publications. The explicit initialization CLI
+succeeded in isolated storage. A full 30 second synthetic sudden-braking run
+persisted 601 telemetry frames and a failure report, then loaded both unchanged
+after reopening SQLite. Live CARLA and container integration remain unverified.
+
+Section 6 validation: 973 Python tests passed with warnings treated as errors.
+Python schema and generated TypeScript drift checks and the frontend production
+build passed. Tests cover scenario CRUD/generation, job ordering/capacity,
+cancellation/restart and durable claims, migration 1-to-2 upgrades, exclusive
+worker ownership, concurrent SQLite progress/cancellation writes, failure evidence
+and reproduction flags, analytics/unknowns, stored settings, artifact/sample
+access, and initialization boundaries. A full 30 second synthetic API smoke run
+generated and saved a recipe, launched test mode, polled completion, loaded the
+601-frame result, paged telemetry, downloaded all 601 NDJSON lines, saved a
+near-miss failure, and queried test-mode analytics. Closing and recreating the API
+against the same database reloaded the identical result and failure. Live CARLA
+and container integration remain unverified.

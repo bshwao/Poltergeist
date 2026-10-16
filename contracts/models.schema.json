@@ -186,6 +186,76 @@
       "title": "ActorType",
       "type": "string"
     },
+    "AnalyticsSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/ModeAnalytics"
+          },
+          "title": "Groups",
+          "type": "array"
+        }
+      },
+      "required": [
+        "groups"
+      ],
+      "title": "AnalyticsSummary",
+      "type": "object"
+    },
+    "ApiContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "analytics": {
+          "$ref": "#/$defs/AnalyticsSummary"
+        },
+        "queue_status": {
+          "$ref": "#/$defs/QueueStatus"
+        },
+        "reproduction_update": {
+          "$ref": "#/$defs/ReproductionUpdate"
+        },
+        "scenario_generate": {
+          "$ref": "#/$defs/ScenarioGenerate"
+        },
+        "scenario_record": {
+          "$ref": "#/$defs/ScenarioRecord"
+        },
+        "scenario_update": {
+          "$ref": "#/$defs/ScenarioUpdate"
+        },
+        "simulation_launch": {
+          "$ref": "#/$defs/SimulationLaunch"
+        },
+        "simulation_progress": {
+          "$ref": "#/$defs/SimulationProgress"
+        },
+        "simulation_record": {
+          "$ref": "#/$defs/SimulationRecord"
+        },
+        "telemetry_page": {
+          "$ref": "#/$defs/TelemetryPage"
+        },
+        "template": {
+          "$ref": "#/$defs/TemplateInfo"
+        }
+      },
+      "required": [
+        "scenario_record",
+        "scenario_update",
+        "scenario_generate",
+        "template",
+        "simulation_launch",
+        "simulation_record",
+        "simulation_progress",
+        "queue_status",
+        "telemetry_page",
+        "reproduction_update",
+        "analytics"
+      ],
+      "title": "ApiContracts",
+      "type": "object"
+    },
     "ArtifactReference": {
       "additionalProperties": false,
       "properties": {
@@ -633,6 +703,245 @@
       "title": "FailureReport",
       "type": "object"
     },
+    "JobInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "cancel_requested": {
+          "title": "Cancel Requested",
+          "type": "boolean"
+        },
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        },
+        "queue_position": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Queue Position"
+        }
+      },
+      "required": [
+        "cancel_requested",
+        "queue_position",
+        "options",
+        "evaluation_settings"
+      ],
+      "title": "JobInfo",
+      "type": "object"
+    },
+    "ModeAnalytics": {
+      "additionalProperties": false,
+      "properties": {
+        "collision_observed_runs": {
+          "minimum": 0,
+          "title": "Collision Observed Runs",
+          "type": "integer"
+        },
+        "collision_runs": {
+          "minimum": 0,
+          "title": "Collision Runs",
+          "type": "integer"
+        },
+        "failure_kinds": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Failure Kinds",
+          "type": "object"
+        },
+        "failure_reports": {
+          "minimum": 0,
+          "title": "Failure Reports",
+          "type": "integer"
+        },
+        "mean_severity": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Severity"
+        },
+        "mode": {
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "result_count": {
+          "minimum": 0,
+          "title": "Result Count",
+          "type": "integer"
+        },
+        "scored_runs": {
+          "minimum": 0,
+          "title": "Scored Runs",
+          "type": "integer"
+        },
+        "status_counts": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Status Counts",
+          "type": "object"
+        },
+        "total_runs": {
+          "minimum": 0,
+          "title": "Total Runs",
+          "type": "integer"
+        },
+        "traffic_observed_runs": {
+          "minimum": 0,
+          "title": "Traffic Observed Runs",
+          "type": "integer"
+        },
+        "traffic_violation_runs": {
+          "minimum": 0,
+          "title": "Traffic Violation Runs",
+          "type": "integer"
+        },
+        "unscored_results": {
+          "minimum": 0,
+          "title": "Unscored Results",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "mode",
+        "total_runs",
+        "status_counts",
+        "result_count",
+        "scored_runs",
+        "unscored_results",
+        "mean_severity",
+        "collision_runs",
+        "collision_observed_runs",
+        "traffic_violation_runs",
+        "traffic_observed_runs",
+        "failure_reports",
+        "failure_kinds"
+      ],
+      "title": "ModeAnalytics",
+      "type": "object"
+    },
+    "ParameterInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "title": "Default",
+          "type": "number"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "integer": {
+          "default": false,
+          "title": "Integer",
+          "type": "boolean"
+        },
+        "maximum": {
+          "title": "Maximum",
+          "type": "number"
+        },
+        "minimum": {
+          "title": "Minimum",
+          "type": "number"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "minimum",
+        "maximum",
+        "default",
+        "unit",
+        "description",
+        "integer"
+      ],
+      "title": "ParameterInfo",
+      "type": "object"
+    },
+    "QueueStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "accepting": {
+          "title": "Accepting",
+          "type": "boolean"
+        },
+        "active_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Active Id"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "pending": {
+          "minimum": 0,
+          "title": "Pending",
+          "type": "integer"
+        },
+        "started": {
+          "title": "Started",
+          "type": "boolean"
+        },
+        "worker_alive": {
+          "title": "Worker Alive",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "started",
+        "accepting",
+        "worker_alive",
+        "error",
+        "pending",
+        "active_id"
+      ],
+      "title": "QueueStatus",
+      "type": "object"
+    },
     "RelativeSpawn": {
       "additionalProperties": false,
       "description": "Spawn in an anchor actor's local frame: x forward, y right, z up.\n\nThe simulation adapter resolves this placement after spawning the anchor.\nThese coordinates do not imply the position lies on a drivable road.",
@@ -657,6 +966,27 @@
         "yaw_offset_deg"
       ],
       "title": "RelativeSpawn",
+      "type": "object"
+    },
+    "ReproductionUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "reproduced": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reproduced"
+        }
+      },
+      "required": [
+        "reproduced"
+      ],
+      "title": "ReproductionUpdate",
       "type": "object"
     },
     "Rotation": {
@@ -1002,6 +1332,115 @@
       "title": "Scenario",
       "type": "object"
     },
+    "ScenarioGenerate": {
+      "additionalProperties": false,
+      "properties": {
+        "parameters": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "ranges": {
+          "additionalProperties": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Ranges",
+          "type": "object"
+        },
+        "sample": {
+          "default": false,
+          "title": "Sample",
+          "type": "boolean"
+        },
+        "seed": {
+          "default": 0,
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "template": {
+          "$ref": "#/$defs/ScenarioTemplate"
+        }
+      },
+      "required": [
+        "template",
+        "seed",
+        "parameters",
+        "ranges",
+        "sample"
+      ],
+      "title": "ScenarioGenerate",
+      "type": "object"
+    },
+    "ScenarioRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "exclusiveMinimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "scenario",
+        "revision",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "ScenarioRecord",
+      "type": "object"
+    },
     "ScenarioTemplate": {
       "enum": [
         "intersection",
@@ -1011,6 +1450,25 @@
       ],
       "title": "ScenarioTemplate",
       "type": "string"
+    },
+    "ScenarioUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "exclusiveMinimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        }
+      },
+      "required": [
+        "scenario",
+        "expected_revision"
+      ],
+      "title": "ScenarioUpdate",
+      "type": "object"
     },
     "Simulation": {
       "additionalProperties": false,
@@ -1110,6 +1568,281 @@
         "error"
       ],
       "title": "Simulation",
+      "type": "object"
+    },
+    "SimulationLaunch": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        },
+        "scenario": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scenario"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scenario_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scenario Id"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "scenario",
+        "mode",
+        "options",
+        "evaluation_settings"
+      ],
+      "title": "SimulationLaunch",
+      "type": "object"
+    },
+    "SimulationOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "allow_map_reload": {
+          "default": false,
+          "title": "Allow Map Reload",
+          "type": "boolean"
+        },
+        "camera": {
+          "default": false,
+          "title": "Camera",
+          "type": "boolean"
+        },
+        "camera_height": {
+          "default": 360,
+          "exclusiveMinimum": 0,
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Camera Height",
+          "type": "integer"
+        },
+        "camera_width": {
+          "default": 640,
+          "exclusiveMinimum": 0,
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Camera Width",
+          "type": "integer"
+        },
+        "lidar": {
+          "default": false,
+          "title": "Lidar",
+          "type": "boolean"
+        },
+        "max_ticks": {
+          "default": 100000,
+          "exclusiveMinimum": 0,
+          "minimum": 0,
+          "title": "Max Ticks",
+          "type": "integer"
+        },
+        "sensor_settle_s": {
+          "default": 0.02,
+          "exclusiveMinimum": 0,
+          "title": "Sensor Settle S",
+          "type": "number"
+        },
+        "sensor_timeout_s": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Sensor Timeout S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "allow_map_reload",
+        "sensor_timeout_s",
+        "sensor_settle_s",
+        "max_ticks",
+        "camera",
+        "lidar",
+        "camera_width",
+        "camera_height"
+      ],
+      "title": "SimulationOptions",
+      "type": "object"
+    },
+    "SimulationProgress": {
+      "additionalProperties": false,
+      "properties": {
+        "cancel_requested": {
+          "title": "Cancel Requested",
+          "type": "boolean"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "progress": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Progress",
+          "type": "number"
+        },
+        "queue_position": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Queue Position"
+        },
+        "revision": {
+          "exclusiveMinimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Started At"
+        },
+        "status": {
+          "$ref": "#/$defs/SimulationStatus"
+        }
+      },
+      "required": [
+        "simulation_id",
+        "status",
+        "progress",
+        "revision",
+        "started_at",
+        "finished_at",
+        "cancel_requested",
+        "queue_position",
+        "error"
+      ],
+      "title": "SimulationProgress",
+      "type": "object"
+    },
+    "SimulationRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "job": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/JobInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SimulationResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "exclusiveMinimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "scenario_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scenario Id"
+        },
+        "simulation": {
+          "$ref": "#/$defs/Simulation"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "simulation",
+        "result",
+        "scenario_id",
+        "revision",
+        "created_at",
+        "updated_at",
+        "job"
+      ],
+      "title": "SimulationRecord",
       "type": "object"
     },
     "SimulationResult": {
@@ -1383,6 +2116,67 @@
       "title": "TelemetryFrame",
       "type": "object"
     },
+    "TelemetryPage": {
+      "additionalProperties": false,
+      "properties": {
+        "frames": {
+          "items": {
+            "$ref": "#/$defs/TelemetryFrame"
+          },
+          "title": "Frames",
+          "type": "array"
+        },
+        "limit": {
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "total": {
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "frames",
+        "total",
+        "offset",
+        "limit"
+      ],
+      "title": "TelemetryPage",
+      "type": "object"
+    },
+    "TemplateInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "parameters": {
+          "items": {
+            "$ref": "#/$defs/ParameterInfo"
+          },
+          "title": "Parameters",
+          "type": "array"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "template": {
+          "$ref": "#/$defs/ScenarioTemplate"
+        }
+      },
+      "required": [
+        "template",
+        "scenario",
+        "parameters"
+      ],
+      "title": "TemplateInfo",
+      "type": "object"
+    },
     "TrafficRule": {
       "enum": [
         "red_light",
@@ -1545,6 +2339,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "api": {
+      "$ref": "#/$defs/ApiContracts"
+    },
     "failure": {
       "$ref": "#/$defs/FailureReport"
     },
@@ -1570,7 +2367,8 @@
     "telemetry",
     "metrics",
     "result",
-    "failure"
+    "failure",
+    "api"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

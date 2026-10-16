@@ -2,6 +2,7 @@
 
 from .models import FailureReport, SafetyMetrics, Scenario, Simulation, SimulationResult, TelemetryFrame
 from .models.base import ContractModel
+from .models.api import ApiContracts
 
 
 class PoltergeistContracts(ContractModel):
@@ -11,3 +12,4 @@ class PoltergeistContracts(ContractModel):
     metrics: SafetyMetrics
     result: SimulationResult
     failure: FailureReport
+    api: ApiContracts

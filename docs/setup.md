@@ -59,11 +59,14 @@ Configuration does not create directories or connect to external services.
 | `CARLA_HOST` | `localhost` | Simulator hostname |
 | `CARLA_PORT` | `2000` | Simulator RPC port |
 | `CARLA_TIMEOUT` | `10` | Connection timeout, seconds |
-| `DATABASE_URL` | `sqlite:///./storage/database/poltergeist.db` | Future persistence connection |
+| `DATABASE_URL` | `sqlite:///./storage/database/poltergeist.db` | Local SQLite database; initialized by persistence features or the explicit CLI |
 | `STORAGE_DIR` | `storage` | Root for telemetry, recordings, and reports |
 | `API_HOST` | `0.0.0.0` | Address used by `python -m backend` |
 | `API_PORT` | `8000` | Port used by `python -m backend` |
 | `CORS_ORIGINS` | `["http://localhost:5173","http://127.0.0.1:5173"]` | JSON array of allowed browser origins |
+| `SIMULATION_QUEUE_SIZE` | `100` | Maximum waiting jobs, excluding the active job; 1–1000 |
+| `SIMULATION_PROGRESS_INTERVAL_S` | `0.25` | Minimum interval between persisted running progress updates; greater than 0, at most 60 seconds |
+| `SIMULATION_SHUTDOWN_TIMEOUT_S` | `15` | Cooperative worker shutdown wait; greater than 0, at most 60 seconds |
 | `VITE_API_URL` | `http://localhost:8000` | Frontend API base URL; configure in `frontend/.env` |
 
 Vite reads its own environment file in `frontend/`; it does not read root `.env`.
@@ -86,9 +89,14 @@ npm run dev
 
 API liveness: <http://localhost:8000/health>. Interactive API docs:
 <http://localhost:8000/docs>. The dashboard currently displays its starter screen.
-No CARLA server or database is required for the API starter, evaluation, or
-synthetic test runs. `/health` reports process liveness, not simulator/database
-readiness. The API does not yet expose simulation launch routes.
+No CARLA server or database is required for health, pure scenario generation,
+evaluation, or direct synthetic CLI runs. `/health` reports process liveness,
+not simulator/database readiness. Saved-data routes initialize persistence lazily;
+queue/launch/list/detail/progress/cancel routes also start and recover the single
+simulation worker. The [API walkthrough](api.md#generate-save-launch-and-read-a-test-run)
+shows how to generate and save a recipe, launch explicit `mode: "test"`, poll it,
+and download finalized telemetry. API mode defaults to `carla`; it never falls
+back silently to synthetic execution.
 
 Run a synthetic scenario from a separate terminal:
 
@@ -100,9 +108,32 @@ The command prints a result JSON document and needs neither CARLA nor a database
 It uses a deterministic virtual layout and approximate kinematics. It does not
 represent the real Town03 spawn-point geometry. `--scenario path/to/scenario.yaml`
 loads a saved scenario instead of a template; `--output path/to/result.json` writes
-the result to an explicit existing directory. Telemetry/raw sensor persistence is
-not included. See [running simulations](simulation.md) for Python callbacks and
-timing behavior.
+the result to an explicit existing directory. This simulator CLI does not persist
+telemetry or raw sensor data. See [running simulations](simulation.md) for Python
+callbacks and timing behavior.
+
+Initialize local persistence directly, if desired:
+
+```powershell
+.\.venv\Scripts\python.exe -m backend.persistence init
+```
+
+This opt-in command creates the configured SQLite database/artifact directories
+and applies versioned migrations. It supports plain local SQLite file URLs or
+`sqlite:///:memory:`; other database engines and URL query options are rejected.
+Imports, service construction, API startup, and `/health` do not initialize it.
+Feature routes initialize it when first needed; the explicit command is useful
+for checking configuration or using the Python service directly. Use
+`PersistenceService` to create a queued run, execute it with `SimulationRunner`,
+and save finalized output. See [local persistence](persistence.md) for a runnable
+synthetic example, raw capture integration, transactions, and recovery limits.
+
+Use one backend process per SQLite database. The queue owns an exclusive worker
+lease, persists launch options/evaluation settings, and restores unclaimed waiting
+jobs after restart. Interrupted claimed jobs become failed rather than rerun.
+Shutdown requests cooperative cancellation and waits for the configured timeout;
+a blocked native call can retain its lease until it returns. See
+[queue behavior](api.md#simulation-jobs) before running CARLA through the API.
 
 ## Verify
 
@@ -122,7 +153,13 @@ known 3D clearance/TTC cases, braking/stopping calculations, event deduplication
 observation coverage, and severity thresholds. Section 4 covers synthetic runs,
 event timing, cancellation/failures, callback isolation, CARLA adapter boundaries,
 resource restoration, spawning, bounded sensor synchronization, and map rule
-checks through fake CARLA objects. These checks do not validate a live server's
+checks through fake CARLA objects. Section 5 covers explicit initialization,
+migration history/schema checks, SQLite transactions and stale revisions,
+scenario/result/failure round trips, contained artifact paths, raw sample hashes,
+and persistence failure cleanup. Section 6 covers scenario/failure APIs, bounded
+FIFO scheduling, persisted progress, cancellation/restart, exclusive worker leases,
+artifact downloads, analytics with unknown values, and lazy initialization.
+These checks do not validate a live server's
 driving behavior or sensor delivery timing. See [scenario engine usage](scenarios.md),
 [simulation usage](simulation.md), and [evaluation methodology](methodology.md).
 
@@ -162,10 +199,13 @@ They have not been certified against Town03 roads/junctions, and strict runtime
 layout validation can reject them. Supply a suitable map anchor/layout and verify
 it on the actual server. `--camera` and `--lidar` enable optional raw captures in
 CARLA mode; test mode rejects them. Raw samples are available to Python callbacks,
-and the CLI result records their count; section 4 does not encode videos or save
-sensor data. See [live execution requirements](simulation.md#carla-execution).
+and the CLI result records their count. The persistence service can save those
+samples with a manifest; encoded video and replay generation remain later work.
+See [live execution requirements](simulation.md#carla-execution) and
+[capture persistence](persistence.md#capture-raw-sensor-samples).
 
 The Docker image installs the core API only. Compose pins the CARLA image to
 0.9.16 and points the backend at the `carla` service. GPU/runtime integration,
-storage volumes, and a worker that launches runs through the API remain later
-work. Container builds and real CARLA execution have not been validated.
+and storage volumes remain integration work for section 10. API queue code is
+available locally, but container builds and real CARLA execution have not been
+validated.
