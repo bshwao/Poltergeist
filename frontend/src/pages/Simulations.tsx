@@ -3,6 +3,7 @@ import { MetricsChart } from "../components/MetricsChart";
 import { SafetyMetrics } from "../components/SafetyMetrics";
 import { SimulationViewer } from "../components/SimulationViewer";
 import { FailureReportForm } from "../components/FailureReportForm";
+import { ReportDownloads } from "../components/ReportDownloads";
 import { isTerminal, useSimulation } from "../hooks/useSimulation";
 import { simulationLink } from "../navigation";
 import { api, ApiError } from "../services/api";
@@ -91,6 +92,7 @@ export function RunDetail({ id, active }: { id: string; active: boolean }) {
       <SafetyMetrics result={record.result} />
       <MetricsChart simulationId={id} active={active} maxSampleGapS={record.result.metrics.evaluation_settings?.max_sample_gap_s ?? (record.result.runtime?.fixed_delta_seconds ?? record.result.simulation.scenario.fixed_delta_seconds) * 1.5} />
       <SimulationViewer result={record.result} active={active} />
+      <ReportDownloads simulationId={id} />
       <FailureReportForm result={record.result} active={active} />
       <div className="result-links"><a className="button secondary" href="#failures">Browse failure reports</a><span className="field-hint">Reports retain their parent run, mode, settings, and reproduction observations.</span></div>
     </>}

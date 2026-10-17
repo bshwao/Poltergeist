@@ -4,7 +4,8 @@ The FastAPI application is exposed from `backend.main:app`. Run
 `python -m backend` from the repository root, or use `create_app(settings)` for
 tests and alternate configuration. Interactive docs are at `/docs`; the OpenAPI
 document is at `/openapi.json`. Routes below are rooted directly at the server
-URL, with no `/api` prefix.
+URL, with no `/api` prefix. The Docker dashboard proxy exposes those same routes
+under `/api` on its own origin.
 
 `GET /health` returns HTTP 200 with
 `{"status":"ok","service":"poltergeist"}`. It checks process liveness only.
@@ -212,6 +213,17 @@ execution budget. Each route starts the controller lazily. See
 [search, reproduction, and minimization](optimization.md) for request examples,
 unknown-score policy, repetition thresholds, budgets, and restart semantics.
 
+## Export finalized evidence
+
+`GET /reports/simulations/{id}?format=json|csv|html` downloads an owned finalized
+run report. JSON can opt into the finalized trace with `include_telemetry=true`;
+CSV and HTML reject that option. The immutable record, failure observations,
+mode, nullable metrics, coverage, settings, and runtime provenance are retained.
+The route uses persistence only and does not start a simulation worker. Unknown
+IDs return 404; runs without a terminal persisted result return 409. See
+[report schemas, formats, and CLI](reports.md). [Experiment batches](experiments.md)
+submit through the existing simulation routes rather than creating a second worker.
+
 ## Errors and limits
 
 Errors use a JSON `detail` field. Validation errors from request parsing also
@@ -226,6 +238,7 @@ identify invalid fields. Common statuses are:
 | 503 | Worker/controller unavailable, missing/unsupported optional search dependency, persistence initialization/access failure, or invalid/unavailable stored artifact |
 
 List limits are 1–1000, with a nonnegative offset. This local API has no
-authentication or public-hosting configuration. The dashboard remains the
-starter UI; sections 8–9 will add its forms and result views. Live CARLA execution
-and container integration remain unverified.
+authentication or public-hosting configuration. The dashboard provides recipe
+forms, launches, history, results, failure evidence, comparisons, and exports.
+Search/reproduction/minimization remain available through their API. Live CARLA
+execution and container runtime integration remain unverified.

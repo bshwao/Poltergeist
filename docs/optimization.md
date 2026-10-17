@@ -4,7 +4,10 @@ Section 7 adds bounded experiments through `/optimizations`. One controller
 submits child runs through the existing single simulation worker; it never
 owns a second CARLA tick loop. Every child remains available through
 `/simulations/{id}` with its actual result, metrics, telemetry, and mode. The
-dashboard controls arrive in sections 8–9.
+dashboard can inspect those child runs and their failure evidence. Operations
+are submitted through this API; dedicated search controls remain an optional
+dashboard extension. The [experiment CLI](experiments.md) supports sequential
+recipe batches through the same worker.
 
 ## Run a search
 

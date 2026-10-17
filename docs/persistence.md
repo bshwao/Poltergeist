@@ -5,7 +5,9 @@ finalized telemetry, and optional raw sensor captures. It uses a local SQLite
 database and the configured artifact directory. The runner executes synchronously;
 section 6 wraps it in a durable single-worker queue and exposes saved data through
 feature APIs. Section 7 persists search/reproduction/minimization operations and
-their child-run journals. Dashboard controls remain later work. See the
+their child-run journals. The dashboard now provides saved recipes, launches,
+run results, and failure evidence; finalized exports also read this persistence.
+See the
 [API walkthrough](api.md#generate-save-launch-and-read-a-test-run).
 
 ## Initialize explicitly
@@ -177,8 +179,9 @@ Telemetry contains one full `TelemetryFrame` JSON object per line. Raw sample
 files sit beside their manifest. `ArtifactStore.write_report(run_id, payload)`
 supports a JSON-object export separately from database failure reports. The API
 serves indexed result-owned artifacts and indexed recording samples with
-containment checks. Encoded playback, replay generation, and report-export
-workflows remain later work.
+containment checks. [Report exports](reports.md) generate finalized snapshots on
+demand without changing stored results or creating another worker. Encoded
+playback and reconstructed replay remain optional future extensions.
 
 The store validates kind/layout/media type, canonical IDs, run ownership, and
 filesystem containment on access. Absolute paths, traversal, drive/URL prefixes,

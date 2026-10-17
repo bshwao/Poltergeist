@@ -75,12 +75,14 @@ Configuration does not create directories or connect to external services.
 | `SIMULATION_QUEUE_SIZE` | `100` | Maximum waiting simulations and, separately, optimization operations, excluding each active item; 1–1000 |
 | `SIMULATION_PROGRESS_INTERVAL_S` | `0.25` | Minimum interval between persisted running progress updates; greater than 0, at most 60 seconds |
 | `SIMULATION_SHUTDOWN_TIMEOUT_S` | `15` | Bounded wait for each controller/worker shutdown; greater than 0, at most 60 seconds |
-| `VITE_API_URL` | `http://localhost:8000` | Frontend API base URL; configure in `frontend/.env` |
+| `VITE_API_URL` | `http://localhost:8000` | Frontend HTTP(S) API base or root-relative proxy path such as `/api`; configure in `frontend/.env` |
 
 Vite reads its own environment file in `frontend/`; it does not read root `.env`.
 If Vite selects a different port, add that exact origin to `CORS_ORIGINS`.
 `STORAGE_DIR` and `DATABASE_URL` are independent settings: changing the storage
 root does not rewrite an explicitly configured database URL.
+Docker builds the dashboard with `/api`, forwarded by nginx to the API on the
+same origin. An existing build must be rebuilt after changing `VITE_API_URL`.
 
 ## Run
 
@@ -107,6 +109,8 @@ LiDAR sample inspection. Simulations provides saved history and mode/status
 filters; Failures provides evidence details, manual reproduction flags, and
 two-report comparisons. Overview loads mode-separated historical analytics on
 request. See [dashboard usage](dashboard.md).
+Final results also provide JSON, CSV, and HTML report downloads, with finalized
+telemetry optionally included in JSON. See [report exports](reports.md).
 No CARLA server or database is required for health, pure scenario generation,
 evaluation, or direct synthetic CLI runs. `/health` reports process liveness,
 not simulator/database readiness. Saved-data routes initialize persistence lazily;
@@ -146,6 +150,29 @@ for checking configuration or using the Python service directly. Use
 `PersistenceService` to create a queued run, execute it with `SimulationRunner`,
 and save finalized output. See [local persistence](persistence.md) for a runnable
 synthetic example, raw capture integration, transactions, and recovery limits.
+
+## Experiment batches and reports
+
+With the API running, submit repeatable batches through its existing worker:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.run_experiment --template pedestrian_crossing --mode test --count 2 --seed 1 --output experiment.json
+.\.venv\Scripts\python.exe -m scripts.export_report --simulation-id <RUN_UUID> --format json --include-telemetry --output report.json
+```
+
+Replace `<RUN_UUID>` with a confirmed run ID in the receipt or dashboard. Output
+directories must exist; existing files are preserved unless `--force` is given.
+The experiment command requires an explicit mode and records immutable recipes,
+settings, accepted IDs, terminal results, coverage, and runtime provenance. It
+does not create another worker. Failed/cancelled runs and interrupted/uncertain
+submissions remain explicit in the receipt. A wait timeout leaves accepted jobs
+running; Ctrl+C requests cooperative cancellation of the invocation's confirmed
+active job. See [experiment usage](experiments.md) for deadlines and recovery.
+
+Installing the package also creates `poltergeist-experiment` and
+`poltergeist-report` commands. The module commands work from the checkout. If
+upgrading an existing editable install, rerun
+`.\.venv\Scripts\python.exe -m pip install --no-deps -e .` to register new entry points.
 
 Use one backend process per SQLite database. The queue owns an exclusive worker
 lease, persists launch options/evaluation settings, and restores unclaimed waiting
@@ -191,9 +218,10 @@ Section 9 adds run history/deep links, serial progress polling and cancellation
 races, paged telemetry/unknown metrics, raw camera and LiDAR integrity/decoding,
 request cancellation, failure comparisons, manual flags, and mode-separated
 analytics. They need no browser or running backend. Browser interaction and
-responsive layout require separate checks. Section 9 browser automation could
-not initialize because its kernel assets path was unavailable, so no new visual
-verification is claimed. Final automated verification is recorded in the
+responsive layout require separate checks. Section 10 adds report/service/API/CLI,
+atomic output and transport handling, container configuration, packaging, and a
+real synthetic worker/API/export/storage-reopen integration check. Final
+automated and browser verification is recorded in the
 [implementation handoff](implementation-plan.md#verification).
 These checks do not validate a live server's
 driving behavior or sensor delivery timing. See [scenario engine usage](scenarios.md),
@@ -242,8 +270,11 @@ later work. No live CARLA capture has been verified.
 See [live execution requirements](simulation.md#carla-execution) and
 [capture persistence](persistence.md#capture-raw-sensor-samples).
 
-The Docker image installs the core API only. Compose pins the CARLA image to
-0.9.16 and points the backend at the `carla` service. GPU/runtime integration,
-and storage volumes remain integration work for section 10. API queue code is
-available locally, but container builds and real CARLA execution have not been
-validated.
+The default Docker Compose stack starts the core API and a built dashboard with
+a same-origin nginx proxy. A named volume retains the SQLite database and owned
+artifacts across container recreation. It does not start CARLA automatically.
+The optional `carla` profile pins the server to 0.9.16; connecting to it also
+requires a backend image built with the simulation extra. See [Docker setup](docker.md)
+for exact commands, configuration, health checks, persistence, and prerequisites.
+Run one API process per database/server. Compose configuration is tested, while
+actual image builds, GPU integration, and live CARLA remain environment checks.

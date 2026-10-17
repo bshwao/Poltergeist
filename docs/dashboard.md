@@ -222,6 +222,16 @@ compatibility notes; changed scoring settings are listed. Even compatible
 results describe two individual observations, with no inferred risk reduction.
 Comparison selections remain available while browsing the current page session.
 
+## Export finalized evidence
+
+In a selected finalized run, **Export this run** downloads a JSON report, CSV
+summary, or printable HTML report. All formats preserve the actual mode,
+recipe, metrics, coverage, settings, runtime, and failure observations. Check
+**Include finalized telemetry in the JSON report** only when you need the full
+trace; it can substantially increase download size. Raw sensor samples remain
+separate artifact downloads. Exporting does not rerun the scenario.
+See [report formats and CLI](reports.md).
+
 ## Read historical analytics
 
 On **Overview**, select **Load analytics** or **Refresh analytics** for a timestamped
@@ -267,7 +277,7 @@ bounded telemetry pagination, unknown-preserving metrics, raw sample integrity
 and decoding, lazy loading and aborts, and evidence comparisons. The build also
 type-checks React components. Final section 9 verification counts are recorded in
 the [implementation handoff](implementation-plan.md#verification). Browser
-interaction and responsive layout require a separate visual check. Browser
-automation could not initialize for section 9 because its kernel assets path was
-unavailable; no new visual verification is claimed. The earlier section 8A
-desktop/mobile checks do not validate these new views.
+interaction and responsive layout require a separate visual check.
+Section 9's browser check was blocked by unavailable browser tooling; section 10
+restored browser access and records its desktop/mobile checks and limits
+in the implementation handoff.

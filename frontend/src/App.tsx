@@ -20,6 +20,8 @@ export default function App() {
   const main = useRef<HTMLElement>(null);
   const workspace = useWorkspace();
 
+  useEffect(() => { document.title = `Poltergeist · ${pageLabels[page]}`; }, [page]);
+
   useEffect(() => {
     function navigate() {
       const next = currentRoute();

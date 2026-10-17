@@ -15,7 +15,8 @@ const deferred = () => { let resolve; const promise = new Promise(yes => { resol
 const text = node => typeof node === "string" || typeof node === "number" ? String(node) : (node?.children ?? []).map(text).join("");
 
 async function setup(t, hash = "#scenarios") {
-  const oldWindow = globalThis.window, oldFetch = globalThis.fetch;
+  const oldWindow = globalThis.window, oldFetch = globalThis.fetch, oldDocument = globalThis.document;
+  globalThis.document = { title: "" };
   const events = new Map();
   globalThis.window = { location: { hash }, setTimeout, clearTimeout, scrollTo() {},
     addEventListener: (name, handler) => events.set(name, handler), removeEventListener: name => events.delete(name) };
@@ -25,7 +26,7 @@ async function setup(t, hash = "#scenarios") {
     throw new Error(`Unexpected initial API call ${url}`);
   };
   let view;
-  t.after(() => { act(() => view?.unmount()); if (oldWindow === undefined) delete globalThis.window; else globalThis.window = oldWindow; globalThis.fetch = oldFetch; });
+  t.after(() => { act(() => view?.unmount()); if (oldWindow === undefined) delete globalThis.window; else globalThis.window = oldWindow; if (oldDocument === undefined) delete globalThis.document; else globalThis.document = oldDocument; globalThis.fetch = oldFetch; });
   await act(async () => { view = TestRenderer.create(React.createElement(App)); });
   return { view, async navigate(next) { await act(async () => { window.location.hash = next; events.get("hashchange")(); }); } };
 }
@@ -47,6 +48,7 @@ test("dashboard navigation retains unsaved JSON and lazily opens run and failure
   assert.equal(failureReads, 0);
   await app.navigate("#failures");
   assert.equal(failureReads, 1);
+  assert.equal(document.title, "Poltergeist · Failures");
   const navigation = app.view.root.findByProps({ "aria-label": "Main navigation" });
   assert.equal(navigation.findAllByType("a").filter(node => node.props["aria-current"] === "page")[0].props.href, "#failures");
   await app.navigate("#overview");

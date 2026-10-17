@@ -15,7 +15,7 @@ that section's scope is complete, not that the whole application is functional.
 | 7 | Random/Optuna search, severity objectives, reproduction, failure minimization | Complete |
 | 8 | Dashboard navigation, scenario forms, validation, launch controls | Complete |
 | 9 | Live status, telemetry/metrics charts, failure browsing, comparisons, available raw capture inspection | Complete |
-| 10 | Experiment/report CLI, exports, Docker integration, end-to-end checks, setup completion | Next |
+| 10 | Experiment/report CLI, exports, Docker integration, end-to-end checks, setup completion | Complete |
 
 Target: a local application with one simulation worker. Authentication, public
 hosting, and training a custom ML agent are separate extensions.
@@ -335,14 +335,43 @@ hosting, and training a custom ML agent are separate extensions.
   controls. Live CARLA and browser visual checks remain unverified. See
   [dashboard usage](dashboard.md) for the full flow and limitations.
 
-## Resume with section 10
+## Section 10 handoff
 
-Implement the experiment/report CLI and exports, complete Docker runtime/storage
-integration, run end-to-end checks, and finalize setup instructions. Keep
-synthetic execution explicit and retain observation/settings provenance in
-exports. Verify live CARLA map placement, sensors, GPU/runtime behavior, and
-browser layouts in environments that support them before claiming those checks.
-Search UI controls and encoded/reconstructed replay remain optional extensions.
+- `scripts.run_experiment` submits explicitly selected CARLA/test batches through
+  the existing API worker. All recipe/seed/settings inputs are validated before
+  execution, runs submit sequentially, and receipts retain accepted IDs,
+  terminal results, partial/unknown metrics, coverage, and provenance. Request
+  and batch deadlines, uncertain acceptance, Ctrl+C cancellation, nonzero exit
+  codes, and atomic non-clobber output are explicit. It creates no second worker.
+- `/reports/simulations/{id}` reads finalized persistence without starting the
+  worker and exports JSON, CSV, or printable HTML. The full immutable record and
+  failure observations retain nulls, settings, coverage, and runtime. Finalized
+  telemetry is JSON-only and opt-in. CSV uses lossless JSON Pointer/value cells;
+  user text is protected from spreadsheet formula execution. HTML escapes user
+  fields and has restrictive content headers. `scripts.export_report` streams
+  complete downloads to atomic output files without replacing existing files
+  unless `--force` is selected. Both CLIs close HTTP error responses explicitly.
+- Result pages expose all three report downloads. The API client also accepts
+  safe root-relative proxy prefixes such as `/api`. Page titles follow navigation.
+  A real mobile check found and fixed overflow from absolute hidden table labels;
+  scroll containers now own those positions and comparison IDs wrap.
+- The default Docker stack contains a runtime-only locked API image, built
+  dashboard/nginx same-origin proxy, one backend process, health checks, graceful
+  shutdown, and a durable database/artifact volume. CARLA/GPU is an explicit
+  optional profile and client-image build option. Runtime dependency pins are in
+  `requirements-core.lock`. Configuration does not require a local `.env` file.
+- `poltergeist-experiment` and `poltergeist-report` console entry points are
+  packaged, and `make check` includes frontend tests. README/setup/API/architecture
+  and [experiment](experiments.md), [report](reports.md), [Docker](docker.md), and
+  [dashboard](dashboard.md) guides describe the completed local workflow.
+
+All ten code sections are implemented. The local synthetic workflow is verified;
+live CARLA map placement, sensor delivery, GPU execution, and actual container
+build/runtime still require a suitable external environment. Docker Desktop's
+engine pipe was missing and its official start command failed because the launcher
+registry key was absent; no system installation or WSL changes were attempted.
+Dedicated search UI controls and encoded/reconstructed replay remain optional
+extensions, with search/reproduction/minimization already available through APIs.
 
 ## Verification
 
@@ -468,3 +497,29 @@ sample download, and SHA-256 checks; these were not live CARLA captures.
 Browser automation failed to initialize because its kernel assets path was
 unavailable; no section 9 browser or visual verification is claimed. Live CARLA
 and container integration remain unverified.
+
+Section 10 validation: all 1,287 Python tests passed with warnings treated as
+errors, and all 197 frontend tests passed. Contract drift checks, TypeScript
+compilation/production build, dependency consistency, wheel packaging, installed
+console entry-point help, Compose default/CARLA profile parsing, and Git whitespace
+checks passed. Full-suite checking caught unclosed HTTPError wrappers in both
+new CLIs; production cleanup and garbage-collection regressions now pass.
+
+A real synthetic worker integration test verifies generate/save/launch/poll,
+positive failure evidence, all three reproduction states, exports/telemetry,
+immutable recipes after library edits, and identical evidence after reopening
+SQLite/artifacts without starting a worker to read reports. A real HTTP CLI batch
+completed two 601-frame runs with seeds 1/2 and recorded settings. JSON, CSV, and
+HTML files exported through the running API and retained null TTC, synthetic
+mode, settings, coverage, failures, and exact optional telemetry.
+
+Browser checks at 1280 × 900 and 390 × 844 covered generation, edited-name
+validation, saving, explicit synthetic launches, live-to-final result tracking,
+draft retention, failure creation/detail/manual unknown flags, two-report
+comparisons, mode-separated historical analytics, and telemetry pagination through
+frames 201–400. Mobile document
+width matched its viewport after the hidden-label fix. Browser console checks
+showed no errors. The browser download-event check timed out and reset its tool;
+no completed browser file transfer is claimed. Real API/CLI report transfers and
+their files were verified separately. Live CARLA and container builds/runtime
+remain unverified for the environment reasons above.

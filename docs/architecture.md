@@ -126,5 +126,16 @@ creates no new trials until resume. Shutdown interrupts operations before native
 worker shutdown; durable user cancellation propagates to linked unfinished runs.
 See [optimization policies and API](optimization.md).
 
-The frontend remains its starter screen; sections 8–9 add dashboard controls and
-result views. Live CARLA and container execution remain unverified.
+The React dashboard now provides recipe generation/validation, saved scenarios,
+explicit execution modes and settings, run history, serial progress/cancellation,
+finalized metrics and paged telemetry, raw capture inspection, failure evidence,
+comparisons, and mode-separated analytics. Requests are cancelled when their
+owning page/run becomes inactive, and record revisions reject stale updates.
+
+The experiment CLI submits immutable batches through the same API worker. The
+report service reads finalized persistence without starting a worker and exports
+JSON, CSV, or HTML with settings, coverage, unknowns, and provenance intact.
+Both CLIs publish completed output atomically without silently replacing files.
+The container stack uses a single API process, durable SQLite/artifact volume,
+and nginx-hosted dashboard with a same-origin `/api` proxy. CARLA is optional.
+Live CARLA and container runtime execution remain unverified.

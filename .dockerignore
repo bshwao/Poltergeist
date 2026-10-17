@@ -1,9 +1,17 @@
 .git
 .venv
 .env
+.env.*
+.agents
+.codex
 **/__pycache__
 .pytest_cache
+.mypy_cache
 *.egg-info
+**/*.pyc
+build
+dist
+tests
 frontend/node_modules
 frontend/dist
 storage

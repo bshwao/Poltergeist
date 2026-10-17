@@ -375,7 +375,7 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .filter-bar .field { flex: 1 1 160px; min-width: 0; }
 .filter-bar .field label, .capture-controls .field label, .telemetry-inspector .field label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 8px; color: #555d72; }
 .filter-bar > .field-hint { flex: 2 1 270px; margin: 0 0 3px; }
-.table-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+.table-scroll { position: relative; overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
 .data-table, .coverage-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
 .data-table caption, .coverage-table caption { text-align: left; padding: 12px 24px; font-size: 11px; color: var(--muted); line-height: 1.6; }
 .data-table th, .data-table td { padding: 16px 20px; border-top: 1px solid var(--line); vertical-align: top; line-height: 1.6; }
@@ -448,6 +448,7 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .result-links { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 26px 0; }
 .result-links .field-hint { flex: 1 1 240px; }
 .failure-page > .panel > p, .failure-page > .panel > ul { margin: 20px 24px; font-size: 12px; }
+.failure-page > .panel > ul { overflow-wrap: anywhere; }
 .failure-detail > .mode-label { margin: 24px 24px 0; }
 .failure-detail > .detail-facts, .failure-detail > details, .failure-detail > .evidence-coverage { margin: 24px; }
 .failure-detail > .notice { margin: 20px 24px; }
@@ -474,6 +475,8 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .failure-report-form .notice { margin-inline: 0; }
 .failure-report-form textarea { resize: vertical; }
 .failure-report-form .form-section { font-size: 12px; }
+.report-downloads { margin-bottom: 24px; font-size: 12px; }
+.report-download-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 @media (max-width: 1150px) { .chart-grid { grid-template-columns: 1fr; } }
 @media (max-width: 900px) {
   .safety-grid, .detail-facts, .frame-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }

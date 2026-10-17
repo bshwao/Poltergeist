@@ -63,9 +63,16 @@ export class ApiError extends Error {
 }
 
 function normalizeBaseUrl(value: string): string {
+  const input = value.trim();
+  if (input.startsWith("/") && !input.startsWith("//")) {
+    if (!/^\/[A-Za-z0-9._~\/-]*$/.test(input) || input.split("/").some(segment => segment === "." || segment === "..")) {
+      throw new Error("VITE_API_URL must be an HTTP(S) URL or a root-relative API path without query, fragment, or traversal segments.");
+    }
+    return input.replace(/\/+$/, "") || "/";
+  }
   let parsed: URL;
   try {
-    parsed = new URL(value.trim());
+    parsed = new URL(input);
   } catch {
     throw new Error("VITE_API_URL must be an absolute HTTP or HTTPS URL.");
   }
@@ -137,7 +144,7 @@ function responseError(status: number, payload: unknown): ApiError {
 
 /** Create an isolated client for alternate API deployments and request tests. */
 export function createApiClient(baseUrl = API_BASE_URL) {
-  const base = normalizeBaseUrl(baseUrl);
+  const base = normalizeBaseUrl(baseUrl).replace(/\/+$/, "");
 
   async function request<T>(path: string, options: RequestOptions, valid: (value: unknown) => boolean, method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET", body?: unknown, expectedStatus?: number): Promise<T> {
     let serialized: string | undefined;
@@ -499,6 +506,10 @@ export function createApiClient(baseUrl = API_BASE_URL) {
       && (mode === undefined || (isObject(value) && Array.isArray(value.groups) && value.groups.length === 1 && value.groups[0].mode === mode)), "GET", undefined, 200),
     artifactUrl: (id: string, index: number) => `${base}${artifactPath(id, index)}`,
     sampleUrl: (id: string, artifactIndex: number, sampleIndex: number) => `${base}${samplePath(id, artifactIndex, sampleIndex)}`,
+    reportUrl: (id: string, format: "json" | "csv" | "html", includeTelemetry = false) => {
+      if (!["json", "csv", "html"].includes(format) || typeof includeTelemetry !== "boolean" || includeTelemetry && format !== "json") throw new ApiError("Choose a supported report format. Telemetry is available in JSON reports only.", 422);
+      return `${base}/reports/simulations/${checkedId(id)}?format=${format}${includeTelemetry ? "&include_telemetry=true" : ""}`;
+    },
     getCaptureManifest: async (id: string, index: number, options: RequestOptions = {}) => request<RawCaptureManifest>(artifactPath(id, index), options, value => isManifest(value, id), "GET", undefined, 200),
     getCaptureSample: async (id: string, artifactIndex: number, sampleIndex: number, options: RequestOptions = {}) => sampleBytes(samplePath(id, artifactIndex, sampleIndex), options),
   };
@@ -509,5 +520,5 @@ export const {
   health, listTemplates, generateScenario, validateScenario, listScenarios, getScenario,
   createScenario, updateScenario, deleteScenario, getSimulationQueue, launchSimulation,
   listSimulations, getSimulation, getSimulationProgress, getSimulationResult, cancelSimulation, getTelemetry,
-  listFailures, getFailure, createFailure, updateReproduction, getAnalytics, artifactUrl, sampleUrl, getCaptureManifest, getCaptureSample,
+  listFailures, getFailure, createFailure, updateReproduction, getAnalytics, artifactUrl, sampleUrl, reportUrl, getCaptureManifest, getCaptureSample,
 } = api;

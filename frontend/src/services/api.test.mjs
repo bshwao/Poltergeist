@@ -6,6 +6,24 @@ const { api, ApiError, API_BASE_URL, createApiClient } = await loadTypeScript(ne
 const originalFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = originalFetch; });
 
+test("same-origin API prefixes support reverse proxies without embedding a host", async () => {
+  const calls = [];
+  globalThis.fetch = async url => { calls.push(url); return jsonResponse(health); };
+  await createApiClient("/api/").health();
+  await createApiClient("/").health();
+  assert.deepEqual(calls, ["/api/health", "/health"]);
+  for (const invalid of ["//other.example/api", "/api/../secret", "/api/./health", "/api?key=value", "/api#fragment", "/api\\secret", "/%2e%2e", "/api path"]) assert.throws(() => createApiClient(invalid));
+});
+
+test("report links use owned IDs, validated formats, and an explicit JSON telemetry option", () => {
+  const client = createApiClient("/api");
+  const id = "00000000-0000-4000-8000-000000000001";
+  assert.equal(client.reportUrl(id, "json", true), `/api/reports/simulations/${id}?format=json&include_telemetry=true`);
+  assert.equal(client.reportUrl(id, "csv"), `/api/reports/simulations/${id}?format=csv`);
+  assert.equal(client.reportUrl(id, "html"), `/api/reports/simulations/${id}?format=html`);
+  for (const args of [["../../private", "json"], [id, "exe"], [id, "csv", true], [id, "html", "true"]]) assert.throws(() => client.reportUrl(...args), ApiError);
+});
+
 const recipe = {
   name: "Repeatable crossing", description: "A crossing pedestrian", map: "Town03", seed: 17, duration_s: 30,
   template: "pedestrian_crossing", fixed_delta_seconds: 0.05,
@@ -243,7 +261,7 @@ test("base URL validation supports deployment prefixes and rejects ambiguous or 
     return jsonResponse(health);
   };
   await client.health();
-  for (const invalid of ["/relative", "file:///tmp/private", "javascript:alert(1)", "https://user:secret@example.test", "https://example.test?x=1", "https://example.test#part"]) {
+  for (const invalid of ["relative/path", "file:///tmp/private", "javascript:alert(1)", "https://user:secret@example.test", "https://example.test?x=1", "https://example.test#part"]) {
     assert.throws(() => createApiClient(invalid), /VITE_API_URL/);
   }
 });

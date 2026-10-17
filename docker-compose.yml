@@ -1,18 +1,80 @@
 services:
-  carla:
-    image: carlasim/carla:0.9.16
-    command: ./CarlaUE4.sh -RenderOffScreen
-    ports:
-      - "2000:2000"
-      - "2001:2001"
-
   backend:
-    build: .
-    env_file:
-      - .env
+    build:
+      context: .
+      args:
+        INSTALL_SIMULATION: ${POLTERGEIST_INSTALL_SIMULATION:-false}
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 75s
     environment:
-      CARLA_HOST: carla
+      API_HOST: 0.0.0.0
+      API_PORT: "8000"
+      DATABASE_URL: sqlite:////data/database/poltergeist.db
+      STORAGE_DIR: /data
+      CARLA_HOST: ${POLTERGEIST_CARLA_HOST:-carla}
+      CARLA_PORT: ${POLTERGEIST_CARLA_PORT:-2000}
+      CARLA_TIMEOUT: ${POLTERGEIST_CARLA_TIMEOUT:-20}
+      SIMULATION_QUEUE_SIZE: ${SIMULATION_QUEUE_SIZE:-100}
+      SIMULATION_PROGRESS_INTERVAL_S: ${SIMULATION_PROGRESS_INTERVAL_S:-0.25}
+      SIMULATION_SHUTDOWN_TIMEOUT_S: "15"
+      CORS_ORIGINS: '[]'
+    volumes:
+      - poltergeist-data:/data
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
-      - "8000:8000"
+      - "127.0.0.1:${POLTERGEIST_API_PORT:-8000}:8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  dashboard:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    init: true
+    restart: unless-stopped
     depends_on:
-      - carla
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${POLTERGEIST_DASHBOARD_PORT:-8080}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  # A large GPU image is started only with --profile carla. Core startup never
+  # requires this service, its client package, or a reachable simulator.
+  carla:
+    profiles: [carla]
+    image: carlasim/carla:0.9.16
+    command: [bash, CarlaUE4.sh, -RenderOffScreen, -nosound, -carla-rpc-port=2000]
+    init: true
+    stop_grace_period: 30s
+    shm_size: 2gb
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "127.0.0.1:2000:2000"
+      - "127.0.0.1:2001:2001"
+
+volumes:
+  poltergeist-data:
