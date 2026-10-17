@@ -147,8 +147,23 @@ relative poses, ground and lane placement, heading, relevant built-in approach/
 junction/crossing geometry, and overlap using actual bounding boxes. Unspecified
 placements use seeded candidate ordering. Explicit invalid placements fail;
 they are not silently moved to a different road. The bundled spawn index 0 and
-relative layouts remain symbolic: no real Town03 anchor is certified by this
-implementation. Provide a map-valid configuration and validate it on the server.
+relative layouts remain symbolic and are not certified Town03 anchors. Provide
+a map-valid configuration and validate it on the server.
+
+For Town03, [the mapped intersection example](../scenarios/examples/town03_mapped_intersection.json)
+provides explicit driving-lane placements obtained from live map geometry. It is
+a custom recipe (`template: null`): its ego approach is 60 m instead of the
+generic template's 30 m, while speeds, crossing distance, event timing, and
+weather retain the defaults. This changes the encounter timing and does not
+guarantee a collision. Load its JSON in the dashboard scenario editor, or run:
+
+```text
+python -m simulator --scenario scenarios/examples/town03_mapped_intersection.json --mode carla
+```
+
+On October 17, 2026, this recipe completed a live CARLA 0.9.16 Town03 API run:
+30 simulated seconds, 601 telemetry frames, and 1,202 sensor samples. Other map
+versions, occupied spawn locations, and changed recipes require fresh validation.
 
 Native snapshots provide SI velocity/acceleration, true world bounding-box center
 and orientation including local offsets, and available speed limits converted
@@ -255,5 +270,6 @@ families are explicitly observed as inapplicable. Synthetic completeness and
 scores validate the software path, not real-world safety.
 
 Automated tests exercise the runner, synthetic adapter, and CARLA components with
-fake objects. A real CARLA client/server, GPU execution, map anchors, sensor timing,
-and driving behavior remain unverified in this environment.
+fake objects. The mapped intersection example above also has a completed live
+CARLA run. This limited check does not establish coverage of every template,
+map anchor, sensor configuration, or driving behavior.

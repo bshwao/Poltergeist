@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "name": "Town03 mapped intersection",
+  "template": null,
+  "description": "Custom Town03 junction recipe prepared from live CARLA lane geometry; preserves original speeds, weather and event timing. Intersection distances adjusted to mapped approaches.",
+  "map": "Town03",
+  "seed": 0,
+  "duration_s": 30.0,
+  "fixed_delta_seconds": 0.05,
+  "weather": {
+    "cloudiness": 0.0,
+    "precipitation": 0.0,
+    "wetness": 0.0,
+    "fog_density": 0.0,
+    "sun_altitude_deg": 70.0
+  },
+  "actors": [
+    {
+      "type": "ego_vehicle",
+      "id": "ego",
+      "blueprint": "vehicle.tesla.model3",
+      "spawn": {
+        "position": {
+          "x": 67.79815673828125,
+          "y": -206.30372619628906,
+          "z": 0.5
+        },
+        "rotation": {
+          "pitch_deg": 0.0,
+          "yaw_deg": -178.56044006347656,
+          "roll_deg": 0.0
+        }
+      },
+      "spawn_point_index": null,
+      "relative_spawn": null,
+      "speed_mps": 12.0
+    },
+    {
+      "type": "crossing_vehicle",
+      "id": "crossing",
+      "blueprint": "vehicle.audi.tt",
+      "spawn": {
+        "position": {
+          "x": 7.189033369474849,
+          "y": -182.8189616783126,
+          "z": 0.5
+        },
+        "rotation": {
+          "pitch_deg": 0.0,
+          "yaw_deg": -88.56044006347656,
+          "roll_deg": -0.0
+        }
+      },
+      "spawn_point_index": null,
+      "relative_spawn": null,
+      "speed_mps": 0.0
+    }
+  ],
+  "events": [
+    {
+      "action": "set_speed",
+      "actor_id": "crossing",
+      "trigger_time_s": 0.0,
+      "speed_mps": 10.0
+    }
+  ],
+  "location": "intersection",
+  "event": null,
+  "occlusion": false,
+  "parameters": {
+    "ego_speed_mps": 12.0,
+    "precipitation_pct": 0.0,
+    "fog_density_pct": 0.0,
+    "sun_altitude_deg": 70.0,
+    "crossing_speed_mps": 10.0,
+    "intersection_distance_m": 60.0,
+    "crossing_distance_m": 25.0,
+    "crossing_delay_s": 0.0
+  }
+}
