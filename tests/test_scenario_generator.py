@@ -25,6 +25,89 @@ def test_build_with_defaults_matches_full_template(template):
 
 
 @pytest.mark.parametrize("template", list(ScenarioTemplate))
+def test_duration_override_changes_only_duration_and_round_trips(template):
+    original = build_scenario(template)
+    generated = build_scenario(template, duration_s=90.0)
+
+    assert generated.model_dump() == original.model_dump() | {"duration_s": 90.0}
+    assert validate_scenario(generated) == generated
+    assert build_scenario(template, duration_s=None) == original
+    assert load_template(template) == original
+
+
+def test_sampled_and_batch_generation_preserve_selected_duration_and_seed():
+    generated = generate_scenario("sudden_braking", seed=7, duration_s=60.0)
+    defaults = generate_scenario("sudden_braking", seed=7)
+    batch = generate_scenarios("sudden_braking", 2, seed=7, duration_s=60.0)
+
+    assert generated.model_dump() == defaults.model_dump() | {"duration_s": 60.0}
+    assert batch[0] == generated
+    assert batch[1] == generate_scenario("sudden_braking", seed=8, duration_s=60.0)
+
+
+@pytest.mark.parametrize("duration", [0, -1, 0.01, True, "30", float("inf"), float("-inf"), float("nan")])
+@pytest.mark.parametrize("generator", [build_scenario, generate_scenario])
+def test_invalid_durations_are_rejected(generator, duration):
+    with pytest.raises(ScenarioGenerationError):
+        generator("intersection", duration_s=duration)
+
+
+@pytest.mark.parametrize("count", [0, 2])
+def test_batch_rejects_duration_even_when_empty(count):
+    with pytest.raises(ScenarioGenerationError):
+        generate_scenarios("intersection", count, duration_s=float("inf"))
+
+
+@pytest.mark.parametrize("generator", [build_scenario, generate_scenario])
+def test_selected_duration_must_end_after_configured_events(generator):
+    with pytest.raises(ScenarioGenerationError, match="less than duration_s"):
+        generator("sudden_braking", parameters={"brake_delay_s": 5.0}, duration_s=5.0)
+
+    scenario = generator("sudden_braking", parameters={"brake_delay_s": 5.0}, duration_s=5.05)
+    assert scenario.events[0].trigger_time_s == 5.0
+    assert scenario.duration_s == 5.05
+
+
+@pytest.mark.parametrize("template", list(ScenarioTemplate))
+@pytest.mark.parametrize("generator", [build_scenario, generate_scenario])
+def test_extended_delay_uses_selected_duration_before_validating_events(template, generator):
+    delay = "brake_delay_s" if template == ScenarioTemplate.SUDDEN_BRAKING else "crossing_delay_s"
+    scenario = generator(template, parameters={delay: 45}, duration_s=60)
+    assert scenario.duration_s == 60
+    assert scenario.events[0].trigger_time_s == 45
+    assert validate_scenario(scenario) == scenario
+    with pytest.raises(ScenarioGenerationError, match="less than duration_s"):
+        generator(template, parameters={delay: 45})
+
+
+@pytest.mark.parametrize("template", list(ScenarioTemplate))
+def test_duration_can_be_shorter_than_replaced_default_event(template):
+    delay = "brake_delay_s" if template == ScenarioTemplate.SUDDEN_BRAKING else "crossing_delay_s"
+    scenario = build_scenario(template, parameters={delay: 0}, duration_s=0.1)
+    assert scenario.duration_s == 0.1
+    assert scenario.events[0].trigger_time_s == 0
+
+
+@pytest.mark.parametrize("template,parameters", [
+    ("intersection", {"crossing_speed_mps": 55, "intersection_distance_m": 150, "crossing_distance_m": 100}),
+    ("pedestrian_crossing", {"pedestrian_speed_mps": 5, "pedestrian_distance_m": 100, "pedestrian_lateral_offset_m": 10}),
+    ("occluded_pedestrian", {"pedestrian_speed_mps": 5, "pedestrian_distance_m": 150, "occlusion_gap_m": 25}),
+    ("sudden_braking", {"lead_speed_mps": 55, "lead_distance_m": 150, "lead_deceleration_mps2": 15}),
+])
+def test_extended_fixed_parameters_are_materialized_and_saved_exactly(tmp_path, template, parameters):
+    parameters |= {"ego_speed_mps": 40, "fog_density_pct": 90, "sun_altitude_deg": -45}
+    scenario = build_scenario(template, parameters=parameters)
+    assert scenario.parameters.items() >= parameters.items()
+    assert actor_by_id(scenario, "ego").speed_mps == 40
+    assert scenario.weather.fog_density == 90
+    assert scenario.weather.sun_altitude_deg == -45
+    assert validate_scenario(scenario) == scenario
+    path = tmp_path / f"{template}.json"
+    save_scenario(scenario, path)
+    assert load_scenario(path) == scenario
+
+
+@pytest.mark.parametrize("template", list(ScenarioTemplate))
 def test_same_seed_reproduces_complete_payload(template):
     first = generate_scenario(template, seed=1729)
     second = generate_scenario(template, seed=1729)

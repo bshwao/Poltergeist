@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { api, ApiError } from "../services/api";
 import type { Scenario, ScenarioRecord, TemplateInfo } from "../types/generated";
-import { makeGenerateRequest, parameterDefaults, parseRecipeJson, readableName } from "./scenario-form";
+import { makeGenerateRequest, parameterDefaults, parseRecipeJson, readDurationField, readableName } from "./scenario-form";
 import { bindScenarioForm, reconcileSave, sameRecipe } from "./scenario-workspace";
 import { SavedScenarios } from "./SavedScenarios";
 import { LaunchPanel } from "./LaunchPanel";
@@ -31,6 +31,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(templates[0]?.template ?? null);
   const selected = templates.find((template) => template.template === selectedId);
   const [seed, setSeed] = useState("0");
+  const [duration, setDuration] = useState(String(templates[0]?.scenario.duration_s ?? 30));
   const [values, setValues] = useState<Record<string, string>>(() => parameterDefaults(templates[0]?.parameters ?? []));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [editor, setEditor] = useState("");
@@ -87,6 +88,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
     setSelectedId(template.template);
     setValues(parameterDefaults(template.parameters));
     setSeed("0");
+    setDuration(String(template.scenario.duration_s));
     setFieldErrors({});
     setEditor("");
     setEditorError(null);
@@ -117,6 +119,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
     const binding = bindScenarioForm(result, templates);
     setSelectedId(binding.selectedId);
     setSeed(binding.seed);
+    setDuration(binding.duration);
     setValues(binding.values);
     setFieldErrors({});
     setFormChanged(false);
@@ -131,7 +134,8 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
   }
 
   const parsedDraft = parseRecipeJson(editor);
-  const hasFormDraft = seed !== "0" || selected && selected.parameters.some((parameter) => values[parameter.name] !== String(parameter.default));
+  const hasFormDraft = seed !== "0" || selected && (duration !== String(selected.scenario.duration_s)
+    || selected.parameters.some((parameter) => values[parameter.name] !== String(parameter.default)));
   const dirty = formChanged || (savedRecord ? Boolean(parsedDraft.error) || !sameRecipe(parsedDraft.recipe, savedRecord.scenario) : Boolean(editor.trim()) || Boolean(hasFormDraft));
   const ready = recipe !== null && recipeStatus === "validated" && !formChanged && busy === null && !editorError;
 
@@ -189,7 +193,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
     event.preventDefault();
     if (!selected) return;
     invalidate();
-    const result = makeGenerateRequest(selected, seed, values);
+    const result = makeGenerateRequest(selected, seed, values, duration);
     if (result.errors) {
       setFieldErrors(result.errors);
       requestAnimationFrame(() => firstInvalid.current?.focus());
@@ -212,7 +216,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
       const errors: Record<string, string> = {};
       for (const issue of failure.issues) {
         const name = issue.path.replace(/^parameters\./, "");
-        if (name === "seed" || selected.parameters.some((parameter) => parameter.name === name)) errors[name] = issue.message;
+        if (name === "seed" || name === "duration_s" || selected.parameters.some((parameter) => parameter.name === name)) errors[name] = issue.message;
       }
       setFieldErrors(errors);
     } finally {
@@ -251,9 +255,33 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
 
   const summary = recipe ?? selected?.scenario;
   if (!summary) return <section className="panel"><p className="muted">Choose a template to begin.</p></section>;
+  function changeDuration(value: string) {
+    setDuration(value);
+    if (selected) { editForm(); return; }
+    invalidate();
+    setRecipeStatus("edited");
+    const result = readDurationField(value, summary!.fixed_delta_seconds);
+    if (result.error !== undefined) {
+      setFieldErrors({ duration_s: result.error });
+      setFormChanged(true);
+      return;
+    }
+    setFieldErrors({});
+    setFormChanged(false);
+    if (parsedDraft.recipe) setEditor(JSON.stringify({ ...parsedDraft.recipe, duration_s: result.value }, null, 2));
+  }
+  const durationField = <div className="field duration-field">
+    <label htmlFor="scenario-duration" className="field-label">Experiment duration <span className="field-unit">s</span></label>
+    <input id="scenario-duration" type="number" inputMode="decimal" min={summary.fixed_delta_seconds} step="any" value={duration} disabled={!selected && !parsedDraft.recipe} aria-invalid={Boolean(fieldErrors.duration_s)} aria-describedby={`duration-help${fieldErrors.duration_s ? " duration-error" : ""}`} ref={fieldErrors.duration_s && !fieldErrors.seed ? firstInvalid : undefined} onChange={event => changeDuration(event.target.value)} />
+    <div className="duration-presets" role="group" aria-label="Experiment duration presets">
+      {[[30, "30 s"], [60, "1 min"], [120, "2 min"], [300, "5 min"]].map(([seconds, label]) => <button className="duration-preset" type="button" key={seconds} aria-pressed={Number(duration) === seconds} disabled={!selected && !parsedDraft.recipe} onClick={() => changeDuration(String(seconds))}>{label}</button>)}
+    </div>
+    <span id="duration-help" className="field-hint">Simulated time. Actual runtime depends on CARLA performance.</span>
+    {fieldErrors.duration_s && <span id="duration-error" className="field-error">{fieldErrors.duration_s}</span>}
+  </div>;
   const isCurrent = !formChanged && recipeStatus !== "edited";
   const statusLabel = busy === "generate" ? "Generating…" : busy === "validate" ? "Validating…" : formChanged ? "Form changed" : recipeStatus === "validated" ? "Recipe validated" : recipeStatus === "generated" ? "Generated" : recipeStatus === "edited" ? "Draft · needs validation" : "Template preview";
-  let invalidAssigned = false;
+  let invalidAssigned = Boolean(fieldErrors.duration_s);
 
   return (
     <div className="scenario-builder">
@@ -276,14 +304,14 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
 
       <div className="builder-grid">
         {selected ? <form className="panel builder-form" onSubmit={generate} noValidate aria-busy={busy === "generate"}>
-          <div className="panel-header"><div><p className="eyebrow">02 / Configure the recipe</p><h2>Parameters</h2></div><button className="button text-button" type="button" onClick={() => { editForm(); setValues(parameterDefaults(selected.parameters)); setSeed("0"); }}>Reset defaults</button></div>
-          <p className="muted">Use fixed values within the template bounds. The same template, seed, and values produce the same recipe. CARLA selects a suitable road layout when the run starts.</p>
-          <div className="field seed-field">
+          <div className="panel-header"><div><p className="eyebrow">02 / Configure the recipe</p><h2>Parameters</h2></div><button className="button text-button" type="button" onClick={() => { editForm(); setValues(parameterDefaults(selected.parameters)); setSeed("0"); setDuration(String(selected.scenario.duration_s)); }}>Reset defaults</button></div>
+          <p className="muted">Set the values for this experiment. The same template, seed, and values produce the same recipe. CARLA selects a suitable road layout when the run starts.</p>
+          <div className="scenario-run-fields"><div className="field seed-field">
             <label htmlFor="scenario-seed" className="field-label">Random seed</label>
             <input id="scenario-seed" type="number" inputMode="numeric" min={0} max={2 ** 31 - 1} step={1} value={seed} aria-invalid={Boolean(fieldErrors.seed)} aria-describedby={`seed-help${fieldErrors.seed ? " seed-error" : ""}`} ref={fieldErrors.seed ? firstInvalid : undefined} onChange={(event) => { editForm(); setSeed(event.target.value); }} />
             <span id="seed-help" className="field-hint">Whole number from 0 to 2,147,483,647.</span>
             {fieldErrors.seed && <span id="seed-error" className="field-error">{fieldErrors.seed}</span>}
-          </div>
+          </div>{durationField}</div>
           <div className="parameter-grid">
             {selected.parameters.map((parameter) => {
               const error = fieldErrors[parameter.name];
@@ -294,7 +322,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
                 <div className="field" key={parameter.name}>
                   <label className="field-label" htmlFor={id}>{readableName(parameter.name.replace(/_(mps2|mps|pct|deg|m|s)$/, ""))}{" "}<span className="field-unit">{parameter.unit}</span></label>
                   <input id={id} type="number" inputMode={parameter.integer ? "numeric" : "decimal"} min={parameter.minimum} max={parameter.maximum} step={parameter.integer ? 1 : "any"} value={values[parameter.name] ?? ""} aria-invalid={Boolean(error)} aria-describedby={`${id}-help${error ? ` ${id}-error` : ""}`} ref={ref} onChange={(event) => { editForm(); setValues((current) => ({ ...current, [parameter.name]: event.target.value })); }} />
-                  <span className="field-hint" id={`${id}-help`}>{parameter.description} Range {parameter.minimum}–{parameter.maximum}{parameter.unit ? ` ${parameter.unit}` : ""}.</span>
+                  <span className="field-hint" id={`${id}-help`}>{parameter.description}</span>
                   {error && <span className="field-error" id={`${id}-error`}>{error}</span>}
                 </div>
               );
@@ -302,7 +330,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
           </div>
           {Object.keys(fieldErrors).length > 0 && <p className="field-error" role="alert">Check the highlighted fields before generating.</p>}
           <div className="form-actions"><button className="button primary" type="submit" disabled={busy === "generate"}>{busy === "generate" ? "Generating…" : recipe ? "Regenerate recipe" : "Generate recipe"}<span aria-hidden="true">↗</span></button><span className="muted">Recipe generation does not run a simulation.</span></div>
-        </form> : <section className="panel custom-recipe-panel"><div className="panel-header"><div><p className="eyebrow">CUSTOM RECIPE</p><h2>Edit the complete scenario</h2></div></div><p>This recipe uses its own actors and events. Edit its name or full JSON, then validate before saving or launching. Choosing a template starts a new draft.</p></section>}
+        </form> : <section className="panel custom-recipe-panel"><div className="panel-header"><div><p className="eyebrow">CUSTOM RECIPE</p><h2>Edit the complete scenario</h2></div></div><p>This recipe uses its own actors and events. Edit its duration, name, or full JSON, then validate before saving or launching. Choosing a template starts a new draft.</p><div className="custom-duration">{durationField}</div></section>}
 
         <section className="panel recipe-panel" aria-labelledby="recipe-heading">
           <div className="panel-header"><div><p className="eyebrow">03 / Inspect & validate</p><h2 id="recipe-heading">Recipe preview</h2></div><span className={`badge ${busy ? "badge-neutral" : recipeStatus === "validated" && !formChanged ? "badge-success" : formChanged || recipeStatus === "edited" ? "badge-warning" : "badge-neutral"}`} role="status">{statusLabel}</span></div>
@@ -315,7 +343,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
           <textarea id="scenario-json" className="editor json-editor" value={editor} spellCheck={false} aria-invalid={Boolean(editorError)} aria-describedby={`recipe-json-help${editorError ? " recipe-json-error" : ""}`} placeholder="Generate a recipe or paste a complete scenario JSON object." onChange={(event) => { invalidate(); setEditor(event.target.value); setRecipeStatus("edited"); setEditorError(null); }} />
           <p id="recipe-json-help" className="field-hint">Validation checks recipe structure and normalizes actor IDs. Map placement is checked by the simulation adapter.</p>
           {editorError && <p id="recipe-json-error" className="field-error" role="alert">{editorError}</p>}
-          <div className="form-actions"><button className="button secondary" type="button" onClick={validate} disabled={!editor.trim() || busy === "validate"}>{busy === "validate" ? "Validating…" : "Validate JSON"}</button><span className="muted" aria-live="polite">{recipeStatus === "validated" ? "The current JSON passed recipe validation." : "JSON edits require validation."}</span></div>
+          <div className="form-actions"><button className="button secondary" type="button" onClick={validate} disabled={!editor.trim() || busy === "validate" || (!selected && Boolean(fieldErrors.duration_s))}>{busy === "validate" ? "Validating…" : "Validate JSON"}</button><span className="muted" aria-live="polite">{recipeStatus === "validated" ? "The current JSON passed recipe validation." : "JSON edits require validation."}</span></div>
         </section>
       </div>
       <div aria-live="polite" aria-atomic="true">{failure && <section className="notice error-notice" role="alert"><strong>Recipe request failed</strong><p>{failure.message}</p>{failure.issues.length > 0 && <ul>{failure.issues.map((issue, index) => <li key={`${issue.path}-${index}`}><code>{issue.path || "recipe"}</code>: {issue.message}</li>)}</ul>}<p>Review the fields or JSON, then try the request again.</p></section>}</div>

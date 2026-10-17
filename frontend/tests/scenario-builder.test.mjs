@@ -30,15 +30,15 @@ const templateRecipe = {
 };
 const templates = [{
   template: "intersection", scenario: templateRecipe,
-  parameters: [{ name: "ego_speed_mps", minimum: 1, maximum: 25, default: 12, unit: "m/s", description: "Initial ego vehicle speed.", integer: false }],
+  parameters: [{ name: "ego_speed_mps", minimum: 0, maximum: 80, default: 12, unit: "m/s", description: "Initial ego vehicle speed.", integer: false }],
 }];
 const source = {
   id: sourceId, revision: 3, created_at: timestamp, updated_at: timestamp,
-  scenario: { ...structuredClone(templateRecipe), name: "Saved crossing", seed: 47, parameters: { ...templateRecipe.parameters, ego_speed_mps: 9 }, actors: [{ ...templateRecipe.actors[0], speed_mps: 9 }, templateRecipe.actors[1]] },
+  scenario: { ...structuredClone(templateRecipe), name: "Saved crossing", seed: 47, duration_s: 90, parameters: { ...templateRecipe.parameters, ego_speed_mps: 9 }, actors: [{ ...templateRecipe.actors[0], speed_mps: 9 }, templateRecipe.actors[1]] },
 };
 const custom = {
   ...source, id: otherId, revision: 7,
-  scenario: { ...structuredClone(templateRecipe), name: "Custom experiment", seed: 79, template: null, parameters: {} },
+  scenario: { ...structuredClone(templateRecipe), name: "Custom experiment", seed: 79, duration_s: 120, template: null, parameters: {} },
 };
 let renderer;
 let records;
@@ -89,8 +89,8 @@ function deferred() {
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 }
-async function mount() {
-  await act(async () => { renderer = create(React.createElement(ScenarioBuilder, { templates })); });
+async function mount(availableTemplates = templates) {
+  await act(async () => { renderer = create(React.createElement(ScenarioBuilder, { templates: availableTemplates })); });
 }
 async function click(label) {
   const target = button(label);
@@ -99,6 +99,9 @@ async function click(label) {
 }
 async function edit(id, value) {
   await act(async () => field(id).props.onChange({ target: { value } }));
+}
+async function generate() {
+  await act(async () => renderer.root.findByProps({ className: "panel builder-form" }).props.onSubmit({ preventDefault() {} }));
 }
 async function openAndLoad(record = source) {
   if (button("Open library").props["aria-expanded"] === false) await click("Open library");
@@ -109,7 +112,46 @@ async function editNameAndValidate(name) {
   await click("Validate JSON");
 }
 
-test("loading a stored custom recipe clears unrelated template parameters and restores its name and seed", async () => {
+test("parameters use expanded metadata bounds without displaying the old template ranges", async () => {
+  await mount();
+  const speed = field("parameter-ego_speed_mps");
+  assert.equal(speed.props.min, 0);
+  assert.equal(speed.props.max, 80);
+  assert.equal(text(field("parameter-ego_speed_mps-help")), "Initial ego vehicle speed.");
+  assert.doesNotMatch(text(renderer.root), /Range \d|within the template bounds/);
+  const calls = [];
+  api.generateScenario = async request => {
+    calls.push(structuredClone(request));
+    return {
+      ...structuredClone(templateRecipe),
+      parameters: { ...templateRecipe.parameters, ego_speed_mps: request.parameters.ego_speed_mps },
+      actors: [{ ...templateRecipe.actors[0], speed_mps: request.parameters.ego_speed_mps }, templateRecipe.actors[1]],
+    };
+  };
+  await edit("parameter-ego_speed_mps", "40");
+  await generate();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].parameters.ego_speed_mps, 40);
+  assert.equal(field("parameter-ego_speed_mps").props.value, "40");
+  assert.equal(JSON.parse(jsonDraft()).actors[0].speed_mps, 40);
+  await click("Reset defaults");
+  assert.equal(field("parameter-ego_speed_mps").props.value, "12");
+});
+
+test("values outside the expanded parameter bounds are still rejected before generation", async () => {
+  await mount();
+  let calls = 0;
+  api.generateScenario = async () => { calls++; assert.fail("Invalid parameter must not reach the API"); };
+  for (const value of ["-0.1", "80.1"]) {
+    await edit("parameter-ego_speed_mps", value);
+    await generate();
+    assert.equal(field("parameter-ego_speed_mps").props["aria-invalid"], true);
+    assert.match(text(field("parameter-ego_speed_mps-error")), /from 0 to 80/);
+  }
+  assert.equal(calls, 0);
+});
+
+test("loading a stored custom recipe clears unrelated template parameters and restores its name, seed, and duration", async () => {
   await mount();
   assert.equal(listCalls, 0, "The library and worker are not queried just by mounting the builder");
   assert.equal(field("parameter-ego_speed_mps").props.value, "12");
@@ -117,6 +159,7 @@ test("loading a stored custom recipe clears unrelated template parameters and re
   assert.equal(field("recipe-name").props.value, "Custom experiment");
   assert.deepEqual(JSON.parse(jsonDraft()), custom.scenario);
   assert.equal(JSON.parse(jsonDraft()).seed, 79);
+  assert.equal(field("scenario-duration").props.value, "120");
   assert.equal(renderer.root.findAllByProps({ id: "parameter-ego_speed_mps" }).length, 0);
   assert.equal(renderer.root.findAllByProps({ id: "scenario-seed" }).length, 0);
   assert.match(text(renderer.root), /Edit the complete scenario/);
@@ -124,14 +167,138 @@ test("loading a stored custom recipe clears unrelated template parameters and re
   assert.equal(button("Save a copy").props.disabled, false);
 });
 
-test("loading a bound saved recipe restores its parameter values and random seed", async () => {
+test("loading a bound saved recipe restores its duration, parameter values, and random seed", async () => {
   await mount();
   await openAndLoad();
   assert.equal(field("recipe-name").props.value, source.scenario.name);
   assert.equal(field("scenario-seed").props.value, "47");
+  assert.equal(field("scenario-duration").props.value, "90");
   assert.equal(field("parameter-ego_speed_mps").props.value, "9");
   assert.deepEqual(JSON.parse(jsonDraft()), source.scenario);
   assert.equal(button("Update saved recipe").props.disabled, true, "An unchanged saved recipe does not need another update");
+});
+
+test("duration controls keep presets and an edited duration in the generated recipe", async () => {
+  await mount();
+  assert.equal(field("scenario-duration").props.value, "30");
+  for (const [label, duration] of [["1 min", "60"], ["2 min", "120"], ["5 min", "300"], ["30 s", "30"]]) {
+    await click(label);
+    assert.equal(field("scenario-duration").props.value, duration);
+  }
+  const calls = [];
+  api.generateScenario = async request => {
+    calls.push(structuredClone(request));
+    return { ...structuredClone(templateRecipe), duration_s: request.duration_s };
+  };
+  await edit("scenario-duration", "75.5");
+  await generate();
+  assert.deepEqual(calls, [{ template: "intersection", seed: 0, parameters: { ego_speed_mps: 12 }, sample: false, ranges: {}, duration_s: 75.5 }]);
+  assert.equal(JSON.parse(jsonDraft()).duration_s, 75.5);
+  assert.equal(field("scenario-duration").props.value, "75.5");
+  assert.equal(button("Save new recipe").props.disabled, true, "Generation still requires validation");
+  await click("Validate JSON");
+  assert.equal(button("Save new recipe").props.disabled, false);
+});
+
+test("invalid duration entries and events beyond the duration block generation", async () => {
+  const delayedTemplate = {
+    ...structuredClone(templates[0]),
+    parameters: [...templates[0].parameters, { name: "crossing_delay_s", minimum: 0, maximum: 60, default: 1, unit: "s", description: "Crossing delay.", integer: false }],
+  };
+  delayedTemplate.scenario.events[0].trigger_time_s = 1;
+  await mount([delayedTemplate]);
+  await edit("parameter-crossing_delay_s", "5");
+  let calls = 0;
+  api.generateScenario = async () => { calls++; assert.fail("Invalid duration must not reach the API"); };
+  for (const duration of ["", "NaN", "Infinity", "0", "-1", "0.049", "5"]) {
+    await edit("scenario-duration", duration);
+    await generate();
+    assert.equal(field("scenario-duration").props["aria-invalid"], true, duration);
+    assert.equal(calls, 0);
+  }
+  api.generateScenario = async request => { calls++; return { ...structuredClone(delayedTemplate.scenario), duration_s: request.duration_s }; };
+  await edit("scenario-duration", "5.05");
+  await generate();
+  assert.equal(calls, 1);
+  assert.equal(field("scenario-duration").props["aria-invalid"], false);
+});
+
+test("a bound recipe duration edit requires regeneration and JSON validation restores its recorded duration", async () => {
+  await mount();
+  await openAndLoad();
+  await edit("scenario-duration", "180");
+  assert.equal(JSON.parse(jsonDraft()).duration_s, 90, "The existing JSON is kept until regeneration");
+  assert.equal(button("Update saved recipe").props.disabled, true);
+  assert.match(text(renderer.root), /Form changed/);
+  await click("Validate JSON");
+  assert.equal(field("scenario-duration").props.value, "90");
+  assert.equal(button("Update saved recipe").props.disabled, true, "Validation restored the unchanged saved recipe");
+  const edited = { ...JSON.parse(jsonDraft()), duration_s: 135 };
+  await edit("scenario-json", JSON.stringify(edited, null, 2));
+  await click("Validate JSON");
+  assert.equal(field("scenario-duration").props.value, "135");
+  assert.equal(button("Update saved recipe").props.disabled, false);
+});
+
+test("custom recipe duration edits update JSON and require validation, with invalid input kept out of requests", async () => {
+  await mount();
+  await openAndLoad(custom);
+  await edit("scenario-duration", "180");
+  assert.equal(JSON.parse(jsonDraft()).duration_s, 180);
+  assert.equal(button("Update saved recipe").props.disabled, true);
+  assert.equal(button("Save a copy").props.disabled, true);
+  assert.match(text(renderer.root), /Draft · needs validation/);
+  await edit("scenario-duration", "");
+  assert.equal(field("scenario-duration").props["aria-invalid"], true);
+  assert.equal(button("Validate JSON").props.disabled, true);
+  const validated = [];
+  api.validateScenario = async recipe => { validated.push(structuredClone(recipe)); return structuredClone(recipe); };
+  await click("2 min");
+  assert.equal(JSON.parse(jsonDraft()).duration_s, 120);
+  assert.equal(field("scenario-duration").props.value, "120");
+  assert.equal(button("Validate JSON").props.disabled, false);
+  await edit("scenario-duration", "180");
+  await click("Validate JSON");
+  assert.equal(validated.length, 1);
+  assert.equal(validated[0].duration_s, 180);
+  assert.equal(field("scenario-duration").props.value, "180");
+  assert.equal(button("Update saved recipe").props.disabled, false);
+  const updates = [];
+  api.updateScenario = async (id, recipe, revision) => {
+    updates.push({ id, recipe: structuredClone(recipe), revision });
+    return { ...custom, revision: 8, scenario: structuredClone(recipe) };
+  };
+  await click("Update saved recipe");
+  assert.equal(updates[0].id, custom.id);
+  assert.equal(updates[0].revision, 7);
+  assert.equal(updates[0].recipe.duration_s, 180);
+  assert.match(text(renderer.root), /Revision 8 · Saved/);
+});
+
+test("duration-only edits in a new form are protected when loading a saved recipe", async () => {
+  await mount();
+  await edit("scenario-duration", "60");
+  await openAndLoad();
+  assert.equal(renderer.root.findAllByProps({ "aria-label": "Replace workspace draft" }).length, 1);
+  assert.equal(field("scenario-duration").props.value, "60");
+  await click("Keep current draft");
+  assert.equal(field("scenario-duration").props.value, "60");
+  await click(`Load ${source.scenario.name}`);
+  await click("Load saved recipe");
+  assert.equal(field("scenario-duration").props.value, "90");
+});
+
+test("reset defaults and selecting a template restore the correct bundled duration", async () => {
+  const second = { ...structuredClone(templates[0]), template: "pedestrian_crossing", scenario: { ...structuredClone(templateRecipe), template: "pedestrian_crossing", duration_s: 45 } };
+  await mount([...templates, second]);
+  await edit("scenario-duration", "120");
+  await click("Reset defaults");
+  assert.equal(field("scenario-duration").props.value, "30");
+  await edit("scenario-duration", "180");
+  const next = renderer.root.findAllByType("button").find(node => node.props.className?.startsWith("template-card") && text(node).includes("Pedestrian Crossing"));
+  assert.ok(next);
+  await act(async () => next.props.onClick());
+  assert.equal(field("scenario-duration").props.value, "45");
 });
 
 test("loading over a dirty workspace requires an explicit choice and Keep current draft preserves edits", async () => {

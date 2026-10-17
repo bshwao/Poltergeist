@@ -43,9 +43,17 @@ for name, spec in get_parameter_specs("intersection").items():
 
 `build_scenario` uses defaults for unspecified parameters; `generate_scenario`
 samples them uniformly from declared bounds. Fixed `parameters` override sampling
-and must satisfy the built-in bounds. `ranges` narrows sampling bounds only;
+and must satisfy the accepted input bounds, which are wider than sampling bounds.
+For example, `parameters={"ego_speed_mps": 40}` preserves a 40 m/s speed rather
+than clamping it to the original 25 m/s sampling maximum. `ranges` narrows sampling bounds only;
 fixed values take precedence, including when outside a narrowed range. All range
 definitions are validated even if the corresponding parameter is fixed.
+
+`build_scenario`, `generate_scenario`, and `generate_scenarios` also accept an
+optional `duration_s` keyword. Omitting it preserves the template duration.
+Supplied values must be finite and positive, allow at least one fixed step, and
+extend past all configured event triggers. The saved recipe and simulation runner
+use this duration; it is not an extra template parameter or a wall-clock timeout.
 
 Sampling uses a local `random.Random(seed)` and never changes global RNG state.
 The same template version, seed, overrides, and ranges reproduce the same complete
@@ -60,36 +68,41 @@ and invalid seeds are rejected.
 
 ## Templates and parameter bounds
 
-Every bundled template uses `Town03`, a 30 second duration, a 0.05 second fixed
+Every bundled template defaults to `Town03`, a 30 second duration, a 0.05 second fixed
 step, stable actor IDs, and explicit blueprint choices. Generic custom scenarios
 retain the model's 60 second default duration. Blueprint names are drawn from the
 [CARLA 0.9.16 blueprint library](https://carla.readthedocs.io/en/0.9.16/bp_library/).
 
 All four templates share:
 
-| Parameter | Bounds | Default | Unit |
-| --- | --- | --- | --- |
-| `ego_speed_mps` | 1–25 | 12 | m/s |
-| `precipitation_pct` | 0–100 | 0 | % |
-| `fog_density_pct` | 0–60 | 0 | % |
-| `sun_altitude_deg` | -10–90 | 70 | degrees |
+| Parameter | Normal sampling range | Accepted manual input | Default | Unit |
+| --- | --- | --- | --- | --- |
+| `ego_speed_mps` | 1–25 | 0–80 | 12 | m/s |
+| `precipitation_pct` | 0–100 | 0–100 | 0 | % |
+| `fog_density_pct` | 0–60 | 0–100 | 0 | % |
+| `sun_altitude_deg` | -10–90 | -90–90 | 70 | degrees |
 
 Precipitation sets both rain intensity and road wetness. Cloudiness retains its
-template value. Parameter ranges are initial search bounds for these templates,
-not CARLA limits or a safety classification.
+template value. Normal sampling ranges keep seeded generation and automated
+searches focused on the original experiments. Wider manual input bounds are
+application guardrails for experiments, not CARLA maximum capabilities or a
+safety classification. Weather percentages and sun altitude use CARLA's
+[documented domains](https://carla.readthedocs.io/en/0.9.16/python_api/#carla.WeatherParameters).
+The dashboard displays descriptions without appending the old sampling ranges.
 
 `pedestrian_crossing` starts a stationary pedestrian to the ego's right, facing
 across its path; a timed event starts the crossing:
 
-| Parameter | Bounds | Default | Unit |
-| --- | --- | --- | --- |
-| `pedestrian_speed_mps` | 0.5–3 | 1.4 | m/s |
-| `pedestrian_distance_m` | 15–45 | 18 | m forward of ego |
-| `pedestrian_lateral_offset_m` | 2–8 | 4 | m right of ego |
-| `crossing_delay_s` | 0–8 | 1 | seconds |
+| Parameter | Normal sampling range | Accepted manual input | Default | Unit |
+| --- | --- | --- | --- | --- |
+| `pedestrian_speed_mps` | 0.5–3 | 0–12 | 1.4 | m/s |
+| `pedestrian_distance_m` | 15–45 | 1–500 | 18 | m forward of ego |
+| `pedestrian_lateral_offset_m` | 2–8 | 0.5–20 | 4 | m right of ego |
+| `crossing_delay_s` | 0–8 | 0–3600 | 1 | seconds |
 
-`occluded_pedestrian` uses the same bounds and adds `occlusion_gap_m` (1–8 m,
-default 4). A parked van is placed this distance closer to the ego along the
+`occluded_pedestrian` uses the same bounds and adds `occlusion_gap_m` (normal
+sampling 1–8 m, manual input 0.5–50 m, default 4). The gap must be smaller than
+`pedestrian_distance_m`. A parked van is placed this distance closer to the ego along the
 forward axis, with its lateral position projected onto the initial ego-to-person
 sightline. This defines intended occlusion geometry; actual visibility depends
 on actor dimensions, map geometry, and sensor placement in the simulator.
@@ -97,21 +110,26 @@ on actor dimensions, map geometry, and sensor placement in the simulator.
 `intersection` starts a crossing vehicle to the ego's left, facing right across
 a conflict point ahead of the ego:
 
-| Parameter | Bounds | Default | Unit |
-| --- | --- | --- | --- |
-| `crossing_speed_mps` | 1–20 | 10 | m/s |
-| `intersection_distance_m` | 10–60 | 30 | m along the ego approach to the conflict |
-| `crossing_distance_m` | 5–40 | 25 | m along the crossing approach to the conflict |
-| `crossing_delay_s` | 0–8 | 0 | seconds |
+| Parameter | Normal sampling range | Accepted manual input | Default | Unit |
+| --- | --- | --- | --- | --- |
+| `crossing_speed_mps` | 1–20 | 0–80 | 10 | m/s |
+| `intersection_distance_m` | 10–60 | 1–500 | 30 | m along the ego approach to the conflict |
+| `crossing_distance_m` | 5–40 | 1–500 | 25 | m along the crossing approach to the conflict |
+| `crossing_delay_s` | 0–8 | 0–3600 | 0 | seconds |
 
 `sudden_braking` starts a moving lead vehicle directly ahead and triggers braking:
 
-| Parameter | Bounds | Default | Unit |
-| --- | --- | --- | --- |
-| `lead_speed_mps` | 1–25 | 12 | m/s |
-| `lead_distance_m` | 5–50 | 20 | m forward of ego |
-| `brake_delay_s` | 0.5–8 | 2 | seconds |
-| `lead_deceleration_mps2` | 1–10 | 6 | m/s² magnitude |
+| Parameter | Normal sampling range | Accepted manual input | Default | Unit |
+| --- | --- | --- | --- | --- |
+| `lead_speed_mps` | 1–25 | 0–80 | 12 | m/s |
+| `lead_distance_m` | 5–50 | 5–500 | 20 | m forward of ego |
+| `brake_delay_s` | 0.5–8 | 0–3600 | 2 | seconds |
+| `lead_deceleration_mps2` | 1–10 | 0.1–20 | 6 | m/s² magnitude |
+
+Delays must also precede the selected experiment duration. Larger distances still
+require suitable map geometry, mapped crossings, and non-overlapping actors.
+Vehicle physics and available grip determine the speed and deceleration actually
+achieved; accepting a requested value does not guarantee the vehicle can hold it.
 
 ## Placement and timed behavior
 

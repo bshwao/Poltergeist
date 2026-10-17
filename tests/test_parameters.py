@@ -32,7 +32,7 @@ def test_registries_are_independent_and_specs_are_immutable():
         spec.default = 10
 
 
-@pytest.mark.parametrize("value", [True, False, "12", None, float("nan"), float("inf"), -float("inf"), 0.9, 25.1, 10**500])
+@pytest.mark.parametrize("value", [True, False, "12", None, float("nan"), float("inf"), -float("inf"), -0.1, 80.1, 10**500])
 def test_invalid_values_name_the_parameter(value):
     with pytest.raises(ParameterValidationError, match="ego_speed_mps"):
         validate_parameters("intersection", {"ego_speed_mps": value})
@@ -62,6 +62,30 @@ def test_sampling_is_repeatable_and_always_within_bounds(template):
     assert first[0] != first[1]
     for sample in first:
         assert validate_parameters(template, sample) == sample
+        assert all(spec.minimum <= sample[name] <= spec.maximum
+                   for name, spec in get_parameter_specs(template).items())
+
+
+@pytest.mark.parametrize("template", list(ScenarioTemplate))
+def test_fixed_values_accept_wider_endpoints_without_changing_sampling_bounds(template):
+    specs = get_parameter_specs(template)
+    for endpoint in ("accepted_minimum", "accepted_maximum"):
+        supplied = {name: getattr(spec, endpoint) for name, spec in specs.items()}
+        assert validate_parameters(template, supplied) == supplied
+        assert sample_parameters(template, random.Random(3), parameters=supplied) == supplied
+    assert specs["ego_speed_mps"].minimum == 1
+    assert specs["ego_speed_mps"].maximum == 25
+    assert specs["ego_speed_mps"].accepted_minimum == 0
+    assert specs["ego_speed_mps"].accepted_maximum == 80
+
+
+@pytest.mark.parametrize("distance,gap", [(10, 10), (5, 6), (1, 4)])
+def test_occluder_gap_must_leave_it_ahead_of_ego(distance, gap):
+    values = {"pedestrian_distance_m": distance, "occlusion_gap_m": gap}
+    with pytest.raises(ParameterValidationError, match="occlusion_gap_m.*pedestrian_distance_m"):
+        validate_parameters("occluded_pedestrian", values)
+    with pytest.raises(ParameterValidationError, match="occlusion_gap_m.*pedestrian_distance_m"):
+        sample_parameters("occluded_pedestrian", random.Random(3), parameters=values)
 
 
 def test_sampling_uses_only_the_supplied_generator():
@@ -120,6 +144,10 @@ def test_integer_specs_accept_integral_values_and_sample_discrete_bounds(monkeyp
     {"minimum": float("nan")}, {"minimum": 4, "maximum": 1},
     {"default": 6}, {"default": True}, {"default": 2.5, "integer": True},
     {"minimum": 1.1, "integer": True}, {"maximum": 4.1, "integer": True},
+    {"input_minimum": float("nan")}, {"input_maximum": float("inf")},
+    {"input_minimum": True}, {"input_maximum": "8"},
+    {"input_minimum": 2}, {"input_maximum": 3},
+    {"input_minimum": 0.5, "integer": True},
 ])
 def test_invalid_spec_definition_is_rejected(kwargs):
     definition = dict(name="count", minimum=1, maximum=4, default=2, unit="actors", description="Count.")

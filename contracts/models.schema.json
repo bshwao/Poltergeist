@@ -1909,6 +1909,19 @@
     "ScenarioGenerate": {
       "additionalProperties": false,
       "properties": {
+        "duration_s": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration S"
+        },
         "parameters": {
           "additionalProperties": {
             "anyOf": [
@@ -1971,6 +1984,7 @@
       "required": [
         "template",
         "seed",
+        "duration_s",
         "parameters",
         "ranges",
         "sample"

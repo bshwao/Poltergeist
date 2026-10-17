@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, BeforeValidator, Field, StrictBool, StrictFloat, StrictInt, model_validator
 
-from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, Seed
+from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
 from .evaluation import EvaluationSettings
 from .runtime import SimulationOptions
 from .scenario import Scenario, ScenarioTemplate
@@ -57,6 +57,7 @@ class TemplateInfo(ContractModel):
 class ScenarioGenerate(ContractModel):
     template: ScenarioTemplate
     seed: Seed = 0
+    duration_s: PositiveFloat | None = None
     parameters: dict[NonEmptyString, Scalar] = Field(default_factory=dict)
     ranges: dict[NonEmptyString, tuple[StrictFloat, StrictFloat]] = Field(default_factory=dict)
     sample: StrictBool = False

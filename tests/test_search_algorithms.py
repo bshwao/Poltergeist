@@ -54,14 +54,14 @@ def test_fixed_and_narrowed_values_preserve_inputs_and_full_recipe(strategy):
         pytest.importorskip("optuna")
     original = request(
         strategy=strategy, trials=12,
-        parameters={"ego_speed_mps": 23},
+        parameters={"ego_speed_mps": 40},
         ranges={"ego_speed_mps": (3, 4), "lead_speed_mps": (8, 10), "brake_delay_s": (2, 2)},
     )
     initial = original.model_dump(mode="json")
     manager = SearchManager(original)
     for _ in range(12):
         scenario = manager.suggest()
-        assert scenario.parameters["ego_speed_mps"] == 23
+        assert scenario.parameters["ego_speed_mps"] == 40
         assert 8 <= scenario.parameters["lead_speed_mps"] <= 10
         assert scenario.parameters["brake_delay_s"] == 2
         assert validate_scenario(scenario) == scenario
@@ -85,7 +85,7 @@ def test_request_snapshot_cannot_be_changed_after_construction():
 
 @pytest.mark.parametrize("changes", [
     {"parameters": {"missing": 3}},
-    {"parameters": {"ego_speed_mps": 0}},
+    {"parameters": {"ego_speed_mps": -0.1}},
     {"parameters": {"ego_speed_mps": True}},
     {"ranges": {"missing": (1, 2)}},
     {"ranges": {"ego_speed_mps": (5, 4)}},

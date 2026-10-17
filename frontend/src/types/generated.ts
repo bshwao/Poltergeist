@@ -22,6 +22,7 @@ export type Pending = number;
 export type Started = boolean;
 export type WorkerAlive = boolean;
 export type Reproduced = boolean | null;
+export type DurationS = number | null;
 export type Sample = boolean;
 export type Seed = number;
 /**
@@ -54,7 +55,7 @@ export type SpeedMps = number;
  */
 export type ActorType = "ego_vehicle" | "vehicle" | "lead_vehicle" | "crossing_vehicle" | "pedestrian";
 export type Description = string;
-export type DurationS = number;
+export type DurationS1 = number;
 export type Event = string | null;
 export type Action = "set_speed";
 export type ActorId = string;
@@ -353,6 +354,7 @@ export interface ReproductionUpdate {
  * via the `definition` "ScenarioGenerate".
  */
 export interface ScenarioGenerate {
+  duration_s: DurationS;
   parameters: Parameters;
   ranges: Ranges;
   sample: Sample;
@@ -387,7 +389,7 @@ export interface ScenarioRecord {
 export interface Scenario {
   actors: Actors;
   description: Description;
-  duration_s: DurationS;
+  duration_s: DurationS1;
   event: Event;
   events: Events;
   fixed_delta_seconds: FixedDeltaSeconds;

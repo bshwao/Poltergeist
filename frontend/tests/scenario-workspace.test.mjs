@@ -3,23 +3,24 @@ import assert from "node:assert/strict";
 import { loadTypeScript } from "../scripts/load-typescript.mjs";
 
 const { sameRecipe, bindScenarioForm, reconcileSave } = await loadTypeScript(new URL("../src/components/scenario-workspace.ts", import.meta.url));
-const recipe = { name: "Saved crossing", seed: 7, template: "intersection", parameters: { ego_speed_mps: 9 }, actors: [{ id: "ego", speed_mps: 9 }] };
+const recipe = { name: "Saved crossing", seed: 7, duration_s: 90, template: "intersection", parameters: { ego_speed_mps: 9 }, actors: [{ id: "ego", speed_mps: 9 }] };
 const source = { id: "source", revision: 2, scenario: recipe };
 const persisted = { ...source, revision: 3 };
 const templates = [{ template: "intersection", parameters: [{ name: "ego_speed_mps", default: 12 }] }];
 
 test("saved recipe comparison ignores object-key order while retaining executable differences", () => {
-  assert.equal(sameRecipe(recipe, { actors: [{ speed_mps: 9, id: "ego" }], parameters: { ego_speed_mps: 9 }, template: "intersection", seed: 7, name: "Saved crossing" }), true);
+  assert.equal(sameRecipe(recipe, { actors: [{ speed_mps: 9, id: "ego" }], parameters: { ego_speed_mps: 9 }, template: "intersection", seed: 7, duration_s: 90, name: "Saved crossing" }), true);
   assert.equal(sameRecipe(recipe, { ...recipe, seed: 8 }), false);
+  assert.equal(sameRecipe(recipe, { ...recipe, duration_s: 120 }), false);
   assert.equal(sameRecipe(recipe, { ...recipe, actors: [{ id: "ego", speed_mps: 8 }] }), false);
 });
 
-test("loading a bound recipe restores saved parameters and seed rather than template defaults", () => {
-  assert.deepEqual(bindScenarioForm(recipe, templates), { selectedId: "intersection", seed: "7", values: { ego_speed_mps: "9" } });
+test("loading a bound recipe restores saved duration, parameters, and seed rather than template defaults", () => {
+  assert.deepEqual(bindScenarioForm(recipe, templates), { selectedId: "intersection", seed: "7", duration: "90", values: { ego_speed_mps: "9" } });
 });
 
 test("custom recipes never borrow an unrelated template form", () => {
-  assert.deepEqual(bindScenarioForm({ ...recipe, template: null, parameters: {} }, templates), { selectedId: null, seed: "7", values: {} });
+  assert.deepEqual(bindScenarioForm({ ...recipe, template: null, parameters: {} }, templates), { selectedId: null, seed: "7", duration: "90", values: {} });
   assert.equal(bindScenarioForm(recipe, []).selectedId, null);
 });
 

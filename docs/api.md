@@ -80,7 +80,9 @@ Edits increment revisions; stale writes and deletion of a referenced recipe
 return 409. Existing runs retain their original recipe snapshots.
 
 Generation accepts `template`, `seed` (default 0), fixed `parameters`, `sample`
-(default false), and `ranges`. Without sampling, omitted parameters use template
+(default false), `ranges`, and optional `duration_s`. Omitted/null duration keeps
+the template default; a supplied duration must be finite, positive, at least one
+fixed step, and longer than every event trigger. Without sampling, omitted parameters use template
 defaults. Set `sample: true` to draw deterministic values from template bounds,
 optionally narrowed by ranges:
 
@@ -90,13 +92,17 @@ optionally narrowed by ranges:
   "seed": 7,
   "sample": true,
   "parameters": {},
-  "ranges": {}
+  "ranges": {},
+  "duration_s": 120
 }
 ```
 
-Use the template metadata for valid parameter names and bounds. Each range is a
-two-number `[minimum, maximum]` array. Ranges require `sample: true`; fixed values
-and narrowed ranges must satisfy the template constraints. See
+Template metadata's `minimum` and `maximum` describe accepted manual input values,
+which can be wider than the normal sampling ranges. For example, a fixed
+`ego_speed_mps` of 40 is accepted and stored unchanged. Each sampling range is a
+two-number `[minimum, maximum]` array. Ranges require `sample: true` and remain
+within the normal sampling ranges documented in the scenario engine. Fixed values
+can lie outside those sampling ranges, within the accepted input constraints. See
 [scenario generation](scenarios.md).
 
 ## Simulation jobs

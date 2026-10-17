@@ -39,9 +39,15 @@ preserves an already-loaded workspace and its draft.
    intersection, pedestrian crossing, occluded pedestrian, and sudden braking.
    Their recipes, parameter descriptions, bounds, defaults, units, and integer
    requirements come from `/scenarios/templates`.
-2. Enter a seed from 0 to 2,147,483,647 and fixed parameter values within the
-   displayed bounds. **Reset defaults** restores that template's parameter
-   defaults and seed 0. Selecting a different template starts a new draft.
+2. Enter a seed from 0 to 2,147,483,647, choose **Experiment duration**, and set
+   parameter values for the experiment. Manual values can exceed the normal
+   template sampling ranges; for example, ego speed can be 40 m/s. Field errors
+   explain the remaining physical or practical constraints. Duration accepts custom seconds
+   or **30 s**, **1 min**, **2 min**, and **5 min** presets. It measures simulated
+   time, so actual runtime depends on CARLA performance. The duration must allow
+   at least one tick and extend past the final configured event.
+   **Reset defaults** restores parameter defaults, the template's duration, and
+   seed 0. Selecting a different template starts a new draft.
 3. Select **Generate recipe**. The backend's `/scenarios/generate` endpoint
    returns a full scenario recipe. The same template, seed, and fixed values
    produce the same recipe. Generation does not save or execute it.
@@ -52,14 +58,20 @@ preserves an already-loaded workspace and its draft.
    JSON, including deterministic actor identifiers where needed. Validation
    errors show field paths and actionable reasons.
 
-Changing parameters marks the previously generated recipe as stale; regenerate
+Changing parameters or duration marks the previously generated recipe as stale; regenerate
 to apply those changes to JSON. Regeneration preserves the current recipe name.
 Validating JSON instead keeps that recipe and synchronizes the template form's
-parameters and seed to the normalized result. Custom recipes use the JSON editor
-without displaying an unrelated template form. JSON/name edits require validation
+parameters, duration, and seed to the normalized result. Custom recipes provide
+the same duration control alongside their JSON editor without displaying an
+unrelated template form. Their duration edits update the JSON and require validation
 again. A validated badge applies to the current normalized JSON, not to later
 edits. Superseded requests are aborted and their responses cannot replace newer
 edits.
+
+The overview uses one consistent 24 px gap between its heading, scenario hero,
+Build/Run/Review guidance, and recorded analytics. Duplicate template-count,
+connection-status, and validation cards have been removed; template count and
+connection state remain in the sidebar and top bar.
 
 Validation checks structure, actor references, parameter bindings, and domain
 constraints. It does not certify real map geometry or driving behavior. During

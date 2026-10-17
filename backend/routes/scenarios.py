@@ -1,6 +1,5 @@
 """Scenario recipes, pure template generation, and revision-checked storage."""
 
-from dataclasses import asdict
 from typing import Annotated
 from uuid import UUID
 
@@ -39,7 +38,10 @@ def _template(template: ScenarioTemplate) -> TemplateInfo:
     return TemplateInfo(
         template=template,
         scenario=load_template(template),
-        parameters=[ParameterInfo(**asdict(spec)) for spec in get_parameter_specs(template).values()],
+        parameters=[ParameterInfo(
+            name=spec.name, minimum=spec.accepted_minimum, maximum=spec.accepted_maximum,
+            default=spec.default, unit=spec.unit, description=spec.description, integer=spec.integer,
+        ) for spec in get_parameter_specs(template).values()],
     )
 
 
@@ -66,10 +68,13 @@ def generate(request: ScenarioGenerate) -> Scenario:
     if request.sample:
         return generate_scenario(
             request.template, seed=request.seed, parameters=request.parameters, ranges=request.ranges,
+            duration_s=request.duration_s,
         )
     if request.ranges:
         raise ValueError("ranges require sample=true")
-    return build_scenario(request.template, seed=request.seed, parameters=request.parameters)
+    return build_scenario(
+        request.template, seed=request.seed, parameters=request.parameters, duration_s=request.duration_s,
+    )
 
 
 @router.get("", response_model=list[ScenarioRecord])

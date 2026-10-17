@@ -1,7 +1,8 @@
 """Numeric parameters shared by template generation and failure searches.
 
 Speeds are metres per second, distances are metres, and delays are seconds.
-These are search bounds for the supplied templates, not limits imposed by CARLA.
+Sampling bounds keep ordinary searches focused. Wider input bounds are practical
+application guardrails for fixed values, not limits imposed by CARLA itself.
 """
 
 from collections.abc import Mapping
@@ -25,6 +26,16 @@ class ParameterSpec:
     unit: str
     description: str
     integer: bool = False
+    input_minimum: float | int | None = None
+    input_maximum: float | int | None = None
+
+    @property
+    def accepted_minimum(self) -> float | int:
+        return self.minimum if self.input_minimum is None else self.input_minimum
+
+    @property
+    def accepted_maximum(self) -> float | int:
+        return self.maximum if self.input_maximum is None else self.input_maximum
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or not self.name.strip():
@@ -38,6 +49,10 @@ class ParameterSpec:
             raise ParameterValidationError(f"{self.name}: minimum must not exceed maximum")
         if not minimum <= default <= maximum:
             raise ParameterValidationError(f"{self.name}: default must be within [{minimum}, {maximum}]")
+        input_minimum = _number(self.name, self.accepted_minimum, integer=self.integer)
+        input_maximum = _number(self.name, self.accepted_maximum, integer=self.integer)
+        if input_minimum > minimum or input_maximum < maximum:
+            raise ParameterValidationError(f"{self.name}: input bounds must contain the sampling bounds")
 
 
 def _number(name: str, value: object, *, integer: bool) -> float | int:
@@ -57,16 +72,16 @@ def _number(name: str, value: object, *, integer: bool) -> float | int:
 
 
 _COMMON = (
-    ParameterSpec("ego_speed_mps", 1, 25, 12, "m/s", "Initial ego vehicle speed."),
+    ParameterSpec("ego_speed_mps", 1, 25, 12, "m/s", "Initial ego vehicle speed.", input_minimum=0, input_maximum=80),
     ParameterSpec("precipitation_pct", 0, 100, 0, "%", "Rain intensity and road wetness."),
-    ParameterSpec("fog_density_pct", 0, 60, 0, "%", "Fog density."),
-    ParameterSpec("sun_altitude_deg", -10, 90, 70, "deg", "Sun elevation above the horizon."),
+    ParameterSpec("fog_density_pct", 0, 60, 0, "%", "Fog density.", input_maximum=100),
+    ParameterSpec("sun_altitude_deg", -10, 90, 70, "deg", "Sun elevation above the horizon.", input_minimum=-90),
 )
 _PEDESTRIAN = (
-    ParameterSpec("pedestrian_speed_mps", 0.5, 3, 1.4, "m/s", "Pedestrian crossing speed."),
-    ParameterSpec("pedestrian_distance_m", 15, 45, 18, "m", "Crossing position ahead of the ego vehicle."),
-    ParameterSpec("pedestrian_lateral_offset_m", 2, 8, 4, "m", "Pedestrian starting distance from the ego path."),
-    ParameterSpec("crossing_delay_s", 0, 8, 1, "s", "Time before the pedestrian starts crossing."),
+    ParameterSpec("pedestrian_speed_mps", 0.5, 3, 1.4, "m/s", "Pedestrian crossing speed.", input_minimum=0, input_maximum=12),
+    ParameterSpec("pedestrian_distance_m", 15, 45, 18, "m", "Crossing position ahead of the ego vehicle.", input_minimum=1, input_maximum=500),
+    ParameterSpec("pedestrian_lateral_offset_m", 2, 8, 4, "m", "Pedestrian starting distance from the ego path.", input_minimum=0.5, input_maximum=20),
+    ParameterSpec("crossing_delay_s", 0, 8, 1, "s", "Time before the pedestrian starts crossing.", input_maximum=3600),
 )
 _SPECS: dict[ScenarioTemplate, dict[str, ParameterSpec]] = {
     ScenarioTemplate.PEDESTRIAN_CROSSING: {
@@ -76,25 +91,25 @@ _SPECS: dict[ScenarioTemplate, dict[str, ParameterSpec]] = {
         spec.name: spec for spec in (
             *_COMMON,
             *_PEDESTRIAN,
-            ParameterSpec("occlusion_gap_m", 1, 8, 4, "m", "Longitudinal distance from the occluder to the pedestrian."),
+            ParameterSpec("occlusion_gap_m", 1, 8, 4, "m", "Longitudinal distance from the occluder to the pedestrian.", input_minimum=0.5, input_maximum=50),
         )
     },
     ScenarioTemplate.INTERSECTION: {
         spec.name: spec for spec in (
             *_COMMON,
-            ParameterSpec("crossing_speed_mps", 1, 20, 10, "m/s", "Crossing vehicle speed."),
-            ParameterSpec("intersection_distance_m", 10, 60, 30, "m", "Intersection distance ahead of the ego vehicle."),
-            ParameterSpec("crossing_distance_m", 5, 40, 25, "m", "Crossing vehicle starting distance from the ego path."),
-            ParameterSpec("crossing_delay_s", 0, 8, 0, "s", "Time before the crossing vehicle starts moving."),
+            ParameterSpec("crossing_speed_mps", 1, 20, 10, "m/s", "Crossing vehicle speed.", input_minimum=0, input_maximum=80),
+            ParameterSpec("intersection_distance_m", 10, 60, 30, "m", "Intersection distance ahead of the ego vehicle.", input_minimum=1, input_maximum=500),
+            ParameterSpec("crossing_distance_m", 5, 40, 25, "m", "Crossing vehicle starting distance from the ego path.", input_minimum=1, input_maximum=500),
+            ParameterSpec("crossing_delay_s", 0, 8, 0, "s", "Time before the crossing vehicle starts moving.", input_maximum=3600),
         )
     },
     ScenarioTemplate.SUDDEN_BRAKING: {
         spec.name: spec for spec in (
             *_COMMON,
-            ParameterSpec("lead_speed_mps", 1, 25, 12, "m/s", "Initial lead vehicle speed."),
-            ParameterSpec("lead_distance_m", 5, 50, 20, "m", "Initial distance ahead of the ego vehicle."),
-            ParameterSpec("brake_delay_s", 0.5, 8, 2, "s", "Time before the lead vehicle starts braking."),
-            ParameterSpec("lead_deceleration_mps2", 1, 10, 6, "m/s^2", "Requested lead vehicle deceleration magnitude."),
+            ParameterSpec("lead_speed_mps", 1, 25, 12, "m/s", "Initial lead vehicle speed.", input_minimum=0, input_maximum=80),
+            ParameterSpec("lead_distance_m", 5, 50, 20, "m", "Initial distance ahead of the ego vehicle.", input_maximum=500),
+            ParameterSpec("brake_delay_s", 0.5, 8, 2, "s", "Time before the lead vehicle starts braking.", input_minimum=0, input_maximum=3600),
+            ParameterSpec("lead_deceleration_mps2", 1, 10, 6, "m/s^2", "Requested lead vehicle deceleration magnitude.", input_minimum=0.1, input_maximum=20),
         )
     },
 }
@@ -124,11 +139,13 @@ def _check_names(specs: Mapping[str, ParameterSpec], values: Mapping[str, object
         raise ParameterValidationError("Unknown parameter(s): " + ", ".join(repr(name) for name in unknown))
 
 
-def _value(spec: ParameterSpec, value: object) -> float | int:
+def _value(spec: ParameterSpec, value: object, *, sampling: bool = False) -> float | int:
     result = _number(spec.name, value, integer=spec.integer)
-    if not spec.minimum <= result <= spec.maximum:
+    minimum = spec.minimum if sampling else spec.accepted_minimum
+    maximum = spec.maximum if sampling else spec.accepted_maximum
+    if not minimum <= result <= maximum:
         raise ParameterValidationError(
-            f"{spec.name}: expected a value within [{spec.minimum}, {spec.maximum}], got {value!r}"
+            f"{spec.name}: expected a value within [{minimum}, {maximum}], got {value!r}"
         )
     return result
 
@@ -141,7 +158,10 @@ def validate_parameters(
     specs = get_parameter_specs(template)
     supplied = _mapping(values, "parameters")
     _check_names(specs, supplied)
-    return {name: _value(spec, supplied.get(name, spec.default)) for name, spec in specs.items()}
+    result = {name: _value(spec, supplied.get(name, spec.default)) for name, spec in specs.items()}
+    if "occlusion_gap_m" in result and result["occlusion_gap_m"] >= result["pedestrian_distance_m"]:
+        raise ParameterValidationError("occlusion_gap_m: must be less than pedestrian_distance_m")
+    return result
 
 
 def sample_parameters(
@@ -154,8 +174,9 @@ def sample_parameters(
     """Sample unfixed values using only the supplied local random generator.
 
     Custom ranges narrow the built-in bounds. Fixed values override sampling,
-    and need only satisfy the built-in bounds; ranges are validated even for
-    fixed parameters. All validation happens before any random draws.
+    and may use the wider accepted input bounds; ranges are validated even for
+    fixed parameters. Numeric and range validation precede random draws;
+    the sampled combination must also preserve valid occluder placement.
     """
     specs = get_parameter_specs(template)
     fixed = _mapping(parameters, "parameters")
@@ -168,7 +189,7 @@ def sample_parameters(
         requested = supplied_ranges.get(name, (spec.minimum, spec.maximum))
         if not isinstance(requested, (tuple, list)) or len(requested) != 2:
             raise ParameterValidationError(f"{name}: range must be a two-item tuple or list [minimum, maximum]")
-        minimum, maximum = (_value(spec, endpoint) for endpoint in requested)
+        minimum, maximum = (_value(spec, endpoint, sampling=True) for endpoint in requested)
         if minimum > maximum:
             raise ParameterValidationError(f"{name}: range minimum must not exceed maximum")
         bounds[name] = (minimum, maximum)
@@ -184,4 +205,4 @@ def sample_parameters(
             if spec.integer
             else min(maximum, max(minimum, rng.uniform(minimum, maximum)))
         )
-    return result
+    return validate_parameters(template, result)

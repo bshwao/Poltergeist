@@ -10,6 +10,7 @@ from backend.config import Settings
 from backend.main import create_app
 from backend.services.persistence_service import PersistenceService
 from scenarios import build_scenario
+from scenarios.parameters import get_parameter_specs
 from shared.models import ScenarioTemplate
 
 
@@ -52,6 +53,10 @@ def test_template_metadata_has_reproducible_scenarios_and_parameter_bounds(api):
             assert spec["default"] == template["scenario"]["parameters"][name]
             assert spec["unit"] and spec["description"]
             assert isinstance(spec["integer"], bool)
+            internal = get_parameter_specs(template["template"])[name]
+            assert spec["minimum"] == internal.accepted_minimum
+            assert spec["maximum"] == internal.accepted_maximum
+            assert set(spec) == {"name", "minimum", "maximum", "default", "unit", "description", "integer"}
 
 
 def test_validation_normalizes_actor_defaults_before_resolving_references(api):
@@ -172,10 +177,58 @@ def test_generation_is_deterministic_bounded_and_does_not_save(api):
     assert client.get("/scenarios").json() == []
 
 
+@pytest.mark.parametrize("template", list(ScenarioTemplate))
+@pytest.mark.parametrize("sample", [False, True])
+def test_generation_accepts_selected_duration_without_changing_template_defaults(api, template, sample):
+    client, settings = api
+    request = {"template": template.value, "seed": 23, "sample": sample}
+    original = client.post("/scenarios/generate", json=request)
+    selected = client.post("/scenarios/generate", json=request | {"duration_s": 90.0})
+    default = client.post("/scenarios/generate", json=request | {"duration_s": None})
+
+    assert selected.status_code == default.status_code == original.status_code == 200
+    assert selected.json() == original.json() | {"duration_s": 90.0}
+    assert default.json() == original.json()
+    assert client.post("/scenarios/validate", json=selected.json()).json() == selected.json()
+    assert client.get(f"/scenarios/templates/{template.value}").json()["scenario"]["duration_s"] == 30.0
+    assert not settings.storage_dir.exists()
+
+
+@pytest.mark.parametrize("template", list(ScenarioTemplate))
+@pytest.mark.parametrize("sample", [False, True])
+def test_extended_fixed_values_and_delay_survive_generate_validate_and_save(api, template, sample):
+    client, _ = api
+    delay = "brake_delay_s" if template == ScenarioTemplate.SUDDEN_BRAKING else "crossing_delay_s"
+    response = client.post("/scenarios/generate", json={
+        "template": template.value, "sample": sample, "duration_s": 60,
+        "parameters": {"ego_speed_mps": 40, "fog_density_pct": 90, "sun_altitude_deg": -45, delay: 45},
+    })
+    assert response.status_code == 200, response.text
+    generated = response.json()
+    assert generated["parameters"]["ego_speed_mps"] == 40
+    assert generated["actors"][0]["speed_mps"] == 40
+    assert generated["events"][0]["trigger_time_s"] == 45
+    assert generated["duration_s"] == 60
+    validated = client.post("/scenarios/validate", json=generated)
+    assert validated.status_code == 200, validated.text
+    assert validated.json() == generated
+    saved = client.post("/scenarios", json=generated)
+    assert saved.status_code == 201, saved.text
+    assert saved.json()["scenario"] == generated
+    assert client.get(f"/scenarios/{saved.json()['id']}").json() == saved.json()
+
+
 @pytest.mark.parametrize("changes", [
     {"template": "unknown"},
     {"seed": -1},
     {"seed": True},
+    {"duration_s": 0},
+    {"duration_s": -1},
+    {"duration_s": 0.01},
+    {"duration_s": True},
+    {"duration_s": "30"},
+    {"duration_s": 2.0},
+    {"sample": True, "duration_s": 5.0, "parameters": {"brake_delay_s": 5.0}},
     {"sample": "true"},
     {"parameters": {"unknown": 2.0}},
     {"parameters": {"ego_speed_mps": 100.0}},

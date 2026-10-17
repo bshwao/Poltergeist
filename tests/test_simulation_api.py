@@ -87,6 +87,24 @@ def test_inline_recipe_normalizes_ids_before_event_references(client):
     assert wait_for(client, response.json()["simulation"]["id"])["status"] == "completed"
 
 
+def test_generated_duration_survives_save_and_controls_experiment_runtime(client):
+    generated = client.post("/scenarios/generate", json={
+        "template": "sudden_braking", "duration_s": 1.0, "parameters": {"brake_delay_s": 0.5},
+    })
+    assert generated.status_code == 200, generated.text
+    saved = client.post("/scenarios", json=generated.json())
+    assert saved.status_code == 201, saved.text
+    response = client.post("/simulations", json={"scenario_id": saved.json()["id"], "mode": "test"})
+    assert response.status_code == 202, response.text
+    simulation_id = response.json()["simulation"]["id"]
+    assert wait_for(client, simulation_id)["status"] == "completed"
+
+    result = client.get(f"/simulations/{simulation_id}/result").json()
+    assert result["simulation"]["scenario"]["duration_s"] == 1.0
+    assert result["measured_duration_s"] == pytest.approx(1.0)
+    assert result["telemetry_frames"] == 21
+
+
 @pytest.mark.parametrize("change", [
     {}, {"scenario": scene(), "scenario_id": str(uuid4())}, {"scenario_id": "bad-id"},
     {"scenario": scene(), "mode": "unknown"}, {"scenario": scene(), "agent": "custom"},

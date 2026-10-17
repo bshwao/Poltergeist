@@ -7,6 +7,7 @@ from types import SimpleNamespace as NS
 import pytest
 
 from shared.models import ActorState, Rotation, Transform, Vector3
+from scenarios import build_scenario
 from scenarios.scenario_loader import validate_scenario
 from scenarios.scenario_loader import load_template
 from simulator.actor_manager import ActorManager
@@ -394,6 +395,22 @@ def test_spawn_resolves_dependencies_and_sets_velocity_once():
     native_ids = [actor.id for actor in actors.values()]
     manager.close()
     assert world.destroy_order == list(reversed(native_ids))
+
+
+def test_extended_template_speeds_reach_carla_without_clamping():
+    definition = build_scenario("sudden_braking", parameters={
+        "ego_speed_mps": 40, "lead_speed_mps": 35,
+    })
+    manager = ActorManager(World(), CARLA, definition)
+    try:
+        actors = manager.spawn()
+        assert actors["ego"].target_velocities[0].x == 40
+        assert actors["lead"].target_velocities[0].x == 35
+        manager.control_npcs({"lead": ActorCommand(target_speed_mps=35)}, 0.05)
+        assert actors["lead"].controls[-1].brake == 0
+        assert actors["lead"].controls[-1].throttle == 0
+    finally:
+        manager.close()
 
 
 def test_relative_transform_and_local_box_rotation_use_full_three_dimensions():

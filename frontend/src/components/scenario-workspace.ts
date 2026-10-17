@@ -17,6 +17,7 @@ export function bindScenarioForm(scenario: Scenario, templates: TemplateInfo[]) 
   return {
     selectedId: template?.template ?? null,
     seed: String(scenario.seed),
+    duration: String(scenario.duration_s),
     values: Object.fromEntries((template?.parameters ?? []).map((parameter) => [
       parameter.name, String(scenario.parameters[parameter.name] ?? parameter.default),
     ])),

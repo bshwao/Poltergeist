@@ -30,8 +30,9 @@ def normalize_search_space(
 ) -> SearchSpace:
     """Validate the whole space before a sampler or simulation is created.
 
-    Fixed values follow the scenario generator: they override sampling ranges,
-    while both fixed values and range endpoints must satisfy template bounds.
+    Fixed values follow the scenario generator: they override sampling ranges
+    and may use wider accepted input bounds. Range endpoints stay within the
+    template's ordinary sampling bounds.
     """
     template = ScenarioTemplate(template)
     fixed = {} if parameters is None else parameters

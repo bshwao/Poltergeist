@@ -46,7 +46,7 @@ export default function App() {
     <div className="workspace-content">
       <div className="topbar"><div className="breadcrumb">Workspace<span>/</span><strong>{pageLabels[page]}</strong></div><div className="topbar-right"><span className={`connection-pill connection-${workspace.connection}`} title="API liveness; does not indicate CARLA readiness" role="status"><span className="status-dot" />{workspace.connection === "online" ? "API connected" : workspace.connection === "checking" ? "Checking API" : "API unavailable"}</span><button type="button" className="icon-button" onClick={workspace.refresh} disabled={workspace.loading} aria-label="Refresh API connection"><Icon name="refresh" size={17} /></button></div></div>
       <main id="main-content" className="main-content" ref={main} tabIndex={-1}>
-        <div hidden={page !== "overview"}><Dashboard templates={workspace.templates} connection={workspace.connection} active={page === "overview"} /></div>
+        <div hidden={page !== "overview"}><Dashboard active={page === "overview"} /></div>
         <div hidden={page !== "scenarios"}><Scenarios templates={workspace.templates} loading={workspace.loading} error={workspace.error} onRetry={workspace.refresh} /></div>
         {visited.has("simulations") && <div hidden={page !== "simulations"}><Simulations active={page === "simulations"} selectedId={route.simulationId} /></div>}
         {visited.has("failures") && <div hidden={page !== "failures"}><Failures active={page === "failures"} /></div>}
