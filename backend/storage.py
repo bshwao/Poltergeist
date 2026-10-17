@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 import shutil
 from threading import Lock
+from time import sleep
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -30,6 +31,7 @@ _RESERVED = re.compile(r"^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)", re.IGN
 _SAMPLE_FILE = re.compile(r"^\d{8,}-(?:camera|lidar)\.bin$")
 _MAX_METADATA_BYTES = 16 * 1024
 _MAX_SAMPLE_BYTES = 64 * 1024 * 1024
+_PUBLISH_RETRY_DELAYS = (0.01, 0.025, 0.05, 0.1)
 
 
 class ArtifactError(ValueError):
@@ -225,13 +227,24 @@ class ArtifactStore:
 
     def _publish(self, stage: Path, final: Path) -> None:
         with self._publish_lock:
-            self._contained(stage, exists=True)
-            self._contained(final)
-            if final.exists():
-                raise FileExistsError("Published artifacts cannot be overwritten")
-            # Both directories share a parent/filesystem; readers see the complete
-            # directory in one rename. Published directories are always nonempty.
-            stage.rename(final)
+            for attempt in range(len(_PUBLISH_RETRY_DELAYS) + 1):
+                self._contained(stage, exists=True)
+                self._contained(final)
+                if final.exists():
+                    raise FileExistsError("Published artifacts cannot be overwritten")
+                try:
+                    # Both directories share a filesystem, so readers see one
+                    # complete directory. Windows sync/indexing handles can
+                    # briefly deny this rename; recheck paths before each retry.
+                    stage.rename(final)
+                    return
+                except OSError as error:
+                    if (
+                        getattr(error, "winerror", None) not in (5, 32, 33)
+                        or attempt == len(_PUBLISH_RETRY_DELAYS)
+                    ):
+                        raise
+                    sleep(_PUBLISH_RETRY_DELAYS[attempt])
 
     def _rollback(self, stage: Path, final: Path, owner: os.stat_result) -> None:
         self._discard(stage)

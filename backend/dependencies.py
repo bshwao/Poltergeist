@@ -19,6 +19,7 @@ class ApiRuntime:
         self.runner_factory = runner_factory or self._new_runner
         self._persistence = None
         self._worker = None
+        self._optimizer = None
         self._lock = RLock()
         self._closed = False
 
@@ -65,10 +66,24 @@ class ApiRuntime:
                 self._worker = worker
             return self._worker
 
+    def optimizer(self):
+        from backend.services.optimization_service import OptimizationService
+
+        with self._lock:
+            worker = self.worker()
+            if self._optimizer is None:
+                optimizer = OptimizationService(worker, max_pending=self.settings.simulation_queue_size,
+                                                shutdown_timeout_s=self.settings.simulation_shutdown_timeout_s)
+                optimizer.start()
+                self._optimizer = optimizer
+            return self._optimizer
+
     def close(self) -> bool:
         with self._lock:
             self._closed = True
-            clean = self._worker is None or self._worker.close()
+            optimization_clean = self._optimizer is None or self._optimizer.close()
+            simulation_clean = self._worker is None or self._worker.close()
+            clean = optimization_clean and simulation_clean
             if clean and self._persistence is not None:
                 self._persistence.database.dispose()
             if not clean:
@@ -82,3 +97,7 @@ def get_persistence(request: Request) -> PersistenceService:
 
 def get_worker(request: Request) -> SimulationService:
     return request.app.state.runtime.worker()
+
+
+def get_optimizer(request: Request):
+    return request.app.state.runtime.optimizer()

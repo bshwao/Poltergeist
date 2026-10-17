@@ -632,6 +632,33 @@
       "title": "EvaluationSettings",
       "type": "object"
     },
+    "ExecutionSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        }
+      },
+      "required": [
+        "mode",
+        "options",
+        "evaluation_settings"
+      ],
+      "title": "ExecutionSpec",
+      "type": "object"
+    },
     "FailureKind": {
       "enum": [
         "collision",
@@ -738,6 +765,52 @@
       "title": "JobInfo",
       "type": "object"
     },
+    "MinimizeRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "failure_id": {
+          "format": "uuid",
+          "title": "Failure Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "minimize",
+          "default": "minimize",
+          "title": "Kind",
+          "type": "string"
+        },
+        "max_trials": {
+          "default": 20,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Max Trials",
+          "type": "integer"
+        },
+        "minimum_severity": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Minimum Severity",
+          "type": "number"
+        },
+        "repeats": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Repeats",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "failure_id",
+        "max_trials",
+        "repeats",
+        "minimum_severity"
+      ],
+      "title": "MinimizeRequest",
+      "type": "object"
+    },
     "ModeAnalytics": {
       "additionalProperties": false,
       "properties": {
@@ -839,6 +912,454 @@
         "failure_kinds"
       ],
       "title": "ModeAnalytics",
+      "type": "object"
+    },
+    "OptimizationContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "record": {
+          "$ref": "#/$defs/OptimizationRecord"
+        },
+        "request": {
+          "discriminator": {
+            "mapping": {
+              "minimize": "#/$defs/MinimizeRequest",
+              "reproduce": "#/$defs/ReproductionRequest",
+              "search": "#/$defs/SearchRequest"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SearchRequest"
+            },
+            {
+              "$ref": "#/$defs/ReproductionRequest"
+            },
+            {
+              "$ref": "#/$defs/MinimizeRequest"
+            }
+          ],
+          "title": "Request"
+        },
+        "resume": {
+          "$ref": "#/$defs/OptimizationResume"
+        },
+        "trial": {
+          "$ref": "#/$defs/OptimizationTrial"
+        },
+        "view": {
+          "$ref": "#/$defs/OptimizationView"
+        }
+      },
+      "required": [
+        "request",
+        "record",
+        "trial",
+        "view",
+        "resume"
+      ],
+      "title": "OptimizationContracts",
+      "type": "object"
+    },
+    "OptimizationOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "best_failure_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Best Failure Id"
+        },
+        "best_scenario": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scenario"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "best_simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Best Simulation Id"
+        },
+        "reproduced": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reproduced"
+        },
+        "successes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Successes",
+          "type": "integer"
+        },
+        "summary": {
+          "default": "",
+          "title": "Summary",
+          "type": "string"
+        },
+        "trials_used": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Trials Used",
+          "type": "integer"
+        },
+        "unknowns": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Unknowns",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "trials_used",
+        "successes",
+        "unknowns",
+        "best_simulation_id",
+        "best_failure_id",
+        "best_scenario",
+        "reproduced",
+        "summary"
+      ],
+      "title": "OptimizationOutcome",
+      "type": "object"
+    },
+    "OptimizationRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "cancel_requested": {
+          "default": false,
+          "title": "Cancel Requested",
+          "type": "boolean"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "engine_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Engine Version"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "execution": {
+          "$ref": "#/$defs/ExecutionSpec"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finished At"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OptimizationOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "request": {
+          "discriminator": {
+            "mapping": {
+              "minimize": "#/$defs/MinimizeRequest",
+              "reproduce": "#/$defs/ReproductionRequest",
+              "search": "#/$defs/SearchRequest"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SearchRequest"
+            },
+            {
+              "$ref": "#/$defs/ReproductionRequest"
+            },
+            {
+              "$ref": "#/$defs/MinimizeRequest"
+            }
+          ],
+          "title": "Request"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "source_failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FailureReport"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "status": {
+          "$ref": "#/$defs/OptimizationStatus",
+          "default": "queued"
+        }
+      },
+      "required": [
+        "id",
+        "request",
+        "execution",
+        "source_failure",
+        "status",
+        "revision",
+        "created_at",
+        "started_at",
+        "finished_at",
+        "cancel_requested",
+        "engine_version",
+        "error",
+        "outcome"
+      ],
+      "title": "OptimizationRecord",
+      "type": "object"
+    },
+    "OptimizationResume": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "expected_revision"
+      ],
+      "title": "OptimizationResume",
+      "type": "object"
+    },
+    "OptimizationStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+        "interrupted"
+      ],
+      "title": "OptimizationStatus",
+      "type": "string"
+    },
+    "OptimizationTrial": {
+      "additionalProperties": false,
+      "properties": {
+        "assessed": {
+          "default": false,
+          "title": "Assessed",
+          "type": "boolean"
+        },
+        "candidate_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Candidate Index",
+          "type": "integer"
+        },
+        "failure_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failure Id"
+        },
+        "matches": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Matches"
+        },
+        "number": {
+          "minimum": 0,
+          "title": "Number",
+          "type": "integer"
+        },
+        "operation_id": {
+          "format": "uuid",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "repeat_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Repeat Index",
+          "type": "integer"
+        },
+        "role": {
+          "enum": [
+            "search",
+            "reproduce",
+            "minimize_baseline",
+            "minimize_candidate"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_id",
+        "number",
+        "simulation_id",
+        "role",
+        "candidate_index",
+        "repeat_index",
+        "scenario",
+        "assessed",
+        "score",
+        "matches",
+        "reason",
+        "failure_id"
+      ],
+      "title": "OptimizationTrial",
+      "type": "object"
+    },
+    "OptimizationView": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/OptimizationRecord"
+        },
+        "trials": {
+          "items": {
+            "$ref": "#/$defs/OptimizationTrial"
+          },
+          "title": "Trials",
+          "type": "array"
+        }
+      },
+      "required": [
+        "operation",
+        "trials"
+      ],
+      "title": "OptimizationView",
       "type": "object"
     },
     "ParameterInfo": {
@@ -966,6 +1487,59 @@
         "yaw_offset_deg"
       ],
       "title": "RelativeSpawn",
+      "type": "object"
+    },
+    "ReproductionRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "failure_id": {
+          "format": "uuid",
+          "title": "Failure Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "reproduce",
+          "default": "reproduce",
+          "title": "Kind",
+          "type": "string"
+        },
+        "minimum_severity": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Minimum Severity",
+          "type": "number"
+        },
+        "repeats": {
+          "default": 3,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Repeats",
+          "type": "integer"
+        },
+        "required_successes": {
+          "anyOf": [
+            {
+              "maximum": 20,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required Successes"
+        }
+      },
+      "required": [
+        "kind",
+        "failure_id",
+        "repeats",
+        "required_successes",
+        "minimum_severity"
+      ],
+      "title": "ReproductionRequest",
       "type": "object"
     },
     "ReproductionUpdate": {
@@ -1468,6 +2042,135 @@
         "expected_revision"
       ],
       "title": "ScenarioUpdate",
+      "type": "object"
+    },
+    "SearchRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "failure_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FailureKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "search",
+          "default": "search",
+          "title": "Kind",
+          "type": "string"
+        },
+        "minimum_severity": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Minimum Severity",
+          "type": "number"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "ranges": {
+          "additionalProperties": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Ranges",
+          "type": "object"
+        },
+        "seed": {
+          "default": 0,
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "strategy": {
+          "default": "random",
+          "enum": [
+            "random",
+            "optuna"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "template": {
+          "$ref": "#/$defs/ScenarioTemplate"
+        },
+        "trials": {
+          "default": 20,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Trials",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "mode",
+        "options",
+        "evaluation_settings",
+        "kind",
+        "template",
+        "strategy",
+        "trials",
+        "seed",
+        "parameters",
+        "ranges",
+        "minimum_severity",
+        "failure_kind"
+      ],
+      "title": "SearchRequest",
       "type": "object"
     },
     "Simulation": {
@@ -2348,6 +3051,9 @@
     "metrics": {
       "$ref": "#/$defs/SafetyMetrics"
     },
+    "optimization": {
+      "$ref": "#/$defs/OptimizationContracts"
+    },
     "result": {
       "$ref": "#/$defs/SimulationResult"
     },
@@ -2368,7 +3074,8 @@
     "metrics",
     "result",
     "failure",
-    "api"
+    "api",
+    "optimization"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

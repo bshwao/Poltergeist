@@ -1,6 +1,7 @@
 """Generated artifact ownership, atomic publication, and raw sensor provenance."""
 
 from concurrent.futures import ThreadPoolExecutor
+import errno
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -179,6 +180,106 @@ def test_atomic_publish_failure_removes_owned_partial_directory(store, monkeypat
         store.write_telemetry(uuid4(), frames())
     assert not stages(store)
     assert not list(store.root.glob("*/*/*/frames.ndjson"))
+
+
+def windows_rename_error(code):
+    error = PermissionError("native directory rename denied")
+    error.winerror = code
+    return error
+
+
+@pytest.mark.parametrize("code", [5, 32, 33])
+@pytest.mark.parametrize("capture", [False, True])
+def test_transient_windows_rename_denial_retries_atomic_publication(store, monkeypatch, code, capture):
+    import backend.storage as module
+    original = Path.rename
+    attempts, delays = [], []
+    def rename(path, target):
+        attempts.append((path, target))
+        if len(attempts) == 1:
+            raise windows_rename_error(code)
+        return original(path, target)
+    monkeypatch.setattr(Path, "rename", rename)
+    monkeypatch.setattr(module, "sleep", delays.append)
+    if capture:
+        writer = store.capture(uuid4())
+        writer.write(camera())
+        ref = writer.commit()
+        assert store.read_capture_manifest(ref)["sample_count"] == 1
+    else:
+        ref = store.write_report(uuid4(), {"complete": True})
+        assert json.loads(store.read_bytes(ref)) == {"complete": True}
+    assert len(attempts) == 2 and attempts[0] == attempts[1]
+    assert delays == [module._PUBLISH_RETRY_DELAYS[0]]
+    assert not stages(store)
+
+
+@pytest.mark.parametrize("capture", [False, True])
+def test_persistent_windows_rename_denial_has_bounded_retries_and_owned_cleanup(store, monkeypatch, capture):
+    import backend.storage as module
+    run_id = uuid4()
+    sibling = store.write_report(run_id, {"preserve": True})
+    attempts, delays = [], []
+    error = windows_rename_error(5)
+    def rename(path, target):
+        attempts.append((path, target))
+        raise error
+    monkeypatch.setattr(Path, "rename", rename)
+    monkeypatch.setattr(module, "sleep", delays.append)
+    with pytest.raises(PermissionError) as raised:
+        if capture:
+            writer = store.capture(run_id)
+            writer.write(camera())
+            writer.commit()
+        else:
+            store.write_report(run_id, {"complete": True})
+    assert raised.value is error
+    assert len(attempts) == len(module._PUBLISH_RETRY_DELAYS) + 1
+    assert delays == list(module._PUBLISH_RETRY_DELAYS)
+    assert sum(delays) < 0.5
+    assert not stages(store)
+    assert json.loads(store.read_bytes(sibling)) == {"preserve": True}
+    assert len(list(store.root.glob("*/*/*/*.json"))) == 1
+
+
+@pytest.mark.parametrize("error", [
+    PermissionError(errno.EACCES, "non-Windows permission denied"),
+    OSError(errno.ENOSPC, "disk full"),
+    windows_rename_error(87),
+])
+def test_unrelated_rename_errors_fail_without_retry(store, monkeypatch, error):
+    import backend.storage as module
+    attempts, delays = [], []
+    def rename(path, target):
+        attempts.append((path, target))
+        raise error
+    monkeypatch.setattr(Path, "rename", rename)
+    monkeypatch.setattr(module, "sleep", delays.append)
+    with pytest.raises(OSError) as raised:
+        store.write_report(uuid4(), {})
+    assert raised.value is error
+    assert len(attempts) == 1 and not delays
+    assert not stages(store)
+    assert not list(store.root.glob("*/*/*/*.json"))
+
+
+def test_publication_retry_rechecks_destination_and_preserves_competing_owner(store, monkeypatch):
+    import backend.storage as module
+    attempts = []
+    def rename(path, target):
+        attempts.append((path, target))
+        raise windows_rename_error(32)
+    def competitor(delay):
+        final = attempts[-1][1]
+        final.mkdir()
+        (final / "report.json").write_text('{"owner":"competitor"}', encoding="utf-8")
+    monkeypatch.setattr(Path, "rename", rename)
+    monkeypatch.setattr(module, "sleep", competitor)
+    with pytest.raises(FileExistsError, match="cannot be overwritten"):
+        store.write_report(uuid4(), {"owner": "current"})
+    assert len(attempts) == 1
+    assert json.loads((attempts[0][1] / "report.json").read_text()) == {"owner": "competitor"}
+    assert not stages(store)
 
 
 @pytest.mark.parametrize("capture", [False, True])

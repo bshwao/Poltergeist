@@ -91,13 +91,40 @@ progress/cancellation. Finalization publishes artifacts and saves the terminal
 result before that result is exposed as finished. Artifact download routes accept
 indexes into owned results/manifests and validate their storage references.
 
-Application lifespan requests cooperative active cancellation and bounded worker
-shutdown (15 seconds by default), leaving waiting jobs for restart. A native call
+Application lifespan stops the optimization controller, then requests cooperative
+active cancellation and bounded worker shutdown (15 seconds each by default),
+leaving waiting jobs for restart. A native call
 cannot be forcibly interrupted, and a blocked worker retains its database/lease
 until exit. These lifecycle controls do not recover partial in-memory telemetry
 or repair CARLA resources after abrupt process loss. See [API behavior](api.md).
 
 Analytics read the complete persisted history in one read transaction, separate
 test/CARLA modes, and preserve unknown metrics. Mean severity includes all scored
-terminal results, including known collisions from incomplete runs. The frontend
-remains its starter screen; search and dashboard features are later sections.
+terminal results, including known collisions from incomplete runs.
+
+Section 7 adds the lazy `OptimizationService` controller and generated contracts
+for search, reproduction, minimization, and their durable journals. Random and
+optional Optuna 4.x sampling, objective assessment, reproduction policy, and
+valid greedy recipe reduction live in `optimization/` without CARLA or database
+ownership. The controller submits every child through `SimulationService`, so
+direct launches and experiments share one native worker. No transaction spans a
+simulation execution.
+
+Migration 3 records full requests, source failures, execution settings, engine
+versions, revisioned operation states, and ordered child trials. Child creation
+and its journal link share a transaction; positive failure creation and trial
+assessment also share one transaction. Search retains actual child metrics but
+excludes failed/unscored objectives rather than inventing zero scores. Repeated
+reproduction preserves the exact source execution; minimization first confirms
+the baseline and accepts only lower-cost candidates confirmed in every repeat.
+
+Controller startup changes unfinished operations to interrupted. Explicit resume
+replays the saved proposals and assessments, verifies engine version and recipe,
+reuses existing children, and preserves the budget. The native worker may recover
+an already-linked unclaimed child before its parent is resumed; the controller
+creates no new trials until resume. Shutdown interrupts operations before native
+worker shutdown; durable user cancellation propagates to linked unfinished runs.
+See [optimization policies and API](optimization.md).
+
+The frontend remains its starter screen; sections 8–9 add dashboard controls and
+result views. Live CARLA and container execution remain unverified.

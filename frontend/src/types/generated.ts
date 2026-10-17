@@ -216,11 +216,65 @@ export type Reproduced1 = boolean | null;
 export type Severity1 = number;
 export type SimulationId1 = string;
 export type Summary = string;
+export type CancelRequested2 = boolean;
+export type CreatedAt4 = string;
+export type EngineVersion = string | null;
+export type Error3 = string | null;
+export type Mode3 = "carla" | "test";
+export type FinishedAt2 = string | null;
+export type Id4 = string;
+export type BestFailureId = string | null;
+export type BestSimulationId = string | null;
+export type Reproduced2 = boolean | null;
+export type Successes = number;
+export type Summary1 = string;
+export type TrialsUsed = number;
+export type Unknowns = number;
+export type Request = SearchRequest | ReproductionRequest | MinimizeRequest;
+export type Kind1 = "search";
+export type MinimumSeverity = number;
+export type Mode4 = "carla" | "test";
+export type Seed3 = number;
+export type Strategy = "random" | "optuna";
+export type Trials = number;
+export type FailureId = string;
+export type Kind2 = "reproduce";
+export type MinimumSeverity1 = number;
+export type Repeats = number;
+export type RequiredSuccesses = number | null;
+export type FailureId1 = string;
+export type Kind3 = "minimize";
+export type MaxTrials = number;
+export type MinimumSeverity2 = number;
+export type Repeats1 = number;
+export type Revision3 = number;
+export type StartedAt2 = string | null;
+export type OptimizationStatus = "queued" | "running" | "completed" | "failed" | "cancelled" | "interrupted";
+export type Request1 = SearchRequest | ReproductionRequest | MinimizeRequest;
+export type ExpectedRevision1 = number;
+export type Assessed = boolean;
+export type CandidateIndex = number;
+export type FailureId2 = string | null;
+export type Matches = boolean | null;
+export type Number = number;
+export type OperationId = string;
+export type Reason = string | null;
+export type RepeatIndex = number;
+export type Role = "search" | "reproduce" | "minimize_baseline" | "minimize_candidate";
+export type Score = number | null;
+export type SimulationId2 = string;
+export type Trials1 = OptimizationTrial[];
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationStatus".
+ */
+export type OptimizationStatus1 = "queued" | "running" | "completed" | "failed" | "cancelled" | "interrupted";
 
 export interface PoltergeistContracts {
   api: ApiContracts;
   failure: FailureReport;
   metrics: SafetyMetrics;
+  optimization: OptimizationContracts;
   result: SimulationResult;
   scenario: Scenario;
   simulation: Simulation;
@@ -744,4 +798,140 @@ export interface FailureReport {
   severity: Severity1;
   simulation_id: SimulationId1;
   summary: Summary;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationContracts".
+ */
+export interface OptimizationContracts {
+  record: OptimizationRecord;
+  request: Request1;
+  resume: OptimizationResume;
+  trial: OptimizationTrial;
+  view: OptimizationView;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationRecord".
+ */
+export interface OptimizationRecord {
+  cancel_requested: CancelRequested2;
+  created_at: CreatedAt4;
+  engine_version: EngineVersion;
+  error: Error3;
+  execution: ExecutionSpec;
+  finished_at: FinishedAt2;
+  id: Id4;
+  outcome: OptimizationOutcome | null;
+  request: Request;
+  revision: Revision3;
+  source_failure: FailureReport | null;
+  started_at: StartedAt2;
+  status: OptimizationStatus;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ExecutionSpec".
+ */
+export interface ExecutionSpec {
+  evaluation_settings: EvaluationSettings;
+  mode: Mode3;
+  options: SimulationOptions;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationOutcome".
+ */
+export interface OptimizationOutcome {
+  best_failure_id: BestFailureId;
+  best_scenario: Scenario | null;
+  best_simulation_id: BestSimulationId;
+  reproduced: Reproduced2;
+  successes: Successes;
+  summary: Summary1;
+  trials_used: TrialsUsed;
+  unknowns: Unknowns;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "SearchRequest".
+ */
+export interface SearchRequest {
+  evaluation_settings: EvaluationSettings;
+  failure_kind: FailureKind | null;
+  kind: Kind1;
+  minimum_severity: MinimumSeverity;
+  mode: Mode4;
+  options: SimulationOptions;
+  parameters: Parameters3;
+  ranges: Ranges1;
+  seed: Seed3;
+  strategy: Strategy;
+  template: ScenarioTemplate;
+  trials: Trials;
+}
+export interface Parameters3 {
+  [k: string]: boolean | number | string;
+}
+export interface Ranges1 {
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  [k: string]: [unknown, unknown];
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ReproductionRequest".
+ */
+export interface ReproductionRequest {
+  failure_id: FailureId;
+  kind: Kind2;
+  minimum_severity: MinimumSeverity1;
+  repeats: Repeats;
+  required_successes: RequiredSuccesses;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "MinimizeRequest".
+ */
+export interface MinimizeRequest {
+  failure_id: FailureId1;
+  kind: Kind3;
+  max_trials: MaxTrials;
+  minimum_severity: MinimumSeverity2;
+  repeats: Repeats1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationResume".
+ */
+export interface OptimizationResume {
+  expected_revision: ExpectedRevision1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationTrial".
+ */
+export interface OptimizationTrial {
+  assessed: Assessed;
+  candidate_index: CandidateIndex;
+  failure_id: FailureId2;
+  matches: Matches;
+  number: Number;
+  operation_id: OperationId;
+  reason: Reason;
+  repeat_index: RepeatIndex;
+  role: Role;
+  scenario: Scenario;
+  score: Score;
+  simulation_id: SimulationId2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationView".
+ */
+export interface OptimizationView {
+  operation: OptimizationRecord;
+  trials: Trials1;
 }

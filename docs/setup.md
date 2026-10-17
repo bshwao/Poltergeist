@@ -43,8 +43,16 @@ uv pip compile pyproject.toml --extra dev --universal --output-file requirements
 ```
 
 Simulation/optimization extras are declared but are not covered by the core lock.
+Random search uses only core dependencies. To enable optional Optuna search:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e '.[optimization]'
+```
+
+Optuna 4.x is required; 4.9.0 has been exercised locally, and resuming a search
+requires its recorded exact engine version. See [optimization usage](optimization.md).
 The adapter requires a matching CARLA 0.9.16 client/server; live GPU integration
-and the optimization dependencies remain to be validated.
+remains unverified.
 
 ## Configuration
 
@@ -64,9 +72,9 @@ Configuration does not create directories or connect to external services.
 | `API_HOST` | `0.0.0.0` | Address used by `python -m backend` |
 | `API_PORT` | `8000` | Port used by `python -m backend` |
 | `CORS_ORIGINS` | `["http://localhost:5173","http://127.0.0.1:5173"]` | JSON array of allowed browser origins |
-| `SIMULATION_QUEUE_SIZE` | `100` | Maximum waiting jobs, excluding the active job; 1–1000 |
+| `SIMULATION_QUEUE_SIZE` | `100` | Maximum waiting simulations and, separately, optimization operations, excluding each active item; 1–1000 |
 | `SIMULATION_PROGRESS_INTERVAL_S` | `0.25` | Minimum interval between persisted running progress updates; greater than 0, at most 60 seconds |
-| `SIMULATION_SHUTDOWN_TIMEOUT_S` | `15` | Cooperative worker shutdown wait; greater than 0, at most 60 seconds |
+| `SIMULATION_SHUTDOWN_TIMEOUT_S` | `15` | Bounded wait for each controller/worker shutdown; greater than 0, at most 60 seconds |
 | `VITE_API_URL` | `http://localhost:8000` | Frontend API base URL; configure in `frontend/.env` |
 
 Vite reads its own environment file in `frontend/`; it does not read root `.env`.
@@ -88,12 +96,23 @@ npm run dev
 ```
 
 API liveness: <http://localhost:8000/health>. Interactive API docs:
-<http://localhost:8000/docs>. The dashboard currently displays its starter screen.
+<http://localhost:8000/docs>. Open the dashboard at <http://localhost:5173>.
+Its Overview and Scenarios pages load real API metadata, generate seeded recipes,
+validate edited JSON, and manage saved scenarios with revision checks. Select
+CARLA or synthetic test mode explicitly, configure execution/evaluation settings,
+and submit the validated recipe to the worker. Follow the launch receipt's
+**Track this run** link for live progress, cooperative cancellation, finalized
+metrics, paged telemetry charts, artifact downloads, and available raw camera/
+LiDAR sample inspection. Simulations provides saved history and mode/status
+filters; Failures provides evidence details, manual reproduction flags, and
+two-report comparisons. Overview loads mode-separated historical analytics on
+request. See [dashboard usage](dashboard.md).
 No CARLA server or database is required for health, pure scenario generation,
 evaluation, or direct synthetic CLI runs. `/health` reports process liveness,
 not simulator/database readiness. Saved-data routes initialize persistence lazily;
 queue/launch/list/detail/progress/cancel routes also start and recover the single
-simulation worker. The [API walkthrough](api.md#generate-save-launch-and-read-a-test-run)
+simulation worker. Optimization routes start its controller and recover previous
+operations as interrupted, requiring explicit resume. The [API walkthrough](api.md#generate-save-launch-and-read-a-test-run)
 shows how to generate and save a recipe, launch explicit `mode: "test"`, poll it,
 and download finalized telemetry. API mode defaults to `carla`; it never falls
 back silently to synthetic execution.
@@ -141,6 +160,7 @@ a blocked native call can retain its lease until it returns. See
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m scripts.export_contracts --check
 cd frontend
+npm test
 npm run contracts:check
 npm run build
 ```
@@ -159,6 +179,22 @@ scenario/result/failure round trips, contained artifact paths, raw sample hashes
 and persistence failure cleanup. Section 6 covers scenario/failure APIs, bounded
 FIFO scheduling, persisted progress, cancellation/restart, exclusive worker leases,
 artifact downloads, analytics with unknown values, and lazy initialization.
+Section 7 covers deterministic random/Optuna sampling and replay, conservative
+objectives, repeated reproduction, valid local minimization, durable operation
+journals, cancellation, and interrupted resume without duplicate child runs.
+The section 8 and 9 frontend tests use Node's built-in test runner, a TypeScript loader,
+and the matching React test renderer development dependency. They check typed API requests,
+safe validation errors, abort handling, parameter bounds/defaults, strict seeds,
+JSON form parsing, saved-recipe reconciliation, and launch payload/settings
+validation, plus real component transitions for saved recipes and launch forms.
+Section 9 adds run history/deep links, serial progress polling and cancellation
+races, paged telemetry/unknown metrics, raw camera and LiDAR integrity/decoding,
+request cancellation, failure comparisons, manual flags, and mode-separated
+analytics. They need no browser or running backend. Browser interaction and
+responsive layout require separate checks. Section 9 browser automation could
+not initialize because its kernel assets path was unavailable, so no new visual
+verification is claimed. Final automated verification is recorded in the
+[implementation handoff](implementation-plan.md#verification).
 These checks do not validate a live server's
 driving behavior or sensor delivery timing. See [scenario engine usage](scenarios.md),
 [simulation usage](simulation.md), and [evaluation methodology](methodology.md).
@@ -200,7 +236,9 @@ layout validation can reject them. Supply a suitable map anchor/layout and verif
 it on the actual server. `--camera` and `--lidar` enable optional raw captures in
 CARLA mode; test mode rejects them. Raw samples are available to Python callbacks,
 and the CLI result records their count. The persistence service can save those
-samples with a manifest; encoded video and replay generation remain later work.
+samples with a manifest, and the dashboard can inspect individual recorded
+camera/LiDAR samples. Encoded video and reconstructed replay generation remain
+later work. No live CARLA capture has been verified.
 See [live execution requirements](simulation.md#carla-execution) and
 [capture persistence](persistence.md#capture-raw-sensor-samples).
 

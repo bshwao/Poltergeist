@@ -14,7 +14,8 @@ from backend.dependencies import ApiRuntime
 from backend.persistence_errors import ConflictError, DatabaseInitializationError, NotFoundError, PersistenceError
 from backend.services.simulation_service import QueueFullError, QueueUnavailableError
 from backend.storage import ArtifactError
-from backend.routes import analytics, failures, scenarios, simulations
+from backend.routes import analytics, failures, scenarios, simulations, optimizations
+from optimization.bayesian_search import OptimizationDependencyError
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ def create_app(settings: Settings | None = None, *, runner_factory=None) -> Fast
     for error_type, code, message in (
         (NotFoundError, 404, None), (ConflictError, 409, None),
         (QueueFullError, 429, None), (QueueUnavailableError, 503, None),
+        (OptimizationDependencyError, 503, None),
         (DatabaseInitializationError, 503, "Persistence initialization failed"),
         (PersistenceError, 422, None), (ArtifactError, 503, "Stored artifact is unavailable or invalid"),
         (OSError, 503, "Persistence is unavailable"),
@@ -64,7 +66,7 @@ def create_app(settings: Settings | None = None, *, runner_factory=None) -> Fast
     ):
         application.add_exception_handler(error_type, handler(code, message))
 
-    for router in (scenarios.router, simulations.router, failures.router, analytics.router):
+    for router in (scenarios.router, simulations.router, failures.router, analytics.router, optimizations.router):
         application.include_router(router)
 
     @application.get("/health", tags=["health"])

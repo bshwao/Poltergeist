@@ -12,7 +12,8 @@ Imports, application startup, health, OpenAPI, and the pure scenario endpoints
 do not contact CARLA, create a database, or create artifact directories. Saved
 scenario, result, failure, and analytics operations initialize local persistence
 lazily. Queue, launch, simulation list/detail/progress, and cancellation operations
-also start the single worker and perform restart recovery. CORS uses the configured
+also start the single worker and perform restart recovery. Optimization routes
+start its experiment controller and recover interrupted operations. CORS uses the configured
 `CORS_ORIGINS`.
 
 ## Generate, save, launch, and read a test run
@@ -184,7 +185,8 @@ A report requires a scored terminal parent, a matching recipe/severity, and
 positive evidence for its selected failure kind. Launching a run does not
 automatically create a failure report. `reproduced` filters are `all` (default),
 `true`, `false`, or `unknown`. The reproduction patch records an explicit
-observation; automated reruns, search, and minimization remain section 7.
+observation. Automated reproduction runs use `/optimizations` and retain their
+child-run evidence.
 
 Analytics always separate CARLA and test groups. They include lifecycle counts,
 scored/unscored result counts, mean severity, observed/positive collision and
@@ -192,6 +194,23 @@ traffic counts, and failure kinds over all history. Mean severity includes every
 scored terminal result, including known collisions in failed/cancelled runs;
 unknown scores never become zero. Observed run counts mean non-null counts and
 can include partial positive lower bounds; they are not complete coverage rates.
+
+## Optimization operations
+
+`POST /optimizations` accepts a discriminated `kind` of `search`, `reproduce`, or
+`minimize` and returns an operation record with HTTP 202. Search uses random or
+optional Optuna sampling over bundled template parameters. Reproduction and
+minimization reference a saved failure and inherit its recorded recipe and
+execution settings. All child runs use the existing single simulation worker.
+
+`GET /optimizations` lists records, `GET /optimizations/queue` returns controller
+status, and `GET /optimizations/{id}` returns the operation and complete trial
+journal. `POST /optimizations/{id}/cancel` persists cancellation.
+`POST /optimizations/{id}/resume` accepts a positive `expected_revision` and
+resumes an interrupted operation by replaying its journal without resetting its
+execution budget. Each route starts the controller lazily. See
+[search, reproduction, and minimization](optimization.md) for request examples,
+unknown-score policy, repetition thresholds, budgets, and restart semantics.
 
 ## Errors and limits
 
@@ -201,10 +220,10 @@ identify invalid fields. Common statuses are:
 | HTTP status | Meaning |
 | --- | --- |
 | 404 | Missing record, artifact index, or sample |
-| 409 | Stale revision, referenced scenario, unfinished result, or conflicting worker ownership |
+| 409 | Stale revision, referenced scenario, unfinished result, conflicting worker ownership, or unsafe optimization resume |
 | 422 | Invalid request, parameter binding, launch, or failure evidence |
 | 429 | Waiting queue full |
-| 503 | Worker unavailable, persistence initialization/access failure, or invalid/unavailable stored artifact |
+| 503 | Worker/controller unavailable, missing/unsupported optional search dependency, persistence initialization/access failure, or invalid/unavailable stored artifact |
 
 List limits are 1–1000, with a nonnegative offset. This local API has no
 authentication or public-hosting configuration. The dashboard remains the

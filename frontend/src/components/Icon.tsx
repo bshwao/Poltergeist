@@ -1,0 +1,18 @@
+import type { CSSProperties, ReactNode } from "react";
+
+type IconName = "overview" | "scenarios" | "simulations" | "failures" | "arrow" | "refresh" | "activity" | "ghost";
+
+const paths: Record<IconName, ReactNode> = {
+  overview: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>,
+  scenarios: <><path d="M6 3v18M18 3v18M12 3v3m0 5v2m0 5v3" /><path d="m3 8 3-3 3 3m6 8 3 3 3-3" /></>,
+  simulations: <><rect x="3" y="4" width="18" height="14" rx="2" /><path d="m10 8 5 3-5 3V8ZM8 21h8m-4-3v3" /></>,
+  failures: <><path d="m12 3 10 18H2L12 3Zm0 6v5m0 3v.1" /></>,
+  arrow: <><path d="M4 12h16m-6-6 6 6-6 6" /></>,
+  refresh: <><path d="M20 7v5h-5M4 17v-5h5" /><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3a7 7 0 0 0 11.6-1" /></>,
+  activity: <><path d="M3 12h4l3-8 4 16 3-8h4" /></>,
+  ghost: <><path d="M5 21V10a7 7 0 0 1 14 0v11l-3.5-2-3.5 2-3.5-2L5 21Z" /><path d="M9 10v2m6-2v2" /></>,
+};
+
+export function Icon({ name, size = 20, style }: { name: IconName; size?: number; style?: CSSProperties }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={style}>{paths[name]}</svg>;
+}

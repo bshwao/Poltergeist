@@ -11,5 +11,7 @@ from .scenario import ScenarioRecord
 from .simulation import SimulationRecord
 from .failure import FailureRecord
 from .simulation_job import SimulationJobRecord
+from .optimization import OptimizationOperationRecord, OptimizationTrialRecord
 
-__all__ = ["Base", "ScenarioRecord", "SimulationRecord", "FailureRecord", "SimulationJobRecord"]
+__all__ = ["Base", "ScenarioRecord", "SimulationRecord", "FailureRecord", "SimulationJobRecord",
+           "OptimizationOperationRecord", "OptimizationTrialRecord"]

@@ -95,7 +95,8 @@ class SimulationService:
                 or self._thread is None or not self._thread.is_alive()):
             raise QueueUnavailableError(self._error or "Simulation worker is not accepting jobs")
 
-    def submit(self, scenario: Scenario | Mapping | UUID, *, mode="carla", options=None, evaluation_settings=None):
+    def submit(self, scenario: Scenario | Mapping | UUID, *, mode="carla", options=None, evaluation_settings=None,
+               on_created=None):
         options = SimulationOptions.model_validate({} if options is None else options.model_dump(mode="python"))
         settings = EvaluationSettings.model_validate({} if evaluation_settings is None else evaluation_settings.model_dump(mode="python"))
         with self._condition:
@@ -108,6 +109,8 @@ class SimulationService:
                 simulation = Simulation(scenario=recipe, mode=mode, agent="baseline")
                 stored = SimulationRepository(session).create(simulation, scenario_id=scenario_id)
                 JobRepository(session).create(simulation.id, options, settings)
+                if on_created is not None:
+                    on_created(session, stored)
             self._pending.append(simulation.id)
             self._condition.notify()
             return stored

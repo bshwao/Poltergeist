@@ -135,8 +135,9 @@ returns a new result with valid storage-owned references.
 
 `FailureReport` contains the simulation UUID, a scenario snapshot with its seed,
 failure kind, severity, summary, and reproduction outcome. `reproduced: null`
-means no reproduction result is available. The optimization section will define
-how repeated runs establish reproducibility. Persistence requires a terminal
+means no reproduction result is available. Automated repetition thresholds are
+defined in [optimization policy](optimization.md#reproduce-a-saved-failure).
+Persistence requires a terminal
 parent result with matching scenario/severity and positive evidence for the
 selected failure kind; it does not infer failure from an unknown metric.
 
@@ -181,3 +182,41 @@ true, false, or null; patching it does not perform a rerun. `AnalyticsSummary`
 contains separate `ModeAnalytics` groups with lifecycle/evidence counts and mean
 severity across all scored terminal results. Missing scores stay null; observed
 metric counts can include partial lower bounds. See [API usage](api.md).
+
+## Optimization contracts
+
+`shared.models.optimization` defines generated contracts for a discriminated
+`OptimizationRequest`: `SearchRequest`, `ReproductionRequest`, or `MinimizeRequest`.
+HTTP requests include `kind`. Search inherits `ExecutionSpec` (mode, simulation
+options, and evaluation settings); reproduction/minimization inherit the source
+run's persisted worker-job settings and do not accept replacements.
+
+`SearchRequest` holds template parameters/ranges, strategy, seed, trial budget,
+optional target failure kind, and minimum severity. `ReproductionRequest` holds
+a failure UUID, repeat count, and optional required-success threshold.
+`MinimizeRequest` holds a failure UUID, total execution budget, and repeats per
+baseline/candidate. Both also allow a minimum severity. Counts are strict bounded
+integers; unknown fields and nonfinite scores/ranges are rejected.
+
+`OptimizationRecord` retains the request, frozen execution specification, optional
+source failure snapshot, revision, timestamps, cancellation request, engine
+version, error, and outcome. Its states are `queued`, `running`, `completed`,
+`failed`, `cancelled`, and `interrupted`. Queued/running states have no finish
+time; running requires a start time. Completed/failed/cancelled/interrupted
+states require a finish time, and only failed records carry an error. Explicit
+revision-checked resume changes an interrupted record back to queued, preserving
+its journal and budget.
+
+`OptimizationTrial` links a zero-based journal number to one immutable child
+simulation, its full scenario, role, candidate/repetition indexes, and assessment.
+`assessed` distinguishes a pending assessment from an assessed unknown result.
+`score` is the completed run's severity or null; `matches` is true, false, or null
+under the requested evidence policy. `reason` explains the assessment, and an
+optional `failure_id` references its saved positive evidence report.
+
+`OptimizationView` returns an operation and its ordered trials.
+`OptimizationOutcome` records consumed child executions, positive and unknown
+counts, optional best run/failure/recipe, a tri-state reproduction decision, and
+a summary. An operation can complete with unknown evidence or no best failure;
+completion describes its requested procedure. See [optimization usage](optimization.md)
+for objective selection, budgets, minimization, and interruption rules.

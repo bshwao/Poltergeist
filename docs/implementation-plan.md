@@ -12,10 +12,10 @@ that section's scope is complete, not that the whole application is functional.
 | 4 | CARLA world/actors/sensors, baseline agent, telemetry, lifecycle, cancellation, cleanup, test adapter | Complete |
 | 5 | Database models, migrations, scenario/run/failure persistence, artifact storage | Complete |
 | 6 | Scenario APIs, single-worker simulation queue, progress/cancellation, results/failures/analytics | Complete |
-| 7 | Random/Optuna search, severity objectives, reproduction, failure minimization | Next |
-| 8 | Dashboard navigation, scenario forms, validation, launch controls | Planned |
-| 9 | Live status, telemetry/metrics charts, failure browsing, comparisons, available recording playback | Planned |
-| 10 | Experiment/report CLI, exports, Docker integration, end-to-end checks, setup completion | Planned |
+| 7 | Random/Optuna search, severity objectives, reproduction, failure minimization | Complete |
+| 8 | Dashboard navigation, scenario forms, validation, launch controls | Complete |
+| 9 | Live status, telemetry/metrics charts, failure browsing, comparisons, available raw capture inspection | Complete |
+| 10 | Experiment/report CLI, exports, Docker integration, end-to-end checks, setup completion | Next |
 
 Target: a local application with one simulation worker. Authentication, public
 hosting, and training a custom ML agent are separate extensions.
@@ -194,19 +194,155 @@ hosting, and training a custom ML agent are separate extensions.
   save/launch/read/download/reopen smoke check passed. The dashboard remains its
   starter UI, and live CARLA and container execution remain unverified.
 
-## Resume with section 7
+## Section 7 handoff
 
-Implement bounded random/Optuna search over scenario parameters, severity
-objectives that handle unscored runs, explicit repeated-run reproduction policy,
-and failure minimization. Reuse normalized scenario generation and durable worker
-launches; preserve recipe/seed/options/evaluation snapshots and mode distinctions.
-Keep one CARLA tick owner and avoid database transactions during execution.
+- `/optimizations` provides random/optional Optuna search, repeated reproduction,
+  local minimization, operation/trial inspection, cancellation, and revision-checked
+  resume. `OptimizationService` submits child runs through the existing native
+  worker, preserving one tick owner. Requests and responses use generated shared
+  contracts. See [optimization usage and policy](optimization.md).
+- Sampling is seeded and bounded over validated template parameter spaces.
+  Optuna uses its real 4.x TPE ask/tell interface; 4.9.0 is exercised locally and
+  remains an optional extra outside the core lock. Only completed, scored runs
+  provide objectives; unknown/failed/cancelled objectives never become zero.
+  Target kinds use coverage-aware positive evidence, and eligible positive
+  trials create checked failure records atomically with their assessments.
+- Reproduction snapshots the source failure and its exact recipe/seed, mode,
+  simulation options, and evaluation settings. Persisted worker-job metadata is
+  required. The default policy requires all three repetitions; configurable
+  thresholds preserve true/false/unknown evidence. Only a completed reproduction
+  updates the source report's reproduction flag, in the completion transaction.
+- Minimization first confirms the baseline, then tests deterministic valid
+  lower-complexity recipes. Every candidate repeat must confirm the failure.
+  Template bindings and actor dependencies remain valid; the result is a tested
+  greedy local reduction, not a global minimum. Baseline/candidate executions
+  share one budget, including failed/cancelled children; a new incomplete repeat
+  group is never launched.
+- Migration 3 adds revisioned operation snapshots and ordered child journals.
+  Child run/job/link creation is atomic. Startup marks unfinished parents
+  interrupted; explicit resume checks engine version and deterministic replay,
+  reuses linked children, and retains the original budget. The simulation worker
+  may already recover an existing unclaimed linked child before parent resume;
+  no new child trials are created until resume. Interrupted claimed children
+  follow the worker's existing failed-result recovery rule.
+- Controller shutdown interrupts active work before native worker shutdown.
+  User cancellation is durable and propagates to linked unfinished runs. No
+  database transaction spans execution, and existing artifact/native recovery
+  limits still apply. Dashboard controls, live CARLA, and container integration
+  remain unverified or later work as described below.
 
-Search should explain its trial budget, cancellation, objective values, and
-reproduction evidence without converting unknown observations into successful
-safety outcomes. Store supported failure records through existing evidence
-checks. Define how an interrupted search resumes and how it relates to the
-worker's existing claimed-job interruption policy. UI remains sections 8–9.
+## Section 8A handoff
+
+- The responsive dashboard shell provides Overview and Scenarios hash navigation,
+  keyboard focus/skip navigation, and a live API connection indicator. Health is
+  process liveness only; the overview presents loaded template counts rather
+  than invented simulation or failure statistics. See [dashboard usage](dashboard.md).
+- The scenario workspace fetches all four template recipes and parameter
+  metadata through the typed API client. Inputs use API-defined bounds, units,
+  defaults, and integer rules, with a strict 31-bit nonnegative seed. Generation
+  uses fixed parameter values and returns a full normalized recipe without
+  launching a simulation or saving a scenario.
+- The full recipe JSON editor supports custom edits and server normalization.
+  Local field/JSON errors and structured server validation paths are displayed;
+  unexpected service diagnostics are replaced with useful request errors.
+  Form changes and JSON edits invalidate the displayed validation state.
+- Superseded requests are aborted and old responses are ignored. Navigating
+  between Overview and Scenarios retains the draft, as do failed or empty
+  catalog refreshes after a successful load. Reloading the browser discards the
+  unsaved draft; there is no browser storage or saved-scenario integration yet.
+- Dependency-free frontend tests use Node's built-in runner and the existing
+  TypeScript package. Generated shared types remain the API contract source.
+  Live CARLA geometry, driving behavior, and sensor timing remain unverified.
+
+## Section 8B handoff
+
+- The opt-in saved-scenario library lists eight records per page with next/previous
+  controls and refresh. Loading fetches the current record rather than using the
+  list snapshot. Replacing unsaved work requires an in-page confirmation. Custom
+  recipes use the JSON editor without an unrelated template parameter form.
+- Validated recipes can be saved as new records, updated with their expected
+  revision, or saved as separate copies. HTTP 409 keeps the workspace draft and
+  offers the latest revision or a copy. Delayed save responses preserve newer
+  JSON and only advance the matching record's association. Confirmed deletion
+  uses the listed revision, retains the workspace draft, and detaches its saved
+  association. The API can reject deletion of records referenced by runs.
+- A recipe name input edits the JSON and requires validation again. Validation
+  synchronizes template parameters and seed from normalized JSON; regeneration
+  preserves the current name. Loading a saved record supplies validated JSON.
+  Overview/Scenarios navigation retains drafts, while browser reload discards
+  unsaved edits. Saved records persist in SQLite; there is no autosave or browser
+  storage.
+- Execution mode starts unselected and requires an explicit CARLA/test choice.
+  Execution and evaluation foldouts expose all current shared settings with
+  field bounds and cross-field rules, including severity weights totaling 100.
+  Synthetic mode disables camera/LiDAR and clears captures selected in CARLA
+  mode. Changing execution settings does not invalidate the recipe validation.
+- Launch submits a copied inline recipe and settings through the existing API,
+  preserving the exact validated workspace even if its saved record changes.
+  Consequently, the run stores its recipe snapshot without a saved-scenario
+  foreign-key association. Later workspace edits cannot change an in-flight
+  submission. HTTP 202 shows the run ID, mode, status, and available queue position
+  at acceptance, without polling or implying successful execution.
+- **Check queue** explicitly starts/recovers the lazy worker and returns an
+  advisory snapshot; opening the saved library initializes persistence. Health,
+  template generation, and validation remain pure. HTTP 409/429/503 and other
+  request failures are surfaced without automatic mutation retries. An uncertain
+  network response directs users to inspect API run history before retrying.
+  Existing backend contracts are unchanged, and live CARLA remains unverified.
+
+## Section 9 handoff
+
+- Simulations and Failures are mounted dashboard pages. Launch receipts and
+  failure parent-run links use bookmarkable `#simulations/<UUID>` deep links.
+  Saved run history pages ten records, filters by mode/status, and refreshes
+  explicitly so uncertain launch acceptance can be inspected before retrying.
+- The selected run polls progress serially until a terminal status, then loads
+  finalized output. Request timeouts and capped retry delays retain the last
+  confirmed observation; cancellation updates cannot be overwritten by older
+  revisions. Navigation aborts polling and outstanding requests. Cooperative
+  cancellation distinguishes an accepted request from terminal cancellation.
+  Run detail retains the original recipe, execution settings, and provenance.
+- Final safety cards preserve unknown values, real zeroes, measurement units,
+  frame/pair coverage, partial traces, and saved scoring settings. Motion charts
+  request at most 200 finalized frames per page and identify the displayed
+  window. Direct measured velocity/deceleration series break at missing/skipped
+  observations and gaps above the recorded timing policy; the frame inspector
+  exposes exact values and controls. They do
+  not replace backend TTC/clearance or aggregate braking evaluation.
+- Indexed artifact downloads avoid accepting storage paths from page inputs.
+  Raw capture inspection loads manifests and individual sensor samples only on
+  explicit actions, verifies SHA-256/byte length, and aborts superseded loads.
+  Camera frames decode BGRA8 to actual canvas pixels. LiDAR reports finite point
+  counts and sensor-frame bounds under an explicit little-endian assumption.
+  Empty captures and synthetic-mode limitations remain visible. Individual raw
+  samples are not encoded video or reconstructed simulation replay.
+- Failure history pages eight records, filters by parent run/reproduction state,
+  and reads each report with its actual parent result, recipe, coverage, mode,
+  settings, and runtime. Manual reproduction flags are explicit evidence updates
+  and do not rerun a scenario. Two reports can be selected across pages for
+  comparisons, with unknowns retained and compatibility notes for modes, agents,
+  options, scoring differences, partial observations, or missing results.
+  A finalized run can save a report from scored positive evidence using its
+  exact recipe/severity and a user-written summary. Reproduction begins unknown;
+  duplicate submissions and stale responses are guarded without automatic
+  mutation retries.
+- Overview loads timestamped analytics on demand from all persisted history.
+  CARLA/test groups, scored/unscored results, status counts, reports, and observed
+  event denominators remain separate. Mean severity under varied recorded
+  settings is not presented as a controlled safety comparison.
+- The existing single backend worker remains the simulation owner. Optimization
+  search/reproduction/minimization APIs remain available without new dashboard
+  controls. Live CARLA and browser visual checks remain unverified. See
+  [dashboard usage](dashboard.md) for the full flow and limitations.
+
+## Resume with section 10
+
+Implement the experiment/report CLI and exports, complete Docker runtime/storage
+integration, run end-to-end checks, and finalize setup instructions. Keep
+synthetic execution explicit and retain observation/settings provenance in
+exports. Verify live CARLA map placement, sensors, GPU/runtime behavior, and
+browser layouts in environments that support them before claiming those checks.
+Search UI controls and encoded/reconstructed replay remain optional extensions.
 
 ## Verification
 
@@ -271,4 +407,64 @@ generated and saved a recipe, launched test mode, polled completion, loaded the
 601-frame result, paged telemetry, downloaded all 601 NDJSON lines, saved a
 near-miss failure, and queried test-mode analytics. Closing and recreating the API
 against the same database reloaded the identical result and failure. Live CARLA
+and container integration remain unverified.
+
+Section 7 validation: 1,159 Python tests passed with warnings treated as errors.
+Python schema and generated TypeScript drift checks, frontend production build,
+dependency consistency, and Git whitespace checks passed. Coverage includes real
+Optuna 4.9.0 suggestions/replay, unknown objectives, repeated reproduction,
+baseline/candidate minimization budgets, migration 1/2-to-3 preservation,
+transactional trial/failure writes, cancellation races, policy-version checks,
+shutdown and partial-group resume without duplicate children. A synthetic API
+search measured a near miss across 601 frames and reproduced the identical score
+twice without injected events. API reproduction/minimization records and source
+flags reloaded unchanged after reopening storage. A transient Windows directory
+rename denial found during integration now has bounded publication retries,
+with cleanup and competing-owner regressions. Live CARLA and container execution
+remain unverified.
+
+Section 8A validation: 33 frontend tests and 116 focused Python scenario/API and
+contract tests passed; Python warnings were treated as errors. JSON Schema and
+generated TypeScript drift checks, TypeScript compilation, the production build,
+and Git whitespace checks passed. Browser checks against the running API covered
+template selection, edited parameters and seed, generation, local numeric/JSON
+errors, server validation errors, normalized actor IDs, and validation state.
+Overview/Scenarios navigation, API outage/recovery, and an empty-catalog fixture
+all preserved the existing draft. Desktop (1280 × 900) and mobile (390 × 844)
+layouts were checked, with no horizontal overflow in the mobile view. Saved
+scenario and launch controls remain section 8B; no live CARLA run was attempted.
+
+Section 8B validation: 90 frontend tests and all 1,159 Python tests passed;
+Python warnings were treated as errors. JSON Schema and generated TypeScript
+drift checks, TypeScript compilation, the production build, and Git whitespace
+checks passed. Matching React test-renderer interaction tests exercise real
+components, including dirty-load confirmation, custom/bound forms, stale save
+responses, conflict recovery, deletion/load interlocks, original delete revision
+checks after automatic refresh, pagination, explicit modes, settings validation,
+queue errors, immutable launches, duplicate-submit protection, and late receipts.
+The typed client also exercised an isolated running API: create/read/update/copy/
+delete, stale revision rejection, queue inspection, and a synthetic run accepted
+as queued and completed with five telemetry frames and the requested settings.
+Browser automation could not initialize because its kernel assets path was
+unavailable, including after reset; no new browser or visual verification is
+claimed for 8B. Recheck the new library/launch layout when that tool is available.
+The earlier 8A browser checks remain recorded above. Live CARLA remains unverified.
+
+Section 9 validation: 194 frontend tests and all 1,159 Python tests passed;
+Python warnings were treated as errors. JSON Schema and TypeScript contract
+drift checks, TypeScript compilation, production build, dependency consistency,
+and Git whitespace checks passed. React interaction tests cover draft retention
+across navigation, lazy data pages, serial polling, cancellation/revision races,
+history filters and pagination, nullable metrics/coverage, timed chart gaps,
+bounded telemetry pages, evidence-backed report creation, manual reproduction,
+and comparisons. Raw capture tests verify SHA-256/length, BGRA8 canvas pixels
+through a canvas test double, little-endian LiDAR bounds, and superseded reads.
+An isolated real HTTP API smoke test used the typed client to launch/read/filter
+synthetic runs, page telemetry, cancel waiting/active runs, retain unknown partial
+severity, create a naturally observed near-miss report, patch false/unknown
+reproduction observations, query analytics, and download indexed telemetry.
+Explicitly labelled synthetic camera/LiDAR byte fixtures passed manifest,
+sample download, and SHA-256 checks; these were not live CARLA captures.
+Browser automation failed to initialize because its kernel assets path was
+unavailable; no section 9 browser or visual verification is claimed. Live CARLA
 and container integration remain unverified.
