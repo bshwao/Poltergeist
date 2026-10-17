@@ -24,6 +24,7 @@ def setup_adapter(monkeypatch):
     })
     class World:
         frame = 50
+        actor_states = [ActorState(actor_id="driver", transform=Transform(), velocity_mps=Vector3(), acceleration_mps2=Vector3())]
         def tick(self):
             self.frame += 1
             return self.frame
@@ -31,6 +32,8 @@ def setup_adapter(monkeypatch):
             return NS(frame=self.frame, timestamp=NS(elapsed_seconds=self.frame * 0.05))
         def get_map(self):
             return NS(name="/Game/Carla/Maps/Town03", get_waypoint=lambda *a, **k: None)
+        def get_spectator(self):
+            return NS(set_transform=lambda pose: log.append(("spectator", self.frame, pose)))
     world = World()
     ego = NS(id=11, apply_control=lambda control: log.append(("control", control)), get_location=lambda: NS(x=0,y=0,z=0))
     class Worlds:
@@ -47,7 +50,7 @@ def setup_adapter(monkeypatch):
             log.append("actors-spawn")
             return {"driver": ego}
         def states(self, snapshot):
-            return [ActorState(actor_id="driver", transform=Transform(), velocity_mps=Vector3(), acceleration_mps2=Vector3())]
+            return world.actor_states
         def control_npcs(self, commands, dt): log.append(("npc", commands, dt))
         def close(self): log.append("actors-close")
     class Sensors:
@@ -77,7 +80,8 @@ def setup_adapter(monkeypatch):
     monkeypatch.setattr(module, "SensorManager", Sensors)
     monkeypatch.setattr(module, "RuleMonitor", Rules)
     client = NS(get_server_version=lambda: "0.9.16", get_client_version=lambda: "0.9.16")
-    carla = NS(VehicleControl=lambda **kwargs: kwargs, LaneType=NS(Driving="Driving"))
+    carla = NS(VehicleControl=lambda **kwargs: kwargs, LaneType=NS(Driving="Driving"),
+               Location=NS, Rotation=NS, Transform=lambda location, rotation: NS(location=location, rotation=rotation))
     adapter = CarlaSimulationAdapter(client=client, carla_module=carla, evaluation_settings=EvaluationSettings(speeding_tolerance_mps=1))
     return adapter, scenario, log, world, client, module
 
@@ -148,3 +152,33 @@ def test_missing_route_produces_hold_target(setup_adapter):
     frame = adapter.open(scenario)
     assert adapter.observation(frame, 10).target_speed_mps == 0
     adapter.close()
+
+
+def test_spectator_uses_initialized_ego_pose_ignores_foreign_traffic_and_only_moves_once(setup_adapter):
+    adapter, scenario, log, world, _, _ = setup_adapter
+    # Spawn bookkeeping still contains the origin; only the initialized state
+    # has the real location. An unrelated vehicle must not affect framing.
+    world.actor_states = [
+        ActorState(actor_id="driver", transform=Transform(position=Vector3(x=100, y=200, z=8))),
+        ActorState(actor_id="world:77", transform=Transform(position=Vector3(x=10000, y=-9000))),
+    ]
+    adapter.open(scenario)
+    view = next(entry for entry in log if isinstance(entry, tuple) and entry[0] == "spectator")
+    assert view[1] == 51
+    assert (view[2].location.x, view[2].location.y, view[2].location.z) == (100, 200, 28)
+    assert view[2].rotation.pitch == -89
+    assert log.index(view) > log.index(("collect", 51))
+    adapter.step(ControlInput(), {"driver": ActorCommand(0)})
+    adapter.close()
+    assert len([entry for entry in log if isinstance(entry, tuple) and entry[0] == "spectator"]) == 1
+
+
+def test_spectator_rpc_failure_does_not_fail_simulation(setup_adapter, caplog):
+    adapter, scenario, log, world, _, _ = setup_adapter
+    def unavailable():
+        raise RuntimeError("spectator unavailable")
+    world.get_spectator = unavailable
+    output = SimulationRunner(adapter).run(scenario)
+    assert output.result.simulation.status == "completed", output.result.simulation.error
+    assert "Could not position the CARLA spectator" in caplog.text
+    assert log[-3:] == ["sensors-close", "actors-close", "world-close"]

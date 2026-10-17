@@ -12,6 +12,7 @@ from .errors import SimulationError
 from .protocols import ActorCommand, DrivingObservation, SensorSample, SimulationOptions
 from .rule_monitor import RuleMonitor
 from .sensor_manager import SensorManager
+from .spectator import position_spectator
 from .world_manager import WorldManager
 
 
@@ -82,7 +83,9 @@ class CarlaSimulationAdapter:
         snapshot = self.world.get_snapshot()
         self._origin_time = snapshot.timestamp.elapsed_seconds
         self._rule_time_offset = snapshot.timestamp.elapsed_seconds - before.timestamp.elapsed_seconds
-        return self._frame(snapshot, ControlInput())
+        frame = self._frame(snapshot, ControlInput())
+        position_spectator(self.world, self.carla, frame, {actor.id for actor in scenario.actors})
+        return frame
 
     def _frame(self, snapshot, control: ControlInput) -> TelemetryFrame:
         states = self.actor_manager.states(snapshot)

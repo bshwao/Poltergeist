@@ -117,7 +117,7 @@ export function LaunchPanel({ scenario, disabledReason }: { scenario: Scenario |
         <fieldset className="launch-fields" disabled={submitting}>
           <legend className="sr-only">Simulation execution settings</legend>
           <div className="mode-grid" role="group" aria-label="Execution mode" aria-describedby={errorFor("mode") ? `${prefix}-mode-error` : undefined}>
-            <button className="mode-card" type="button" aria-pressed={mode === "carla"} onClick={() => chooseMode("carla")}><strong>CARLA</strong><span>Run against the configured CARLA server. Requires a reachable simulator and the requested map.</span></button>
+            <button className="mode-card" type="button" aria-pressed={mode === "carla"} onClick={() => chooseMode("carla")}><strong>CARLA</strong><span>Run against the configured CARLA server. Requires a reachable simulator and the requested map. Its spectator camera moves above the scenario when the run starts.</span></button>
             <button className="mode-card" type="button" aria-pressed={mode === "test"} onClick={() => chooseMode("test")}><strong>Synthetic test</strong><span>Exercise the pipeline with synthetic telemetry. No CARLA connection or sensor capture.</span></button>
           </div>
           {errorFor("mode") && <p className="field-error launch-field-message" id={`${prefix}-mode-error`}>{errors.mode}</p>}

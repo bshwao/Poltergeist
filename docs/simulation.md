@@ -165,6 +165,16 @@ On October 17, 2026, this recipe completed a live CARLA 0.9.16 Town03 API run:
 30 simulated seconds, 601 telemetry frames, and 1,202 sensor samples. Other map
 versions, occupied spawn locations, and changed recipes require fresh validation.
 
+After the initialization tick, the adapter positions the existing spectator
+above the scenario's measured actor positions. Foreign traffic is excluded from
+the framing. It uses a top-down view, aligns the long approach across the window,
+and allows road context around the actors. Framing assumes a typical 16:9 window;
+very wide scenarios or short drawing distances can require manual adjustment.
+The view is positioned only once so manual spectator controls remain available.
+No additional sensor is spawned, and a spectator RPC failure logs a warning
+without failing the simulation. This affects live CARLA runs only, including
+dashboard launches; it does not enable rendering or provide recorded playback.
+
 Native snapshots provide SI velocity/acceleration, true world bounding-box center
 and orientation including local offsets, and available speed limits converted
 from km/h to m/s. Existing foreign vehicles and pedestrians are observed under

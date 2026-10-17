@@ -114,6 +114,15 @@ separate from unsaved page edits; saving is always an explicit action.
    scenario ID, so a concurrent server edit cannot change the submitted recipe.
    The run stores the recipe snapshot without a link to the saved library record.
 
+When a CARLA run initializes successfully, the CARLA window's spectator camera
+automatically moves to an overhead view of the scenario actors. This uses the
+first measured world snapshot and adds no camera sensor or recording overhead.
+The view is positioned once, so you can then fly it manually. Vehicles are
+removed at the end of the run; watch while it is active. Spectator positioning
+does not require the **Capture camera frames** checkbox. A server launched with
+`-RenderOffScreen` has no visible spectator window, and no-rendering mode has no
+3D scene. Restart the backend after installing this change to load the new code.
+
 HTTP 202 displays **Run accepted**, its ID, mode, status, and available queue
 position at acceptance. This receipt does not track subsequent progress or prove
 the run completed. Select **Track this run** to open its live detail view.
