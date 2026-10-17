@@ -65,6 +65,7 @@ class Waypoint:
     def __init__(self, x=0.0, y=0.0, yaw=0.0, is_junction=False):
         self.transform, self.id = Pose(Vec(x, y, 0.0), Rot(yaw=yaw)), 10
         self.is_junction = is_junction
+        self.road_id, self.section_id, self.lane_id, self.s = 1, 0, -1, x
 
     def next(self, distance):
         return [Waypoint(self.transform.location.x + distance, self.transform.location.y)]
@@ -80,6 +81,9 @@ class Map:
 
     def get_spawn_points(self):
         return deepcopy(self.points)
+
+    def generate_waypoints(self, distance):
+        return [Waypoint(float(x)) for x in range(0, 181, 20)]
 
     def get_waypoint(self, location, project_to_road=True, lane_type=1):
         self.calls.append((location.x, location.y, project_to_road, lane_type))
@@ -511,6 +515,9 @@ def test_fallback_retries_actual_box_overlap_without_touching_foreign_actor():
 def test_template_path_validation_rejects_wrong_junction_and_cleans_up():
     world = World()
     definition = load_template("sudden_braking")
+    # Explicit coordinates pin this layout and must not trigger auto-placement.
+    definition.actors[0].spawn_point_index = None
+    definition.actors[0].spawn = Transform(position=Vector3(z=0.5))
     # Both spawn points fit, but the gap includes an unmapped interval.
     original = world.map.get_waypoint
 
@@ -597,3 +604,92 @@ def test_failed_destroy_surfaces_all_errors_and_allows_retry():
         actor.destroy_result = True
     manager.close()
     assert manager.actors == {}
+
+
+@pytest.mark.parametrize('template', ['sudden_braking', 'pedestrian_crossing', 'occluded_pedestrian'])
+def test_builtin_templates_search_complete_layout_when_starter_anchor_is_off_road(template):
+    world = World()
+    world.map.points[0] = Pose(Vec(0, 50, 0.5))
+    definition = load_template(template)
+    before = definition.model_dump()
+    manager = ActorManager(world, CARLA, definition)
+    actors = manager.spawn()
+    assert set(actors) == {actor.id for actor in definition.actors}
+    assert manager.resolved_spawns['ego'].position.y == pytest.approx(0)
+    for actor in definition.actors[1:]:
+        expected = compose(manager.resolved_spawns['ego'], Transform(
+            position=actor.relative_spawn.offset_m,
+            rotation=Rotation(yaw_deg=actor.relative_spawn.yaw_offset_deg)))
+        assert manager.resolved_spawns[actor.id] == expected
+    manager.close()
+    assert world.actors == []
+    assert definition.model_dump() == before
+
+
+def test_auto_layout_retries_occupied_actor_and_removes_partial_attempt():
+    world = World()
+    world.fail_spawn_at = 2
+    manager = ActorManager(world, CARLA, load_template('sudden_braking'))
+    actors = manager.spawn()
+    assert world.destroy_order == [1]
+    assert len(actors) == len(world.actors) == 2
+    assert all(actor.is_alive for actor in actors.values())
+    manager.close()
+    assert world.actors == []
+
+
+def test_stale_native_spawn_transforms_do_not_corrupt_offsets_overlap_or_initial_velocity():
+    world = World()
+    world.map.lane_yaw = 180
+    create = world.try_spawn_actor
+    def stale(blueprint, pose):
+        actor = create(blueprint, pose)
+        actor.get_transform = lambda: Pose()
+        return actor
+    world.try_spawn_actor = stale
+    definition = scenario(actors=[
+        {'id': 'ego', 'type': 'ego_vehicle', 'spawn': {
+            'position': {'x': 30, 'z': 0.5}, 'rotation': {'yaw_deg': 180}}, 'speed_mps': 12},
+        {'id': 'lead', 'type': 'lead_vehicle', 'relative_spawn': {
+            'anchor_actor_id': 'ego', 'offset_m': {'x': 20}}, 'speed_mps': 10},
+    ])
+    manager = ActorManager(world, CARLA, definition)
+    actors = manager.spawn()
+    assert manager.resolved_spawns['ego'].position.x == 30
+    assert manager.resolved_spawns['lead'].position.x == pytest.approx(10)
+    assert actors['ego'].target_velocities[0].x == pytest.approx(-12)
+    assert actors['lead'].target_velocities[0].x == pytest.approx(-10)
+    manager.close()
+
+
+def test_selected_junction_route_controls_npc_despite_ambiguous_map_projection():
+    world = World()
+    manager = ActorManager(world, CARLA, scenario(actors=[
+        {'id': 'ego', 'type': 'ego_vehicle', 'spawn_point_index': 0},
+        {'id': 'crossing', 'type': 'crossing_vehicle', 'spawn_point_index': 1, 'speed_mps': 10},
+    ]))
+    crossing = manager.spawn()['crossing']
+    manager._routes['crossing'] = [Transform(position=Vector3(x=x)) for x in range(20, 50, 2)]
+    world.map.lane_yaw = 90
+    world.map.get_waypoint = lambda *args, **kwargs: None
+    manager.control_npcs({}, 0.05)
+    assert crossing.controls[-1].steer == pytest.approx(0)
+
+
+def test_template_pedestrian_stops_at_end_of_validated_crossing():
+    world = World()
+    manager = ActorManager(world, CARLA, load_template('pedestrian_crossing'))
+    person = manager.spawn()['pedestrian']
+    start = manager.resolved_spawns['pedestrian']
+    person.pose = to_carla(compose(start, Transform(position=Vector3(x=8.1))), CARLA)
+    manager.control_npcs({'pedestrian': ActorCommand(1.4)}, 0.05)
+    assert person.controls[-1].speed == 0
+    manager.close()
+
+
+def test_template_without_suitable_junction_reports_actionable_error_without_spawning():
+    world = World()
+    with pytest.raises(SimulationError, match='No map-valid intersection layout.*another seed'):
+        ActorManager(world, CARLA, load_template('intersection')).spawn()
+    assert world.spawn_attempts == []
+    assert world.actors == []

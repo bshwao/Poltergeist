@@ -100,8 +100,8 @@ a conflict point ahead of the ego:
 | Parameter | Bounds | Default | Unit |
 | --- | --- | --- | --- |
 | `crossing_speed_mps` | 1–20 | 10 | m/s |
-| `intersection_distance_m` | 10–60 | 30 | m forward of ego |
-| `crossing_distance_m` | 5–40 | 25 | m left of conflict point |
+| `intersection_distance_m` | 10–60 | 30 | m along the ego approach to the conflict |
+| `crossing_distance_m` | 5–40 | 25 | m along the crossing approach to the conflict |
 | `crossing_delay_s` | 0–8 | 0 | seconds |
 
 `sudden_braking` starts a moving lead vehicle directly ahead and triggers braking:
@@ -117,21 +117,38 @@ a conflict point ahead of the ego:
 
 An actor can specify one placement source: absolute `spawn`, map
 `spawn_point_index`, or `relative_spawn`. With none, the adapter selects a
-map spawn. Built-in ego actors use map spawn-point index 0; other actors are
-positioned relative to that anchor. A relative offset is in the anchor's local
+map spawn. A relative offset is in the anchor's local
 frame: x forward, y right, z up, with a relative yaw in degrees. Relative actor
 references must exist, cannot reference themselves, and must form an acyclic
 dependency graph.
 
-These are symbolic layouts. Spawn-point 0 is not certified as a junction or
-crosswalk on Town03; the relative paths are not certified to follow its roads.
-The section 4 CARLA adapter now validates blueprint/type, ground, lane/heading,
-overlap, and built-in approach/junction/crossing geometry. It rejects unsuitable
-explicit placements rather than silently moving them. Select a suitable ego
-map anchor or supply a custom map-valid layout; the built-in defaults have not
-been certified on a real server. Test mode maps these symbols into its own
-virtual coordinates and cannot establish CARLA map validity. No road coordinates
-or simulation results are fabricated during loading or generation.
+Built-in layouts express scenario intent and are resolved together by the CARLA
+adapter when execution starts. A built-in ego `spawn_point_index` is an anchor
+hint, rather than a requirement to force the scenario onto that road. Braking
+and pedestrian templates first try the hinted anchor, then search sorted map
+waypoints in a seeded order for a complete valid layout. Their configured local
+distances and occluder geometry are retained. Pedestrians stop after traversing
+the configured crossing instead of walking indefinitely beyond mapped ground.
+
+Intersection templates find two connected driving lanes that cross within the
+same junction and at the same elevation. Ego and crossing distances are measured
+backwards along those lanes from their shared conflict point. Real lane headings
+replace the symbolic right angle. The controller follows the selected paths
+through the junction so overlapping lanes do not produce an ambiguous heading.
+Speeds, weather, event timing, and the requested distance parameters are retained.
+
+Every candidate still undergoes ground, lane/heading, and actual bounding-box
+validation. An occupied layout is cleaned up and another candidate is tried,
+without removing foreign actors. If no suitable layout exists, execution reports
+an actionable placement error; every distance combination is not feasible on
+every map. Exact results also depend on the CARLA map version and existing traffic.
+Runtime metadata records the resolved spawn transforms without modifying the
+saved recipe. Loading, generation, and JSON validation do not connect to CARLA.
+
+To pin a built-in layout, supply an absolute ego `spawn` instead of an index.
+Custom recipes (`template: null`) retain strict placement semantics for all
+actors: invalid explicit coordinates are never silently relocated. Test mode
+continues to use its own virtual coordinates and cannot establish map validity.
 
 Events reference actor IDs. `set_speed` requests a target speed at an elapsed
 simulation time; `brake` requests positive deceleration until stopped. Triggers

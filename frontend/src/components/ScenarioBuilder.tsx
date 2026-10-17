@@ -277,7 +277,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
       <div className="builder-grid">
         {selected ? <form className="panel builder-form" onSubmit={generate} noValidate aria-busy={busy === "generate"}>
           <div className="panel-header"><div><p className="eyebrow">02 / Configure the recipe</p><h2>Parameters</h2></div><button className="button text-button" type="button" onClick={() => { editForm(); setValues(parameterDefaults(selected.parameters)); setSeed("0"); }}>Reset defaults</button></div>
-          <p className="muted">Use fixed values within the template bounds. The same template, seed, and values produce the same recipe.</p>
+          <p className="muted">Use fixed values within the template bounds. The same template, seed, and values produce the same recipe. CARLA selects a suitable road layout when the run starts.</p>
           <div className="field seed-field">
             <label htmlFor="scenario-seed" className="field-label">Random seed</label>
             <input id="scenario-seed" type="number" inputMode="numeric" min={0} max={2 ** 31 - 1} step={1} value={seed} aria-invalid={Boolean(fieldErrors.seed)} aria-describedby={`seed-help${fieldErrors.seed ? " seed-error" : ""}`} ref={fieldErrors.seed ? firstInvalid : undefined} onChange={(event) => { editForm(); setSeed(event.target.value); }} />

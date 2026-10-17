@@ -105,27 +105,32 @@ class CarlaSimulationAdapter:
         heading = None
         light_red = None
         try:
-            waypoint = self.world.get_map().get_waypoint(
-                self.ego.get_location(), project_to_road=False, lane_type=self.carla.LaneType.Driving,
-            )
-            if waypoint is None:
-                target_speed_mps = 0.0
-            else:
-                current_yaw = frame.ego.transform.rotation.yaw_deg if frame.ego.transform else 0.0
+            if frame.ego.transform is not None:
                 velocity = frame.ego.velocity_mps
                 speed = 0.0 if velocity is None else hypot(velocity.x, velocity.y, velocity.z)
-                choices = list(waypoint.next(max(2.0, speed * 0.5)))
-                if choices:
-                    def choice_key(candidate):
-                        yaw = candidate.transform.rotation.yaw
-                        return (abs((yaw - current_yaw + 180) % 360 - 180), candidate.road_id, candidate.lane_id)
-                    chosen = min(choices, key=choice_key)
-                    origin = self.ego.get_location()
-                    point = chosen.transform.location
-                    heading = degrees(atan2(point.y - origin.y, point.x - origin.x))
-                else:
+                heading = self.actor_manager.route_heading(self.ego_id, frame.ego.transform, max(2.0, speed * 0.5))
+            if heading is None:
+                waypoint = self.world.get_map().get_waypoint(
+                    self.ego.get_location(), project_to_road=False, lane_type=self.carla.LaneType.Driving,
+                )
+                if waypoint is None:
                     target_speed_mps = 0.0
-                    heading = waypoint.transform.rotation.yaw
+                else:
+                    current_yaw = frame.ego.transform.rotation.yaw_deg if frame.ego.transform else 0.0
+                    velocity = frame.ego.velocity_mps
+                    speed = 0.0 if velocity is None else hypot(velocity.x, velocity.y, velocity.z)
+                    choices = list(waypoint.next(max(2.0, speed * 0.5)))
+                    if choices:
+                        def choice_key(candidate):
+                            yaw = candidate.transform.rotation.yaw
+                            return (abs((yaw - current_yaw + 180) % 360 - 180), candidate.road_id, candidate.lane_id)
+                        chosen = min(choices, key=choice_key)
+                        origin = self.ego.get_location()
+                        point = chosen.transform.location
+                        heading = degrees(atan2(point.y - origin.y, point.x - origin.x))
+                    else:
+                        target_speed_mps = 0.0
+                        heading = waypoint.transform.rotation.yaw
         except (AttributeError, RuntimeError):
             target_speed_mps = 0.0
         try:

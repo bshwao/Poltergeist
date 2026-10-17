@@ -52,6 +52,7 @@ def setup_adapter(monkeypatch):
         def states(self, snapshot):
             return world.actor_states
         def control_npcs(self, commands, dt): log.append(("npc", commands, dt))
+        def route_heading(self, actor_id, pose, lookahead): return None
         def close(self): log.append("actors-close")
     class Sensors:
         def __init__(self, *args, **kwargs):
@@ -182,3 +183,13 @@ def test_spectator_rpc_failure_does_not_fail_simulation(setup_adapter, caplog):
     assert output.result.simulation.status == "completed", output.result.simulation.error
     assert "Could not position the CARLA spectator" in caplog.text
     assert log[-3:] == ["sensors-close", "actors-close", "world-close"]
+
+
+def test_planned_junction_route_takes_precedence_over_missing_map_projection(setup_adapter):
+    adapter, scenario, _, _, _, _ = setup_adapter
+    frame = adapter.open(scenario)
+    adapter.actor_manager.route_heading = lambda actor_id, pose, lookahead: 25
+    observation = adapter.observation(frame, 12)
+    assert observation.target_speed_mps == 12
+    assert observation.route_heading_deg == 25
+    adapter.close()

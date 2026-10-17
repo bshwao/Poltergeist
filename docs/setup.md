@@ -258,17 +258,39 @@ cleanup errors are surfaced in the run result.
 .\.venv\Scripts\python.exe -m simulator --scenario path/to/map-valid-scenario.yaml --mode carla
 ```
 
-The four bundled templates use symbolic spawn index 0 plus relative offsets.
-They have not been certified against Town03 roads/junctions, and strict runtime
-layout validation can reject them. Supply a suitable map anchor/layout and verify
-it on the actual server. `--camera` and `--lidar` enable optional raw captures in
+The four bundled templates automatically find a complete map-valid layout at
+execution time. Generate a template in the dashboard and launch it in CARLA mode,
+or use `python -m simulator --template intersection --mode carla`. Ground,
+lane, heading, and overlap validation still apply; unsuitable maps or infeasible
+distance combinations receive a placement error. Absolute ego coordinates pin
+a built-in layout, and custom recipes retain strict placement semantics.
+`--camera` and `--lidar` enable optional raw captures in
 CARLA mode; test mode rejects them. Raw samples are available to Python callbacks,
 and the CLI result records their count. The persistence service can save those
 samples with a manifest, and the dashboard can inspect individual recorded
 camera/LiDAR samples. Encoded video and reconstructed replay generation remain
-later work. No live CARLA capture has been verified.
+later work. The mapped Town03 example has a completed live camera/LiDAR capture;
+that check does not cover every sensor configuration.
 See [live execution requirements](simulation.md#carla-execution) and
 [capture persistence](persistence.md#capture-raw-sensor-samples).
+
+On the Windows installation checked on October 17, 2026, loading Town03 in Low
+quality crashed CARLA before any scenario initialized (a DirectX 12 shader error,
+and a separate DirectX 11 access violation). Town10HD_Opt ran all four templates
+in Low quality for short live checks. A small Epic-quality window successfully
+loaded Town03 and completed full 30 s runs of all four default templates. If the
+same native crash occurs, close all CARLA instances and launch from the extracted
+CARLA directory with:
+
+```powershell
+.\CarlaUE4.exe -quality-level=Epic -windowed -ResX=640 -ResY=360
+```
+
+Keep camera/LiDAR capture off when unnecessary. This is an observed workaround
+for that installation, not a requirement that every CARLA system use Epic quality.
+Only run one CARLA server on the default ports 2000 and 2001. To change a recipe
+to another loaded map, edit its `map` in the dashboard JSON and validate it again;
+the adapter does not silently substitute maps.
 
 The default Docker Compose stack starts the core API and a built dashboard with
 a same-origin nginx proxy. A named volume retains the SQLite database and owned

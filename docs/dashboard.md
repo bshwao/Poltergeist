@@ -62,8 +62,9 @@ edits. Superseded requests are aborted and their responses cannot replace newer
 edits.
 
 Validation checks structure, actor references, parameter bindings, and domain
-constraints. It does not certify real map geometry or driving behavior. Built-in
-spawn layouts still need a suitable CARLA map anchor and runtime validation.
+constraints. It does not certify real map geometry or driving behavior. During
+CARLA execution, built-in templates automatically select a suitable complete
+road layout and validate it against the loaded map. Custom coordinates stay fixed.
 
 ## Save and load scenarios
 
@@ -260,9 +261,10 @@ reloading. Template loading, generation, and validation are pure API calls; they
 create no database, artifacts, or simulation jobs. Saved-data and queue actions
 initialize their corresponding backend features only when requested.
 
-Real CARLA execution remains unverified. Built-in spawn layouts require a
-suitable map anchor and runtime validation; raw sensor captures are stored as
-samples/manifests rather than encoded video playback.
+Built-in CARLA layouts are resolved and validated against the running map;
+runtime metadata preserves their resolved spawn transforms. Raw sensor captures
+are stored as samples/manifests rather than encoded video playback. See
+[live execution checks and limits](simulation.md#rule-coverage-results-and-limitations).
 
 ## Verify frontend changes
 

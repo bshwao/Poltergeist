@@ -7,3 +7,7 @@ class SimulationError(RuntimeError):
 
 class SimulationCancelled(SimulationError):
     pass
+
+
+class ActorPlacementError(SimulationError):
+    """A candidate layout is unsuitable; another mapped layout may be tried."""

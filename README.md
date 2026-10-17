@@ -31,8 +31,8 @@ a synthetic run through the backend, or [dashboard usage](docs/dashboard.md) to
 build, save, launch, and inspect a recipe in the browser. See
 [experiment batches](docs/experiments.md), [report exports](docs/reports.md), and
 [Docker setup](docs/docker.md). See [evaluation methodology](docs/methodology.md)
-for scoring assumptions. Real CARLA execution has not yet
-been validated; bundled spawn layouts still require a suitable map anchor.
+for scoring assumptions. Built-in CARLA templates resolve their placements against
+the running map; custom coordinates retain strict placement validation.
 Container configuration is checked; container builds/runtime require a working
 Docker engine. Synthetic execution exercises the complete local workflow
 without a CARLA installation.

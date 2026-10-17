@@ -31,7 +31,7 @@ def build_scenario(
     """Use template defaults for unspecified parameters; fixed values are exact.
 
     The result includes resolved IDs/blueprints and symbolic relative geometry.
-    Map spawn points and physical validity are resolved by the future adapter.
+    The CARLA adapter resolves map placement and physical validity at run time.
     """
 
     try:

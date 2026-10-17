@@ -144,13 +144,19 @@ RPC or restoration failures are reported as run failures rather than hidden.
 
 Actor setup validates blueprint/type, dependency-ordered absolute/map-index/
 relative poses, ground and lane placement, heading, relevant built-in approach/
-junction/crossing geometry, and overlap using actual bounding boxes. Unspecified
-placements use seeded candidate ordering. Explicit invalid placements fail;
-they are not silently moved to a different road. The bundled spawn index 0 and
-relative layouts remain symbolic and are not certified Town03 anchors. Provide
-a map-valid configuration and validate it on the server.
+junction/crossing geometry, and overlap using actual bounding boxes. Built-in
+templates automatically resolve a complete layout against the live map: braking
+and pedestrian layouts search suitable road anchors, and intersections use
+connected lanes through a real junction conflict. Distances, speeds, weather,
+and event times remain configured by the recipe. See [placement semantics](scenarios.md#placement-and-timed-behavior).
+Occupied candidates are cleaned up and retried, with at most 64 spawn attempts.
+Custom explicit coordinates and built-in layouts with an absolute ego transform
+remain pinned; invalid coordinates are not silently relocated. Spawn dependencies
+and initial velocity use the transform submitted to CARLA, because native actor
+handles can report a zero transform until the initialization tick.
 
-For Town03, [the mapped intersection example](../scenarios/examples/town03_mapped_intersection.json)
+The built-in templates no longer require a manually mapped starter recipe.
+For comparison, [the mapped Town03 intersection example](../scenarios/examples/town03_mapped_intersection.json)
 provides explicit driving-lane placements obtained from live map geometry. It is
 a custom recipe (`template: null`): its ego approach is 60 m instead of the
 generic template's 30 m, while speeds, crossing distance, event timing, and
@@ -280,6 +286,24 @@ families are explicitly observed as inapplicable. Synthetic completeness and
 scores validate the software path, not real-world safety.
 
 Automated tests exercise the runner, synthetic adapter, and CARLA components with
-fake objects. The mapped intersection example above also has a completed live
-CARLA run. This limited check does not establish coverage of every template,
-map anchor, sensor configuration, or driving behavior.
+fake objects, including whole-layout selection, occupied-layout cleanup, pinned
+custom coordinates, shared junction geometry, overpass rejection, stale native
+spawn transforms, junction route following, and pedestrian crossing completion.
+
+On October 17, 2026, all four unmodified default templates completed live CARLA
+0.9.16 runs on Town03 with seed 0, a 0.05 s fixed step, camera/LiDAR capture off,
+and a small Epic-quality spectator window:
+
+| Template | Status | Measured duration | Telemetry frames |
+| --- | --- | --- | --- |
+| `intersection` | completed | 30 s | 601 |
+| `pedestrian_crossing` | completed | 30 s | 601 |
+| `occluded_pedestrian` | completed | 30 s | 601 |
+| `sudden_braking` | completed | 30 s | 601 |
+
+All four also completed short 3 s checks on Town10HD_Opt in Low quality. Town03
+crashed during Low-quality map loading on this Windows installation, before any
+scenario code ran; see the [observed workaround](setup.md). The separately mapped
+intersection example above also has a completed live camera/LiDAR run. These
+checks do not establish coverage of every parameter combination, map version,
+sensor configuration, or driving behavior.
