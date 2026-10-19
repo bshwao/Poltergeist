@@ -494,3 +494,87 @@ def test_empty_lidar_sweep_is_valid_and_stream_timing_is_independent(store):
     writer.write(lidar(frame=19, timestamp=3.95, data=b""))
     manifest = store.read_capture_manifest(writer.commit())
     assert manifest["samples"][1]["byte_length"] == 0
+
+
+def named_sample(factory, sensor_id, *, frame=10, timestamp=1.5):
+    sample = factory(frame=frame, timestamp=timestamp)
+    return SensorSample(sample.kind, sample.frame, sample.timestamp, sample.data,
+        sample.metadata | {"agent_sensor_id": sensor_id, "mount": {"position": {"z": 2.0}}})
+
+
+def test_same_frame_multiple_sensor_ids_and_legacy_streams_roundtrip_independently(store):
+    writer = store.capture(uuid4())
+    samples = []
+    for frame, timestamp in ((10, 1.5), (11, 1.55)):
+        for factory in (camera, lidar):
+            samples.append(factory(frame=frame, timestamp=timestamp))
+            samples.extend(named_sample(factory, sensor_id, frame=frame, timestamp=timestamp)
+                           for sensor_id in ("front", "rear", "legacy"))
+    for sample in samples:
+        writer.write(sample)
+    ref = writer.commit()
+    manifest = store.read_capture_manifest(ref)
+    assert manifest["sample_count"] == 16
+    path = store.validate_reference(ref)
+    for index, (item, sample) in enumerate(zip(manifest["samples"], samples, strict=True)):
+        assert item["file"] == f"{index:08d}-{sample.kind}.bin"
+        assert item["metadata"] == sample.metadata
+        assert store.capture_sample_path(ref, index).read_bytes() == sample.data
+        assert (path.parent / item["file"]).read_bytes() == sample.data
+
+
+@pytest.mark.parametrize("factory", [camera, lidar])
+@pytest.mark.parametrize("second_clock", [(10, 1.5), (9, 1.6), (11, 1.4), (11, 1.5)])
+def test_named_sensor_duplicate_or_reordered_clock_aborts_its_capture(store, factory, second_clock):
+    writer = store.capture(uuid4())
+    writer.write(named_sample(factory, "front"))
+    writer.write(named_sample(factory, "rear"))
+    with pytest.raises(ArtifactError, match="increase"):
+        writer.write(named_sample(factory, "front", frame=second_clock[0], timestamp=second_clock[1]))
+    assert not stages(store)
+    assert not list(store.root.glob("recordings/*/*/manifest.json"))
+
+
+@pytest.mark.parametrize("invalid_id", [None, True, False, 0, 1, [], {}, "", "  \t"])
+def test_invalid_agent_sensor_id_cannot_create_a_separate_capture_clock(store, invalid_id):
+    writer = store.capture(uuid4())
+    writer.write(camera())
+    with pytest.raises(ArtifactError, match="nonempty strings"):
+        writer.write(named_sample(camera, invalid_id))
+    assert not stages(store)
+
+
+@pytest.mark.parametrize("mutation", ["same_sensor_id", "remove_sensor_id", "duplicate_frame", "duplicate_time"])
+def test_manifest_reader_rechecks_named_sensor_clock_after_metadata_or_time_corruption(store, mutation):
+    writer = store.capture(uuid4())
+    writer.write(camera())
+    writer.write(named_sample(camera, "front"))
+    writer.write(named_sample(camera, "rear"))
+    writer.write(named_sample(camera, "rear", frame=11, timestamp=1.55))
+    ref = writer.commit()
+    path = store.validate_reference(ref)
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    if mutation == "same_sensor_id":
+        manifest["samples"][2]["metadata"]["agent_sensor_id"] = "front"
+    elif mutation == "remove_sensor_id":
+        del manifest["samples"][1]["metadata"]["agent_sensor_id"]
+    elif mutation == "duplicate_frame":
+        manifest["samples"][3]["frame"] = 10
+    else:
+        manifest["samples"][3]["timestamp"] = 1.5
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ArtifactError, match="increase"):
+        store.read_capture_manifest(ref)
+
+
+@pytest.mark.parametrize("invalid_id", [None, True, 0, [], {}, "", "  "])
+def test_manifest_reader_rejects_invalid_named_sensor_ids(store, invalid_id):
+    writer = store.capture(uuid4())
+    writer.write(named_sample(camera, "front"))
+    ref = writer.commit()
+    path = store.validate_reference(ref)
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["samples"][0]["metadata"]["agent_sensor_id"] = invalid_id
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ArtifactError, match="nonempty strings"):
+        store.read_capture_manifest(ref)

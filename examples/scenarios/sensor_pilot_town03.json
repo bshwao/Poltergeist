@@ -1,0 +1,25 @@
+{
+  "name": "Camera and LiDAR teaching pilot on Town03",
+  "description": "CARLA 0.9.16 Town03 spawn 0 with a finite 24 m driving goal. A rule-based integration demonstrator uses real camera/LiDAR bytes, supplied route and declared simulated ego localization. It is not a trained perception or autonomous road-driving model.",
+  "map": "Town03",
+  "seed": 43,
+  "duration_s": 12.0,
+  "fixed_delta_seconds": 0.05,
+  "actors": [{
+    "id": "ego", "type": "ego_vehicle", "blueprint": "vehicle.tesla.model3",
+    "spawn_point_index": 0, "speed_mps": 2.0
+  }],
+  "driving_task": {
+    "route_owner": "framework",
+    "destination": {
+      "position": {"x": -6.124122619628906, "y": -55.039772033691406, "z": 0.0},
+      "rotation": {"yaw_deg": 91.41354370117188}
+    },
+    "target_speed_mps": 4.0,
+    "completion_radius_m": 1.5,
+    "completion_height_tolerance_m": 2.0,
+    "completion_speed_mps": 0.5,
+    "completion_hold_s": 0.2,
+    "stop_on_completion": true
+  }
+}

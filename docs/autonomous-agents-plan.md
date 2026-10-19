@@ -10,7 +10,7 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 | 2 | External agent process and dependency environment, inference timing, cancellation, deadlines, cleanup | An external agent controls a Python-launched CARLA experiment; failures are explicit | Implemented; live verified through the reference AI pilot |
 | 2.5 | Poltergeist reference AI pilot: one pretrained learned driving policy, live control verification, and hardware timing | A pinned model drives a bounded CARLA route through the worker, with evidence that its predictions affect the vehicle and measured real-time performance | Complete; live control and 20 Hz throughput verified with the documented performance profile |
 | 3 | Initial conditions versus agent goals, route/planner ownership, authoritative agent controls and recorded interventions | The agent chooses its evolving response without silent scripted overrides | Implemented; see driving task guide |
-| 4 | Declared camera/LiDAR inputs, synchronized observation delivery, separation of evaluator ground truth | One compatible sensor-based driving agent runs end to end | Planned |
+| 4 | Declared camera/LiDAR inputs, synchronized observation delivery, separation of evaluator ground truth | One compatible sensor-based driving agent runs end to end | Implemented; see sensor agent guide |
 | 5 | Agent registry, API selection, durable job configuration and code/model fingerprints | Queued API runs retain the exact selected agent and observation mode | Planned |
 | 6 | Agents page, registration/readiness checks, dashboard launch selection | A user registers and launches a compatible agent from the dashboard | Planned |
 | 7 | Persisted input/action/diagnostic/intervention timeline and synchronized review | A recorded action can be traced to its preceding observation | Planned |
@@ -243,4 +243,20 @@ The reference AI accepts finite framework tasks and declares endpoint input
 padding and deterministic goal/tracking assistance. The network still runs each
 decision. A complete synthetic teaching example is included. See
 [driving tasks and commands](driving-tasks.md) for ownership, measurements and
-limitations. Dashboard agent selection remains Phases 5–6; sensors remain Phase 4.
+limitations. Dashboard agent selection remains Phases 5–6; sensor support is
+described in Phase 4 below.
+
+## Phase 4 handoff
+
+SDK 1.3 delivers declared, calibrated camera/LiDAR payloads through the existing
+external worker. Exact-frame barriers, bounded queues/deadlines, checksum and
+calibration validation, cancellation and cleanup protect the observation/action
+clock. Sensor observations exclude privileged other-actor and evaluator state.
+Ideal ego localization and framework navigation are explicitly disclosed.
+
+The sensor teaching pilot reacts to actual LiDAR returns and camera visibility;
+it is not a trained perception policy. PlanT remains the separate structured-state
+reference AI. Results retain input provenance, multiple raw streams can be
+recorded, and a local CLI trace preserves exact inputs/actions. See
+[sensor agents and launch commands](sensor-agents.md). Registration, queued agent
+selection and dashboard controls remain Phases 5–6.

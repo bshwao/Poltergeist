@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 
-from shared.models import ActorState, AgentObservation, AgentReset, Transform, Vector3
+from shared.models import ActorState, AgentObservation, AgentReset, DrivingTask, Transform, Vector3
 from simulator.agents.package import inspect_agent_package, load_agent_package
 from simulator.agents.sdk import AgentSession
 
@@ -33,24 +33,45 @@ def check_package(path: str | Path, *, smoke_test: bool = False) -> dict:
             agent = load_agent_package(package)
             with AgentSession(agent, package.manifest) as session:
                 session.load()
+                sensor_mode = package.manifest.observation_mode == "sensors"
+                destination = Transform(position=Vector3(x=30.0))
+                task = DrivingTask(destination=destination, target_speed_mps=12.0) if sensor_mode else None
                 session.reset(AgentReset(
+                    protocol_version=package.manifest.protocol_version,
                     seed=0, map_name="SDKSmokeTest", ego_actor_id="ego", fixed_delta_seconds=0.05,
+                    driving_task=task, destination=destination if sensor_mode else None,
+                    route=[Transform(), destination] if sensor_mode else [],
+                    sensors=package.manifest.sensors,
                 ))
                 results = []
                 for frame in (0, 1):
+                    ego = ActorState(actor_id="ego", transform=Transform(), velocity_mps=Vector3(),
+                                     acceleration_mps2=Vector3())
+                    scene = None
+                    if "structured_scene" in package.manifest.required_features:
+                        from simulator.reference_scene import synthetic_scene
+                        from shared.models import TelemetryFrame
+                        scene = synthetic_scene(TelemetryFrame(frame=frame, time_s=frame * .05,
+                            ego=ego, actors=[]), {}, 0.0, 13.9)
+                    samples = []
+                    if sensor_mode:
+                        from simulator.sensor_fixtures import build_sensor_fixture
+                        samples = build_sensor_fixture(package.manifest.sensors, frame, frame * .05)
                     results.append(session.step(AgentObservation(
+                        protocol_version=package.manifest.protocol_version,
                         frame=frame, time_s=frame * 0.05, dt_s=0.05,
-                        ego=ActorState(
-                            actor_id="ego", transform=Transform(), velocity_mps=Vector3(),
-                            acceleration_mps2=Vector3(),
-                        ),
-                        actors=[], target_speed_mps=12.0,
-                        route_heading_deg=0.0, traffic_light_red=False,
+                        ego=ego, actors=None if sensor_mode else [], target_speed_mps=12.0,
+                        route_heading_deg=0.0, traffic_light_red=None if sensor_mode else False,
+                        driving_task=task, scene=scene,
+                        observation_mode="sensors" if sensor_mode else "simulator_state",
+                        ego_state_source="simulated_ego_kinematics" if sensor_mode else "simulator_state",
+                        sensor_source="deterministic_fixture" if sensor_mode else None, sensors=samples,
                     )))
         report["code_executed"] = True
         report["smoke_test"] = {
             "passed": True, "frames": [result.frame for result in results],
             "results": [result.model_dump(mode="json") for result in results],
+            "input_source": "deterministic_fixture" if sensor_mode else "synthetic_state",
         }
     return report
 

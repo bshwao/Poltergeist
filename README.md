@@ -91,3 +91,8 @@ Phase 3 adds explicit driving goals, framework/agent route ownership,
 authoritative controls, intervention audits and measured goal completion.
 Try the synthetic example or the mapped reference AI Town03 goal in the
 [driving task guide](docs/driving-tasks.md).
+
+Phase 4 adds synchronized camera/LiDAR agent inputs, explicit localization and
+input provenance, and a runnable sensor teaching pilot. See
+[sensor agent setup and launch](docs/sensor-agents.md). PlanT remains a trained
+structured-state model; the sensor example is a separate rule-based controller.

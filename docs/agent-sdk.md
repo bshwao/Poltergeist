@@ -1,4 +1,4 @@
-# Autonomous agent SDK 1.0, 1.1 and 1.2
+# Autonomous agent SDK 1.0–1.3
 
 Phases 1 and 2 provide a Python interface for user-supplied driving agents and an
 external worker connected to the simulation runner. The current dashboard still
@@ -18,7 +18,11 @@ for the measured 20 Hz profile.
 Phase 3 adds SDK 1.2 driving tasks, route ownership, actual goals, authoritative
 controls, persistent intervention audits and measured completion. See
 [driving tasks](driving-tasks.md) for contracts and a runnable example.
-SDK 1.0 remains the default; explicit tasks require 1.2.
+SDK 1.0 remains the default; explicit tasks require 1.2 or newer.
+
+Phase 4 adds SDK 1.3 camera/LiDAR observations with exact-frame synchronization,
+declared calibration, explicit ego-localization assistance and persisted input
+provenance. See [sensor agents](sensor-agents.md) for supported rigs and commands.
 
 No CARLA installation, GPU, or ML framework is required to check the supplied
 starter. The SDK uses the existing core dependencies and Python 3.12 or newer.
@@ -136,14 +140,15 @@ versioned lifecycle; `ProcessAgent` connects it to the existing runner.
 
 ## Observations and responses
 
-The current runtime supports only `simulator_state` and `vehicle_control`.
+The runtime supports `simulator_state` and SDK 1.3 `sensors` observations with
+`vehicle_control` outputs.
 Simulator-state inputs contain true actor positions and velocities, including
 objects hidden by obstacles. They test planning/control with privileged state;
 they do not test camera perception or whether a pedestrian was actually seen.
-Camera/LiDAR sensor declarations are valid metadata for future support, but the
-phase 1 compatibility check rejects sensor-mode agents rather than feeding them
-simulator state. Optional camera recording in the existing app does not provide
-sensor inputs to this SDK.
+SDK 1.3 sensor agents receive calibrated RGB/LiDAR bytes and ideal ego kinematics,
+with other-actor and evaluator ground truth excluded. Older protocols remain
+state-only. IMU/GNSS agent streams are still unsupported. Optional camera
+recording alone does not select a sensor agent: the manifest declares the rig.
 
 Agents declaring SDK 1.1 or 1.2 can additionally require `structured_scene`. Their
 reset, observation, and result versions must match the manifest. Return
@@ -304,6 +309,7 @@ default to authoritative mode; older no-task packages retain the legacy heading,
 speed and event behavior. The starter remains a rule-based controller. See
 [driving tasks](driving-tasks.md) for the current contract and examples.
 
-Sensor inputs, registry/version pinning, queued API selection, dashboard agent
-selection, persistent decision traces, and behavior explanations remain the
-later phases listed in the [integration plan](autonomous-agents-plan.md).
+Sensor inputs and provenance are implemented in Phase 4. Registry/version
+pinning, queued API selection, dashboard agent selection, full persisted decision
+timeline review and behavior explanations remain later phases in the
+[integration plan](autonomous-agents-plan.md).

@@ -288,6 +288,55 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && ["baseline", "legacy_custom", "sdk_agent"].includes(value.controller as string)
     && ["legacy_assisted", "framework_route", "agent_planner"].includes(value.navigation as string)
     && Array.isArray(value.interventions) && value.interventions.length <= 200000 && value.interventions.every(isIntervention);
+  const isAgentSensorSpec = (value: unknown) => {
+    if (!isObject(value) || !nonemptyText(value.id) || !isTransform(value.mount) || !isObject(value.mount)
+      || !isObject(value.mount.position)
+      || !isObject(value.attributes)) return false;
+    const position = value.mount.position;
+    if (!["x", "y", "z"].every(axis => Math.abs(position[axis] as number) <= 10)) return false;
+    const attrs = value.attributes;
+    const keys = value.type === "sensor.camera.rgb" ? ["image_size_x", "image_size_y", "fov", "sensor_tick"]
+      : value.type === "sensor.lidar.ray_cast" ? ["channels", "range", "points_per_second", "rotation_frequency", "upper_fov", "lower_fov", "sensor_tick"] : [];
+    if (!keys.length || Object.keys(attrs).length !== keys.length || !keys.every(key => finiteNumber(attrs[key])) || attrs.sensor_tick !== 0) return false;
+    if (value.type === "sensor.camera.rgb") return integer(attrs.image_size_x, 1) && attrs.image_size_x <= 1024
+      && integer(attrs.image_size_y, 1) && attrs.image_size_y <= 768 && bounded(attrs.fov, 10, 140);
+    return integer(attrs.channels, 1) && attrs.channels <= 128 && bounded(attrs.range, 1, 200)
+      && integer(attrs.points_per_second, 1000) && attrs.points_per_second <= 500000
+      && bounded(attrs.rotation_frequency, 1, 100) && bounded(attrs.lower_fov, -89, 89)
+      && bounded(attrs.upper_fov, -89, 89) && (attrs.lower_fov as number) < (attrs.upper_fov as number);
+  };
+  const isAgentInputInfo = (value: unknown) => {
+    if (!isObject(value) || !Array.isArray(value.sensors) || value.sensors.length > 4
+      || !Array.isArray(value.assistance) || value.assistance.length > 64 || !value.assistance.every(nonemptyText)
+      || new Set(value.assistance).size !== value.assistance.length) return false;
+    if (value.observation_mode === "simulator_state") return ["carla_ground_truth", "synthetic_state"].includes(value.source as string)
+      && value.ego_state_source === "simulator_state" && value.ground_truth_actor_inputs === true && value.sensors.length === 0;
+    if (value.observation_mode !== "sensors" || !["carla_sensors", "deterministic_fixture"].includes(value.source as string)
+      || value.ego_state_source !== "simulated_ego_kinematics" || value.ground_truth_actor_inputs !== false
+      || !value.assistance.includes("ideal_ego_kinematics") || !value.sensors.length || !value.sensors.every(isAgentSensorSpec)) return false;
+    const sensors = value.sensors as Record<string, unknown>[];
+    if (new Set(sensors.map(spec => spec.id)).size !== sensors.length) return false;
+    const rawBytes = sensors.reduce((total, spec) => {
+      const attrs = spec.attributes as Record<string, number>;
+      return total + (spec.type === "sensor.camera.rgb" ? attrs.image_size_x * attrs.image_size_y * 4 : Math.ceil(attrs.points_per_second * .1) * 16);
+    }, 0);
+    return rawBytes <= 2 * 1024 * 1024;
+  };
+  const consistentAgentInputs = (value: Record<string, unknown>) => {
+    if (value.agent_inputs === undefined || value.agent_inputs === null) return true;
+    if (!isObject(value.agent_inputs) || !isObject(value.simulation) || !isObject(value.simulation.scenario)) return false;
+    const info = value.agent_inputs;
+    const sources = value.simulation.mode === "carla" ? ["carla_ground_truth", "carla_sensors"] : ["synthetic_state", "deterministic_fixture"];
+    if (!sources.includes(info.source as string)) return false;
+    if (info.observation_mode === "sensors") {
+      const task = value.simulation.scenario.driving_task;
+      if (!isObject(task) || !Array.isArray(info.assistance)
+        || info.assistance.includes("framework_navigation") !== (task.route_owner === "framework")) return false;
+      if (value.control_audit !== undefined && value.control_audit !== null
+        && (!isObject(value.control_audit) || value.control_audit.mode !== "authoritative")) return false;
+    }
+    return true;
+  };
   const isDrivingOutcome = (value: unknown) => isObject(value)
     && ["reached", "timed_out", "cancelled", "failed", "unavailable"].includes(value.status as string)
     && ["framework", "agent"].includes(value.route_owner as string)
@@ -350,6 +399,8 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && integer(value.telemetry_frames) && Array.isArray(value.artifacts) && value.artifacts.every(isArtifact)
     && (value.driving_outcome === undefined || value.driving_outcome === null || isDrivingOutcome(value.driving_outcome))
     && (value.control_audit === undefined || value.control_audit === null || isControlAudit(value.control_audit))
+    && (value.agent_inputs === undefined || value.agent_inputs === null || isAgentInputInfo(value.agent_inputs))
+    && consistentAgentInputs(value)
     && (value.runtime === null || (isRuntime(value.runtime) && isObject(value.runtime) && value.runtime.adapter === value.simulation.mode));
   const isSimulationRecord = (value: unknown) => isObject(value) && isSimulation(value.simulation)
     && nullableUuid(value.scenario_id) && integer(value.revision, 1)

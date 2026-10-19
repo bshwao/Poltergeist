@@ -1,6 +1,7 @@
 # Driving tasks and control ownership (Phase 3)
 
 Phase 3 separates a scenario's starting state from the driving objective.
+SDK 1.3 retains these task contracts for [sensor agents](sensor-agents.md).
 Scenarios determine actor placement, initial speed, weather and NPC events.
 An optional `driving_task` determines the destination, navigation ownership and
 measured goal criteria. The agent returns each evolving control action.

@@ -27,7 +27,7 @@ export type EntryPoint = string;
 export type Name = string;
 export type NavigationMode = "provided_route" | "agent_planner";
 export type ObservationMode = "simulator_state" | "sensors";
-export type ProtocolVersion = "1.0" | "1.1" | "1.2";
+export type ProtocolVersion = "1.0" | "1.1" | "1.2" | "1.3";
 export type RequiredFeatures = "structured_scene"[];
 export type RequirementsFile = string | null;
 export type Id = string;
@@ -52,9 +52,10 @@ export type RouteOwner = "framework" | "agent";
 export type StopOnCompletion = boolean;
 export type TargetSpeedMps1 = number | null;
 export type DtS = number;
+export type EgoStateSource = "simulator_state" | "simulated_ego_kinematics";
 export type Frame = number;
-export type ObservationMode1 = "simulator_state";
-export type ProtocolVersion1 = "1.0" | "1.1" | "1.2";
+export type ObservationMode1 = "simulator_state" | "sensors";
+export type ProtocolVersion1 = "1.0" | "1.1" | "1.2" | "1.3";
 export type RouteHeadingDeg = number | null;
 export type Objects = AgentSceneObject[] | null;
 export type ActorId1 = string;
@@ -73,25 +74,55 @@ export type Route1 = Transform[] | null;
 export type SchemaVersion = "1.0";
 export type Source = "carla_ground_truth" | "synthetic";
 export type SpeedLimitMps1 = number | null;
+export type SensorSource = ("carla_sensors" | "deterministic_fixture") | null;
+/**
+ * @maxItems 4
+ */
+export type Sensors1 =
+  | []
+  | [AgentSensorFrame]
+  | [AgentSensorFrame, AgentSensorFrame]
+  | [AgentSensorFrame, AgentSensorFrame, AgentSensorFrame]
+  | [AgentSensorFrame, AgentSensorFrame, AgentSensorFrame, AgentSensorFrame];
+export type Channels = number | null;
+export type DataBase641 = string;
+export type Encoding = "bgra8" | "float32_xyzi";
+export type FovDeg = number | null;
+export type Frame1 = number;
+export type Height1 = number | null;
+export type SensorId = string;
+export type Sha256 = string;
+export type TimestampS = number;
+export type Type1 = "sensor.camera.rgb" | "sensor.lidar.ray_cast";
+export type Width1 = number | null;
 export type TargetSpeedMps2 = number | null;
 export type TimeS = number;
 export type TrafficLightRed = boolean | null;
 export type EgoActorId = string;
 export type FixedDeltaSeconds = number;
 export type MapName = string;
-export type ProtocolVersion2 = "1.0" | "1.1" | "1.2";
+export type ProtocolVersion2 = "1.0" | "1.1" | "1.2" | "1.3";
 /**
  * @maxItems 4096
  */
 export type Route2 = Transform[];
 export type Seed = number;
+/**
+ * @maxItems 4
+ */
+export type Sensors2 =
+  | []
+  | [AgentSensorSpec]
+  | [AgentSensorSpec, AgentSensorSpec]
+  | [AgentSensorSpec, AgentSensorSpec, AgentSensorSpec]
+  | [AgentSensorSpec, AgentSensorSpec, AgentSensorSpec, AgentSensorSpec];
 export type Brake = number;
 export type HandBrake = boolean;
 export type Reverse = boolean;
 export type Steer = number;
 export type Throttle = number;
-export type Frame1 = number;
-export type ProtocolVersion3 = "1.0" | "1.1" | "1.2";
+export type Frame2 = number;
+export type ProtocolVersion3 = "1.0" | "1.1" | "1.2" | "1.3";
 export type CollisionObservedRuns = number;
 export type CollisionRuns = number;
 export type FailureReports = number;
@@ -206,12 +237,29 @@ export type SimulationStatus = "queued" | "running" | "completed" | "failed" | "
 export type CreatedAt1 = string;
 export type CancelRequested1 = boolean;
 export type QueuePosition1 = number | null;
+/**
+ * @maxItems 64
+ */
+export type Assistance1 = string[];
+export type EgoStateSource1 = "simulator_state" | "simulated_ego_kinematics";
+export type GroundTruthActorInputs = boolean;
+export type ObservationMode2 = "simulator_state" | "sensors";
+/**
+ * @maxItems 4
+ */
+export type Sensors3 =
+  | []
+  | [AgentSensorSpec]
+  | [AgentSensorSpec, AgentSensorSpec]
+  | [AgentSensorSpec, AgentSensorSpec, AgentSensorSpec]
+  | [AgentSensorSpec, AgentSensorSpec, AgentSensorSpec, AgentSensorSpec];
+export type Source1 = "carla_ground_truth" | "synthetic_state" | "carla_sensors" | "deterministic_fixture";
 export type Kind1 = "telemetry" | "recording" | "report";
 export type MediaType = string;
 export type Path = string;
 export type Artifacts = ArtifactReference[];
 export type Controller = "baseline" | "legacy_custom" | "sdk_agent";
-export type Frame2 = number;
+export type Frame3 = number;
 export type Kind2 = "scripted_ego_speed_target" | "scripted_ego_braking";
 export type TargetSpeedMps3 = number | null;
 export type TimeS1 = number;
@@ -285,7 +333,7 @@ export type Collisions = CollisionEvent[] | null;
 export type EventId = string | null;
 export type ImpulseNS = number;
 export type OtherActorId = string;
-export type Frame3 = number;
+export type Frame4 = number;
 export type RuleChecks = TrafficRule[] | null;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -472,6 +520,7 @@ export interface Configuration {
 export interface AgentSensorSpec {
   attributes: Attributes;
   id: Id;
+  mount: Transform;
   type: Type;
 }
 export interface Attributes {
@@ -486,11 +535,14 @@ export interface AgentObservation {
   driving_task: DrivingTask | null;
   dt_s: DtS;
   ego: ActorState;
+  ego_state_source: EgoStateSource;
   frame: Frame;
   observation_mode: ObservationMode1;
   protocol_version: ProtocolVersion1;
   route_heading_deg: RouteHeadingDeg;
   scene: AgentSceneContext | null;
+  sensor_source: SensorSource;
+  sensors: Sensors1;
   target_speed_mps: TargetSpeedMps2;
   time_s: TimeS;
   traffic_light_red: TrafficLightRed;
@@ -590,6 +642,29 @@ export interface AgentRoadRaster {
   width: Width;
 }
 /**
+ * One lossless, native-frame-associated CARLA camera or LiDAR sample.
+ *
+ * Camera bytes are row-major BGRA uint8. LiDAR bytes are little-endian float32
+ * quadruples (x forward, y right, z up, intensity) in the sensor's local frame.
+ * Timestamp is relative to this episode's first observation.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentSensorFrame".
+ */
+export interface AgentSensorFrame {
+  channels: Channels;
+  data_base64: DataBase641;
+  encoding: Encoding;
+  fov_deg: FovDeg;
+  frame: Frame1;
+  height: Height1;
+  sensor_id: SensorId;
+  sha256: Sha256;
+  timestamp_s: TimestampS;
+  type: Type1;
+  width: Width1;
+}
+/**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "AgentReset".
  */
@@ -602,6 +677,7 @@ export interface AgentReset {
   protocol_version: ProtocolVersion2;
   route: Route2;
   seed: Seed;
+  sensors: Sensors2;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -610,7 +686,7 @@ export interface AgentReset {
 export interface AgentStepResult {
   control: ControlInput;
   diagnostics: AgentDiagnostics | null;
-  frame: Frame1;
+  frame: Frame2;
   protocol_version: ProtocolVersion3;
 }
 /**
@@ -911,6 +987,7 @@ export interface JobInfo {
  * via the `definition` "SimulationResult".
  */
 export interface SimulationResult {
+  agent_inputs: AgentInputInfo | null;
   artifacts: Artifacts;
   control_audit: ControlAudit | null;
   driving_outcome: DrivingOutcome | null;
@@ -919,6 +996,24 @@ export interface SimulationResult {
   runtime: SimulationRuntime | null;
   simulation: Simulation;
   telemetry_frames: TelemetryFrames;
+}
+/**
+ * Persisted provenance of agent inputs, separate from evaluator telemetry.
+ *
+ * Sensor driving still receives ideal simulated ego localization. Naming that
+ * assistance prevents a camera/LiDAR run from implying a learned localization
+ * stack, or a deterministic fixture from implying actual CARLA sensor data.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentInputInfo".
+ */
+export interface AgentInputInfo {
+  assistance: Assistance1;
+  ego_state_source: EgoStateSource1;
+  ground_truth_actor_inputs: GroundTruthActorInputs;
+  observation_mode: ObservationMode2;
+  sensors: Sensors3;
+  source: Source1;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -949,7 +1044,7 @@ export interface ControlAudit {
  */
 export interface ControlIntervention {
   applied_control: ControlInput;
-  frame: Frame2;
+  frame: Frame3;
   kind: Kind2;
   proposed_control: ControlInput;
   target_speed_mps: TargetSpeedMps3;
@@ -1072,7 +1167,7 @@ export interface TelemetryFrame {
   collisions: Collisions;
   control: ControlInput;
   ego: ActorState;
-  frame: Frame3;
+  frame: Frame4;
   rule_checks: RuleChecks;
   time_s: TimeS2;
   traffic_violations: TrafficViolations;

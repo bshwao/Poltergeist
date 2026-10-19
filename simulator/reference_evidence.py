@@ -277,12 +277,15 @@ def summarize_run(output, records, *, total_wall_time_s, variant, process_stats=
         "metrics": result.metrics.model_dump(mode="json"), "motion": motion,
         "driving_outcome": None if result.driving_outcome is None else result.driving_outcome.model_dump(mode="json"),
         "control_audit": None if result.control_audit is None else result.control_audit.model_dump(mode="json"),
+        "agent_inputs": None if result.agent_inputs is None else result.agent_inputs.model_dump(mode="json"),
         "route_progress": route_progress(output.telemetry, records, driving_outcome=result.driving_outcome),
         "lane_departures": None,
         "lane_departures_note": "No lane-invasion stream is collected by this pilot; traffic-rule violations are reported separately.",
         "process": asdict(process_stats) if process_stats is not None else None,
         "memory": memory, "runtime": result.runtime.model_dump(mode="json") if result.runtime is not None else None,
-        "limitations": ["Simulator-state input exposes hidden actors; this is not camera perception.",
+        "limitations": [("Sensor input excludes other-actor ground truth; ideal ego localization is declared assistance."
+                         if result.agent_inputs is not None and result.agent_inputs.observation_mode == "sensors" else
+                         "Simulator-state input exposes hidden actors; this is not camera perception."),
                         "A supplied route and tracking controller assist driving; this is not independent global pathfinding.",
                         "Test mode uses synthetic kinematics and cannot verify live CARLA or real-world driving."],
     }

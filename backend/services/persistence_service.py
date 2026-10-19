@@ -7,7 +7,7 @@ from uuid import UUID
 
 from evaluation import validate_frames
 from scenarios import validate_scenario
-from shared.models import FailureReport, Scenario, Simulation, SimulationResult, SimulationStatus
+from shared.models import FailureReport, Scenario, Simulation, SimulationResult, SimulationStatus, Transform
 from simulator.simulation_runner import RunOutput
 
 from backend.config import Settings, get_settings
@@ -224,6 +224,61 @@ class PersistenceService:
             raise PersistenceError("Capture contains samples outside the finalized telemetry timeline")
         if result.runtime is not None and manifest["sample_count"] != result.runtime.sensor_samples_count:
             raise PersistenceError("Capture sample count does not match runner runtime metadata")
+        inputs = result.agent_inputs
+        if inputs is None or inputs.observation_mode != "sensors":
+            return
+        declared = {spec.id: spec for spec in inputs.sensors}
+        observed = {frame.frame: set() for frame in frames}
+        times = {frame.frame: frame.time_s for frame in frames}
+        time_origin = None
+        for sample in manifest["samples"]:
+            metadata = sample["metadata"]
+            if "agent_sensor_id" not in metadata:
+                # Optional recording sensors remain distinct legacy streams;
+                # they cannot stand in for the agent's declared sensor bundle.
+                continue
+            sensor_id = metadata["agent_sensor_id"]
+            spec = declared.get(sensor_id)
+            if spec is None:
+                raise PersistenceError("Capture contains an undeclared agent sensor ID")
+            camera = spec.type == "sensor.camera.rgb"
+            if (sample["kind"] != ("camera" if camera else "lidar")
+                    or metadata.get("sensor_type") != spec.type
+                    or metadata.get("source") != inputs.source
+                    or metadata.get("encoding") != ("bgra8" if camera else "float32_xyzi")):
+                raise PersistenceError("Capture agent sensor type or source does not match its declared inputs")
+            try:
+                mount = Transform.model_validate(metadata.get("mount"))
+            except (ValueError, TypeError) as error:
+                raise PersistenceError("Capture agent sensor mount is invalid") from error
+            if mount != spec.mount:
+                raise PersistenceError("Capture agent sensor mount does not match its declared calibration")
+            if camera:
+                fov = metadata.get("fov_deg")
+                if (metadata.get("width") != spec.attributes["image_size_x"]
+                        or metadata.get("height") != spec.attributes["image_size_y"]
+                        or metadata.get("channels") is not None
+                        or type(fov) not in (int, float)
+                        or not isclose(fov, spec.attributes["fov"], rel_tol=0, abs_tol=1e-6)):
+                    raise PersistenceError("Capture camera dimensions or FOV do not match its declared calibration")
+            elif (metadata.get("channels") != spec.attributes["channels"]
+                    or any(metadata.get(field) is not None for field in ("width", "height", "fov_deg"))):
+                raise PersistenceError("Capture LiDAR channels do not match its declared calibration")
+            origin = sample["timestamp"] - times[sample["frame"]]
+            if time_origin is None:
+                time_origin = origin
+            elif not isclose(origin, time_origin, rel_tol=0, abs_tol=1e-6):
+                raise PersistenceError("Capture agent sensor timestamp does not match the finalized telemetry clock")
+            if sensor_id in observed[sample["frame"]]:
+                raise PersistenceError("Capture contains a duplicate declared sensor for one telemetry frame")
+            observed[sample["frame"]].add(sensor_id)
+        for index, frame in enumerate(frames):
+            # Cancellation can interrupt capture of the last measured packet,
+            # including between two recording callbacks. Earlier frames were
+            # fully observed before execution could advance to the next tick.
+            complete = result.simulation.status == SimulationStatus.COMPLETED or index < len(frames) - 1
+            if complete and observed[frame.frame] != set(declared):
+                raise PersistenceError("Capture is missing a declared agent sensor in a finalized frame")
 
     def _remove_unreferenced(self, created, simulation_id, error):
         if not created:

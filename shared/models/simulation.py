@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 
 from pydantic import AwareDatetime, Field, StrictBool, model_validator
 
+from .agent import AgentInputInfo
 from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
 from .scenario import Scenario, Transform
 from .telemetry import ControlInput, SafetyMetrics
@@ -173,6 +174,7 @@ class SimulationResult(ContractModel):
     runtime: SimulationRuntime | None = None
     driving_outcome: DrivingOutcome | None = None
     control_audit: ControlAudit | None = None
+    agent_inputs: AgentInputInfo | None = None
 
     @model_validator(mode="after")
     def validate_terminal_run(self) -> Self:
@@ -180,6 +182,21 @@ class SimulationResult(ContractModel):
             raise ValueError("Results may only reference a terminal simulation")
         if self.runtime is not None and self.runtime.adapter != self.simulation.mode:
             raise ValueError("Runtime adapter must match the simulation mode")
+        if self.agent_inputs is not None:
+            valid_sources = {"carla_ground_truth", "carla_sensors"} if self.simulation.mode == "carla" else {
+                "synthetic_state", "deterministic_fixture",
+            }
+            if self.agent_inputs.source not in valid_sources:
+                raise ValueError("Agent input provenance source must match the simulation mode")
+            if self.agent_inputs.observation_mode == "sensors":
+                task = self.simulation.scenario.driving_task
+                if task is None:
+                    raise ValueError("Sensor input results require an explicit driving task")
+                framework_assistance = "framework_navigation" in self.agent_inputs.assistance
+                if framework_assistance != (task.route_owner == "framework"):
+                    raise ValueError("Sensor navigation assistance must match driving task route ownership")
+                if self.control_audit is not None and self.control_audit.mode != "authoritative":
+                    raise ValueError("Sensor input results require authoritative agent control")
         if self.driving_outcome is not None and self.control_audit is not None:
             if self.driving_outcome.interventions != self.control_audit.interventions:
                 raise ValueError("Driving outcome interventions must match the control audit")

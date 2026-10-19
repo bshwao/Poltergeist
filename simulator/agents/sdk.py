@@ -1,7 +1,7 @@
 """Versioned, CARLA-free lifecycle for user-supplied driving agents.
 
-This is an in-process SDK boundary. Process isolation, sensor delivery, and
-dashboard registration are separate integration layers.
+This is an in-process SDK boundary. Sensor samples are lossless, calibrated,
+frame-associated inputs; dashboard registration is a separate integration layer.
 """
 
 from abc import ABC, abstractmethod
@@ -73,11 +73,16 @@ def _validated(model, value, label: str):
 def check_agent_capabilities(manifest: AgentManifest | Mapping[str, Any]) -> AgentManifest:
     """Check supported declarations without importing or executing agent code."""
     validated = _validated(AgentManifest, manifest, "agent manifest")
-    if validated.observation_mode != "simulator_state":
-        raise AgentCompatibilityError(
-            "Agent SDK currently delivers simulator_state observations only; "
-            "sensor-based driving requires the sensor integration phase"
-        )
+    if validated.observation_mode == "sensors":
+        if validated.protocol_version != "1.3":
+            raise AgentCompatibilityError("Sensor-based driving requires SDK protocol 1.3")
+        from simulator.agent_sensors import resolve_sensor_specs
+
+        try:
+            sensors = resolve_sensor_specs(validated.sensors)
+        except (ValueError, TypeError) as error:
+            raise AgentCompatibilityError(f"Unsupported agent sensors: {error}") from error
+        validated = AgentManifest.model_validate(validated.model_dump() | {"sensors": sensors})
     return validated
 
 
@@ -98,6 +103,7 @@ class AgentSession:
         self._context: AgentReset | None = None
         self._last_frame: int | None = None
         self._last_time: float | None = None
+        self._sensor_source: str | None = None
 
     @property
     def state(self) -> str:
@@ -131,12 +137,27 @@ class AgentSession:
             if (validated.driving_task is not None and validated.driving_task.route_owner == "agent"
                     and self._manifest.navigation_mode != "agent_planner"):
                 raise AgentProtocolError("Agent-owned navigation requires an agent_planner manifest")
+            if self._manifest.observation_mode == "sensors":
+                from simulator.agent_sensors import resolve_sensor_specs
+
+                if validated.driving_task is None:
+                    raise AgentProtocolError("Sensor driving requires an explicit driving task")
+                try:
+                    resolved = resolve_sensor_specs(validated.sensors)
+                except (ValueError, TypeError) as error:
+                    raise AgentProtocolError(f"Invalid reset sensor calibrations: {error}") from error
+                if resolved != self._manifest.sensors:
+                    raise AgentProtocolError("Reset sensors must match the manifest's resolved calibration")
+                validated = AgentReset.model_validate(validated.model_dump() | {"sensors": resolved})
+            elif validated.sensors:
+                raise AgentProtocolError("Simulator-state agents must not receive sensor calibrations")
             self._agent.reset(validated.model_copy(deep=True))
         except BaseException:
             self._state = "failed"
             raise
         self._context = validated
         self._last_frame = self._last_time = None
+        self._sensor_source = None
         self._state = "ready"
 
     def step(self, observation: AgentObservation | Mapping[str, Any]) -> AgentStepResult:
@@ -145,9 +166,29 @@ class AgentSession:
             validated = _validated(AgentObservation, observation, "agent observation")
             if validated.protocol_version != self._manifest.protocol_version:
                 raise AgentProtocolError("Observation protocol does not match the agent manifest")
+            if validated.observation_mode != self._manifest.observation_mode:
+                raise AgentProtocolError("Observation mode does not match the agent manifest")
             if "structured_scene" in self._manifest.required_features and validated.scene is None:
                 raise AgentProtocolError("Agent requires structured scene context")
             context = self._context
+            if self._manifest.observation_mode == "sensors":
+                if self._sensor_source is not None and validated.sensor_source != self._sensor_source:
+                    raise AgentProtocolError("Sensor observation source must remain fixed during an episode")
+                samples = {sample.sensor_id: sample for sample in validated.sensors}
+                if set(samples) != {spec.id for spec in context.sensors}:
+                    raise AgentProtocolError("Observation sensors must exactly match the reset sensor IDs")
+                for spec in context.sensors:
+                    sample = samples[spec.id]
+                    if sample.type != spec.type:
+                        raise AgentProtocolError("Sensor sample type must match its declared calibration")
+                    if spec.type == "sensor.camera.rgb" and (
+                        sample.width != spec.attributes["image_size_x"]
+                        or sample.height != spec.attributes["image_size_y"]
+                        or not isclose(sample.fov_deg, spec.attributes["fov"], rel_tol=0, abs_tol=1e-6)
+                    ):
+                        raise AgentProtocolError("Camera sample dimensions and FOV must match reset calibration")
+                    if spec.type == "sensor.lidar.ray_cast" and sample.channels != spec.attributes["channels"]:
+                        raise AgentProtocolError("LiDAR sample channels must match reset calibration")
             if validated.driving_task != context.driving_task:
                 raise AgentProtocolError("Observation driving task must match the episode reset")
             if validated.ego.actor_id != context.ego_actor_id:
@@ -168,7 +209,7 @@ class AgentSession:
             # Validation has already isolated caller data. Preserve only the
             # scalar clock identity needed after user code, rather than making
             # a second full scene copy. The agent may mutate its owned input.
-            frame, time_s = validated.frame, validated.time_s
+            frame, time_s, sensor_source = validated.frame, validated.time_s, validated.sensor_source
             response = self._agent.step(validated)
             result = _validated(AgentStepResult, response, "agent step result")
             if result.protocol_version != self._manifest.protocol_version:
@@ -179,6 +220,7 @@ class AgentSession:
             self._state = "failed"
             raise
         self._last_frame, self._last_time = frame, time_s
+        self._sensor_source = sensor_source
         return result
 
     def close(self) -> None:

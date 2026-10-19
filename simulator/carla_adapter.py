@@ -1,10 +1,10 @@
 """Optional CARLA 0.9.16 adapter; importing it does not connect to a server."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from math import atan2, degrees, hypot
 from typing import Any
 
-from shared.models import ActorType, ControlInput, EvaluationSettings, Scenario, TelemetryFrame
+from shared.models import AgentSensorSpec, ActorType, ControlInput, EvaluationSettings, Scenario, TelemetryFrame
 
 from .actor_manager import ActorManager
 from .carla_client import CarlaConnectionSettings, connect
@@ -39,6 +39,25 @@ class CarlaSimulationAdapter:
         self._reference_scene = None
         self._driving_task = None
         self._driving_route = []
+        self._agent_sensors: tuple[AgentSensorSpec, ...] = ()
+        self._cancellation: Callable[[], bool] = lambda: False
+
+    def configure_agent_sensors(self, specs: list[AgentSensorSpec]) -> None:
+        """Validate a dedicated agent rig before any server resources are owned."""
+        if self._opened:
+            raise SimulationError("Agent sensors must be configured before opening CARLA")
+        from .agent_sensors import resolve_sensor_specs
+        normalized = tuple(resolve_sensor_specs(specs))
+        if self.options.no_rendering_mode is True and any(spec.type == "sensor.camera.rgb" for spec in normalized):
+            raise SimulationError("Camera capture requires CARLA rendering; disable no_rendering_mode before running")
+        self._agent_sensors = tuple(spec.model_copy(deep=True) for spec in normalized)
+
+    def set_cancellation(self, check: Callable[[], bool]) -> None:
+        if not callable(check):
+            raise TypeError("Sensor cancellation check must be callable")
+        self._cancellation = check
+        if self.sensors is not None:
+            self.sensors.set_cancellation(check)
 
     def open(self, scenario: Scenario) -> TelemetryFrame:
         if self._opened:
@@ -72,6 +91,7 @@ class CarlaSimulationAdapter:
             self.world, self.ego, self.carla, options=self.options,
             actor_ids=self.actor_manager.actor_ids,
             actor_id_resolver=lambda native: self.actor_manager.actor_ids.get(native, f"world:{native}"),
+            agent_sensors=self._agent_sensors, cancellation=self._cancellation,
         )
         self.sensors.open()
         self.rules = RuleMonitor(
@@ -210,6 +230,18 @@ class CarlaSimulationAdapter:
 
     def sensor_samples(self) -> tuple[SensorSample, ...]:
         return () if self.sensors is None else self.sensors.samples()
+
+    def agent_sensor_samples(self, frame: TelemetryFrame) -> tuple[SensorSample, ...]:
+        if self.sensors is None:
+            if self._agent_sensors:
+                raise SimulationError("Agent sensors are not open")
+            return ()
+        return self.sensors.agent_samples(frame.frame) if self._agent_sensors else ()
+
+    def sensor_time_origin_s(self) -> float:
+        if self._origin_time is None:
+            raise SimulationError("Sensor time origin is unavailable before the initial CARLA frame")
+        return float(self._origin_time)
 
     def runtime_info(self) -> dict[str, Any]:
         if self.scenario is None or self.world is None:

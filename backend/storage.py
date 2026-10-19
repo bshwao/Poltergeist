@@ -85,6 +85,14 @@ def _parts(path: str) -> tuple[str, ...]:
     return parts
 
 
+def _sample_stream(kind: str, metadata: Mapping[str, Any]) -> tuple[str, str | None]:
+    """Separate declared sensor IDs from each other and from legacy streams."""
+    sensor_id = metadata.get("agent_sensor_id")
+    if "agent_sensor_id" in metadata and (type(sensor_id) is not str or not sensor_id.strip()):
+        raise ArtifactError("Agent sensor IDs must be nonempty strings when present")
+    return kind, sensor_id
+
+
 def _sample_header(kind: Any, frame: Any, timestamp: Any, length: int, metadata: Any) -> dict:
     if kind not in ("camera", "lidar"):
         raise ArtifactError("Only raw camera and LiDAR samples are supported")
@@ -95,6 +103,7 @@ def _sample_header(kind: Any, frame: Any, timestamp: Any, length: int, metadata:
     if not isinstance(metadata, Mapping):
         raise ArtifactError("Sensor metadata must be a JSON object")
     metadata = dict(metadata)
+    _sample_stream(kind, metadata)
     if len(_json(metadata).encode("utf-8")) > _MAX_METADATA_BYTES:
         raise ArtifactError("Sensor metadata exceeds 16 KiB")
     if length > _MAX_SAMPLE_BYTES:
@@ -310,7 +319,7 @@ class ArtifactStore:
             or not isinstance(manifest.get("samples"), list)
         ):
             raise ArtifactError("Invalid raw sensor manifest")
-        last: dict[str, tuple[int, float]] = {}
+        last: dict[tuple[str, str | None], tuple[int, float]] = {}
         total = 0
         for index, item in enumerate(manifest["samples"]):
             if not isinstance(item, dict) or not isinstance(item.get("file"), str) or not _SAMPLE_FILE.fullmatch(item["file"]):
@@ -320,11 +329,12 @@ class ArtifactStore:
                 raise ArtifactError("Raw sample filenames must preserve manifest order")
             blob = self._contained(path.parent / item["file"], exists=True)
             length = blob.stat().st_size
-            _sample_header(kind, item.get("frame"), item.get("timestamp"), length, item.get("metadata"))
-            previous = last.get(kind)
+            metadata = _sample_header(kind, item.get("frame"), item.get("timestamp"), length, item.get("metadata"))
+            stream = _sample_stream(kind, metadata)
+            previous = last.get(stream)
             if previous is not None and (item["frame"] <= previous[0] or item["timestamp"] <= previous[1]):
                 raise ArtifactError("Raw sensor streams must increase by frame and timestamp")
-            last[kind] = item["frame"], item["timestamp"]
+            last[stream] = item["frame"], item["timestamp"]
             digest = sha256()
             with blob.open("rb") as source:
                 for chunk in iter(lambda: source.read(1024 * 1024), b""):
@@ -361,7 +371,7 @@ class CaptureWriter:
         self._owner: os.stat_result | None = None
         self._closed = False
         self._count = self._bytes = 0
-        self._last: dict[str, tuple[int, float]] = {}
+        self._last: dict[tuple[str, str | None], tuple[int, float]] = {}
 
     @property
     def simulation_id(self) -> UUID:
@@ -377,7 +387,8 @@ class CaptureWriter:
             if not isinstance(sample, SensorSample) or not isinstance(sample.data, bytes):
                 raise ArtifactError("Raw capture requires a SensorSample with immutable bytes")
             metadata = _sample_header(sample.kind, sample.frame, sample.timestamp, len(sample.data), sample.metadata)
-            previous = self._last.get(sample.kind)
+            stream = _sample_stream(sample.kind, metadata)
+            previous = self._last.get(stream)
             if previous is not None and (sample.frame <= previous[0] or sample.timestamp <= previous[1]):
                 raise ArtifactError("Raw sensor streams must strictly increase by frame and timestamp")
             if self._stage is None:
@@ -398,7 +409,7 @@ class CaptureWriter:
             # one callback/sample rather than the length of the run.
             with self._store._contained(self._stage / ".samples.jsonl").open("ab") as manifest:
                 manifest.write((_json(entry) + "\n").encode("utf-8"))
-            self._last[sample.kind] = sample.frame, sample.timestamp
+            self._last[stream] = sample.frame, sample.timestamp
             self._count += 1
             self._bytes += len(sample.data)
         except BaseException:

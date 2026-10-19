@@ -531,7 +531,7 @@ const unknownMetrics = {
 const completedSimulation = { ...acceptedRun.simulation, status: "completed", progress: 1, started_at: timestamp, finished_at: timestamp };
 const finalizedResult = {
   simulation: completedSimulation, metrics: unknownMetrics, telemetry_frames: 1, measured_duration_s: 0,
-  driving_outcome: null, control_audit: null,
+  driving_outcome: null, control_audit: null, agent_inputs: null,
   artifacts: [{ kind: "telemetry", path: `telemetry/${simulationId}/frames.ndjson`, media_type: "application/x-ndjson" }],
   runtime: { adapter: "test", server_version: null, client_version: null, map_name: "Town03", fixed_delta_seconds: 0.05, seed: 17, resolved_spawns: {}, sensor_samples_count: 0 },
 };
@@ -610,6 +610,47 @@ test("driving tasks and outcomes round trip without enabling dashboard agent lau
   }
   globalThis.fetch = async () => jsonResponse({ ...result, control_audit: { ...result.control_audit, controller: "unknown" } });
   await assert.rejects(api.getSimulationResult(simulationId), ApiError);
+});
+
+test("agent input provenance preserves source, calibrated sensors, and localization assistance", async () => {
+  const destination = { position: { x: 10, y: 0, z: 1 }, rotation: { pitch_deg: 0, roll_deg: 0, yaw_deg: 0 } };
+  const task = { route_owner: "framework", destination, route: [], target_speed_mps: 8,
+    completion_radius_m: 2, completion_height_tolerance_m: 2, completion_speed_mps: null,
+    completion_hold_s: 0, stop_on_completion: false };
+  const inputs = { observation_mode: "sensors", source: "deterministic_fixture", ego_state_source: "simulated_ego_kinematics",
+    ground_truth_actor_inputs: false, assistance: ["ideal_ego_kinematics", "framework_navigation"],
+    sensors: [{ id: "front", type: "sensor.camera.rgb", mount: destination,
+      attributes: { image_size_x: 320, image_size_y: 180, fov: 90, sensor_tick: 0 } }] };
+  const sensorResult = { ...finalizedResult, simulation: { ...completedSimulation, scenario: { ...savedRecipe, driving_task: task } },
+    control_audit: { mode: "authoritative", controller: "sdk_agent", navigation: "framework_route", interventions: [] }, agent_inputs: inputs };
+  const stateResult = { ...finalizedResult, agent_inputs: { observation_mode: "simulator_state", source: "synthetic_state",
+    ego_state_source: "simulator_state", ground_truth_actor_inputs: true, sensors: [], assistance: [] } };
+  for (const result of [sensorResult, stateResult, finalizedResult, { ...finalizedResult, agent_inputs: undefined }]) {
+    globalThis.fetch = async () => jsonResponse(result);
+    assert.deepEqual(await api.getSimulationResult(simulationId), JSON.parse(JSON.stringify(result)));
+  }
+  const invalidInputs = [
+    { ...inputs, ground_truth_actor_inputs: true }, { ...inputs, source: "carla_sensors" },
+    { ...inputs, ego_state_source: "simulator_state" }, { ...inputs, sensors: [] },
+    { ...inputs, assistance: ["framework_navigation"] }, { ...inputs, assistance: ["ideal_ego_kinematics"] },
+    { ...inputs, sensors: [...inputs.sensors, ...inputs.sensors] },
+    { ...inputs, sensors: [{ ...inputs.sensors[0], attributes: { image_size_x: 320, image_size_y: 180, fov: 90 } }] },
+    { ...inputs, sensors: [{ ...inputs.sensors[0], attributes: { ...inputs.sensors[0].attributes, image_size_x: "320" } }] },
+    { ...inputs, sensors: [{ ...inputs.sensors[0], attributes: { ...inputs.sensors[0].attributes, fov: 180 } }] },
+    { ...inputs, sensors: [{ ...inputs.sensors[0], attributes: { ...inputs.sensors[0].attributes, unknown: 0 } }] },
+  ];
+  for (const agent_inputs of invalidInputs) {
+    globalThis.fetch = async () => jsonResponse({ ...sensorResult, agent_inputs });
+    await assert.rejects(api.getSimulationResult(simulationId), ApiError);
+  }
+  for (const result of [
+    { ...sensorResult, simulation: completedSimulation },
+    { ...sensorResult, control_audit: { mode: "scripted", controller: "baseline", navigation: "framework_route", interventions: [] } },
+    { ...stateResult, agent_inputs: { ...stateResult.agent_inputs, ground_truth_actor_inputs: false } },
+  ]) {
+    globalThis.fetch = async () => jsonResponse(result);
+    await assert.rejects(api.getSimulationResult(simulationId), ApiError);
+  }
 });
 
 test("results reject malformed metrics, coverage, artifacts, settings, and runtime fields", async () => {

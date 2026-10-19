@@ -296,6 +296,69 @@
       "title": "AgentDiagnostics",
       "type": "object"
     },
+    "AgentInputInfo": {
+      "additionalProperties": false,
+      "description": "Persisted provenance of agent inputs, separate from evaluator telemetry.\n\nSensor driving still receives ideal simulated ego localization. Naming that\nassistance prevents a camera/LiDAR run from implying a learned localization\nstack, or a deterministic fixture from implying actual CARLA sensor data.",
+      "properties": {
+        "assistance": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Assistance",
+          "type": "array"
+        },
+        "ego_state_source": {
+          "enum": [
+            "simulator_state",
+            "simulated_ego_kinematics"
+          ],
+          "title": "Ego State Source",
+          "type": "string"
+        },
+        "ground_truth_actor_inputs": {
+          "title": "Ground Truth Actor Inputs",
+          "type": "boolean"
+        },
+        "observation_mode": {
+          "enum": [
+            "simulator_state",
+            "sensors"
+          ],
+          "title": "Observation Mode",
+          "type": "string"
+        },
+        "sensors": {
+          "items": {
+            "$ref": "#/$defs/AgentSensorSpec"
+          },
+          "maxItems": 4,
+          "title": "Sensors",
+          "type": "array"
+        },
+        "source": {
+          "enum": [
+            "carla_ground_truth",
+            "synthetic_state",
+            "carla_sensors",
+            "deterministic_fixture"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observation_mode",
+        "source",
+        "ego_state_source",
+        "sensors",
+        "ground_truth_actor_inputs",
+        "assistance"
+      ],
+      "title": "AgentInputInfo",
+      "type": "object"
+    },
     "AgentManifest": {
       "additionalProperties": false,
       "properties": {
@@ -358,7 +421,8 @@
           "enum": [
             "1.0",
             "1.1",
-            "1.2"
+            "1.2",
+            "1.3"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -452,14 +516,26 @@
         "ego": {
           "$ref": "#/$defs/ActorState"
         },
+        "ego_state_source": {
+          "default": "simulator_state",
+          "enum": [
+            "simulator_state",
+            "simulated_ego_kinematics"
+          ],
+          "title": "Ego State Source",
+          "type": "string"
+        },
         "frame": {
           "minimum": 0,
           "title": "Frame",
           "type": "integer"
         },
         "observation_mode": {
-          "const": "simulator_state",
           "default": "simulator_state",
+          "enum": [
+            "simulator_state",
+            "sensors"
+          ],
           "title": "Observation Mode",
           "type": "string"
         },
@@ -468,7 +544,8 @@
           "enum": [
             "1.0",
             "1.1",
-            "1.2"
+            "1.2",
+            "1.3"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -495,6 +572,30 @@
             }
           ],
           "default": null
+        },
+        "sensor_source": {
+          "anyOf": [
+            {
+              "enum": [
+                "carla_sensors",
+                "deterministic_fixture"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sensor Source"
+        },
+        "sensors": {
+          "items": {
+            "$ref": "#/$defs/AgentSensorFrame"
+          },
+          "maxItems": 4,
+          "title": "Sensors",
+          "type": "array"
         },
         "target_speed_mps": {
           "anyOf": [
@@ -539,7 +640,10 @@
         "route_heading_deg",
         "traffic_light_red",
         "scene",
-        "driving_task"
+        "driving_task",
+        "ego_state_source",
+        "sensor_source",
+        "sensors"
       ],
       "title": "AgentObservation",
       "type": "object"
@@ -590,7 +694,8 @@
           "enum": [
             "1.0",
             "1.1",
-            "1.2"
+            "1.2",
+            "1.3"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -608,6 +713,14 @@
           "minimum": 0,
           "title": "Seed",
           "type": "integer"
+        },
+        "sensors": {
+          "items": {
+            "$ref": "#/$defs/AgentSensorSpec"
+          },
+          "maxItems": 4,
+          "title": "Sensors",
+          "type": "array"
         }
       },
       "required": [
@@ -618,7 +731,8 @@
         "fixed_delta_seconds",
         "destination",
         "route",
-        "driving_task"
+        "driving_task",
+        "sensors"
       ],
       "title": "AgentReset",
       "type": "object"
@@ -873,6 +987,124 @@
       "title": "AgentSceneObject",
       "type": "object"
     },
+    "AgentSensorFrame": {
+      "additionalProperties": false,
+      "description": "One lossless, native-frame-associated CARLA camera or LiDAR sample.\n\nCamera bytes are row-major BGRA uint8. LiDAR bytes are little-endian float32\nquadruples (x forward, y right, z up, intensity) in the sensor's local frame.\nTimestamp is relative to this episode's first observation.",
+      "properties": {
+        "channels": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 128,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channels"
+        },
+        "data_base64": {
+          "maxLength": 2796204,
+          "title": "Data Base64",
+          "type": "string"
+        },
+        "encoding": {
+          "enum": [
+            "bgra8",
+            "float32_xyzi"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        },
+        "fov_deg": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 180,
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fov Deg"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 2048,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "sensor_id": {
+          "minLength": 1,
+          "title": "Sensor Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "timestamp_s": {
+          "minimum": 0,
+          "title": "Timestamp S",
+          "type": "number"
+        },
+        "type": {
+          "enum": [
+            "sensor.camera.rgb",
+            "sensor.lidar.ray_cast"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 2048,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
+        }
+      },
+      "required": [
+        "sensor_id",
+        "type",
+        "frame",
+        "timestamp_s",
+        "encoding",
+        "data_base64",
+        "sha256",
+        "width",
+        "height",
+        "fov_deg",
+        "channels"
+      ],
+      "title": "AgentSensorFrame",
+      "type": "object"
+    },
     "AgentSensorSpec": {
       "additionalProperties": false,
       "properties": {
@@ -888,6 +1120,9 @@
           "title": "Id",
           "type": "string"
         },
+        "mount": {
+          "$ref": "#/$defs/Transform"
+        },
         "type": {
           "enum": [
             "sensor.camera.rgb",
@@ -902,7 +1137,8 @@
       "required": [
         "id",
         "type",
-        "attributes"
+        "attributes",
+        "mount"
       ],
       "title": "AgentSensorSpec",
       "type": "object"
@@ -934,7 +1170,8 @@
           "enum": [
             "1.0",
             "1.1",
-            "1.2"
+            "1.2",
+            "1.3"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -3722,6 +3959,17 @@
     "SimulationResult": {
       "additionalProperties": false,
       "properties": {
+        "agent_inputs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentInputInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "artifacts": {
           "items": {
             "$ref": "#/$defs/ArtifactReference"
@@ -3787,7 +4035,8 @@
         "artifacts",
         "runtime",
         "driving_outcome",
-        "control_audit"
+        "control_audit",
+        "agent_inputs"
       ],
       "title": "SimulationResult",
       "type": "object"

@@ -5,12 +5,14 @@ from .agent import (
     AgentContracts,
     AgentDiagnostics,
     AgentManifest,
+    AgentInputInfo,
     AgentObservation,
     AgentReset,
     AgentRoadRaster,
     AgentSceneContext,
     AgentSceneObject,
     AgentSensorSpec,
+    AgentSensorFrame,
     AgentStepResult,
 )
 from .evaluation import EvaluationCoverage, EvaluationSettings
@@ -47,8 +49,8 @@ from .telemetry import (
 )
 
 __all__ = [
-    "AGENT_PROTOCOL_VERSION", "AgentContracts", "AgentDiagnostics", "AgentManifest", "AgentObservation",
-    "AgentReset", "AgentSensorSpec", "AgentStepResult",
+    "AGENT_PROTOCOL_VERSION", "AgentContracts", "AgentDiagnostics", "AgentManifest", "AgentInputInfo", "AgentObservation",
+    "AgentReset", "AgentSensorSpec", "AgentSensorFrame", "AgentStepResult",
     "AgentRoadRaster", "AgentSceneContext", "AgentSceneObject",
     "ActorSpec", "ActorState", "ActorType", "ArtifactReference", "BoundingBoxExtent", "BrakingEvent",
     "ControlAudit", "ControlIntervention", "DrivingOutcome", "DrivingTask",

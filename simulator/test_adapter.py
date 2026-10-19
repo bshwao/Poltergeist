@@ -62,6 +62,8 @@ class TestSimulationAdapter:
         self._active = False
         self._driving_task = None
         self._driving_route = []
+        self._agent_sensors = []
+        self._agent_last_sample = None
         self._task_route_tracker = None
 
     def open(self, scenario: Scenario) -> TelemetryFrame:
@@ -79,6 +81,7 @@ class TestSimulationAdapter:
         }
         self._commands = {}
         self._frame_index = 0
+        self._agent_last_sample = None
         self._ego_id = next(actor.id for actor in scenario.actors if actor.type == ActorType.EGO_VEHICLE)
         self._route_heading_deg = placements[self._ego_id].rotation.yaw_deg
         self._active = True
@@ -162,6 +165,35 @@ class TestSimulationAdapter:
                 self._driving_task.route_owner == "framework" and frame.ego.transform is not None) else None
         return scene
 
+    def configure_agent_sensors(self, specs):
+        """Enable labelled transport fixtures, never simulated perception."""
+        if self._active:
+            raise SimulationError("Configure agent sensors before opening the test world")
+        from .agent_sensors import resolve_sensor_specs
+        self._agent_sensors = resolve_sensor_specs(specs)
+
+    def sensor_time_origin_s(self):
+        self._require_open()
+        return 0.0
+
+    def agent_sensor_samples(self, frame):
+        self._require_open()
+        if frame.frame != self._frame_index or self._agent_last_sample == frame.frame:
+            raise SimulationError("Test sensor fixtures require each current frame exactly once")
+        from .sensor_fixtures import build_sensor_fixture
+        packets = build_sensor_fixture(self._agent_sensors, frame.frame, frame.time_s)
+        mounts = {spec.id: spec.mount.model_dump(mode="json") for spec in self._agent_sensors}
+        self._agent_last_sample = frame.frame
+        return tuple(SensorSample(
+            kind="camera" if sample.type == "sensor.camera.rgb" else "lidar",
+            frame=sample.frame, timestamp=sample.timestamp_s, data=sample.raw_data(),
+            metadata={"source": "deterministic_fixture", "agent_sensor_id": sample.sensor_id,
+                "sensor_type": sample.type, "encoding": sample.encoding,
+                "mount": mounts[sample.sensor_id],
+                **{key: getattr(sample, key) for key in ("width", "height", "fov_deg", "channels")
+                   if getattr(sample, key) is not None}},
+        ) for sample in packets)
+
     def prepare_driving_task(self, task, frame: TelemetryFrame):
         """Virtual straight routing only; this world has no real road graph."""
         self._require_open()
@@ -199,6 +231,7 @@ class TestSimulationAdapter:
         self._driving_task = None
         self._driving_route = []
         self._task_route_tracker = None
+        self._agent_sensors = []
 
     def sensor_samples(self) -> tuple[SensorSample, ...]:
         return ()

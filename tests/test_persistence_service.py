@@ -2,7 +2,9 @@
 
 from datetime import timedelta
 from contextlib import contextmanager
+from dataclasses import replace
 import json
+from pathlib import Path
 from threading import Event
 from uuid import uuid4
 
@@ -17,6 +19,8 @@ from backend.storage import ArtifactStore
 from scenarios import validate_scenario
 from shared.models import CollisionEvent, FailureReport
 from simulator import SimulationRunner
+from simulator.agents import ProcessAgent
+from simulator.errors import SimulationCancelled
 from simulator.protocols import SensorSample
 from simulator.test_adapter import TestSimulationAdapter
 
@@ -483,6 +487,142 @@ def test_recording_must_match_finalized_trace_and_runtime_sample_count(service, 
         service.persist_output(output, expected_revision=queued.revision, capture=capture)
     assert not list(service.artifacts.root.rglob("manifest.json"))
     assert not list(service.artifacts.root.rglob("*.bin"))
+
+
+def sensor_scene():
+    return validate_scenario({
+        "name": "stored-sensor-pilot", "duration_s": 0.1, "fixed_delta_seconds": 0.05,
+        "actors": [{"id": "ego", "type": "ego_vehicle", "speed_mps": 2.0, "spawn": {}}],
+        "driving_task": {"route": [{}, {"position": {"x": 8.0}}], "target_speed_mps": 4.0},
+    })
+
+
+def sensor_run(service, *, alter=None, cancel_after_sample=None, adapter=None):
+    queued = service.create_simulation(sensor_scene(), mode="test", agent="custom")
+    capture = service.artifacts.capture(queued.simulation.id)
+    def record(sample):
+        capture.write(sample if alter is None else alter(sample))
+        if cancel_after_sample is not None and cancel_after_sample(sample):
+            raise SimulationCancelled("Cancelled during the terminal sensor recording packet")
+    package = Path(__file__).resolve().parents[1] / "examples" / "agents" / "sensor_pilot"
+    output = SimulationRunner(adapter or TestSimulationAdapter()).run(
+        queued.simulation, agent=ProcessAgent(package), on_sensor=record)
+    return queued, capture, output
+
+
+def test_sensor_capture_roundtrip_preserves_declared_inputs_and_optional_legacy_streams(service):
+    # The separate optional camera shares native frame/time with the agent rig.
+    queued, capture, output = sensor_run(service, adapter=Capturing())
+    assert output.result.simulation.status == "completed", output.result.simulation.error
+    persisted = service.persist_output(output, expected_revision=queued.revision, capture=capture)
+    loaded = service.read_output(queued.simulation.id)
+    assert loaded == persisted
+    recording = next(ref for ref in loaded.result.artifacts if ref.kind == "recording")
+    manifest = service.artifacts.read_capture_manifest(recording)
+    assert manifest["sample_count"] == len(loaded.telemetry) * 3
+    named = [sample for sample in manifest["samples"] if "agent_sensor_id" in sample["metadata"]]
+    assert {sample["metadata"]["agent_sensor_id"] for sample in named} == {"front-camera", "roof-lidar"}
+    assert all(sample["metadata"]["source"] == "deterministic_fixture" for sample in named)
+
+
+@pytest.mark.parametrize("forgery", ["unknown_id", "source", "mount", "missing_mount", "sensor_type", "fov", "dimensions", "channels", "camera_channels", "lidar_fov", "timestamp", "missing_id"])
+def test_sensor_capture_rejects_callback_forged_provenance_or_incomplete_declared_packets(service, forgery):
+    def alter(sample):
+        metadata = dict(sample.metadata)
+        camera = sample.kind == "camera"
+        if forgery == "unknown_id":
+            metadata["agent_sensor_id"] = "undeclared-" + metadata["agent_sensor_id"]
+        elif forgery == "source":
+            metadata["source"] = "carla_sensors"
+        elif forgery == "mount":
+            metadata["mount"] = {"position": {"x": 99.0}}
+        elif forgery == "missing_mount":
+            del metadata["mount"]
+        elif forgery == "sensor_type":
+            metadata["sensor_type"] = "sensor.other.imu"
+        elif forgery == "fov" and camera:
+            metadata["fov_deg"] = 88.0
+        elif forgery == "dimensions" and camera:
+            metadata["width"], metadata["height"] = 640, 90  # Same byte length, different calibration.
+        elif forgery == "channels" and not camera:
+            metadata["channels"] = 16
+        elif forgery == "camera_channels" and camera:
+            metadata["channels"] = 16
+        elif forgery == "lidar_fov" and not camera:
+            metadata["fov_deg"] = 90.0
+        elif forgery == "timestamp" and camera and sample.frame == 0:
+            return replace(sample, timestamp=sample.timestamp + 0.001)
+        elif forgery == "missing_id" and camera:
+            del metadata["agent_sensor_id"]
+        return replace(sample, metadata=metadata)
+    queued, capture, output = sensor_run(service, alter=alter)
+    # The callback changed its recording copy, after validated sample bytes had
+    # already been detached for the agent. Driving itself still completed.
+    assert output.result.simulation.status == "completed", output.result.simulation.error
+    with pytest.raises(PersistenceError, match="Capture"):
+        service.persist_output(output, expected_revision=queued.revision, capture=capture)
+    assert service.get_simulation(queued.simulation.id).result is None
+    assert not list(service.artifacts.root.rglob("*.bin"))
+    assert not list(service.artifacts.root.rglob("manifest.json"))
+
+
+def test_sensor_capture_readback_rechecks_metadata_after_disk_corruption(service):
+    queued, capture, output = sensor_run(service)
+    persisted = service.persist_output(output, expected_revision=queued.revision, capture=capture)
+    reference = next(ref for ref in persisted.result.artifacts if ref.kind == "recording")
+    path = service.artifacts.validate_reference(reference)
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["samples"][0]["metadata"]["source"] = "carla_sensors"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(PersistenceError, match="source"):
+        service.read_output(queued.simulation.id)
+
+
+@pytest.mark.parametrize("terminal_frame", [0, 1])
+def test_cancelled_sensor_capture_allows_a_partial_terminal_bundle(service, terminal_frame):
+    queued, capture, output = sensor_run(service,
+        cancel_after_sample=lambda sample: sample.frame == terminal_frame and sample.kind == "camera")
+    assert output.result.simulation.status == "cancelled", output.result.simulation.error
+    assert len(output.telemetry) == terminal_frame + 1
+    persisted = service.persist_output(output, expected_revision=queued.revision, capture=capture)
+    assert service.read_output(queued.simulation.id) == persisted
+
+
+def test_cancelled_sensor_capture_allows_the_last_measured_packet_to_be_unavailable(service):
+    class CancelledBeforePacket(TestSimulationAdapter):
+        def agent_sensor_samples(self, frame):
+            if frame.frame == 1:
+                raise SimulationCancelled("Cancelled while waiting for the terminal packet")
+            return super().agent_sensor_samples(frame)
+    queued, capture, output = sensor_run(service, adapter=CancelledBeforePacket())
+    assert output.result.simulation.status == "cancelled", output.result.simulation.error
+    assert len(output.telemetry) == 2 and output.result.runtime.sensor_samples_count == 2
+    persisted = service.persist_output(output, expected_revision=queued.revision, capture=capture)
+    assert service.read_output(queued.simulation.id) == persisted
+
+
+def test_cancelled_sensor_capture_rejects_missing_inputs_in_past_frames(service):
+    def remove_early_id(sample):
+        if sample.frame == 0 and sample.kind == "camera":
+            metadata = dict(sample.metadata)
+            del metadata["agent_sensor_id"]
+            return replace(sample, metadata=metadata)
+        return sample
+    queued, capture, output = sensor_run(service, alter=remove_early_id,
+        cancel_after_sample=lambda sample: sample.frame == 1 and sample.kind == "camera")
+    assert output.result.simulation.status == "cancelled", output.result.simulation.error
+    with pytest.raises(PersistenceError, match="missing a declared"):
+        service.persist_output(output, expected_revision=queued.revision, capture=capture)
+
+
+def test_legacy_recording_without_agent_input_provenance_keeps_existing_validation(service):
+    queued = service.create_simulation(scene(), mode="test")
+    capture = service.artifacts.capture(queued.simulation.id)
+    output = SimulationRunner(Capturing()).run(queued.simulation, on_sensor=capture.write)
+    output.result.agent_inputs = None
+    persisted = service.persist_output(output, expected_revision=queued.revision, capture=capture)
+    assert persisted.result.agent_inputs is None
+    assert service.read_output(queued.simulation.id) == persisted
 
 
 def test_failure_report_references_persisted_evidence(service):

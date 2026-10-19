@@ -1,14 +1,16 @@
 """Versioned, CARLA-free boundary between driving agents and Poltergeist.
 
 Simulator-state observations intentionally contain ground-truth information.
-Sensor declarations describe future input capabilities; they do not imply that
-the current SDK can deliver those inputs.
+SDK 1.3 sensor observations contain camera/LiDAR samples and explicitly declared
+ideal ego localization, without privileged surrounding-object state.
 """
 
 import keyword
 import math
 import base64
 import binascii
+import hashlib
+import struct
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, JsonValue, StrictBool, StrictStr, field_validator, model_validator
@@ -18,7 +20,7 @@ from .scenario import DrivingTask, Transform, Vector3
 from .telemetry import ActorState, BoundingBoxExtent, ControlInput
 
 AGENT_PROTOCOL_VERSION = "1.0"
-AgentProtocolVersion = Literal["1.0", "1.1", "1.2"]
+AgentProtocolVersion = Literal["1.0", "1.1", "1.2", "1.3"]
 AgentObservationMode = Literal["simulator_state", "sensors"]
 AgentSensorType = Literal[
     "sensor.camera.rgb", "sensor.lidar.ray_cast", "sensor.other.imu", "sensor.other.gnss",
@@ -80,8 +82,133 @@ class AgentSensorSpec(ContractModel):
     id: NonEmptyString
     type: AgentSensorType
     attributes: dict[str, JsonValue] = Field(default_factory=dict)
+    mount: Transform = Field(default_factory=lambda: Transform(position=Vector3(x=1.5, z=2.0)))
 
     _json_attributes = field_validator("attributes", mode="before")(_require_json_object)
+
+
+# Raw payload bytes, before base64/JSON expansion. A complete observation shares
+# this bound, so adding sensors cannot bypass the process transport's limits.
+MAX_SENSOR_PAYLOAD_BYTES = 2 * 1024 * 1024
+
+
+class AgentSensorFrame(ContractModel):
+    """One lossless, native-frame-associated CARLA camera or LiDAR sample.
+
+    Camera bytes are row-major BGRA uint8. LiDAR bytes are little-endian float32
+    quadruples (x forward, y right, z up, intensity) in the sensor's local frame.
+    Timestamp is relative to this episode's first observation.
+    """
+
+    sensor_id: NonEmptyString
+    type: Literal["sensor.camera.rgb", "sensor.lidar.ray_cast"]
+    frame: NonNegativeInt
+    timestamp_s: NonNegativeFloat
+    encoding: Literal["bgra8", "float32_xyzi"]
+    data_base64: StrictStr = Field(max_length=4 * ((MAX_SENSOR_PAYLOAD_BYTES + 2) // 3))
+    sha256: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$", strict=True)]
+    width: Annotated[int, Field(gt=0, le=2048, strict=True)] | None = None
+    height: Annotated[int, Field(gt=0, le=2048, strict=True)] | None = None
+    fov_deg: Annotated[float, Field(gt=0, lt=180, strict=True)] | None = None
+    channels: Annotated[int, Field(gt=0, le=128, strict=True)] | None = None
+
+    def raw_data(self) -> bytes:
+        """Decode the verified lossless payload using only the standard library."""
+        return base64.b64decode(self.data_base64, validate=True)
+
+    @model_validator(mode="after")
+    def validate_sample(self) -> Self:
+        try:
+            payload = self.raw_data()
+        except (ValueError, binascii.Error) as error:
+            raise ValueError("Sensor payload must be valid base64") from error
+        if len(payload) > MAX_SENSOR_PAYLOAD_BYTES:
+            raise ValueError("Sensor payload exceeds the 2 MiB raw-data limit")
+        if hashlib.sha256(payload).hexdigest() != self.sha256:
+            raise ValueError("Sensor payload SHA-256 does not match its bytes")
+        if self.type == "sensor.camera.rgb":
+            if self.encoding != "bgra8" or None in (self.width, self.height, self.fov_deg):
+                raise ValueError("RGB camera samples require BGRA8 encoding, width, height, and FOV")
+            if self.channels is not None:
+                raise ValueError("RGB camera samples must not declare LiDAR channels")
+            if len(payload) != self.width * self.height * 4:
+                raise ValueError("BGRA8 payload length must equal width times height times four")
+        else:
+            if self.encoding != "float32_xyzi" or self.channels is None:
+                raise ValueError("LiDAR samples require float32_xyzi encoding and channels")
+            if any(item is not None for item in (self.width, self.height, self.fov_deg)):
+                raise ValueError("LiDAR samples must not declare camera calibration")
+            if len(payload) % 16:
+                raise ValueError("LiDAR payload must contain complete float32 XYZI points")
+            if any(not math.isfinite(value[0]) for value in struct.iter_unpack("<f", payload)):
+                raise ValueError("LiDAR payload must contain only finite float32 values")
+        return self
+
+
+class AgentInputInfo(ContractModel):
+    """Persisted provenance of agent inputs, separate from evaluator telemetry.
+
+    Sensor driving still receives ideal simulated ego localization. Naming that
+    assistance prevents a camera/LiDAR run from implying a learned localization
+    stack, or a deterministic fixture from implying actual CARLA sensor data.
+    """
+
+    observation_mode: AgentObservationMode
+    source: Literal["carla_ground_truth", "synthetic_state", "carla_sensors", "deterministic_fixture"]
+    ego_state_source: Literal["simulator_state", "simulated_ego_kinematics"]
+    sensors: list[AgentSensorSpec] = Field(default_factory=list, max_length=4)
+    ground_truth_actor_inputs: StrictBool
+    assistance: list[NonEmptyString] = Field(default_factory=list, max_length=64)
+
+    @model_validator(mode="after")
+    def validate_provenance(self) -> Self:
+        if len(self.assistance) != len(set(self.assistance)):
+            raise ValueError("Input assistance declarations must be unique")
+        if self.observation_mode == "simulator_state":
+            if self.source not in {"carla_ground_truth", "synthetic_state"}:
+                raise ValueError("Simulator-state inputs require ground-truth or synthetic-state provenance")
+            if self.ego_state_source != "simulator_state" or not self.ground_truth_actor_inputs or self.sensors:
+                raise ValueError("Simulator-state input provenance requires ground-truth actor inputs and no agent sensors")
+        else:
+            if self.source not in {"carla_sensors", "deterministic_fixture"}:
+                raise ValueError("Sensor inputs require CARLA-sensor or deterministic-fixture provenance")
+            if self.ego_state_source != "simulated_ego_kinematics" or self.ground_truth_actor_inputs:
+                raise ValueError("Sensor input provenance must disclose ideal ego kinematics and exclude actor ground truth")
+            if "ideal_ego_kinematics" not in self.assistance:
+                raise ValueError("Sensor input provenance must declare ideal_ego_kinematics assistance")
+            if not self.sensors or any(spec.type not in {"sensor.camera.rgb", "sensor.lidar.ray_cast"} for spec in self.sensors):
+                raise ValueError("Sensor input provenance requires supported camera/LiDAR calibration")
+            if len({spec.id for spec in self.sensors}) != len(self.sensors):
+                raise ValueError("Input sensor calibration IDs must be unique")
+            raw_budget = 0
+            for spec in self.sensors:
+                required = {"image_size_x", "image_size_y", "fov", "sensor_tick"} if spec.type == "sensor.camera.rgb" else {
+                    "channels", "range", "points_per_second", "rotation_frequency", "upper_fov", "lower_fov", "sensor_tick",
+                }
+                if set(spec.attributes) != required or spec.attributes.get("sensor_tick") != 0.0:
+                    raise ValueError("Persisted sensor calibration must contain the complete resolved attribute set")
+                if any(type(item) not in (int, float) or not math.isfinite(item) for item in spec.attributes.values()):
+                    raise ValueError("Persisted sensor calibration attributes must be finite JSON numbers")
+                if any(abs(getattr(spec.mount.position, axis)) > 10 for axis in ("x", "y", "z")):
+                    raise ValueError("Persisted sensor mounts must remain within 10 metres of the ego origin")
+                attrs = spec.attributes
+                if spec.type == "sensor.camera.rgb":
+                    if (type(attrs["image_size_x"]) is not int or not 1 <= attrs["image_size_x"] <= 1024
+                            or type(attrs["image_size_y"]) is not int or not 1 <= attrs["image_size_y"] <= 768
+                            or not 10 <= attrs["fov"] <= 140):
+                        raise ValueError("Persisted camera calibration is outside supported dimensions or FOV")
+                    raw_budget += attrs["image_size_x"] * attrs["image_size_y"] * 4
+                else:
+                    if (type(attrs["channels"]) is not int or not 1 <= attrs["channels"] <= 128
+                            or not 1 <= attrs["range"] <= 200
+                            or type(attrs["points_per_second"]) is not int or not 1000 <= attrs["points_per_second"] <= 500000
+                            or not 1 <= attrs["rotation_frequency"] <= 100
+                            or not -89 <= attrs["lower_fov"] < attrs["upper_fov"] <= 89):
+                        raise ValueError("Persisted LiDAR calibration is outside supported scan bounds")
+                    raw_budget += math.ceil(attrs["points_per_second"] * 0.1) * 16
+            if raw_budget > MAX_SENSOR_PAYLOAD_BYTES:
+                raise ValueError("Persisted sensor calibration exceeds the aggregate 2 MiB payload budget")
+        return self
 
 
 class AgentManifest(ContractModel):
@@ -134,10 +261,10 @@ class AgentManifest(ContractModel):
             raise ValueError("Simulator-state observation mode must not declare sensors")
         if len(set(self.required_features)) != len(self.required_features):
             raise ValueError("Required agent features must be unique")
-        if self.required_features and (self.protocol_version not in {"1.1", "1.2"} or self.observation_mode != "simulator_state"):
-            raise ValueError("Structured scene features require SDK 1.1 or 1.2 simulator_state observations")
-        if self.navigation_mode == "agent_planner" and self.protocol_version != "1.2":
-            raise ValueError("Agent-owned navigation requires SDK protocol 1.2")
+        if self.required_features and (self.protocol_version not in {"1.1", "1.2", "1.3"} or self.observation_mode != "simulator_state"):
+            raise ValueError("Structured scene features require SDK 1.1, 1.2, or 1.3 simulator_state observations")
+        if self.navigation_mode == "agent_planner" and self.protocol_version not in {"1.2", "1.3"}:
+            raise ValueError("Agent-owned navigation requires SDK protocol 1.2 or 1.3")
         return self
 
 
@@ -150,12 +277,13 @@ class AgentReset(ContractModel):
     destination: Transform | None = None
     route: list[Transform] = Field(default_factory=list, max_length=4096)
     driving_task: DrivingTask | None = None
+    sensors: list[AgentSensorSpec] = Field(default_factory=list, max_length=4)
 
     @model_validator(mode="after")
     def validate_driving_task(self) -> Self:
         if self.driving_task is not None:
-            if self.protocol_version != "1.2":
-                raise ValueError("Driving tasks require SDK protocol 1.2")
+            if self.protocol_version not in {"1.2", "1.3"}:
+                raise ValueError("Driving tasks require SDK protocol 1.2 or 1.3")
             if self.driving_task.route:
                 raise ValueError("Reset driving task descriptor must omit its route; use reset.route")
             if self.driving_task.route_owner == "agent" and self.route:
@@ -182,6 +310,14 @@ class AgentReset(ContractModel):
                  self.driving_task.destination.position.z),
             ) > 1e-6:
                 raise ValueError("Reset destination must match the driving task destination")
+        if self.sensors:
+            if self.protocol_version != "1.3":
+                raise ValueError("Sensor calibrations require SDK protocol 1.3")
+            if self.driving_task is None:
+                raise ValueError("Sensor driving requires an explicit driving task")
+            ids = [sensor.id for sensor in self.sensors]
+            if len(ids) != len(set(ids)):
+                raise ValueError("Reset sensor IDs must be unique")
         return self
 
 
@@ -255,7 +391,7 @@ class AgentSceneContext(ContractModel):
 
 class AgentObservation(ContractModel):
     protocol_version: AgentProtocolVersion = AGENT_PROTOCOL_VERSION
-    observation_mode: Literal["simulator_state"] = "simulator_state"
+    observation_mode: AgentObservationMode = "simulator_state"
     frame: NonNegativeInt
     time_s: NonNegativeFloat
     dt_s: PositiveFloat
@@ -267,24 +403,57 @@ class AgentObservation(ContractModel):
     traffic_light_red: StrictBool | None = None
     scene: AgentSceneContext | None = None
     driving_task: DrivingTask | None = None
+    ego_state_source: Literal["simulator_state", "simulated_ego_kinematics"] = "simulator_state"
+    sensor_source: Literal["carla_sensors", "deterministic_fixture"] | None = None
+    sensors: list[AgentSensorFrame] = Field(default_factory=list, max_length=4)
 
     @model_validator(mode="after")
     def validate_actor_ids(self) -> Self:
         ids = [self.ego.actor_id, *(actor.actor_id for actor in self.actors or [])]
         if len(ids) != len(set(ids)):
             raise ValueError("Observation actor IDs must be unique, including the ego")
-        if self.scene is not None and self.protocol_version not in {"1.1", "1.2"}:
-            raise ValueError("Structured scene context requires SDK protocol 1.1 or 1.2")
+        if self.scene is not None and self.protocol_version not in {"1.1", "1.2", "1.3"}:
+            raise ValueError("Structured scene context requires SDK protocol 1.1, 1.2, or 1.3")
         if self.protocol_version in {"1.0", "1.1"} and self.target_speed_mps is None:
             raise ValueError("SDK 1.0 and 1.1 observations require a numeric target_speed_mps")
         if self.driving_task is not None:
-            if self.protocol_version != "1.2":
-                raise ValueError("Driving tasks require SDK protocol 1.2")
+            if self.protocol_version not in {"1.2", "1.3"}:
+                raise ValueError("Driving tasks require SDK protocol 1.2 or 1.3")
             if self.driving_task.route:
                 raise ValueError("Observation driving task descriptor must omit its route")
             if self.driving_task.route_owner == "agent":
                 if self.route_heading_deg is not None or (self.scene is not None and self.scene.route is not None):
                     raise ValueError("Agent-owned navigation must not receive a framework route or heading")
+        if self.observation_mode == "sensors":
+            if self.protocol_version != "1.3":
+                raise ValueError("Sensor observations require SDK protocol 1.3")
+            if self.driving_task is None:
+                raise ValueError("Sensor observations require an explicit driving task")
+            if self.ego_state_source != "simulated_ego_kinematics":
+                raise ValueError("Sensor observations must declare simulated ego kinematics assistance")
+            if self.sensor_source is None:
+                raise ValueError("Sensor observations must declare their CARLA or deterministic-fixture source")
+            if self.actors is not None or self.scene is not None or self.traffic_light_red is not None:
+                raise ValueError("Sensor observations must not include privileged scene or other-actor state")
+            if any(item is not None for item in (
+                self.ego.bounding_box_extent, self.ego.bounding_box_transform, self.ego.speed_limit_mps,
+            )):
+                raise ValueError("Sensor observations must omit privileged ego box geometry and speed limits")
+            if not self.sensors:
+                raise ValueError("Sensor observations require sensor samples")
+            sensor_ids = [sample.sensor_id for sample in self.sensors]
+            if len(sensor_ids) != len(set(sensor_ids)):
+                raise ValueError("Observation sensor IDs must be unique")
+            if any(sample.frame != self.frame or not math.isclose(
+                sample.timestamp_s, self.time_s, rel_tol=0, abs_tol=1e-6,
+            ) for sample in self.sensors):
+                raise ValueError("Sensor samples must match the observation's native frame and episode timestamp")
+            if sum(len(sample.raw_data()) for sample in self.sensors) > MAX_SENSOR_PAYLOAD_BYTES:
+                raise ValueError("Aggregate sensor payload exceeds the 2 MiB raw-data limit")
+            if self.target_speed_mps is not None and self.target_speed_mps != self.driving_task.target_speed_mps:
+                raise ValueError("Sensor speed guidance must come from the explicit driving task")
+        elif self.sensors or self.ego_state_source != "simulator_state" or self.sensor_source is not None:
+            raise ValueError("Simulator-state observations must not include sensor samples or a sensor ego-state source")
         return self
 
 
