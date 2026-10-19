@@ -14,7 +14,7 @@ from simulator.agents.package import inspect_agent_package
 from simulator.agents.process_group import AgentProcessGroup
 from simulator.agents.process_protocol import (
     AgentProcessRequest, AgentProcessResponse, AgentWorkerError,
-    decode_request, decode_response, encode_message,
+    decode_request, decode_response, encode_message, encode_request, encode_response,
 )
 
 
@@ -153,6 +153,78 @@ def test_encode_revalidates_mutated_payloads():
     message.payload["invalid"] = (1, 2)
     with pytest.raises(ValueError):
         encode_message(message)
+
+
+def test_compiled_wire_encoder_preserves_utf8_and_escaped_line_breaks():
+    message = request(0, "load", {"text": "drivér\n第二行\r\t", "values": [1, 2.5, True, None]})
+    encoded = encode_message(message)
+    assert encoded.endswith(b"\n")
+    assert encoded.count(b"\n") == 1
+    assert "drivér".encode("utf-8") in encoded
+    assert decode_request(encoded) == message
+    assert encode_message(message, len(encoded)) == encoded
+    with pytest.raises(ValueError, match="exceeds"):
+        encode_message(message, len(encoded) - 1)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), -float("inf")])
+def test_compiled_wire_encoder_still_rejects_mutated_non_finite_values(bad):
+    message = request(0, "load", {"nested": [0.0]})
+    message.payload["nested"][0] = bad
+    with pytest.raises(ValueError, match="finite"):
+        encode_message(message)
+
+
+def test_owned_envelope_encoders_match_the_public_mutable_message_encoder():
+    message = request(9, "step", {"nested": ["é\n", {"speed": 12.0}]})
+    encoded = encode_request(message.request_id, message.operation, message.payload)
+    assert encoded == encode_message(message)
+    assert decode_request(encoded) == message
+    response = AgentProcessResponse(
+        protocol_version="1.0", request_id=9, operation="step", ok=True, payload=message.payload,
+    )
+    assert encode_response(9, "step", payload=message.payload) == encode_message(response)
+    error = AgentWorkerError(type="RuntimeError", message="inference failed\nline two")
+    failed = AgentProcessResponse(
+        protocol_version="1.0", request_id=9, operation="step", ok=False, error=error,
+    )
+    assert encode_response(9, "step", error=error) == encode_message(failed)
+    for encode in (
+        lambda limit: encode_request(9, "step", message.payload, limit),
+        lambda limit: encode_response(9, "step", payload=message.payload, max_message_bytes=limit),
+    ):
+        with pytest.raises(ValueError, match="exceeds"):
+            encode(1)
+
+
+@pytest.mark.parametrize("bad", [
+    {"nested": [float("nan")]}, {"nested": [float("inf")]},
+    {"nested": (1, 2)}, {3: "not a string key"},
+])
+def test_owned_envelope_encoders_keep_the_strict_json_boundary(bad):
+    with pytest.raises(ValueError):
+        encode_request(0, "step", bad)
+    with pytest.raises(ValueError):
+        encode_response(0, "step", payload=bad)
+
+
+def test_owned_response_encoder_revalidates_preconstructed_errors():
+    error = AgentWorkerError.model_construct(type="", message="invalid")
+    with pytest.raises(ValueError):
+        encode_response(0, "step", error=error)
+
+
+@pytest.mark.parametrize("payload", [
+    '{"nested": [1e999]}', '{"nested": [-1e999]}',
+    '["not", "an object"]', 'null', 'true',
+])
+def test_decoded_json_payload_still_rejects_overflow_and_non_objects(payload):
+    request_bytes = ('{"protocol_version":"1.0","request_id":0,"operation":"step","payload":' + payload + '}').encode()
+    response_bytes = ('{"protocol_version":"1.0","request_id":0,"operation":"step","ok":true,"payload":' + payload + '}').encode()
+    with pytest.raises(ValueError):
+        decode_request(request_bytes)
+    with pytest.raises(ValueError):
+        decode_response(response_bytes)
 
 
 def test_worker_runs_lifecycle_in_distinct_process_with_clean_stdout_and_no_carla(tmp_path):

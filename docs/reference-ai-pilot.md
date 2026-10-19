@@ -37,7 +37,23 @@ The suite runs serially so only one runner advances CARLA at a time.
 Saved recipes keep their seed unless `--seed` explicitly overrides it. Cancelling
 a trial stops the remaining suite jobs and retains the partial report.
 
-For performance measurements without a rendered view, add `--no-rendering`.
+For the optimized state-based benchmark, use the performance profile and two
+seeds. `--require-real-time` returns a nonzero exit status if the measured
+throughput gate fails, while retaining the complete report:
+
+```powershell
+& $carlaPy -m scripts.run_reference_ai --suite --duration 8 --seed 0 --seed 43 --performance --require-real-time --agent-python .agent-venv/Scripts/python.exe --output storage/reports/my-ai-performance
+```
+
+`--performance` selects no rendering and a 0.001 s sensor-settle window. An
+explicit `--sensor-settle` overrides that value. For independently controlled
+measurements without a rendered view, use `--no-rendering`.
+The performance profile also raises the parent Python generation-zero GC
+threshold to at least 50,000 during a dedicated trial. Automatic collection
+remains enabled and the exact previous thresholds are restored afterward.
+This reduces repeated scans over cached map geometry and retained evidence;
+it does not impose a fixed memory limit. Active thresholds and OS memory
+high-water marks are recorded.
 The pilot restores the previous rendering/world settings afterward. Its
 privileged map input does not require a camera renderer. A rendered spectator
 view is unavailable while rendering is disabled. `--sensor-settle` defaults to
@@ -99,9 +115,13 @@ applied controls, interventions, resulting ego motion, network inference time,
 agent-step time, process round trip, and complete-step time. Diagnostics do not
 invent explanations for the model's decisions.
 
-Setup/loading is measured separately. Complete-step time excludes the evidence
-callback itself; execution wall time and real-time factor include evidence I/O.
-All measured decisions, including the first cold inference, remain in the report.
+Setup/loading and neural warmup are measured separately. The original
+`full_step` measurement excludes the evidence callback itself. The `cycle`
+measurement includes observation preparation, inference, CARLA advancement,
+telemetry validation, progress callbacks, and writing/flushing decision evidence.
+The performance gate uses complete cycles; their raw times are retained in each
+summary in decision order. Execution wall time and real-time factor also include
+evidence I/O. All executed decisions, including the first, remain in the report.
 OS process-memory high-water marks and device-wide GPU snapshots are recorded;
 GPU peak allocation and a lane-invasion count are explicitly unavailable.
 Mapped traffic-rule measurements remain available through the normal evaluator.
@@ -109,19 +129,28 @@ Mapped traffic-rule measurements remain available through the normal evaluator.
 ## Validation and performance
 
 See [the dated validation record](reference-ai-validation.md) for actual local
-trials and limitations. A completed experiment means that execution finished; it
+trials and limitations, and [performance acceptance](reference-ai-performance.md)
+for the optimized 20 Hz results. A completed experiment means that execution finished; it
 can still contain collisions, traffic violations, or poor decisions.
 
 The nominal 20 Hz step budget is 50 ms. The report's throughput gate requires
 completed repeated live trials, real-time factor at least 1, and at least 95% of
-complete steps within that budget. Real-time factor is simulated execution
+complete cycles including evidence I/O within that budget. Real-time factor is simulated execution
 seconds divided by execution wall seconds. Increasing a worker timeout does not
 improve this factor.
 
-**The current full loop does not meet that 20 Hz gate on the tested laptop.**
+The performance profile combines lossless scene caching, bounded CUDA graph
+replay, float32 SDPA attention, reduced message copying, cached fixed signal
+geometry, and scoped Windows timer precision. Windows timer requests are balanced
+in both parent and worker and released on exit; they do not change physics time.
+Signal states and all model decisions remain live observations on every tick.
+CUDA captures cover 0–8 scene objects; larger scenes use the same network through
+ordinary SDPA. `cuda_graphs: false` in the reference package configuration disables
+capture. CPU execution remains supported without a 20 Hz promise.
+
 The model controls CARLA through a synchronous observation/action loop, and CARLA
-waits for inference. Keep these functional and timing conclusions separate.
-Further end-to-end optimization is required before claiming real-time 20 Hz.
+waits for inference. Review the report's measured gate on the actual hardware;
+the performance profile cannot guarantee 20 Hz under every workload.
 
 API/dashboard agent selection remains Phases 5 and 6. Current dashboard launches
 continue to use the existing baseline; use the command above for the learned

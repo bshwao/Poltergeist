@@ -31,7 +31,7 @@ def decision(index=0):
             "resulting_frame": index+1, "resulting_ego": frame(index+1, (index+1)*0.1).ego.model_dump(mode="json")}
 
 
-def output(frames=None, *, mode="test", status="completed", execution=0.05):
+def output(frames=None, *, mode="test", status="completed", execution=0.05, cycle=0.01):
     frames = [frame(0, 0.0), frame(1, 0.1)] if frames is None else frames
     scenario = validate_scenario({"name": "evidence", "map": "Town03", "duration_s": 0.05,
                                   "actors": [{"id": "ego", "type": "ego_vehicle"}]})
@@ -40,7 +40,9 @@ def output(frames=None, *, mode="test", status="completed", execution=0.05):
                      created_at=now, started_at=now, finished_at=now, error="test failed" if status == "failed" else None)
     result = SimulationResult(simulation=sim, metrics={}, telemetry_frames=len(frames),
                               measured_duration_s=0.0 if not frames else frames[-1].time_s)
-    return SimpleNamespace(result=result, telemetry=tuple(frames), setup_wall_time_s=0.2, execution_wall_time_s=execution)
+    return SimpleNamespace(result=result, telemetry=tuple(frames), setup_wall_time_s=0.2,
+                           execution_wall_time_s=execution,
+                           step_wall_times_s=() if cycle is None else (cycle,) * (len(frames) - 1))
 
 
 def test_percentiles_budget_misses_and_unknown_empty_samples():
@@ -185,9 +187,17 @@ def test_missing_complete_step_measurement_cannot_pass_a_throughput_gate():
 def test_throughput_requires_rtf_step_budgets_and_complete_execution(mode, status, execution, full_step, expected):
     item = decision()
     item["full_step_wall_time_s"] = full_step
-    summary = summarize_run(output(mode=mode, status=status, execution=execution), [item], total_wall_time_s=0.4, variant="reference_ai")
+    summary = summarize_run(output(mode=mode, status=status, execution=execution, cycle=full_step), [item], total_wall_time_s=0.4, variant="reference_ai")
     assert summary["timing"]["single_trial_throughput_gate"] is expected
     assert summary["control_evidence"]["live_carla_execution"] is (mode == "carla" and status == "completed")
+
+
+@pytest.mark.parametrize("cycle", [0.055, None])
+def test_compute_time_alone_cannot_pass_without_complete_cycle_cadence(cycle):
+    summary = summarize_run(output(mode="carla", cycle=cycle), [decision()],
+                            total_wall_time_s=.4, variant="reference_ai")
+    assert summary["timing"]["full_step"]["p95_s"] == .01
+    assert not summary["timing"]["single_trial_throughput_gate"]
 
 
 def test_incomplete_trace_never_passes_performance_gate():

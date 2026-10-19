@@ -13,7 +13,7 @@ from queue import Empty, Full, Queue
 import subprocess
 import sys
 from threading import Lock, Thread
-from time import monotonic
+from time import perf_counter as monotonic
 from typing import Callable
 
 from shared.models import AgentManifest
@@ -21,7 +21,7 @@ from simulator.errors import SimulationCancelled
 
 from .package import inspect_agent_package
 from .process_group import AgentProcessGroup
-from .process_protocol import AgentProcessRequest, DEFAULT_MAX_MESSAGE_BYTES, decode_response, encode_message
+from .process_protocol import DEFAULT_MAX_MESSAGE_BYTES, decode_response, encode_request
 from .sdk import AgentLifecycleError, AgentProtocolError, AgentSDKError, AgentSession, AutonomousAgent
 
 
@@ -295,8 +295,8 @@ class ProcessAgent(AutonomousAgent):
         if allow_cancel:
             self._cancel_check()
         self._request_id += 1
-        request = AgentProcessRequest(protocol_version="1.0", request_id=self._request_id, operation=operation, payload=payload)
-        encoded = encode_message(request, self.options.max_message_bytes)
+        request_id = self._request_id
+        encoded = encode_request(request_id, operation, payload, self.options.max_message_bytes)
         try:
             self._writes.put_nowait(encoded)
         except Full as error:
@@ -320,7 +320,7 @@ class ProcessAgent(AutonomousAgent):
                 response = decode_response(value, self.options.max_message_bytes)
             except (ValueError, TypeError, UnicodeError) as error:
                 raise AgentProcessError(f"Invalid agent process response: {error}") from error
-            if response.request_id != request.request_id or response.operation != operation:
+            if response.request_id != request_id or response.operation != operation:
                 raise AgentProcessError("Agent response request ID or operation does not match")
             if not response.ok:
                 raise AgentProcessError(f"Agent {operation} failed: {response.error.type}: {response.error.message}")

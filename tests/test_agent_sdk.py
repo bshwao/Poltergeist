@@ -200,6 +200,42 @@ def test_agent_cannot_mutate_caller_observation_or_relabel_its_response():
         session.close()
 
 
+def test_agent_input_mutation_cannot_change_the_sessions_frame_or_time_history():
+    def mutate(value):
+        original_frame = value.frame
+        value.frame = 999
+        value.time_s = 999.0
+        return AgentStepResult(frame=original_frame, control=ControlInput(brake=1.0))
+
+    session, _ = loaded_session(RecordingAgent(action=mutate))
+    try:
+        assert session.step(observation()).frame == 410
+        assert session.step(observation(frame=411, time_s=0.05)).frame == 411
+    finally:
+        session.close()
+
+
+def test_mapping_observations_with_existing_nested_models_remain_isolated():
+    def mutate(value):
+        value.ego.transform.position.x = 999.0
+        value.actors[0].actor_id = "mutated"
+        return AgentStepResult(frame=value.frame, control=ControlInput())
+
+    value = observation()
+    payload = value.model_dump()
+    # Public mapping callers may supply models instead of plain dictionaries.
+    payload["ego"] = value.ego
+    payload["actors"] = value.actors
+    original = deepcopy(value)
+    session, _ = loaded_session(RecordingAgent(action=mutate))
+    try:
+        session.step(payload)
+        assert value == original
+        assert payload["actors"] is value.actors
+    finally:
+        session.close()
+
+
 def test_returned_controls_and_diagnostics_do_not_alias_agent_owned_objects():
     original = AgentStepResult(
         frame=410, control=ControlInput(brake=0.5),

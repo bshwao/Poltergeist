@@ -21,6 +21,21 @@ def recipe(events=None):
     })
 
 
+def test_cycle_timing_includes_all_decision_callback_work(monkeypatch):
+    from simulator import simulation_runner as module
+    clock = [100.0]
+    monkeypatch.setattr(module, "perf_counter", lambda: clock[0])
+    compute_times = []
+    def evidence(record):
+        compute_times.append(record["full_step_wall_time_s"])
+        clock[0] += .2
+    result = SimulationRunner(TestSimulationAdapter()).run(recipe(), mode="test", on_decision=evidence)
+    assert result.result.simulation.status == "completed"
+    assert compute_times == [0.0, 0.0]
+    assert result.step_wall_times_s == pytest.approx((.2, .2))
+    assert result.execution_wall_time_s == pytest.approx(.4)
+
+
 @pytest.fixture
 def agent_package(tmp_path):
     directory = tmp_path / "driver"

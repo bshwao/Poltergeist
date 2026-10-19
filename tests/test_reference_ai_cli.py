@@ -54,6 +54,25 @@ def read_report(output):
     return json.loads((output / "report.json").read_text())
 
 
+def test_performance_profile_records_settings_and_explicit_settle_override(reference_package, tmp_path):
+    destination = tmp_path / "performance"
+    assert cli.main(["--mode", "test", "--duration", ".1", "--performance", "--output", str(destination)]) == 0
+    options = read_report(destination)["options"]
+    assert options["no_rendering_mode"] is True and options["sensor_settle_s"] == .001
+    override = tmp_path / "override"
+    assert invoke(override, "--performance", "--sensor-settle", ".003") == 0
+    assert read_report(override)["options"]["sensor_settle_s"] == .003
+
+
+def test_real_time_requirement_fails_synthetic_trials_and_retains_evidence(reference_package, tmp_path):
+    destination = tmp_path / "require-throughput"
+    assert invoke(destination, "--require-real-time", "--seed", "0", "--seed", "43") == 1
+    report = read_report(destination)
+    assert report["verification"]["all_requested_runs_completed"]
+    assert not report["verification"]["repeated_live_throughput_gate"]
+    assert len(report["runs"]) == 2 and (destination / "report.md").is_file()
+
+
 def test_cli_runs_reference_worker_and_retains_manifest_result_and_trace(reference_package, tmp_path, capsys):
     destination = tmp_path / "evidence"
     assert invoke(destination) == 0

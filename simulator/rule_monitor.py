@@ -71,12 +71,22 @@ class RuleMonitor:
     def __init__(
         self, world: Any, ego: Any, carla_module: Any, *, actor_id: str = "ego",
         speeding_tolerance_mps: float = 0.5,
+        cache_static_geometry: bool = False,
     ) -> None:
         if isinstance(speeding_tolerance_mps, bool) or not isfinite(speeding_tolerance_mps) or speeding_tolerance_mps < 0:
             raise ValueError("Speeding tolerance must be finite and non-negative")
+        if not isinstance(cache_static_geometry, bool):
+            raise ValueError("Static-geometry cache option must be a boolean")
         self.world, self.ego, self.carla = world, ego, carla_module
         self.actor_id = actor_id
         self.speeding_tolerance_mps = speeding_tolerance_mps
+        # Dedicated CARLA episodes keep map signals fixed. Reusing their lane
+        # geometry avoids a blocking get_stop_waypoints RPC for every light on
+        # every tick. Signal state and actor membership still remain live reads.
+        # The default supports callers whose test/world geometry can move.
+        self.cache_static_geometry = cache_static_geometry
+        self._light_geometry: dict[int, tuple[Any, ...]] = {}
+        self._stop_geometry: dict[int, tuple[Any, Any, Any]] = {}
         self._previous_position: tuple[float, float, float] | None = None
         self._previous_front: tuple[float, float, float] | None = None
         self._previous_lane: tuple[int, int] | None = None
@@ -118,6 +128,8 @@ class RuleMonitor:
             self._previous_position = None
             self._previous_time = time_s
             self._light_states.clear()
+            self._light_geometry.clear()
+            self._stop_geometry.clear()
             self._stop_visits.clear()
             self._stop_inside.clear()
             return events, checked
@@ -171,12 +183,14 @@ class RuleMonitor:
                 checked.append(TrafficRule.RED_LIGHT)
         else:
             self._light_states.clear()
+            self._light_geometry.clear()
         if waypoint is not None and stops is not None and carla_map is not None:
             if self._observe_stops(stops, carla_map, location, current_lane, speed, time_s, frame, events):
                 checked.append(TrafficRule.STOP_SIGN)
         else:
             self._stop_inside.clear()
             self._stop_visits.clear()
+            self._stop_geometry.clear()
 
         self._previous_front, self._previous_lane, self._previous_time = front, current_lane, time_s
         self._previous_position = position
@@ -188,12 +202,21 @@ class RuleMonitor:
     ) -> bool:
         complete = self._previous_front is not None and self._previous_lane is not None
         states = {}
+        seen = set()
         for light in lights:
+            light_id = None
             try:
                 light_id = int(light.id)
+                seen.add(light_id)
                 state = light.get_state()
                 states[light_id] = state
-                stop_points = list(light.get_stop_waypoints())
+                stop_points = self._light_geometry.get(light_id) if self.cache_static_geometry else None
+                if stop_points is None:
+                    stop_points = tuple(light.get_stop_waypoints())
+                    # Unknown/failed geometry must be retried, never frozen as
+                    # an empty cached success for the remainder of the run.
+                    if stop_points and self.cache_static_geometry:
+                        self._light_geometry[light_id] = stop_points
                 if not stop_points:
                     complete = False
                 for stop in stop_points:
@@ -226,6 +249,9 @@ class RuleMonitor:
                             break
             except (AttributeError, RuntimeError, TypeError, ValueError, OverflowError):
                 complete = False
+                self._light_geometry.pop(light_id, None)
+        for light_id in set(self._light_geometry) - seen:
+            self._light_geometry.pop(light_id, None)
         self._light_states = states
         return complete
 
@@ -240,12 +266,18 @@ class RuleMonitor:
             try:
                 sign_id = int(sign.id)
                 seen.add(sign_id)
-                box = sign.trigger_volume
-                transform = sign.get_transform()
-                center = transform.transform(self.carla.Location(x=box.location.x, y=box.location.y, z=box.location.z))
-                sign_waypoint = carla_map.get_waypoint(center, project_to_road=True, lane_type=self.carla.LaneType.Driving)
-                if sign_waypoint is None:
-                    raise ValueError("Stop-sign lane unavailable")
+                geometry = self._stop_geometry.get(sign_id) if self.cache_static_geometry else None
+                if geometry is None:
+                    box = sign.trigger_volume
+                    transform = sign.get_transform()
+                    center = transform.transform(self.carla.Location(x=box.location.x, y=box.location.y, z=box.location.z))
+                    sign_waypoint = carla_map.get_waypoint(center, project_to_road=True, lane_type=self.carla.LaneType.Driving)
+                    if sign_waypoint is None:
+                        raise ValueError("Stop-sign lane unavailable")
+                    if self.cache_static_geometry:
+                        self._stop_geometry[sign_id] = box, transform, sign_waypoint
+                else:
+                    box, transform, sign_waypoint = geometry
                 relevant = current_lane == _lane(sign_waypoint)
                 inside = bool(box.contains(location, transform)) and relevant
                 previous_inside = self._stop_inside.get(sign_id)
@@ -297,8 +329,11 @@ class RuleMonitor:
                 sign_id = getattr(sign, "id", None)
                 self._stop_inside.pop(sign_id, None)
                 self._stop_visits.pop(sign_id, None)
+                self._stop_geometry.pop(sign_id, None)
         for sign_id in set(self._stop_visits) - seen:
             complete = False
             self._stop_visits.pop(sign_id, None)
             self._stop_inside.pop(sign_id, None)
+        for sign_id in set(self._stop_geometry) - seen:
+            self._stop_geometry.pop(sign_id, None)
         return complete

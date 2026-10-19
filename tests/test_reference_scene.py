@@ -2,6 +2,7 @@
 
 import base64
 import math
+import random
 from types import SimpleNamespace as NS
 
 import pytest
@@ -12,7 +13,7 @@ from shared.models import (
 )
 from simulator.carla_adapter import CarlaSimulationAdapter
 from simulator.errors import SimulationError
-from simulator.reference_scene import CarlaReferenceScene, resample_route
+from simulator.reference_scene import CarlaReferenceScene, _distance, _interpolate, resample_route
 from simulator.test_adapter import TestSimulationAdapter
 
 
@@ -128,6 +129,52 @@ def test_route_end_is_not_extrapolated_or_snapped():
     assert resample_route([pose(0), pose(2)], pose(1, z=10)) is None
     assert resample_route([], pose()) is None
     assert resample_route([pose(), pose()], pose()) is None
+
+
+def test_route_numeric_projection_preserves_segment_selection_and_samples():
+    """The optimized projection must retain the original polyline semantics."""
+    def original(route, ego, horizon=80.0, spacing=1.0):
+        candidates = []
+        for index, (a, b) in enumerate(zip(route, route[1:])):
+            dx, dy = b.position.x - a.position.x, b.position.y - a.position.y
+            length2 = dx * dx + dy * dy
+            if length2 <= 1e-12:
+                continue
+            fraction = max(0.0, min(1.0, ((ego.position.x - a.position.x) * dx +
+                (ego.position.y - a.position.y) * dy) / length2))
+            projected = _interpolate(a, b, fraction)
+            candidates.append((_distance(projected, ego), index, projected))
+        if not candidates:
+            return None
+        distance, index, projected = min(candidates, key=lambda item: (item[0], item[1]))
+        if distance > 8.0 or abs(projected.position.z - ego.position.z) > 4.0:
+            return None
+        points = [projected, *route[index + 1:]]
+        result, remaining, travelled = [projected], spacing, 0.0
+        for a, b in zip(points, points[1:]):
+            length = _distance(a, b)
+            while length >= remaining - 1e-9 and travelled + remaining <= horizon + 1e-9:
+                fraction = 0.0 if length <= 1e-12 else remaining / length
+                a = _interpolate(a, b, fraction)
+                result.append(a)
+                travelled += remaining
+                length -= remaining
+                remaining = spacing
+            remaining -= length
+            if travelled >= horizon - 1e-9:
+                break
+        return result
+
+    rng = random.Random(27051)
+    routes = [[pose(), pose(), pose(10), pose(0), pose(0, 10)],
+              [pose(0, z=8), pose(10, z=8), pose(0), pose(10)]]
+    routes.extend([[pose(i * 2.0, rng.uniform(-3, 3), rng.uniform(-180, 180),
+                         rng.uniform(-1, 1)) for i in range(50)] for _ in range(20)])
+    for route in routes:
+        for ego in [pose(), pose(3.5, 0.5), pose(50.2, 1.0, z=0.5), pose(1000)]:
+            for horizon, spacing in ((80.0, 1.0), (12.2, 0.5), (19.7, 2.7)):
+                assert resample_route(route, ego, horizon_m=horizon, spacing_m=spacing) == original(
+                    route, ego, horizon, spacing)
 
 
 def test_selected_junction_route_is_preserved_without_mutating_manager():
@@ -271,6 +318,80 @@ def test_raster_axes_palette_and_map_cache():
     assert world.ticks == 0
 
 
+def test_cached_raster_matches_individual_polygon_rendering_at_all_pose_boundaries():
+    """Caching and clipping preserve every semantic pixel, including overlaps."""
+    cv2 = pytest.importorskip("cv2")
+    import numpy as np
+
+    scene, _ = provider()
+    scene._map_loaded = True
+    patches = []
+    # Overlapping road/sidewalk/marking polygons and an elevated road exercise
+    # paint order, rounded pixels, distance gating, and layer separation.
+    for x in range(-65, 66, 3):
+        for y in range(-65, 66, 8):
+            for category in (1, 2, 3, 4):
+                patches.append(scene._strip(pose(x, y, (x + y) % 90,
+                    z=8.0 if x % 9 == 0 else 0.0), -1.8, 1.8,
+                    -2.1 + category * 0.2, 2.1 - category * 0.2, category))
+    scene._patches = sorted(patches, key=lambda item: item.category)
+    for patch in scene._patches:
+        x = sum(point[0] for point in patch.corners) / 4.0
+        y = sum(point[1] for point in patch.corners) / 4.0
+        scene._patch_grid.setdefault((math.floor(x / 16.0), math.floor(y / 16.0)), []).append(patch)
+
+    def original(ego):
+        raster = np.zeros((128, 128), dtype=np.uint8)
+        c, s = math.cos(math.radians(ego.rotation.yaw_deg)), math.sin(math.radians(ego.rotation.yaw_deg))
+        cx, cy = math.floor(ego.position.x / 16.0), math.floor(ego.position.y / 16.0)
+        local = [patch for gx in range(cx - 4, cx + 5) for gy in range(cy - 4, cy + 5)
+                 for patch in scene._patch_grid.get((gx, gy), [])]
+        for patch in sorted(local, key=lambda item: item.category):
+            delta = np.asarray(patch.corners) - [ego.position.x, ego.position.y]
+            if abs(patch.z - ego.position.z) > 4.0 or (delta * delta).sum(axis=1).min() > 48.0**2:
+                continue
+            pixels = np.rint(np.stack((64.0 + 2.0 * (delta[:, 0] * c + delta[:, 1] * s),
+                64.0 + 2.0 * (-delta[:, 0] * s + delta[:, 1] * c)), axis=1)).astype(np.int32)
+            cv2.fillConvexPoly(raster, pixels, patch.category)
+        return raster.tobytes()
+
+    poses = [pose(0.25, -0.25, yaw) for yaw in (-180, -91, -45, 0, 23, 89, 179)]
+    poses += [pose(x, 7.0, 23.0, z) for x in (-32.01, -16.0, -15.99, 15.99, 16.0, 32.01)
+              for z in (0.0, 4.0, 4.01)]
+    for ego in poses:
+        assert base64.b64decode(scene._raster(ego).data_base64) == original(ego)
+
+
+def test_raster_window_reuses_arrays_and_changes_only_on_cell_boundary():
+    pytest.importorskip("cv2")
+    scene, _ = provider()
+    scene._raster(pose())
+    arrays = scene._raster_arrays
+    snapshot = [array.copy() for array in arrays]
+    scene._raster(pose(15.99, 0.5, 32.0))
+    assert scene._raster_arrays is arrays
+    assert all((before == after).all() for before, after in zip(snapshot, arrays))
+    scene._raster(pose(16.0))
+    assert scene._raster_arrays is not arrays
+    assert scene._raster_window == (1, 0)
+    empty = scene._raster(pose(1000.0))
+    assert set(base64.b64decode(empty.data_base64)) == {0}
+    assert len(scene._raster_arrays[0]) == 0
+
+
+def test_reloading_map_invalidates_spatial_and_array_caches():
+    pytest.importorskip("cv2")
+    scene, world = provider()
+    scene._raster(pose())
+    arrays, count = scene._raster_arrays, len(scene._patches)
+    scene._load_map()
+    assert world.road_map.samples == 2
+    assert sum(len(cell) for cell in scene._patch_grid.values()) == count
+    assert scene._raster_arrays is None
+    scene._raster(pose())
+    assert scene._raster_arrays is not arrays
+
+
 def test_synthetic_adapter_identifies_its_limits_and_copies_scene():
     adapter = TestSimulationAdapter()
     initial = adapter.open(build_scenario("sudden_braking"))
@@ -314,3 +435,46 @@ def test_full_scene_context_uses_native_frame_evidence_and_never_ticks():
     assert len(context.route) == 81
     assert context.speed_limit_mps == 13.9
     assert world.ticks == 0
+
+
+def test_public_scene_owns_route_frame_objects_and_cached_signal_geometry():
+    actor = NS(id=1, type_id="vehicle.audi.a2", telemetry_id="lead")
+    light = NS(id=2, type_id="traffic.traffic_light", get_stop_waypoints=lambda: [Waypoint(12)],
+               get_state=lambda: "Red")
+    selected = [pose(0), pose(10), pose(10, 20, 90), pose(10, 90, 90)]
+    scene, _ = provider([actor, light], routes={"ego": selected})
+    observed = frame([state("lead", 10)])
+    context = scene.context(observed)
+    assert context.route[0] is not scene._route[0]
+    assert context.route[0].position is not scene._route[0].position
+    dynamic = next(item for item in context.objects if item.actor_id == "lead")
+    signal = next(item for item in context.objects if item.actor_id == "traffic-light:2")
+    assert dynamic.transform is not observed.actors[0].bounding_box_transform
+    assert dynamic.extent is not observed.actors[0].bounding_box_extent
+    assert dynamic.velocity_mps is not observed.actors[0].velocity_mps
+    assert signal.transform is not scene._signal_geometry[("light", 2)][0]
+    context.route[0].position.x = 1000.0
+    dynamic.transform.position.x = 1000.0
+    dynamic.extent.x = 1000.0
+    dynamic.velocity_mps.x = 1000.0
+    signal.transform.position.x = 1000.0
+    assert scene._route[0].position.x == selected[0].position.x == 0.0
+    assert observed.actors[0].bounding_box_transform.position.x == 10.25
+    assert scene._signal_geometry[("light", 2)][0].position.x == 12.0
+    fresh = scene.context(observed)
+    assert fresh.route[0].position.x == 0.0
+    assert fresh.objects[0].transform.position.x == 10.25
+    assert fresh.objects[0].extent.x == 2.0 and fresh.objects[0].velocity_mps.x == 5.0
+    assert fresh.objects[1].transform.position.x == 12.0
+
+
+def test_previous_scene_route_snapshot_is_unchanged_as_internal_route_advances():
+    scene, _ = provider()
+    initial = scene.context(frame())
+    snapshot = initial.model_dump()
+    for x in (0.33, 0.77, 1.25, 15.99, 16.01, 39.5):
+        current = scene.context(frame(ego=state("ego", x)))
+        assert current.route[0].position.x == x
+        assert all(second.position.x - first.position.x == pytest.approx(1.0)
+                   for first, second in zip(current.route, current.route[1:]))
+        assert initial.model_dump() == snapshot

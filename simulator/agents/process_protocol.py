@@ -7,7 +7,7 @@ simulator imports and rejects ambiguous JSON before model validation.
 import json
 from typing import Literal, Self
 
-from pydantic import Field, JsonValue, StrictBool, StrictStr, field_validator, model_validator
+from pydantic import Field, JsonValue, StrictBool, StrictStr, ValidationInfo, field_validator, model_validator
 
 from shared.models.agent import _require_json_object
 from shared.models.base import ContractModel, NonNegativeInt
@@ -15,6 +15,17 @@ from shared.models.base import ContractModel, NonNegativeInt
 
 DEFAULT_MAX_MESSAGE_BYTES = 4 * 1024 * 1024
 ProcessOperation = Literal["hello", "load", "reset", "step", "close"]
+_DECODED_JSON = object()
+
+
+def _json_payload(value, info: ValidationInfo):
+    if info.context is _DECODED_JSON:
+        # json.loads has already established string keys, acyclic containers,
+        # and JSON primitive types. The compiled JsonValue validator below
+        # still checks every value, including overflowed non-finite floats.
+        # Rewalking the complete scene in Python adds no extra constraint.
+        return value
+    return _require_json_object(value)
 
 
 class AgentWorkerError(ContractModel):
@@ -28,7 +39,7 @@ class AgentProcessRequest(ContractModel):
     operation: ProcessOperation
     payload: dict[str, JsonValue]
 
-    _json_payload = field_validator("payload", mode="before")(_require_json_object)
+    _json_payload = field_validator("payload", mode="before")(_json_payload)
 
 
 class AgentProcessResponse(ContractModel):
@@ -39,7 +50,7 @@ class AgentProcessResponse(ContractModel):
     payload: dict[str, JsonValue] = Field(default_factory=dict)
     error: AgentWorkerError | None = None
 
-    _json_payload = field_validator("payload", mode="before")(_require_json_object)
+    _json_payload = field_validator("payload", mode="before")(_json_payload)
 
     @model_validator(mode="after")
     def validate_error(self) -> Self:
@@ -82,7 +93,7 @@ def _decode(raw: bytes | str, model, max_message_bytes: int):
         raise ValueError("Agent process messages must occupy a single line")
     try:
         payload = json.loads(line, object_pairs_hook=_unique_object, parse_constant=_reject_constant)
-        return model.model_validate(payload)
+        return model.model_validate(payload, context=_DECODED_JSON)
     except RecursionError as error:
         raise ValueError("Agent process message is too deeply nested") from error
 
@@ -104,13 +115,45 @@ def encode_message(
     if type(message) not in (AgentProcessRequest, AgentProcessResponse):
         raise TypeError("Expected an agent process request or response")
     validated = type(message).model_validate(message.model_dump(mode="python", warnings=False))
+    return _encode_validated(validated, max_message_bytes)
+
+
+def _encode_validated(message, max_message_bytes: int) -> bytes:
+    """Serialize a fresh validated envelope owned exclusively by this module."""
     try:
-        encoded = (json.dumps(
-            validated.model_dump(mode="json"), ensure_ascii=False, allow_nan=False,
-            separators=(",", ":"),
-        ) + "\n").encode("utf-8")
+        # The model was fully validated before this call, including finite JSON values.
+        # Serialize directly in Pydantic's compiled serializer instead of
+        # materializing another dict tree for the standard-library encoder.
+        encoded = (message.model_dump_json() + "\n").encode("utf-8")
     except RecursionError as error:
         raise ValueError("Agent process message is too deeply nested") from error
     if len(encoded) > max_message_bytes:
         raise ValueError(f"Agent process message exceeds {max_message_bytes} bytes")
     return encoded
+
+
+def encode_request(request_id, operation, payload, max_message_bytes=DEFAULT_MAX_MESSAGE_BYTES) -> bytes:
+    """Construct, validate, and encode an owned request exactly once.
+
+    Unlike ``encode_message``, no mutable envelope escapes to a caller between
+    construction and encoding. Payload validation also creates owned JSON
+    containers, so a second dump/revalidation adds no boundary protection.
+    """
+    _message_limit(max_message_bytes)
+    message = AgentProcessRequest(
+        protocol_version="1.0", request_id=request_id, operation=operation, payload=payload,
+    )
+    return _encode_validated(message, max_message_bytes)
+
+
+def encode_response(
+    request_id, operation, *, payload=None, error=None, max_message_bytes=DEFAULT_MAX_MESSAGE_BYTES,
+) -> bytes:
+    """Construct, validate, and encode an owned response exactly once."""
+    _message_limit(max_message_bytes)
+    message = AgentProcessResponse(
+        protocol_version="1.0", request_id=request_id, operation=operation,
+        ok=error is None, payload={} if payload is None else payload,
+        error=error.model_dump(mode="python") if isinstance(error, AgentWorkerError) else error,
+    )
+    return _encode_validated(message, max_message_bytes)

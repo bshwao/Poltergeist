@@ -94,6 +94,7 @@ def test_checkpoint_verification_precedes_pickle_or_neural_imports(tmp_path):
 @pytest.mark.parametrize("config", [
     {"device": "gpu"}, {"torch_threads": True}, {"torch_threads": 0},
     {"torch_threads": 17}, {"unknown": 1}, {"checkpoint_path": ""}, [],
+    {"cuda_graphs": 1}, {"cuda_graphs": "true"},
 ])
 def test_configuration_rejects_unknown_or_invalid_options_before_loading(config):
     with pytest.raises(ValueError):
@@ -248,6 +249,52 @@ def test_lossless_compact_raster_produces_identical_neural_input():
     assert actual == expected
 
 
+@pytest.mark.parametrize("compact", [False, True])
+def test_array_raster_is_identical_to_semantic_label_preprocessing(compact):
+    np = pytest.importorskip("numpy")
+    value = observation()
+    raster = value.scene.road_raster
+    raster.classes = [index % 5 for index in range(128 * 128)]
+    if compact:
+        payload = raster.model_dump(exclude={"classes", "data_base64"})
+        value.scene.road_raster = AgentRoadRaster(
+            **payload, data_base64=base64.b64encode(bytes(raster.classes)).decode("ascii"))
+    reference = PlanTFeatureBuilder(input_bev=True).build(value).bev_classes
+    actual = PlanTFeatureBuilder(input_bev=True, raster_array=True).build(value).bev_classes
+    assert actual.dtype == np.uint8
+    assert actual.tolist() == reference
+
+
+@pytest.mark.parametrize("bev", [False, True])
+def test_packed_tensor_inputs_match_original_construction_bitwise(bev):
+    torch = pytest.importorskip("torch")
+    from simulator.agents.reference_ai.features import BEV_COLORS, tensor_batch
+
+    value = observation(objects=[scene_object(x=12., speed=3.125),
+                                 scene_object(actor_id="ped", kind="pedestrian", x=5., y=2., speed=1.2)])
+    features = PlanTFeatureBuilder(input_bev=bev, raster_array=True).build(value)
+    devices = [torch.device("cpu")]
+    if os.environ.get("POLTERGEIST_REFERENCE_AI_WEIGHTS_TEST") == "1" and torch.cuda.is_available():
+        devices.append(torch.device("cuda"))
+    for device in devices:
+        objects = [[0.] * 7, *features.objects]
+        reference = {
+            "x_objs": torch.tensor(objects, dtype=torch.float32, device=device),
+            "idxs": torch.arange(1, len(objects), dtype=torch.long, device=device)[None],
+            "route_original": torch.tensor([features.route], dtype=torch.float32, device=device),
+            "speed_limit": torch.tensor([features.speed_category], dtype=torch.long, device=device),
+            "input_ego_speed": torch.tensor([features.ego_speed_mps], dtype=torch.float32, device=device),
+        }
+        if bev:
+            palette = torch.tensor(BEV_COLORS, dtype=torch.float32, device=device)
+            classes = torch.tensor(features.bev_classes.tolist(), dtype=torch.long, device=device)
+            reference["BEV"] = palette[classes].permute(2, 0, 1)[None]
+        actual = tensor_batch(features, torch, device)
+        assert actual.keys() == reference.keys()
+        for key in actual:
+            torch.testing.assert_close(actual[key], reference[key], rtol=0., atol=0.)
+
+
 def test_object_token_limit_is_bounded_and_disclosed():
     objects = [scene_object(str(index), x=1. + index / 100.) for index in range(500)]
     features = PlanTFeatureBuilder(input_bev=False).build(observation(objects=objects))
@@ -315,5 +362,64 @@ def test_real_pretrained_weights_load_and_change_plan_with_scene():
         agent.reset(context)
         repeat = agent.step(observation())
         assert clear.control == repeat.control
+    finally:
+        agent.close()
+
+
+@pytest.mark.skipif(os.environ.get("POLTERGEIST_REFERENCE_AI_WEIGHTS_TEST") != "1",
+                    reason="Set POLTERGEIST_REFERENCE_AI_WEIGHTS_TEST=1 in the prepared reference environment")
+def test_real_cuda_graphs_use_current_inputs_and_match_eager_float32(monkeypatch):
+    torch = pytest.importorskip("torch")
+    if not torch.cuda.is_available():
+        pytest.skip("A CUDA device is required for graph replay validation")
+    from simulator.agents.reference_ai.features import tensor_batch
+    from simulator.agents.reference_ai.network import PlanT2Network
+
+    agent = ReferenceAIAgent()
+    try:
+        agent.load({"device": "cuda", "torch_threads": 2})
+        eager = PlanT2Network(agent._configuration)
+        eager.load_state_dict({key: value.cpu() for key, value in agent._model.state_dict().items()}, strict=True)
+        eager.eval()
+        assert set(agent._inference.graphs) == set(range(9))
+        assert agent._inference.graph_allocated_bytes > 0
+        assert agent._inference.warmup_wall_time_s > 0
+
+        def unexpected_capture(*args, **kwargs):
+            pytest.fail("Graph capture belongs in setup, never in the control loop")
+
+        monkeypatch.setattr(torch.cuda, "graph", unexpected_capture)
+        saved_outputs = None
+        for count, route_y in ((0, 0.), (1, 0.), (1, 2.), (8, 0.), (9, 0.), (0, -2.)):
+            value = observation(objects=[scene_object(actor_id=str(index), x=8. + index)
+                                         for index in range(count)], route_y=route_y)
+            features = agent._features.build(value)
+            with torch.inference_mode():
+                actual = agent._inference(tensor_batch(features, torch, agent._device))
+                expected = eager(tensor_batch(features, torch, torch.device("cpu")))
+            for result, reference in zip(actual, expected):
+                torch.testing.assert_close(result.cpu(), reference, rtol=1e-5, atol=1e-5)
+            assert agent._inference.last_backend == (
+                "cuda_graph_float32_sdpa" if count <= 8 else "cuda_float32_sdpa")
+            if saved_outputs is not None:
+                # Replaying the same shape for a different scene must not
+                # overwrite a result that a caller already received.
+                for result, saved in zip(saved_outputs[0], saved_outputs[1]):
+                    torch.testing.assert_close(result.cpu(), saved, rtol=0., atol=0.)
+            saved_outputs = (actual, tuple(result.cpu().clone() for result in actual))
+
+        context = AgentReset(protocol_version="1.1", seed=0, map_name="synthetic",
+                             ego_actor_id="ego", fixed_delta_seconds=0.05)
+        agent.reset(context)
+        first = agent.step(observation())
+        agent.step(observation(objects=[scene_object(x=8.)]))
+        agent.reset(context)
+        repeat = agent.step(observation())
+        assert first.control == repeat.control
+        assert first.diagnostics.planned_trajectory == repeat.diagnostics.planned_trajectory
+        assert first.diagnostics.metadata["dtype"] == "torch.float32"
+        assert first.diagnostics.metadata["inference_backend"] == "cuda_graph_float32_sdpa"
+        assert first.diagnostics.metadata["reset_warmup_passes"] == 30
+        assert first.diagnostics.metadata["reset_warmup_wall_time_s"] > 0
     finally:
         agent.close()

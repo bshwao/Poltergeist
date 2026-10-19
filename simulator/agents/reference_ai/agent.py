@@ -26,19 +26,23 @@ class ReferenceAIAgent(AutonomousAgent):
         self._checkpoint_hash = None
         self._configuration = None
         self._parameter_count = None
+        self._inference = None
 
     def load(self, configuration):
         if self._model is not None:
             raise AgentLifecycleError("Reference AI is already loaded")
-        allowed = {"checkpoint_path", "device", "torch_threads"}
+        allowed = {"checkpoint_path", "device", "torch_threads", "cuda_graphs"}
         if not isinstance(configuration, dict) or configuration.keys() - allowed:
-            raise ValueError("Reference AI configuration supports checkpoint_path, device, and torch_threads only")
+            raise ValueError("Reference AI configuration supports checkpoint_path, device, torch_threads, and cuda_graphs only")
         selected = configuration.get("device", "auto")
         if selected not in ("cpu", "cuda", "auto"):
             raise ValueError("Reference AI device must be cpu, cuda, or auto")
         threads = configuration.get("torch_threads", 2)
         if type(threads) is not int or not 1 <= threads <= 16:
             raise ValueError("torch_threads must be a whole number from 1 to 16")
+        cuda_graphs = configuration.get("cuda_graphs", True)
+        if type(cuda_graphs) is not bool:
+            raise ValueError("cuda_graphs must be true or false")
         checkpoint = configuration.get("checkpoint_path", str(DEFAULT_CHECKPOINT))
         if not isinstance(checkpoint, str) or not checkpoint.strip():
             raise ValueError("checkpoint_path must be a nonempty local file path")
@@ -67,7 +71,7 @@ class ReferenceAIAgent(AutonomousAgent):
         cfg = checkpoint_data["hyper_parameters"]["cfg"]
         if OmegaConf.is_config(cfg):
             cfg = OmegaConf.to_container(cfg, resolve=False)
-        model = PlanT2Network(cfg)
+        model = PlanT2Network(cfg, attention_implementation="sdpa" if selected == "cuda" else "eager")
         state = checkpoint_data["state_dict"]
         unexpected = [key for key in state if not key.startswith("model.")]
         if unexpected:
@@ -81,17 +85,24 @@ class ReferenceAIAgent(AutonomousAgent):
         self._features = PlanTFeatureBuilder(
             input_bev=model.input_bev, range_m=float(training["range"]),
             range_factor_front=float(training["range_factor_front"]),
+            raster_array=True,
         )
         self._controller = PlanTController()
         self._configuration = cfg
         self._parameter_count = sum(value.numel() for value in model.parameters())
         self._model = model
+        if selected == "cuda":
+            from .inference import CudaInference
+
+            self._inference = CudaInference(model, torch, self._device, graphs=cuda_graphs)
 
     def reset(self, context: AgentReset):
         if self._model is None:
             raise AgentLifecycleError("Load Reference AI before resetting it")
         if not math.isclose(context.fixed_delta_seconds, 0.05, abs_tol=1e-9):
             raise AgentCompatibilityError("The released PlanT pilot uses 20 Hz (fixed_delta_seconds=0.05)")
+        if self._inference is not None:
+            self._inference.prepare_run()
         self._features.reset()
         self._controller.reset()
         self._ready = True
@@ -105,7 +116,7 @@ class ReferenceAIAgent(AutonomousAgent):
             self._torch.cuda.synchronize(self._device)
         started = perf_counter()
         with self._torch.inference_mode():
-            path_tensor, waypoint_tensor = self._model(batch)
+            path_tensor, waypoint_tensor = (self._inference or self._model)(batch)
         # Copying to host also synchronizes CUDA and includes actual inference
         # completion, rather than timing only asynchronous kernel submission.
         path = path_tensor[0].detach().cpu().numpy()
@@ -133,6 +144,12 @@ class ReferenceAIAgent(AutonomousAgent):
                     "torch_version": str(self._torch.__version__),
                     "cuda_version": self._torch.version.cuda,
                     "dtype": str(next(self._model.parameters()).dtype),
+                    "inference_backend": self._inference.last_backend if self._inference else "cpu_float32_eager",
+                    "cuda_graph_object_counts": list(self._inference.graphs) if self._inference else [],
+                    "cuda_graph_allocated_bytes": self._inference.graph_allocated_bytes if self._inference else 0,
+                    "inference_warmup_wall_time_s": self._inference.warmup_wall_time_s if self._inference else 0.,
+                    "reset_warmup_wall_time_s": self._inference.reset_warmup_wall_time_s if self._inference else 0.,
+                    "reset_warmup_passes": self._inference.reset_warmup_passes if self._inference else 0,
                     "inference_wall_time_s": inference_wall_time,
                     "input_source": observation.scene.source,
                     "ground_truth_objects": True,
@@ -150,6 +167,9 @@ class ReferenceAIAgent(AutonomousAgent):
 
     def close(self):
         self._ready = False
+        if self._inference is not None:
+            self._inference.close()
+        self._inference = None
         self._model = self._features = self._controller = self._configuration = None
         self._parameter_count = None
         if self._torch is not None and self._device is not None and self._device.type == "cuda":

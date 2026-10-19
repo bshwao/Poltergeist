@@ -30,9 +30,11 @@ def _angle(a: float, b: float) -> float:
 
 
 def _interpolate(a: Transform, b: Transform, fraction: float) -> Transform:
+    start, end = a.position, b.position
     return Transform(
-        position=Vector3(**{axis: getattr(a.position, axis) + fraction * (
-            getattr(b.position, axis) - getattr(a.position, axis)) for axis in ("x", "y", "z")}),
+        position=Vector3(x=start.x + fraction * (end.x - start.x),
+                         y=start.y + fraction * (end.y - start.y),
+                         z=start.z + fraction * (end.z - start.z)),
         rotation=Rotation(yaw_deg=a.rotation.yaw_deg + fraction * _angle(b.rotation.yaw_deg, a.rotation.yaw_deg)),
     )
 
@@ -44,39 +46,61 @@ def resample_route(route: list[Transform], ego: Transform, *, horizon_m: float =
     No extrapolated straight points are added at a road end. A route farther
     than eight metres from the ego is unavailable rather than silently snapped.
     """
+    result = [Transform(position=Vector3(x=x, y=y, z=z), rotation=Rotation(yaw_deg=yaw))
+              for x, y, z, yaw in _route_samples(route, ego, horizon_m=horizon_m, spacing_m=spacing_m)]
+    return result or None
+
+
+def _route_samples(route: list[Transform], ego: Transform, *, horizon_m: float = 80.0,
+                   spacing_m: float = 1.0):
+    """Yield exact numeric samples, optionally counted without model allocation."""
     if len(route) < 2:
-        return None
-    candidates = []
+        return
+    # Projection is numeric until the closest segment is known. Constructing
+    # and validating a Transform for every candidate used to cost more than
+    # sampling the actual route, even though all but one were discarded.
+    closest = None
+    ex, ey = ego.position.x, ego.position.y
     for index, (a, b) in enumerate(zip(route, route[1:])):
         dx, dy = b.position.x - a.position.x, b.position.y - a.position.y
         length2 = dx * dx + dy * dy
         if length2 <= 1e-12:
             continue
-        fraction = max(0.0, min(1.0, ((ego.position.x - a.position.x) * dx +
-                                    (ego.position.y - a.position.y) * dy) / length2))
-        projected = _interpolate(a, b, fraction)
-        candidates.append((_distance(projected, ego), index, projected))
-    if not candidates:
-        return None
-    distance, index, projected = min(candidates, key=lambda item: (item[0], item[1]))
-    if distance > 8.0 or abs(projected.position.z - ego.position.z) > 4.0:
-        return None
-    points = [projected, *route[index + 1:]]
-    result = [projected]
+        fraction = max(0.0, min(1.0, ((ex - a.position.x) * dx +
+                                    (ey - a.position.y) * dy) / length2))
+        distance = math.hypot(a.position.x + fraction * dx - ex,
+                              a.position.y + fraction * dy - ey)
+        if closest is None or distance < closest[0]:
+            closest = (distance, index, fraction)
+    if closest is None:
+        return
+    distance, index, fraction = closest
+    first, second = route[index], route[index + 1]
+    ax = first.position.x + fraction * (second.position.x - first.position.x)
+    ay = first.position.y + fraction * (second.position.y - first.position.y)
+    az = first.position.z + fraction * (second.position.z - first.position.z)
+    yaw = first.rotation.yaw_deg + fraction * _angle(second.rotation.yaw_deg, first.rotation.yaw_deg)
+    if distance > 8.0 or abs(az - ego.position.z) > 4.0:
+        return
+    yield ax, ay, az, yaw
     remaining, travelled = spacing_m, 0.0
-    for a, b in zip(points, points[1:]):
-        length = _distance(a, b)
+    for point in route[index + 1:]:
+        bx, by, bz, byaw = point.position.x, point.position.y, point.position.z, point.rotation.yaw_deg
+        length = math.hypot(ax - bx, ay - by)
         while length >= remaining - 1e-9 and travelled + remaining <= horizon_m + 1e-9:
             fraction = 0.0 if length <= 1e-12 else remaining / length
-            a = _interpolate(a, b, fraction)
-            result.append(a)
+            ax += fraction * (bx - ax)
+            ay += fraction * (by - ay)
+            az += fraction * (bz - az)
+            yaw += fraction * _angle(byaw, yaw)
+            yield ax, ay, az, yaw
             travelled += remaining
             length -= remaining
             remaining = spacing_m
         remaining -= length
         if travelled >= horizon_m - 1e-9:
             break
-    return result
+        ax, ay, az, yaw = bx, by, bz, byaw
 
 
 @dataclass(frozen=True)
@@ -95,6 +119,8 @@ class CarlaReferenceScene:
         self._route: list[Transform] = []
         self._patches: list[_MapPatch] | None = None
         self._patch_grid: dict[tuple[int, int], list[_MapPatch]] = {}
+        self._raster_window: tuple[int, int] | None = None
+        self._raster_arrays: tuple[Any, Any, Any] | None = None
         self._map_loaded = False
         self._cleared_stops: set[int] = set()
         self._signal_geometry: dict[tuple[str, int], list[Transform]] = {}
@@ -104,10 +130,14 @@ class CarlaReferenceScene:
         route = None if pose is None else self._route_ahead(pose)
         objects = self._objects(frame, route)
         raster = None if pose is None else self._raster(pose)
-        return AgentSceneContext(
+        context = AgentSceneContext(
             source="carla_ground_truth", route=route, objects=objects,
             speed_limit_mps=frame.ego.speed_limit_mps, road_raster=raster,
-        ).model_copy(deep=True)
+        )
+        # Dump/validation creates the caller's independent graph in Pydantic's
+        # compiled path. No returned model aliases frame evidence, cached signal
+        # geometry or the route, and every boundary remains fully validated.
+        return AgentSceneContext.model_validate(context.model_dump(mode="python"))
 
     def _route_ahead(self, ego: Transform) -> list[Transform] | None:
         if not self._route:
@@ -125,10 +155,13 @@ class CarlaReferenceScene:
                     return None
         # Reuse the selected junction path; only extend its actual end through
         # connected waypoints. This never changes ActorManager's baseline route.
-        current = resample_route(self._route, ego)
-        if current is None and len(self._route) > 1:
+        # Only the count is needed to decide how many connected waypoints to
+        # request. Constructing eighty disposable Transform graphs here would
+        # repeat the complete output allocation before extending the route.
+        current_count = sum(1 for _ in _route_samples(self._route, ego))
+        if not current_count and len(self._route) > 1:
             return None
-        missing = 82 - len(current or [])
+        missing = 82 - current_count
         if missing > 0:
             try:
                 point = self.map.get_waypoint(to_carla(self._route[-1], self.carla).location,
@@ -151,7 +184,9 @@ class CarlaReferenceScene:
         # Trim obsolete points, bounding memory during long experiments.
         result = resample_route(self._route, ego)
         if result and len(result) > 1:
-            self._route = [item.model_copy(deep=True) for item in result]
+            # These newly created points are scene-owned. context() isolates
+            # them once at the public boundary, instead of copying twice.
+            self._route = result
         return result
 
     def _objects(self, frame: TelemetryFrame, route: list[Transform] | None) -> list[AgentSceneObject] | None:
@@ -258,6 +293,9 @@ class CarlaReferenceScene:
     def _load_map(self) -> None:
         """Cache strips for driving lanes, adjacent sidewalks and lane markings."""
         self._map_loaded = True
+        self._patch_grid.clear()
+        self._raster_window = None
+        self._raster_arrays = None
         try:
             patches = []
             seen = set()
@@ -340,17 +378,27 @@ class CarlaReferenceScene:
         yaw = math.radians(ego.rotation.yaw_deg)
         c, s = math.cos(yaw), math.sin(yaw)
         center_x, center_y = math.floor(ego.position.x / 16.0), math.floor(ego.position.y / 16.0)
-        local = [patch for gx in range(center_x - 4, center_x + 5)
-                 for gy in range(center_y - 4, center_y + 5)
-                 for patch in self._patch_grid.get((gx, gy), [])]
-        ordered = sorted(local, key=lambda item: item.category)
-        if ordered:
+        window = (center_x, center_y)
+        if self._raster_window != window or self._raster_arrays is None:
+            local = [patch for gx in range(center_x - 4, center_x + 5)
+                     for gy in range(center_y - 4, center_y + 5)
+                     for patch in self._patch_grid.get((gx, gy), [])]
+            ordered = sorted(local, key=lambda item: item.category)
+            # These world-space arrays are immutable for the whole 16 m cell.
+            # Rebuilding thousands of corner tuples on every observation adds
+            # work unrelated to either the ego pose or the simulation frame.
+            self._raster_arrays = (
+                np.asarray([patch.corners for patch in ordered], dtype=np.float64).reshape(-1, 4, 2),
+                np.asarray([patch.z for patch in ordered]),
+                np.asarray([patch.category for patch in ordered], dtype=np.uint8),
+            )
+            self._raster_window = window
+        xy, elevations, categories = self._raster_arrays
+        if len(xy):
             # Vectorize the unchanged world-to-ego transform and distance gate.
             # Paint patches individually: batching overlapping polygons through
             # fillPoly would change its even/odd fill semantics and create holes.
-            xy = np.asarray([patch.corners for patch in ordered], dtype=np.float64)
             delta = xy - np.asarray([ego.position.x, ego.position.y])
-            elevations = np.asarray([patch.z for patch in ordered])
             mask = ((np.abs(elevations - ego.position.z) <= 4.0) &
                     ((delta * delta).sum(axis=2).min(axis=1) <= 48.0**2))
             delta = delta[mask]
@@ -358,9 +406,13 @@ class CarlaReferenceScene:
             right = -delta[:, :, 0] * s + delta[:, :, 1] * c
             pixels = np.rint(np.stack((64.0 + 2.0 * forward,
                                       64.0 + 2.0 * right), axis=2)).astype(np.int32)
-            selected = (patch for patch, keep in zip(ordered, mask) if keep)
-            for patch, vertices in zip(selected, pixels):
-                cv2.fillConvexPoly(raster, vertices, patch.category)
+            # A polygon with its complete integer bounding box outside the
+            # image cannot paint a pixel. Keep the original individual fills
+            # and category order for every polygon that could touch it.
+            visible = ((pixels[:, :, 0].max(axis=1) >= 0) & (pixels[:, :, 0].min(axis=1) < 128) &
+                       (pixels[:, :, 1].max(axis=1) >= 0) & (pixels[:, :, 1].min(axis=1) < 128))
+            for category, vertices in zip(categories[mask][visible], pixels[visible]):
+                cv2.fillConvexPoly(raster, vertices, int(category))
         return AgentRoadRaster(width=128, height=128, pixels_per_meter=2.0,
             ego_row=64.0, ego_column=64.0, data_base64=base64.b64encode(raster.tobytes()).decode("ascii"))
 

@@ -10,7 +10,7 @@ from collections import defaultdict, deque
 from collections.abc import Callable, Mapping
 from math import hypot
 from threading import Condition
-from time import monotonic
+from time import perf_counter as monotonic
 from typing import Any
 
 from shared.models import CollisionEvent, TelemetryFrame

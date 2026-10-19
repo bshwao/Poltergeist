@@ -8,7 +8,7 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 | --- | --- | --- | --- |
 | 1 | Versioned agent SDK, manifests, lifecycle, direct controls, reference/starter package, compatibility checks | A local example loads, receives synthetic observations, and returns validated frame-associated controls | Implemented |
 | 2 | External agent process and dependency environment, inference timing, cancellation, deadlines, cleanup | An external agent controls a Python-launched CARLA experiment; failures are explicit | Implemented; live verified through the reference AI pilot |
-| 2.5 | Poltergeist reference AI pilot: one pretrained learned driving policy, live control verification, and hardware timing | A pinned model drives a bounded CARLA route through the worker, with evidence that its predictions affect the vehicle and measured real-time performance | Implemented and live tested; 20 Hz performance target unmet |
+| 2.5 | Poltergeist reference AI pilot: one pretrained learned driving policy, live control verification, and hardware timing | A pinned model drives a bounded CARLA route through the worker, with evidence that its predictions affect the vehicle and measured real-time performance | Complete; live control and 20 Hz throughput verified with the documented performance profile |
 | 3 | Initial conditions versus agent goals, route/planner ownership, authoritative agent controls and recorded interventions | The agent chooses its evolving response without silent scripted overrides | Planned |
 | 4 | Declared camera/LiDAR inputs, synchronized observation delivery, separation of evaluator ground truth | One compatible sensor-based driving agent runs end to end | Planned |
 | 5 | Agent registry, API selection, durable job configuration and code/model fingerprints | Queued API runs retain the exact selected agent and observation mode | Planned |
@@ -86,10 +86,13 @@ The maintained PlanT 2.0 integration, setup command, authoritative control mode,
 SDK 1.1 scene delivery, and evidence/benchmark harness are implemented. The
 verified checkpoint is installed in the local ignored model cache. Twelve live
 hazard/changed-condition trials completed, alongside matched baseline and control
-ablation runs. The full 20 Hz throughput target was not met on the RTX 2060 test
-machine. See [setup and launch](reference-ai-pilot.md) and
-[the dated results and limitations](reference-ai-validation.md). The specification
-below retains the intended scope; its performance target remains open.
+ablation runs. Subsequent optimization passed the full 20 Hz throughput target
+on the RTX 2060 test machine across ten repeated live template trials, including
+evidence I/O in the cycle budget. See [setup and launch](reference-ai-pilot.md),
+[functional validation](reference-ai-validation.md), and
+[performance acceptance](reference-ai-performance.md). The specification below
+retains the intended scope. Rendering and different hardware need their own
+measured timing results.
 
 The goal is to demonstrate a genuinely trained policy controlling the live ego
 vehicle, and measure whether it can keep up with the simulator on the test

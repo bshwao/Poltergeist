@@ -82,6 +82,7 @@ Phase 2.5 adds a maintained **pretrained PlanT 2.0 reference agent**, live CARLA
 verification, model/control evidence, baseline and ablation comparisons, and
 timing reports. Its learned policy uses structured simulator state and a supplied
 route. See [reference AI setup and launch](docs/reference-ai-pilot.md) and the
-[measured validation results](docs/reference-ai-validation.md). Live control is
-verified; the complete loop currently falls short of the 20 Hz real-time target
-on the tested laptop. Dashboard agent selection remains a later phase.
+[measured validation results](docs/reference-ai-validation.md). Live control and
+20 Hz throughput are verified with the documented no-rendering `--performance`
+profile; see [performance acceptance](docs/reference-ai-performance.md).
+Dashboard agent selection remains a later phase.

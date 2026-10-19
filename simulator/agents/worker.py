@@ -13,12 +13,13 @@ import sys
 from time import perf_counter
 import traceback
 
-from shared.models import AgentObservation, AgentReset
+from shared.models import AgentObservation
+from simulator.timing import high_resolution_timer
 
 from .package import inspect_agent_package, load_agent_package
 from .process_protocol import (
-    AgentProcessRequest, AgentProcessResponse, AgentWorkerError,
-    DEFAULT_MAX_MESSAGE_BYTES, decode_request, encode_message,
+    AgentProcessRequest, AgentWorkerError,
+    DEFAULT_MAX_MESSAGE_BYTES, decode_request, encode_response,
 )
 from .sdk import AgentLifecycleError, AgentProtocolError, AgentSession
 
@@ -53,11 +54,10 @@ def serve(package_path: str | Path, input_stream, output_stream, *, max_message_
             current.close()
 
     def respond(request, *, payload=None, error=None):
-        response = AgentProcessResponse(
-            protocol_version="1.0", request_id=request.request_id, operation=request.operation,
-            ok=error is None, payload=payload or {}, error=error,
-        )
-        output_stream.write(encode_message(response, max_message_bytes))
+        output_stream.write(encode_response(
+            request.request_id, request.operation, payload=payload, error=error,
+            max_message_bytes=max_message_bytes,
+        ))
         output_stream.flush()
 
     try:
@@ -111,11 +111,15 @@ def serve(package_path: str | Path, input_stream, output_stream, *, max_message_
                     if session is None:
                         raise AgentLifecycleError("Agent must be loaded before reset or step")
                     if request.operation == "reset":
-                        session.reset(AgentReset.model_validate(request.payload))
+                        session.reset(request.payload)
                         payload = {}
                     else:
                         observation = AgentObservation.model_validate(request.payload)
                         started = perf_counter()
+                        # Materializing a typed observation lets AgentSession
+                        # isolate it through its compiled dump/revalidation
+                        # path, instead of deep-copying a mapping that could
+                        # contain caller-owned model instances.
                         result = session.step(observation)
                         elapsed = perf_counter() - started
                         payload = {"result": result.model_dump(mode="json"), "worker_step_wall_time_s": elapsed}
@@ -158,7 +162,10 @@ def main(argv=None) -> int:
     # Preserve only this local reference to the wire. User Python prints,
     # including explicit sys.__stdout__ prints, are diagnostics on stderr.
     sys.stdout = sys.__stdout__ = sys.stderr
-    return serve(options.package, sys.stdin.buffer, protocol_output, max_message_bytes=options.max_message_bytes)
+    # Windows timer resolution is process-local; the parent's request does not
+    # cover this worker's accelerator/library waits. Always restore on exit.
+    with high_resolution_timer():
+        return serve(options.package, sys.stdin.buffer, protocol_output, max_message_bytes=options.max_message_bytes)
 
 
 if __name__ == "__main__":

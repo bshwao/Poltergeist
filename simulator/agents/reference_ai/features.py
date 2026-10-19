@@ -8,6 +8,10 @@ from dataclasses import dataclass
 import base64
 from functools import lru_cache
 import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 from shared.models import AgentObservation
 from simulator.transforms import rotation_matrix
@@ -59,15 +63,17 @@ class PlanTFeatures:
     route: list[list[float]]
     speed_category: int
     ego_speed_mps: float
-    bev_classes: list[list[int]] | None
+    bev_classes: "list[list[int]] | np.ndarray | None"
     omitted_objects: int
 
 
 class PlanTFeatureBuilder:
-    def __init__(self, *, input_bev: bool, range_m: float = 50., range_factor_front: float = 2.):
+    def __init__(self, *, input_bev: bool, range_m: float = 50., range_factor_front: float = 2.,
+                 raster_array: bool = False):
         self.input_bev = input_bev
         self.range_m = range_m
         self.range_factor_front = range_factor_front
+        self.raster_array = raster_array
         self.moving_walkers: set[str] = set()
         self.cleared_stop_signs: set[str] = set()
 
@@ -135,7 +141,7 @@ class PlanTFeatureBuilder:
             candidates = sorted(candidates, key=lambda item: item[2])[:480]
         candidates.sort(key=lambda item: item[:2])
         route = self._route(scene.route, ego_transform)
-        bev = self._raster(scene.road_raster) if self.input_bev else None
+        bev = self._raster(scene.road_raster, as_array=self.raster_array) if self.input_bev else None
         return PlanTFeatures([item[3] for item in candidates], route,
                              speed_category(scene.speed_limit_mps), ego_speed, bev, omitted)
 
@@ -174,7 +180,7 @@ class PlanTFeatureBuilder:
         return result
 
     @staticmethod
-    def _raster(raster):
+    def _raster(raster, *, as_array=False):
         if raster is None:
             raise ValueError("This PlanT checkpoint requires an observed road raster")
         if (raster.width != 128 or raster.height != 128
@@ -190,6 +196,12 @@ class PlanTFeatureBuilder:
         classes = raster.classes
         if classes is None:
             classes = base64.b64decode(raster.data_base64, validate=True)
+        if as_array:
+            import numpy as np
+
+            values = (np.frombuffer(classes, dtype=np.uint8) if isinstance(classes, bytes)
+                      else np.asarray(classes, dtype=np.uint8))
+            return values[_raster_array_indices(raster.ego_row, raster.ego_column)]
         return [[classes[index] for index in row] for row in indices]
 
 
@@ -209,17 +221,58 @@ def _raster_indices(ego_row, ego_column):
     return tuple(output)
 
 
+@lru_cache(maxsize=8)
+def _raster_array_indices(ego_row, ego_column):
+    import numpy as np
+
+    return np.asarray(_raster_indices(ego_row, ego_column), dtype=np.intp)
+
+
+@lru_cache(maxsize=1)
+def _numpy_palette():
+    import numpy as np
+
+    return np.asarray(BEV_COLORS, dtype=np.float32)
+
+
 def tensor_batch(features: PlanTFeatures, torch, device):
-    objects = [[0., 0., 0., 0., 0., 0., 0.], *features.objects]
+    """Pack identical float32/int64 inputs into two host-to-device copies.
+
+    Building many small CUDA tensors serializes their allocation and upload.
+    The two packed buffers retain all input values and expose the original
+    field shapes as views. RGB remains in HWC physical order, matching the
+    original palette lookup followed by its NCHW logical permutation.
+    """
+    import numpy as np
+
+    count = len(features.objects)
+    objects_end = (count + 1) * 7
+    route_end = objects_end + 40
+    speed_end = route_end + 1
+    rgb_size = 0 if features.bev_classes is None else 128 * 128 * 3
+    floats = np.empty(speed_end + rgb_size, dtype=np.float32)
+    floats[:7] = 0.
+    if count:
+        floats[7:objects_end] = np.asarray(features.objects, dtype=np.float32).reshape(-1)
+    floats[objects_end:route_end] = np.asarray(features.route, dtype=np.float32).reshape(-1)
+    floats[route_end] = features.ego_speed_mps
+    if rgb_size:
+        labels = np.asarray(features.bev_classes, dtype=np.uint8)
+        floats[speed_end:] = _numpy_palette()[labels].reshape(-1)
+    integers = np.empty(count + 1, dtype=np.int64)
+    integers[0] = features.speed_category
+    integers[1:] = np.arange(1, count + 1, dtype=np.int64)
+    # Blocking copies complete before the NumPy-owned source buffers leave
+    # scope. There are only two, independent of scene object count.
+    float_tensor = torch.from_numpy(floats).to(device)
+    integer_tensor = torch.from_numpy(integers).to(device)
     batch = {
-        "x_objs": torch.tensor(objects, dtype=torch.float32, device=device),
-        "idxs": torch.arange(1, len(objects), dtype=torch.long, device=device)[None],
-        "route_original": torch.tensor([features.route], dtype=torch.float32, device=device),
-        "speed_limit": torch.tensor([features.speed_category], dtype=torch.long, device=device),
-        "input_ego_speed": torch.tensor([features.ego_speed_mps], dtype=torch.float32, device=device),
+        "x_objs": float_tensor[:objects_end].reshape(count + 1, 7),
+        "idxs": integer_tensor[1:][None],
+        "route_original": float_tensor[objects_end:route_end].reshape(1, 20, 2),
+        "speed_limit": integer_tensor[:1],
+        "input_ego_speed": float_tensor[route_end:speed_end],
     }
-    if features.bev_classes is not None:
-        palette = torch.tensor(BEV_COLORS, dtype=torch.float32, device=device)
-        classes = torch.tensor(features.bev_classes, dtype=torch.long, device=device)
-        batch["BEV"] = palette[classes].permute(2, 0, 1)[None]
+    if rgb_size:
+        batch["BEV"] = float_tensor[speed_end:].reshape(1, 128, 128, 3).permute(0, 3, 1, 2)
     return batch

@@ -22,6 +22,7 @@ from simulator.reference_evidence import (
     process_peak_memory_bytes, summarize_run,
 )
 from simulator.simulation_runner import SimulationRunner
+from simulator.timing import latency_gc
 
 
 REFERENCE_PACKAGE = Path(__file__).resolve().parents[1] / "examples" / "agents" / "reference_ai"
@@ -111,11 +112,12 @@ def _run_trial(scenario, *, label, directory, args, options, process_options):
                 parent_peak = max(parent_peak or 0, peak)
 
         started = monotonic()
-        output = SimulationRunner(options=options).run(
-            scenario, mode=args.mode, agent=agent,
-            agent_control_mode="scripted" if agent is None else "authoritative",
-            on_decision=record,
-        )
+        with latency_gc(enabled=args.performance) as gc_settings:
+            output = SimulationRunner(options=options).run(
+                scenario, mode=args.mode, agent=agent,
+                agent_control_mode="scripted" if agent is None else "authoritative",
+                on_decision=record,
+            )
         total_wall = monotonic() - started
         summary = summarize_run(output, trace.records, total_wall_time_s=total_wall, variant=label,
                                 process_stats=None if agent is None else agent.stats,
@@ -123,6 +125,8 @@ def _run_trial(scenario, *, label, directory, args, options, process_options):
                                         "worker_process_peak_working_set_bytes": worker_peak,
                                         "gpu_peak_memory_bytes": None,
                                         "method": "OS high-water marks read while processes are alive; parent includes earlier activity. GPU peaks are not measured."})
+        summary["timing"]["environment"] = {**(summary["timing"]["environment"] or {}),
+                                               "garbage_collection": dict(gc_settings)}
     _write_json(directory / "result.json", output.result.model_dump(mode="json"))
     with (directory / "telemetry.jsonl").open("x", encoding="utf-8", newline="\n") as stream:
         for frame in output.telemetry:
@@ -134,14 +138,14 @@ def _run_trial(scenario, *, label, directory, args, options, process_options):
 def _markdown(report):
     lines = ["# Poltergeist reference AI pilot", "", f"Generated: {report['created_at']}", "",
              f"Mode: **{report['mode']}**. {report['verification']['interpretation']}", "",
-             "| Trial | Variant | Status | Inference p95 | Full step p95 | Budget misses | RTF |",
+             "| Trial | Variant | Status | Inference p95 | Full cycle p95 | Budget misses | RTF |",
              "| --- | --- | --- | --- | --- | --- | --- |"]
     for item in report["runs"]:
         timing = item["timing"]
         def ms(value):
             return "unavailable" if value is None else f"{value*1000:.2f} ms"
         rtf = timing["real_time_factor"]
-        lines.append(f"| {item['scenario_name']} / seed {item['seed']} | {item['variant']} | {item['status']} | {ms(timing['inference']['p95_s'])} | {ms(timing['full_step']['p95_s'])} | {timing['full_step']['budget_misses']}/{timing['full_step']['samples']} | {'unavailable' if rtf is None else f'{rtf:.3f}'} |")
+        lines.append(f"| {item['scenario_name']} / seed {item['seed']} | {item['variant']} | {item['status']} | {ms(timing['inference']['p95_s'])} | {ms(timing['cycle']['p95_s'])} | {timing['cycle']['budget_misses']}/{timing['cycle']['samples']} | {'unavailable' if rtf is None else f'{rtf:.3f}'} |")
     lines.extend(["", "The report records simulator-state inputs, a supplied route, and tracking-controller assistance. Completion is not a safety score or evidence of independent perception/global pathfinding.",
                   "", "Real-time throughput requires completed live CARLA trials, RTF >= 1, and at least 95% complete steps within the fixed-step budget over repeated trials. These are measurements, not a hard real-time guarantee.",
                   "", "Lane departures and GPU peak memory are unavailable. Device-wide GPU snapshots and OS process-memory measurements are retained in report.json. See each trial's decisions.jsonl, telemetry.jsonl, recipe.json, result.json, and summary.json for the underlying evidence.", ""])
@@ -165,7 +169,9 @@ def main(argv=None):
     parser.add_argument("--ablate", action="store_true", help="Run a separate labelled full-braking control replacement to verify influence on motion")
     parser.add_argument("--allow-map-reload", action="store_true")
     parser.add_argument("--no-rendering", action="store_true", help="Disable CARLA world rendering for this state-based pilot, restoring it afterward")
-    parser.add_argument("--sensor-settle", type=_positive, default=0.02, help="Explicit positive sensor-settle wall seconds per tick (default: 0.02)")
+    parser.add_argument("--performance", action="store_true", help="Use no rendering, a 1 ms sensor-settle window, and scoped GC tuning for the state-based throughput benchmark")
+    parser.add_argument("--require-real-time", action="store_true", help="Exit unsuccessfully unless repeated live reference trials pass the 20 Hz gate; retain all evidence")
+    parser.add_argument("--sensor-settle", type=_positive, help="Explicit positive sensor-settle wall seconds per tick (default: 0.02; --performance: 0.001)")
     args = parser.parse_args(argv)
     output_dir = args.output.expanduser().absolute()
     created_output = False
@@ -193,11 +199,14 @@ def main(argv=None):
                            "simulator/reference_scene.py", "simulator/simulation_runner.py",
                            "simulator/reference_evidence.py", "simulator/carla_adapter.py",
                            "simulator/world_manager.py", "simulator/agents/sdk.py",
-                           "simulator/agents/process.py", "shared/models/agent.py",
+                           "simulator/agents/process.py", "simulator/agents/process_protocol.py",
+                           "simulator/agents/worker.py", "simulator/sensor_manager.py",
+                           "simulator/rule_monitor.py", "simulator/timing.py", "shared/models/agent.py",
                            "shared/models/runtime.py", "scripts/run_reference_ai.py"))]
             fingerprint["integration_source"] = {path.relative_to(repository).as_posix(): file_sha256(path) for path in sorted(sources)}
-        options = SimulationOptions(allow_map_reload=args.allow_map_reload, sensor_settle_s=args.sensor_settle,
-                                    no_rendering_mode=True if args.no_rendering else None)
+        settle = args.sensor_settle if args.sensor_settle is not None else (0.001 if args.performance else 0.02)
+        options = SimulationOptions(allow_map_reload=args.allow_map_reload, sensor_settle_s=settle,
+                                    no_rendering_mode=True if args.no_rendering or args.performance else None)
         process_options = AgentProcessOptions(load_timeout_s=args.agent_load_timeout, step_timeout_s=args.agent_step_timeout)
         output_dir.mkdir(parents=True, exist_ok=False)
         created_output = True
@@ -250,7 +259,8 @@ def main(argv=None):
             stream.write(_markdown(report))
         print(json.dumps({"report": str(output_dir / "report.json"), "verification": report["verification"]}, allow_nan=False))
         statuses = {item["status"] for item in report["runs"]}
-        return 130 if "cancelled" in statuses else (1 if "failed" in statuses else 0)
+        unmet_performance = args.require_real_time and not report["verification"]["repeated_live_throughput_gate"]
+        return 130 if "cancelled" in statuses else (1 if "failed" in statuses or unmet_performance else 0)
     except (OSError, ValueError, SimulationError, AgentSDKError) as error:
         if created_output and not (output_dir / "failure.json").exists():
             try:

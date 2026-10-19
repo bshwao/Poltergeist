@@ -75,6 +75,7 @@ class CarlaSimulationAdapter:
         self.rules = RuleMonitor(
             self.world, self.ego, self.carla, actor_id=self.ego_id,
             speeding_tolerance_mps=self.evaluation_settings.speeding_tolerance_mps,
+            cache_static_geometry=True,
         )
         before = self.world.get_snapshot()
         # Prime temporal rule checks before the initialization tick; otherwise

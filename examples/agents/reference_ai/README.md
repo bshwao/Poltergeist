@@ -68,8 +68,11 @@ for missing live map context. Dashboard model selection is a later phase.
 The maintained pilot validation command and report are documented in
 [the launch guide](../../../docs/reference-ai-pilot.md) and
 [the actual validation record](../../../docs/reference-ai-validation.md).
-The learned controller has completed live CARLA trials; end-to-end 20 Hz
-performance remains below target on the tested RTX 2060 laptop.
+The learned controller has completed live CARLA trials and passed the 20 Hz
+complete-cycle gate with the no-rendering performance profile on the tested
+RTX 2060 laptop. See [performance acceptance](../../../docs/reference-ai-performance.md)
+and launch the pilot with `--performance --require-real-time` and two seeds to
+measure the same gate on another machine.
 
 ## Integration provenance and adaptations
 

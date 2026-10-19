@@ -8,6 +8,7 @@ simulation can be much slower than real time.
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict
+from functools import lru_cache
 import hashlib
 import json
 import math
@@ -95,7 +96,8 @@ class DecisionTrace:
     def __call__(self, record: Mapping[str, Any]):
         # Serialize first so we keep a detached primitive snapshot, never mutable
         # references from a runner, agent, or callback.
-        snapshot = json.loads(json.dumps(dict(record), allow_nan=False))
+        encoded = json.dumps(dict(record), allow_nan=False, separators=(",", ":"))
+        snapshot = json.loads(encoded)
         observation = AgentObservation.model_validate(snapshot["observation"])
         if (type(snapshot["frame"]) is not int or type(snapshot["time_s"]) not in (float, int)
                 or snapshot["frame"] != observation.frame or snapshot["time_s"] != observation.time_s):
@@ -119,7 +121,9 @@ class DecisionTrace:
             value = snapshot[name]
             if value is not None and (type(value) not in (float, int) or not math.isfinite(value) or value < 0):
                 raise ValueError(f"{name} must be a finite non-negative measurement or null")
-        self._stream.write(json.dumps(snapshot, allow_nan=False, separators=(",", ":")) + "\n")
+        # Validation reads the detached snapshot without changing it. Reuse its
+        # complete serialization instead of encoding the same scene twice.
+        self._stream.write(encoded + "\n")
         self._stream.flush()
         self.records.append(snapshot)
 
@@ -231,20 +235,25 @@ def summarize_run(output, records, *, total_wall_time_s, variant, process_stats=
                      if type(item.get("inference_wall_time_s")) in (int, float)
                      and math.isfinite(item["inference_wall_time_s"]) and item["inference_wall_time_s"] >= 0]
     summaries["inference"] = latency_summary(network_times, budget)
+    cycle_times = list(getattr(output, "step_wall_times_s", ()))
+    summaries["cycle"] = latency_summary(cycle_times, budget)
     checkpoint_hashes = sorted({item["checkpoint_sha256"] for item in inference_metadata if isinstance(item.get("checkpoint_sha256"), str)})
     motion = motion_summary(output.telemetry)
     gate = (completed and complete_trace and rtf is not None and rtf >= 1
             and summaries["full_step"]["samples"] == len(records)
-            and summaries["full_step"]["budget_miss_fraction"] <= 0.05)
+            and summaries["cycle"]["samples"] == len(records)
+            and summaries["cycle"]["budget_miss_fraction"] <= 0.05)
     return {
         "variant": variant, "mode": result.simulation.mode, "status": result.simulation.status.value,
         "error": result.simulation.error, "seed": result.simulation.scenario.seed,
         "scenario_name": result.simulation.scenario.name,
-        "timing": {**summaries, "setup_wall_time_s": setup, "execution_wall_time_s": execution,
+        "timing": {**summaries, "cycle_wall_times_s": cycle_times,
+                   "environment": getattr(output, "timing_environment", None),
+                   "setup_wall_time_s": setup, "execution_wall_time_s": execution,
                    "total_wall_time_s": total_wall_time_s, "simulated_execution_s": result.measured_duration_s,
                    "real_time_factor": rtf, "single_trial_throughput_gate": bool(gate),
-                   "measurement_scope": "Inference is the agent-reported synchronized neural forward pass; agent_step includes feature preparation and control. Full step excludes evidence callback I/O; execution wall time and RTF include it. All measured steps, including first inference, are retained.",
-                   "gate_definition": "completed, complete trace, RTF >= 1, at least 95% full steps within the fixed-step budget",
+                   "measurement_scope": "Inference is the agent-reported synchronized neural forward pass; agent_step includes feature preparation and control. Full step excludes evidence callback I/O. Cycle time, execution wall time and RTF include all evidence callbacks and I/O. Cycle samples align with decision records. Setup includes model warmup; all execution steps are retained.",
+                   "gate_definition": "completed, complete trace and cycle measurements, RTF >= 1, at least 95% full cycles including evidence I/O within the fixed-step budget",
                    "real_time_claim": "No hard real-time guarantee; repeated live CARLA trials are required."},
         "control_evidence": {"recorded_steps": len(records), "complete_trace": complete_trace,
                              "proposed_controls_reached_adapter_unchanged": match,
@@ -304,23 +313,27 @@ def hardware_info():
             "parent_python_executable": sys.executable, "gpu_before": gpu_snapshot()}
 
 
-def process_peak_memory_bytes(pid):
-    """Read an OS high-water mark while the process exists; null when unavailable."""
-    if pid is None:
-        return None
-    if sys.platform == "win32":
-        import ctypes
-        from ctypes import wintypes
+@lru_cache(maxsize=1)
+def _windows_memory_reader():
+    """Create native bindings once, without caching process handles or values.
 
-        class Counters(ctypes.Structure):
-            _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD),
-                        *((name, ctypes.c_size_t) for name in ("PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage", "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage", "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage"))]
-        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
-        psapi = ctypes.WinDLL("psapi", use_last_error=True)
-        kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
-        kernel.OpenProcess.restype = wintypes.HANDLE
-        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
-        psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+    Rebuilding ctypes types and DLL wrappers per decision creates reference
+    cycles and periodic collection pauses. Only the immutable bindings persist.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    class Counters(ctypes.Structure):
+        _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD),
+                    *((name, ctypes.c_size_t) for name in ("PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage", "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage", "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage"))]
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    psapi = ctypes.WinDLL("psapi", use_last_error=True)
+    kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel.OpenProcess.restype = wintypes.HANDLE
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.POINTER(Counters), wintypes.DWORD]
+
+    def read(pid):
         handle = kernel.OpenProcess(0x0400 | 0x0010, False, pid)
         if not handle:
             return None
@@ -330,6 +343,15 @@ def process_peak_memory_bytes(pid):
             return int(counters.PeakWorkingSetSize) if psapi.GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb) else None
         finally:
             kernel.CloseHandle(handle)
+    return read
+
+
+def process_peak_memory_bytes(pid):
+    """Read an OS high-water mark while the process exists; null when unavailable."""
+    if pid is None:
+        return None
+    if sys.platform == "win32":
+        return _windows_memory_reader()(pid)
     if sys.platform.startswith("linux"):
         try:
             for line in Path(f"/proc/{pid}/status").read_text(encoding="ascii").splitlines():

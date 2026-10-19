@@ -4,7 +4,9 @@ Upstream: autonomousvision/plant2, revision
 6269e5a43c6f6b984d2bd97e3ec4a025ebefbeef (MIT, see LICENSE.plant2).
 Training/Leaderboard dependencies and online architecture/pretraining downloads
 are removed. All learned parameters must be supplied by a strict checkpoint
-load. Bert's eager attention matches the upstream output_attentions=True path.
+load. CPU uses the upstream eager attention. CUDA can use PyTorch's equivalent
+scaled dot-product attention without allocating attention weights that are not
+consumed by the driving policy.
 """
 
 import torch
@@ -24,7 +26,7 @@ class LinearWaypoints(nn.Module):
 class PlanT2Network(nn.Module):
     """The released model's path+wps / linear architecture, without a trainer."""
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, *, attention_implementation="eager"):
         super().__init__()
         cfg = configuration["model"]
         net, training, waypoints = cfg["network"], cfg["training"], cfg["waypoints"]
@@ -37,10 +39,17 @@ class PlanT2Network(nn.Module):
             vocab_size=30522, hidden_dropout_prob=0.1, num_attention_heads=8,
             type_vocab_size=2, max_position_embeddings=512, num_hidden_layers=8,
             intermediate_size=2048, attention_probs_dropout_prob=0.1,
-            _attn_implementation="eager",
+            _attn_implementation=attention_implementation,
         )
         self.n_embd = bert_cfg.hidden_size
         self.model = BertModel(bert_cfg)
+        if attention_implementation == "sdpa":
+            # BertModel's SDPA mask helper reads a CUDA scalar to detect an
+            # all-valid mask. Every token here is real (no padding), so use
+            # its equivalent eager additive mask builder while retaining
+            # BertSdpaSelfAttention in every encoder layer. This avoids a
+            # host synchronization and permits CUDA graph capture.
+            self.model.attn_implementation = "eager"
         self.model.embeddings.word_embeddings = None
         self.model.pooler = None
         self.input_bev = bool(training.get("input_bev", False))

@@ -58,8 +58,14 @@ def _validated(model, value, label: str):
     # Revalidate model instances too: callers can construct or mutate Pydantic
     # models without passing validation, including their nested control values.
     try:
-        payload = value.model_dump(mode="python") if isinstance(value, model) else value
-        return model.model_validate(payload).model_copy(deep=True)
+        if isinstance(value, model):
+            # Dumping a model recursively materializes its nested models and
+            # containers. Validation builds a new owned object graph from that
+            # snapshot; another deepcopy would traverse the entire scene again.
+            return model.model_validate(value.model_dump(mode="python"))
+        # Mappings can themselves contain already-created model instances.
+        # Pydantic may retain those instances, so keep their defensive copy.
+        return model.model_validate(value).model_copy(deep=True)
     except (ValueError, TypeError, AttributeError) as error:
         raise AgentProtocolError(f"Invalid {label}: {error}") from error
 
@@ -154,16 +160,20 @@ class AgentSession:
                 rel_tol=1e-5, abs_tol=1e-6,
             ):
                 raise AgentProtocolError("Observations must have consecutive frames and fixed-step times")
-            response = self._agent.step(validated.model_copy(deep=True))
+            # Validation has already isolated caller data. Preserve only the
+            # scalar clock identity needed after user code, rather than making
+            # a second full scene copy. The agent may mutate its owned input.
+            frame, time_s = validated.frame, validated.time_s
+            response = self._agent.step(validated)
             result = _validated(AgentStepResult, response, "agent step result")
             if result.protocol_version != self._manifest.protocol_version:
                 raise AgentProtocolError("Agent response protocol does not match the manifest")
-            if result.frame != validated.frame:
+            if result.frame != frame:
                 raise AgentProtocolError("Agent response frame does not match the observation frame")
         except BaseException:
             self._state = "failed"
             raise
-        self._last_frame, self._last_time = validated.frame, validated.time_s
+        self._last_frame, self._last_time = frame, time_s
         return result
 
     def close(self) -> None:

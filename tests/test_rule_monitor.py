@@ -113,6 +113,25 @@ class Light:
         return self.stops
 
 
+class CountingLight(Light):
+    def __init__(self, *, actor_id=81):
+        super().__init__()
+        self.id, self.state_reads, self.geometry_reads = actor_id, 0, 0
+        self.geometry_error = self.state_error = False
+
+    def get_state(self):
+        self.state_reads += 1
+        if self.state_error:
+            raise RuntimeError("signal state unavailable")
+        return super().get_state()
+
+    def get_stop_waypoints(self):
+        self.geometry_reads += 1
+        if self.geometry_error:
+            raise RuntimeError("signal geometry unavailable")
+        return super().get_stop_waypoints()
+
+
 class Stop:
     id, type_id = 82, "traffic.stop"
 
@@ -374,3 +393,167 @@ def test_invalid_observation_order_is_rejected(frame, time_s):
     monitor.observe(1, 0.0)
     with pytest.raises(ValueError):
         monitor.observe(frame, time_s)
+
+
+def test_static_signal_geometry_is_cached_but_red_crossing_and_live_state_remain_checked():
+    light, ego = CountingLight(), Ego()
+    monitor = RuleMonitor(World([light]), ego, CARLA, cache_static_geometry=True)
+    ego.pose.location.x = -3.0
+    monitor.observe(1, 0.0)
+    assert TrafficRule.RED_LIGHT in monitor.observe(2, 0.05)[1]
+    ego.pose.location.x = -1.0
+    events, checked = monitor.observe(3, 0.1)
+    assert [event.rule for event in events] == [TrafficRule.RED_LIGHT]
+    assert TrafficRule.RED_LIGHT in checked
+    assert light.geometry_reads == 1
+    assert light.state_reads == 3
+
+
+def test_geometry_cache_is_opt_in_and_keeps_dynamic_world_default():
+    light, ego = CountingLight(), Ego()
+    monitor = RuleMonitor(World([light]), ego, CARLA)
+    monitor.observe(1, 0.0)
+    light.stops = [waypoint(lane_id=-1)]
+    ego.pose.location.x = 2.0
+    events, checked = monitor.observe(2, 0.05)
+    assert events == []
+    assert TrafficRule.RED_LIGHT in checked
+    assert light.geometry_reads == light.state_reads == 2
+
+
+@pytest.mark.parametrize("state", ["Green", "Yellow", "Unknown", None])
+def test_cached_geometry_preserves_unknown_transition_interval(state):
+    light, ego = CountingLight(), Ego()
+    monitor = RuleMonitor(World([light]), ego, CARLA, cache_static_geometry=True)
+    ego.pose.location.x = -3.0
+    monitor.observe(1, 0.0)
+    light.state, ego.pose.location.x = state, -1.0
+    events, checked = monitor.observe(2, 0.05)
+    assert events == []
+    assert TrafficRule.RED_LIGHT not in checked
+    assert light.geometry_reads == 1
+    assert light.state_reads == 2
+    if state in {"Unknown", None}:
+        assert TrafficRule.RED_LIGHT not in monitor.observe(3, 0.1)[1]
+
+
+def test_cached_signal_state_failure_invalidates_geometry_and_keeps_interval_unknown():
+    light, ego = CountingLight(), Ego()
+    monitor = RuleMonitor(World([light]), ego, CARLA, cache_static_geometry=True)
+    monitor.observe(1, 0.0)
+    light.state_error = True
+    events, checked = monitor.observe(2, 0.05)
+    assert events == [] and TrafficRule.RED_LIGHT not in checked
+    assert monitor._light_geometry == {}
+    light.state_error = False
+    assert TrafficRule.RED_LIGHT not in monitor.observe(3, 0.1)[1]
+    assert TrafficRule.RED_LIGHT in monitor.observe(4, 0.15)[1]
+    assert light.geometry_reads == 2
+    assert light.state_reads == 4
+
+
+@pytest.mark.parametrize("unavailable", ["error", "empty", "invalid"])
+def test_failed_or_empty_signal_geometry_is_retried_without_hiding_other_violations(unavailable):
+    good, bad, ego = CountingLight(), CountingLight(actor_id=99), Ego()
+    if unavailable == "error":
+        bad.geometry_error = True
+    elif unavailable == "empty":
+        bad.stops = []
+    else:
+        bad.stops = [NS()]  # Cannot identify the affected lane.
+    monitor = RuleMonitor(World([bad, good]), ego, CARLA, cache_static_geometry=True)
+    ego.pose.location.x = -3.0
+    monitor.observe(1, 0.0)
+    ego.pose.location.x = -1.0
+    events, checked = monitor.observe(2, 0.05)
+    assert [event.source_id for event in events] == ["carla:81"]
+    assert TrafficRule.RED_LIGHT not in checked
+    assert bad.geometry_reads == 2
+    assert bad.id not in monitor._light_geometry
+    bad.geometry_error, bad.stops = False, [waypoint(lane_id=-1)]
+    assert TrafficRule.RED_LIGHT in monitor.observe(3, 0.1)[1]
+    assert bad.geometry_reads == 3
+    assert good.geometry_reads == 1
+
+
+def test_signal_cache_prunes_destroyed_ids_and_observes_new_light_without_prior_state():
+    light, ego = CountingLight(), Ego()
+    world = World([light])
+    monitor = RuleMonitor(world, ego, CARLA, cache_static_geometry=True)
+    monitor.observe(1, 0.0)
+    assert set(monitor._light_geometry) == {81}
+    world.actors.clear()
+    monitor.observe(2, 0.05)
+    assert monitor._light_geometry == {}
+    replacement = CountingLight(actor_id=81)
+    novel = CountingLight(actor_id=100)
+    world.actors.extend([replacement, novel])
+    assert TrafficRule.RED_LIGHT not in monitor.observe(3, 0.1)[1]
+    assert TrafficRule.RED_LIGHT in monitor.observe(4, 0.15)[1]
+    assert light.geometry_reads == replacement.geometry_reads == novel.geometry_reads == 1
+    assert replacement.state_reads == novel.state_reads == 2
+
+
+@pytest.mark.parametrize("failure", ["map", "actors", "ego"])
+def test_cached_geometry_is_discarded_when_observation_coverage_breaks(failure):
+    light, ego, world = CountingLight(), Ego(), World()
+    world.actors.append(light)
+    monitor = RuleMonitor(world, ego, CARLA, cache_static_geometry=True)
+    monitor.observe(1, 0.0)
+    def unavailable():
+        raise RuntimeError("temporary read failure")
+    if failure == "map":
+        world.map_missing = True
+    elif failure == "actors":
+        world.get_actors = unavailable
+    else:
+        ego.get_transform = unavailable
+    assert TrafficRule.RED_LIGHT not in monitor.observe(2, 0.05)[1]
+    assert monitor._light_geometry == {}
+
+
+def test_stop_geometry_cache_preserves_observed_stop_and_roll_through():
+    for stop_completely in (False, True):
+        sign, ego = Stop(), Ego()
+        reads = []
+        original = sign.get_transform
+        def counted():
+            reads.append(True)
+            return original()
+        sign.get_transform = counted
+        monitor = RuleMonitor(World([sign]), ego, CARLA, cache_static_geometry=True)
+        monitor.observe(1, 0.0)
+        ego.pose.location.x, ego.velocity = 0.0, vector() if stop_completely else vector(5.0)
+        monitor.observe(2, 0.05)
+        monitor.observe(3, 0.55)
+        ego.pose.location.x, ego.velocity = 4.0, vector(5.0)
+        events, checked = monitor.observe(4, 0.6)
+        assert [event.rule for event in events] == ([] if stop_completely else [TrafficRule.STOP_SIGN])
+        assert TrafficRule.STOP_SIGN in checked
+        assert len(reads) == 1
+
+
+def test_stop_geometry_cache_retries_unknown_sign_and_prunes_destroyed_actor():
+    sign, ego = Stop(), Ego()
+    world = World([sign])
+    original = world.get_waypoint
+    failed = [True]
+    def stop_waypoint(location, *, project_to_road, lane_type):
+        return None if project_to_road and failed[0] else original(
+            location, project_to_road=project_to_road, lane_type=lane_type)
+    world.get_waypoint = stop_waypoint
+    monitor = RuleMonitor(world, ego, CARLA, cache_static_geometry=True)
+    assert TrafficRule.STOP_SIGN not in monitor.observe(1, 0.0)[1]
+    assert monitor._stop_geometry == {}
+    failed[0] = False
+    assert TrafficRule.STOP_SIGN in monitor.observe(2, 0.05)[1]
+    assert set(monitor._stop_geometry) == {82}
+    world.actors.clear()
+    monitor.observe(3, 0.1)
+    assert monitor._stop_geometry == {}
+
+
+@pytest.mark.parametrize("value", [None, 0, 1, "yes"])
+def test_static_geometry_cache_option_requires_bool(value):
+    with pytest.raises(ValueError, match="boolean"):
+        RuleMonitor(World(), Ego(), CARLA, cache_static_geometry=value)

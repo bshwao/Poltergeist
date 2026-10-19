@@ -2,7 +2,7 @@
 
 import argparse
 from collections.abc import Callable, Mapping
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from copy import deepcopy
 from datetime import UTC, datetime
 from math import ceil, isclose, nextafter
@@ -21,6 +21,7 @@ from .agents.process import AgentProcessOptions, ProcessAgent
 from .agents.sdk import AgentSDKError
 from .errors import SimulationCancelled, SimulationError
 from .protocols import ActorCommand, SensorSample, SimulationAdapter, SimulationOptions
+from .timing import high_resolution_timer
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,8 @@ class RunOutput:
     telemetry: tuple[TelemetryFrame, ...]
     setup_wall_time_s: float = 0.0
     execution_wall_time_s: float = 0.0
+    timing_environment: dict | None = None
+    step_wall_times_s: tuple[float, ...] = ()
 
 
 class SimulationRunner:
@@ -68,7 +71,9 @@ class SimulationRunner:
             if self._used:
                 raise SimulationError("Create a new SimulationRunner for each run")
             self._used = True
-            return self._run(scenario, mode, agent, cancellation, on_progress, on_frame, on_sensor, agent_control_mode, on_decision)
+            with high_resolution_timer() as timing_environment:
+                output = self._run(scenario, mode, agent, cancellation, on_progress, on_frame, on_sensor, agent_control_mode, on_decision)
+            return replace(output, timing_environment=dict(timing_environment))
         finally:
             self._lock.release()
 
@@ -107,6 +112,7 @@ class SimulationRunner:
             raise SimulationError(f"Scenario requires {ticks} ticks; max_ticks={self.options.max_ticks}")
         self._simulation = simulation
         trace = []
+        step_wall_times_s = []
         runtime = None
         sensor_count = 0
         phase = "initialization"
@@ -248,7 +254,11 @@ class SimulationRunner:
                     })
                 previous = current
                 current = accept(adapter.step(control, commands), current)
-                update(progress=min(nextafter(1.0, 0.0), current.time_s / validated.duration_s))
+                # The internal progress is bounded arithmetic over validated
+                # telemetry; the unchanged recipe need not be rebuilt per tick.
+                self._simulation = self._simulation.model_copy(update={
+                    "progress": min(nextafter(1.0, 0.0), current.time_s / validated.duration_s),
+                })
                 progress()
                 full_step_wall_time_s = perf_counter() - step_started
                 if on_decision is not None:
@@ -273,6 +283,9 @@ class SimulationRunner:
                         "full_step_wall_time_s": full_step_wall_time_s,
                         "resulting_frame": current.frame, "resulting_ego": current.ego.model_dump(mode="json"),
                     })
+                # Include serialization, validation, writing/flushing evidence
+                # and any user callback in the actual control-loop cadence.
+                step_wall_times_s.append(perf_counter() - step_started)
             self._check_cancelled(cancellation)
         except (SimulationCancelled, KeyboardInterrupt):
             status = SimulationStatus.CANCELLED
@@ -370,7 +383,8 @@ class SimulationRunner:
             measured_duration_s=0.0 if not trace else trace[-1].time_s - trace[0].time_s,
             runtime=runtime,
         )
-        return RunOutput(result, tuple(trace), setup_wall_time_s, execution_wall_time_s)
+        return RunOutput(result, tuple(trace), setup_wall_time_s, execution_wall_time_s,
+                         step_wall_times_s=tuple(step_wall_times_s))
 
 
 def run_simulation(scenario, *, mode=None, options=None, evaluation_settings=None, **kwargs) -> RunOutput:

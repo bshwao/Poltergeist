@@ -1,5 +1,9 @@
 # Reference AI validation — October 18, 2026
 
+**Historical record:** the unfinished timing result below was superseded by
+[October 19 performance acceptance](reference-ai-performance.md). The optimized
+performance profile passed repeated live 20 Hz trials with evidence I/O included.
+
 **Live learned control is verified. The full loop does not meet the 20 Hz
 real-time target on this machine.** The integration and measurement workflow are
 implemented; performance remains an open result rather than a passed checkpoint.
