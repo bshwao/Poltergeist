@@ -32,7 +32,13 @@ class PlanTController:
         samples = interpolator(np.arange(0.1, distances[-1], 0.1))
         return samples if len(samples) else path[None, -1]
 
-    def control(self, path, waypoints, current_speed: float) -> tuple[ControlInput, float]:
+    def control(self, path, waypoints, current_speed: float, *, speed_cap_mps: float | None = None) -> tuple[ControlInput, float]:
+        """Track predictions; return upstream speed before an explicit task cap.
+
+        An explicit navigation task may supply a separately reported upper
+        tracking bound. The upstream standstill startup limit is retained.
+        With no task bound this preserves the upstream controller.
+        """
         path, waypoints = np.asarray(path), np.asarray(waypoints)
         if (path.shape != (20, 2) or waypoints.shape != (8, 2)
                 or not np.isfinite(path).all() or not np.isfinite(waypoints).all()):
@@ -41,7 +47,10 @@ class PlanTController:
         if current_speed < 0.01:
             mean_speed = float(np.linalg.norm(waypoints[:-1] - waypoints[1:], axis=-1).mean() * 4.0)
             desired_speed = min(mean_speed, 0.1)
-        throttle, brake = self.longitudinal(desired_speed, current_speed)
+        if speed_cap_mps is not None and (not math.isfinite(speed_cap_mps) or speed_cap_mps < 0):
+            raise ValueError("Tracking speed cap must be finite and nonnegative")
+        tracking_speed = desired_speed if speed_cap_mps is None else min(desired_speed, speed_cap_mps)
+        throttle, brake = self.longitudinal(tracking_speed, current_speed)
         if current_speed < 0.05 and brake:
             lateral_path = np.asarray([[1., 0.], [2., 0.], [3., 0.], [4., 0.]])
         else:

@@ -1,4 +1,4 @@
-# Autonomous agent SDK 1.0 and 1.1
+# Autonomous agent SDK 1.0, 1.1 and 1.2
 
 Phases 1 and 2 provide a Python interface for user-supplied driving agents and an
 external worker connected to the simulation runner. The current dashboard still
@@ -12,7 +12,13 @@ current starter remains rule based; the separate reference package uses actual
 PlanT 2.0 weights. SDK 1.1 adds explicitly declared structured ground-truth scene
 features and a map-derived route/raster for that integration. It does not enable
 camera/LiDAR perception. See [the validation record](reference-ai-validation.md)
-for live CARLA outcomes and the currently unmet 20 Hz performance target.
+for live CARLA outcomes and [performance acceptance](reference-ai-performance.md)
+for the measured 20 Hz profile.
+
+Phase 3 adds SDK 1.2 driving tasks, route ownership, actual goals, authoritative
+controls, persistent intervention audits and measured completion. See
+[driving tasks](driving-tasks.md) for contracts and a runnable example.
+SDK 1.0 remains the default; explicit tasks require 1.2.
 
 No CARLA installation, GPU, or ML framework is required to check the supplied
 starter. The SDK uses the existing core dependencies and Python 3.12 or newer.
@@ -139,7 +145,7 @@ phase 1 compatibility check rejects sensor-mode agents rather than feeding them
 simulator state. Optional camera recording in the existing app does not provide
 sensor inputs to this SDK.
 
-Agents declaring SDK 1.1 can additionally require `structured_scene`. Their
+Agents declaring SDK 1.1 or 1.2 can additionally require `structured_scene`. Their
 reset, observation, and result versions must match the manifest. Return
 `AgentStepResult(protocol_version=observation.protocol_version, ...)` from a 1.1
 agent; legacy models still default to protocol 1.0. The optional scene contains
@@ -292,11 +298,11 @@ and does not make public uploads safe.
 
 ## Current integration limits
 
-Phase 2 preserves existing scenario event behavior: an explicit ego braking
-event can still override throttle/brake, and observations still supply the
-adapter's heading and requested target speed. Independent route ownership,
-authoritative controls, and recorded interventions are Phase 3. The reference
-starter remains a rule-based controller.
+Phase 3 implements explicit task/route ownership, authoritative agent controls,
+recorded scripted interventions and measured goal outcomes. SDK 1.2 agents
+default to authoritative mode; older no-task packages retain the legacy heading,
+speed and event behavior. The starter remains a rule-based controller. See
+[driving tasks](driving-tasks.md) for the current contract and examples.
 
 Sensor inputs, registry/version pinning, queued API selection, dashboard agent
 selection, persistent decision traces, and behavior explanations remain the

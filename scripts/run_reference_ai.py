@@ -11,7 +11,7 @@ import sys
 from time import monotonic
 
 from scenarios import load_scenario, load_template, validate_scenario
-from shared.models import AgentDiagnostics, AgentStepResult, ControlInput, SimulationOptions
+from shared.models import AgentDiagnostics, AgentStepResult, ControlInput, DrivingTask, SimulationOptions
 from simulator.agents import AgentSDKError
 from simulator.agents.package import inspect_agent_package
 from simulator.agents.reference_ai.checkpoint import CHECKPOINT_SHA256, DEFAULT_CHECKPOINT, UPSTREAM_REVISION
@@ -160,6 +160,7 @@ def main(argv=None):
     source.add_argument("--suite", action="store_true", help="Road following, braking, pedestrian and crossing-traffic trials")
     parser.add_argument("--mode", choices=("test", "carla"), default="carla")
     parser.add_argument("--duration", type=_positive, help="Simulated seconds; scheduled events must remain inside the trial")
+    parser.add_argument("--driving-task", type=Path, help="JSON driving task with a real map-valid destination and optional framework route")
     parser.add_argument("--seed", type=_seed, action="append", help="Repeat for additional trial seeds (default: 0)")
     parser.add_argument("--output", type=Path, required=True, help="A new directory for the report and raw evidence; never overwritten")
     parser.add_argument("--agent-python", type=Path, help="Existing Python environment containing the reference agent dependencies")
@@ -181,6 +182,9 @@ def main(argv=None):
             raise ValueError("Each --seed must be unique")
         trial_names = list(TRIALS) if args.suite else [args.template or ("scenario" if args.scenario else "road_following")]
         recipes = [_recipe(name, args.scenario, args.duration, seed) for name in trial_names for seed in seeds]
+        if args.driving_task is not None:
+            task = DrivingTask.model_validate_json(args.driving_task.read_text(encoding="utf-8"))
+            recipes = [validate_scenario(recipe.model_dump() | {"driving_task": task.model_dump()}) for recipe in recipes]
         package = inspect_agent_package(REFERENCE_PACKAGE)
         fingerprint = package_fingerprint(package)
         checkpoint_path = Path(package.manifest.configuration.get("checkpoint_path", DEFAULT_CHECKPOINT)).expanduser().absolute()
@@ -196,13 +200,14 @@ def main(argv=None):
             repository = Path(__file__).resolve().parents[1]
             sources = [*(repository / "simulator" / "agents" / "reference_ai").rglob("*.py"),
                        *(repository / name for name in (
-                           "simulator/reference_scene.py", "simulator/simulation_runner.py",
+                           "simulator/reference_scene.py", "simulator/simulation_runner.py", "simulator/navigation.py",
                            "simulator/reference_evidence.py", "simulator/carla_adapter.py",
                            "simulator/world_manager.py", "simulator/agents/sdk.py",
                            "simulator/agents/process.py", "simulator/agents/process_protocol.py",
                            "simulator/agents/worker.py", "simulator/sensor_manager.py",
                            "simulator/rule_monitor.py", "simulator/timing.py", "shared/models/agent.py",
-                           "shared/models/runtime.py", "scripts/run_reference_ai.py"))]
+                           "shared/models/runtime.py", "shared/models/scenario.py", "shared/models/simulation.py",
+                           "scripts/run_reference_ai.py"))]
             fingerprint["integration_source"] = {path.relative_to(repository).as_posix(): file_sha256(path) for path in sorted(sources)}
         settle = args.sensor_settle if args.sensor_settle is not None else (0.001 if args.performance else 0.02)
         options = SimulationOptions(allow_map_reload=args.allow_map_reload, sensor_settle_s=settle,

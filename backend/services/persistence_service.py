@@ -72,7 +72,7 @@ class PersistenceService:
             raise PersistenceError("Result frame count does not match finalized telemetry")
         scenario = result.simulation.scenario
         maximum = ceil(scenario.duration_s / scenario.fixed_delta_seconds - 1e-9) + 1
-        if len(frames) > maximum or (result.simulation.status == SimulationStatus.COMPLETED and len(frames) != maximum):
+        if len(frames) > maximum:
             raise PersistenceError("Finalized telemetry length does not match the scenario execution window")
         duration = 0.0 if not frames else frames[-1].time_s - frames[0].time_s
         if not isclose(duration, result.measured_duration_s, rel_tol=1e-9, abs_tol=1e-6):
@@ -88,7 +88,69 @@ class PersistenceService:
                 rel_tol=1e-5, abs_tol=1e-6,
             ):
                 raise PersistenceError("Runner telemetry must preserve consecutive fixed-step frames")
+        PersistenceService._validate_control_audit(result, frames)
+        early_goal_completion = PersistenceService._validate_driving_outcome(result, frames)
+        if result.simulation.status == SimulationStatus.COMPLETED and len(frames) != maximum and not early_goal_completion:
+            raise PersistenceError("Finalized telemetry length does not match the scenario execution window")
         return tuple(frames)
+
+    @staticmethod
+    def _validate_control_audit(result: SimulationResult, frames) -> None:
+        audit = result.control_audit
+        interventions = audit.interventions if audit is not None else (
+            [] if result.driving_outcome is None else result.driving_outcome.interventions)
+        indices = {frame.frame: index for index, frame in enumerate(frames)}
+        for intervention in interventions:
+            index = indices.get(intervention.frame)
+            if index is None or index + 1 >= len(frames):
+                raise PersistenceError("Control intervention must reference an observed transition")
+            if not isclose(intervention.time_s, frames[index].time_s, rel_tol=1e-5, abs_tol=1e-6):
+                raise PersistenceError("Control intervention time does not match its observation")
+            if intervention.applied_control != frames[index + 1].control:
+                raise PersistenceError("Control intervention applied control does not match finalized telemetry")
+
+    @staticmethod
+    def _validate_driving_outcome(result: SimulationResult, frames) -> bool:
+        """Verify goal evidence rather than trusting a claimed early success.
+
+        Lifecycle completion normally requires the entire execution window.
+        A declared stop-on-completion task is the sole shorter-window exception;
+        replay uses finalized measured poses, speeds, height, and hold time.
+        """
+        task = result.simulation.scenario.driving_task
+        outcome = result.driving_outcome
+        if task is None:
+            if outcome is not None:
+                raise PersistenceError("Driving outcome requires the recorded scenario task")
+            return False
+        if outcome is None:
+            if frames or result.simulation.status == SimulationStatus.COMPLETED:
+                raise PersistenceError("Task execution requires a recorded driving outcome")
+            # An interrupted setup may never acquire a first measured ego pose.
+            return False
+        if not frames:
+            raise PersistenceError("Driving outcome requires measured task telemetry")
+
+        from simulator.navigation import TaskMonitor
+
+        monitor = TaskMonitor(task, outcome.resolved_route, frames[0], outcome.control_mode)
+        for frame in frames[1:]:
+            monitor.update(frame)
+        reason = {SimulationStatus.FAILED: "execution_failed", SimulationStatus.CANCELLED: "cancelled"}.get(
+            result.simulation.status,
+            "goal_reached" if task.stop_on_completion and monitor.reached else "duration_elapsed",
+        )
+        expected = monitor.outcome(result.simulation.status, outcome.interventions, reason)
+        if expected != outcome:
+            raise PersistenceError("Driving outcome does not match finalized task telemetry")
+        early_goal_completion = (
+            result.simulation.status == SimulationStatus.COMPLETED
+            and task.stop_on_completion and outcome.status == "reached"
+            and outcome.termination_reason == "goal_reached"
+            and monitor.reached and monitor.reached_at_s is not None
+            and isclose(monitor.reached_at_s, frames[-1].time_s, rel_tol=1e-5, abs_tol=1e-6)
+        )
+        return early_goal_completion
 
     @staticmethod
     def _validate_pending(stored, result, expected_revision):

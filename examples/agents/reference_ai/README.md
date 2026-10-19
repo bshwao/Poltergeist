@@ -108,3 +108,11 @@ Per-step diagnostics contain the real learned path/waypoints, model-selected
 target speed, actual device, checkpoint identity, object counts, and measured
 inference duration. They are predictions and timing evidence, not a generated
 explanation of the neural network's internal reasoning.
+
+Phase 3 updates this package to SDK 1.2 with framework-provided navigation.
+Explicit tasks supply an actual destination and finite route. Endpoint input
+padding, upstream startup limits, task speed caps and destination approach
+tracking are declared assistance. Diagnostics distinguish raw neural speed,
+upstream tracking speed and the final capped target; the model still runs every
+decision. See [driving tasks](../../../docs/driving-tasks.md) for a mapped Town03
+example and measured completion criteria.

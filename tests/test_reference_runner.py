@@ -116,7 +116,8 @@ def test_scene_reset_observation_and_applied_controls_retain_frame_identity(agen
     calls = [json.loads(line) for line in log.read_text().splitlines()]
     reset = next(call["data"] for call in calls if call["kind"] == "reset")
     assert reset["protocol_version"] == "1.1" and len(reset["route"]) == 2
-    assert reset["destination"] == reset["route"][-1]
+    # A rolling scene horizon is guidance, not an actual episode destination.
+    assert reset["destination"] is None
     assert [item["frame"] for item in decisions] == [100, 101]
     for item in decisions:
         assert item["observation"]["scene"]["source"] == "synthetic"

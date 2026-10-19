@@ -60,6 +60,9 @@ class TestSimulationAdapter:
         self._ego_id: str | None = None
         self._route_heading_deg = 0.0
         self._active = False
+        self._driving_task = None
+        self._driving_route = []
+        self._task_route_tracker = None
 
     def open(self, scenario: Scenario) -> TelemetryFrame:
         if self._active:
@@ -153,7 +156,37 @@ class TestSimulationAdapter:
         from .reference_scene import synthetic_scene
         actor_types = {actor.id: ("pedestrian" if actor.type == ActorType.PEDESTRIAN else "vehicle")
                        for actor in self._scenario.actors}
-        return synthetic_scene(frame, actor_types, self._route_heading_deg, self.speed_limit_mps)
+        scene = synthetic_scene(frame, actor_types, self._route_heading_deg, self.speed_limit_mps)
+        if self._driving_task is not None:
+            scene.route = self._task_route_tracker.local_route(frame.ego.transform) if (
+                self._driving_task.route_owner == "framework" and frame.ego.transform is not None) else None
+        return scene
+
+    def prepare_driving_task(self, task, frame: TelemetryFrame):
+        """Virtual straight routing only; this world has no real road graph."""
+        self._require_open()
+        from shared.models import DrivingTask
+        task = DrivingTask.model_validate(task.model_dump()).model_copy(deep=True)
+        if frame.ego.transform is None:
+            raise SimulationError("Driving task requires a measured initial ego position")
+        if task.route_owner == "agent":
+            route = []
+        elif task.route:
+            route = [point.model_copy(deep=True) for point in task.route]
+        else:
+            route = [frame.ego.transform.model_copy(deep=True), task.destination.model_copy(deep=True)]
+            if route[0].position == route[-1].position:
+                route = route[:1]
+        self._driving_task, self._driving_route = task, route
+        from .navigation import RouteTracker
+        self._task_route_tracker = RouteTracker(route,
+            height_tolerance_m=task.completion_height_tolerance_m)
+        return [point.model_copy(deep=True) for point in route]
+
+    def traffic_light_observation(self) -> bool:
+        """The explicitly virtual world has no traffic signals."""
+        self._require_open()
+        return False
 
     def finalize(self, frames: list[TelemetryFrame]) -> list[TelemetryFrame]:
         self._require_open()
@@ -163,6 +196,9 @@ class TestSimulationAdapter:
         self._active = False
         self._bodies.clear()
         self._commands.clear()
+        self._driving_task = None
+        self._driving_route = []
+        self._task_route_tracker = None
 
     def sensor_samples(self) -> tuple[SensorSample, ...]:
         return ()

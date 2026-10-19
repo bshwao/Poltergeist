@@ -75,7 +75,7 @@ def check_agent_capabilities(manifest: AgentManifest | Mapping[str, Any]) -> Age
     validated = _validated(AgentManifest, manifest, "agent manifest")
     if validated.observation_mode != "simulator_state":
         raise AgentCompatibilityError(
-            "Agent SDK 1.0 currently delivers simulator_state observations only; "
+            "Agent SDK currently delivers simulator_state observations only; "
             "sensor-based driving requires the sensor integration phase"
         )
     return validated
@@ -128,6 +128,9 @@ class AgentSession:
             validated = _validated(AgentReset, context, "episode reset")
             if validated.protocol_version != self._manifest.protocol_version:
                 raise AgentProtocolError("Episode reset protocol does not match the agent manifest")
+            if (validated.driving_task is not None and validated.driving_task.route_owner == "agent"
+                    and self._manifest.navigation_mode != "agent_planner"):
+                raise AgentProtocolError("Agent-owned navigation requires an agent_planner manifest")
             self._agent.reset(validated.model_copy(deep=True))
         except BaseException:
             self._state = "failed"
@@ -145,6 +148,8 @@ class AgentSession:
             if "structured_scene" in self._manifest.required_features and validated.scene is None:
                 raise AgentProtocolError("Agent requires structured scene context")
             context = self._context
+            if validated.driving_task != context.driving_task:
+                raise AgentProtocolError("Observation driving task must match the episode reset")
             if validated.ego.actor_id != context.ego_actor_id:
                 raise AgentProtocolError("Observation ego_actor_id does not match the episode reset")
             if not isclose(validated.dt_s, context.fixed_delta_seconds, rel_tol=1e-9, abs_tol=1e-9):

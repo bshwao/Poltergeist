@@ -13,7 +13,7 @@ import pytest
 
 from shared.models import (
     ActorState, AgentManifest, AgentObservation, AgentReset, AgentRoadRaster,
-    AgentSceneContext, AgentSceneObject, BoundingBoxExtent, Rotation, Transform, Vector3,
+    AgentSceneContext, AgentSceneObject, BoundingBoxExtent, DrivingTask, Rotation, Transform, Vector3,
 )
 from simulator.agents.package import inspect_agent_package
 from simulator.agents.reference_ai import ReferenceAIAgent
@@ -62,7 +62,8 @@ def observation(*, objects=None, speed=8., yaw=0., route_y=0., raster=True):
 
 def test_reference_package_declares_learned_scene_capabilities():
     package = inspect_agent_package(PACKAGE)
-    assert package.manifest.protocol_version == "1.1"
+    assert package.manifest.protocol_version == "1.2"
+    assert package.manifest.navigation_mode == "provided_route"
     assert package.manifest.required_features == ["structured_scene"]
     assert package.manifest.sensors == []
     assert package.manifest.agent_id == "poltergeist-reference-ai"
@@ -362,6 +363,36 @@ def test_real_pretrained_weights_load_and_change_plan_with_scene():
         agent.reset(context)
         repeat = agent.step(observation())
         assert clear.control == repeat.control
+        agent.reset(context)
+        startup = agent.step(observation(speed=0.0))
+        assert startup.diagnostics.metadata["learned_desired_speed_mps"] >= 0.0
+        assert startup.diagnostics.metadata["upstream_tracking_desired_speed_mps"] <= 0.1
+        assert startup.diagnostics.target_speed_mps == startup.diagnostics.metadata["upstream_tracking_desired_speed_mps"]
+        if not math.isclose(startup.diagnostics.metadata["learned_desired_speed_mps"],
+                            startup.diagnostics.metadata["upstream_tracking_desired_speed_mps"],
+                            rel_tol=1e-9, abs_tol=1e-9):
+            assert "upstream_startup_speed_limit" in startup.diagnostics.assistance
+        task = DrivingTask(destination=pose(10.0), target_speed_mps=3.0, completion_speed_mps=0.0)
+        task_context = AgentReset(protocol_version="1.2", seed=0, map_name="synthetic", ego_actor_id="ego",
+                                  fixed_delta_seconds=0.05, destination=task.destination,
+                                  route=[pose(), task.destination], driving_task=task)
+        agent.reset(task_context)
+        finite = AgentObservation.model_validate(observation().model_dump() | {
+            "protocol_version": "1.2", "driving_task": task, "target_speed_mps": 3.0,
+        })
+        finite.scene.route = [pose(), pose(10.0)]
+        approach = agent.step(finite)
+        assert approach.protocol_version == "1.2"
+        assert approach.diagnostics.metadata["inference_wall_time_s"] > 0.0
+        assert approach.diagnostics.metadata["route_endpoint_padded"] is True
+        assert approach.diagnostics.target_speed_mps <= 3.0
+        assert approach.diagnostics.metadata["learned_desired_speed_mps"] >= approach.diagnostics.target_speed_mps
+        finite.ego.transform = pose(9.0)
+        stopped = agent.step(finite)
+        assert stopped.diagnostics.metadata["inference_wall_time_s"] > 0.0
+        assert stopped.control.brake == 1.0
+        assert stopped.diagnostics.target_speed_mps == 0.0
+        assert "task_destination_approach_speed_cap" in stopped.diagnostics.assistance
     finally:
         agent.close()
 

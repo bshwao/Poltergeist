@@ -27,6 +27,7 @@ class ReferenceAIAgent(AutonomousAgent):
         self._configuration = None
         self._parameter_count = None
         self._inference = None
+        self._driving_task = None
 
     def load(self, configuration):
         if self._model is not None:
@@ -101,15 +102,20 @@ class ReferenceAIAgent(AutonomousAgent):
             raise AgentLifecycleError("Load Reference AI before resetting it")
         if not math.isclose(context.fixed_delta_seconds, 0.05, abs_tol=1e-9):
             raise AgentCompatibilityError("The released PlanT pilot uses 20 Hz (fixed_delta_seconds=0.05)")
+        if context.driving_task is not None and context.driving_task.route_owner != "framework":
+            raise AgentCompatibilityError("Reference AI tracks framework-provided routes; it does not own global route planning")
         if self._inference is not None:
             self._inference.prepare_run()
         self._features.reset()
         self._controller.reset()
+        self._driving_task = context.driving_task.model_copy(deep=True) if context.driving_task is not None else None
         self._ready = True
 
     def step(self, observation: AgentObservation) -> AgentStepResult:
         if not self._ready or self._model is None:
             raise AgentLifecycleError("Load and reset Reference AI before stepping it")
+        if observation.driving_task != self._driving_task:
+            raise ValueError("Reference AI driving task must match its episode reset")
         features = self._features.build(observation)
         batch = tensor_batch(features, self._torch, self._device)
         if self._device.type == "cuda":
@@ -122,7 +128,20 @@ class ReferenceAIAgent(AutonomousAgent):
         path = path_tensor[0].detach().cpu().numpy()
         waypoints = waypoint_tensor[0].detach().cpu().numpy()
         inference_wall_time = perf_counter() - started
-        control, desired_speed = self._controller.control(path, waypoints, features.ego_speed_mps)
+        cap, cap_assistance, task_metadata = self._tracking_cap(observation)
+        control, desired_speed = self._controller.control(
+            path, waypoints, features.ego_speed_mps, speed_cap_mps=cap,
+        )
+        learned_speed = math.hypot(float(waypoints[2][0] - waypoints[3][0]),
+                                  float(waypoints[2][1] - waypoints[3][1])) * 4.0
+        tracking_speed = desired_speed if cap is None else min(desired_speed, cap)
+        assistance = ["deterministic_waypoint_tracking"]
+        if features.ego_speed_mps < 0.01 and not math.isclose(learned_speed, desired_speed, rel_tol=1e-9, abs_tol=1e-9):
+            assistance.append("upstream_startup_speed_limit")
+        if features.route_endpoint_padded:
+            assistance.append("finite_route_endpoint_padding")
+        if cap is not None and desired_speed > cap:
+            assistance.extend(cap_assistance)
         ego = observation.ego.transform
         yaw = math.radians(ego.rotation.yaw_deg)
         world_path = [Transform(position=Vector3(
@@ -135,7 +154,8 @@ class ReferenceAIAgent(AutonomousAgent):
             frame=observation.frame,
             control=control,
             diagnostics=AgentDiagnostics(
-                target_speed_mps=max(0., float(desired_speed)),
+                assistance=assistance,
+                target_speed_mps=max(0., float(tracking_speed)),
                 planned_trajectory=world_path,
                 metadata={
                     "model": "PlanT 2.0", "upstream_revision": UPSTREAM_REVISION,
@@ -161,9 +181,49 @@ class ReferenceAIAgent(AutonomousAgent):
                     "requires_road_raster": self._features.input_bev,
                     "learned_waypoints_ego": waypoints.tolist(),
                     "parameter_count": self._parameter_count,
+                    "learned_desired_speed_mps": max(0., float(learned_speed)),
+                    "upstream_tracking_desired_speed_mps": max(0., float(desired_speed)),
+                    "tracking_target_speed_mps": max(0., float(tracking_speed)),
+                    "tracking_speed_cap_mps": cap,
+                    "route_endpoint_padded": features.route_endpoint_padded,
+                    **task_metadata,
                 },
             ),
         )
+
+    @staticmethod
+    def _tracking_cap(observation: AgentObservation):
+        """Declared task tracking assistance; learned speed is only reduced.
+
+        A stopping requirement belongs to the explicit navigation task, not a
+        hazard rule or an implicit scenario ego-speed parameter. Use measured
+        distance to that destination, with a separate elevation guard.
+        """
+        task = observation.driving_task
+        if task is None:
+            return None, [], {}
+        destination, position = task.destination.position, observation.ego.transform.position
+        distance = math.hypot(destination.x - position.x, destination.y - position.y)
+        height_error = abs(destination.z - position.z)
+        caps = []
+        if task.target_speed_mps is not None:
+            caps.append((float(task.target_speed_mps), "task_target_speed_cap"))
+        approach_cap = None
+        deceleration = 2.0
+        if task.completion_speed_mps is not None and height_error <= task.completion_height_tolerance_m:
+            remaining = max(0., distance - task.completion_radius_m)
+            approach_cap = math.sqrt(task.completion_speed_mps**2 + 2. * deceleration * remaining)
+            caps.append((approach_cap, "task_destination_approach_speed_cap"))
+        cap = min((value for value, _ in caps), default=None)
+        assistance = [name for value, name in caps if value == cap]
+        return cap, assistance, {
+            "task_target_speed_cap_mps": task.target_speed_mps,
+            "task_destination_distance_m": distance,
+            "task_destination_height_error_m": height_error,
+            "task_completion_speed_mps": task.completion_speed_mps,
+            "task_approach_speed_cap_mps": approach_cap,
+            "task_approach_deceleration_mps2": deceleration if approach_cap is not None else None,
+        }
 
     def close(self):
         self._ready = False
@@ -172,6 +232,7 @@ class ReferenceAIAgent(AutonomousAgent):
         self._inference = None
         self._model = self._features = self._controller = self._configuration = None
         self._parameter_count = None
+        self._driving_task = None
         if self._torch is not None and self._device is not None and self._device.type == "cuda":
             self._torch.cuda.empty_cache()
         self._torch = self._device = None

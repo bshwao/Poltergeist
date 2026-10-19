@@ -166,8 +166,21 @@ def motion_summary(frames: Sequence[TelemetryFrame], *, stopped_speed_mps=0.2, s
     }
 
 
-def route_progress(frames, records):
+def route_progress(frames, records, *, driving_outcome=None):
     """Project motion onto the supplied bounded route; never invent one."""
+    if driving_outcome is not None:
+        # The resolved task spans the experiment; the observation scene is only
+        # a moving local horizon and must not replace its destination or length.
+        outcome = driving_outcome.model_dump(mode="json") if hasattr(driving_outcome, "model_dump") else driving_outcome
+        return {
+            "method": "resolved_driving_task",
+            "route_owner": outcome["route_owner"],
+            "route_length_m": outcome["route_length_m"],
+            "progress_m": outcome["route_progress_m"],
+            "destination": outcome["destination"],
+            "final_distance_to_destination_m": outcome["final_distance_m"],
+            "final_height_error_m": outcome["final_height_error_m"],
+        }
     if not frames or not records:
         return None
     observation = records[0].get("observation", {})
@@ -262,7 +275,9 @@ def summarize_run(output, records, *, total_wall_time_s, variant, process_stats=
                              "ego_motion_observed": motion["displacement_m"] is not None and motion["displacement_m"] > 0.01,
                              "scope": "Frame association and applied controls establish the control connection. Checkpoint identity must also match the pinned model; these checks alone do not establish driving competence."},
         "metrics": result.metrics.model_dump(mode="json"), "motion": motion,
-        "route_progress": route_progress(output.telemetry, records),
+        "driving_outcome": None if result.driving_outcome is None else result.driving_outcome.model_dump(mode="json"),
+        "control_audit": None if result.control_audit is None else result.control_audit.model_dump(mode="json"),
+        "route_progress": route_progress(output.telemetry, records, driving_outcome=result.driving_outcome),
         "lane_departures": None,
         "lane_departures_note": "No lane-invasion stream is collected by this pilot; traffic-rule violations are reported separately.",
         "process": asdict(process_stats) if process_stats is not None else None,

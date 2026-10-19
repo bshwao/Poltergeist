@@ -1,6 +1,7 @@
 """Validated scenario definitions; all distances are metres and speeds m/s."""
 
 from enum import StrEnum
+from math import dist
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, StrictBool, StrictFloat, StrictInt, model_validator
@@ -40,6 +41,46 @@ class Rotation(ContractModel):
 class Transform(ContractModel):
     position: Vector3 = Field(default_factory=Vector3)
     rotation: Rotation = Field(default_factory=Rotation)
+
+
+class DrivingTask(ContractModel):
+    """Explicit navigation objective, independent of an actor's initial speed.
+
+    Framework routes use world-coordinate waypoints. Agent-owned navigation
+    supplies only a destination so the agent must plan the route itself.
+    """
+
+    route_owner: Literal["framework", "agent"] = "framework"
+    destination: Transform | None = None
+    route: list[Transform] = Field(default_factory=list, max_length=4096)
+    target_speed_mps: NonNegativeFloat | None = None
+    completion_radius_m: PositiveFloat = 2.0
+    completion_height_tolerance_m: PositiveFloat = 2.0
+    completion_speed_mps: NonNegativeFloat | None = None
+    completion_hold_s: NonNegativeFloat = 0.0
+    stop_on_completion: StrictBool = False
+
+    @model_validator(mode="after")
+    def validate_navigation(self) -> Self:
+        if self.destination is None and not self.route:
+            raise ValueError("Driving task requires a destination or a route")
+        if self.route and len(self.route) < 2:
+            raise ValueError("Driving task route must contain at least two points")
+        if self.route_owner == "agent" and self.route:
+            raise ValueError("Agent-owned navigation must not supply a framework route")
+        for first, second in zip(self.route, self.route[1:]):
+            if first.position == second.position:
+                raise ValueError("Driving task route must not contain adjacent duplicate positions")
+        if self.route:
+            end = self.route[-1]
+            if self.destination is None:
+                self.destination = end.model_copy(deep=True)
+            elif dist(
+                (self.destination.position.x, self.destination.position.y, self.destination.position.z),
+                (end.position.x, end.position.y, end.position.z),
+            ) > 1e-6:
+                raise ValueError("Driving task destination must match the final route position")
+        return self
 
 
 class Weather(ContractModel):
@@ -112,6 +153,7 @@ class Scenario(ContractModel):
     weather: Weather = Field(default_factory=Weather)
     actors: Annotated[list[ActorSpec], Field(min_length=1)]
     events: list[ScenarioEvent] = Field(default_factory=list)
+    driving_task: DrivingTask | None = None
     # Legacy descriptive metadata is retained alongside executable events.
     location: NonEmptyString | None = None
     event: NonEmptyString | None = None

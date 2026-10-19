@@ -362,6 +362,58 @@ def test_cli_runs_saved_scenario_and_writes_structured_result(tmp_path, capsys):
     assert json.loads(target.read_text())["runtime"]["adapter"] == "test"
 
 
+def test_cli_driving_task_override_keeps_initial_speed_separate_from_goal(tmp_path, capsys):
+    path, task_path = tmp_path / "scenario.json", tmp_path / "task.json"
+    save_scenario(scene(), path)
+    task_path.write_text(json.dumps({"destination": {"position": {"x": 40.0}}, "target_speed_mps": 3.0}))
+    assert main(["--scenario", str(path), "--mode", "test", "--driving-task", str(task_path)]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["simulation"]["scenario"]["actors"][0]["speed_mps"] == 2
+    assert payload["driving_outcome"]["initial_speed_mps"] == 2
+    assert payload["driving_outcome"]["target_speed_mps"] == 3
+    assert payload["driving_outcome"]["status"] == "timed_out"
+
+
+def test_cli_invalid_driving_task_fails_before_writing_result(tmp_path):
+    path, task_path, result_path = tmp_path / "scenario.json", tmp_path / "task.json", tmp_path / "result.json"
+    save_scenario(scene(), path)
+    task_path.write_text('{"route_owner":"agent", "route": []}')
+    with pytest.raises(SystemExit) as error:
+        main(["--scenario", str(path), "--mode", "test", "--driving-task", str(task_path), "--output", str(result_path)])
+    assert error.value.code == 1
+    assert not result_path.exists()
+
+
+@pytest.mark.parametrize("bad_route", [[], [{"position": {"x": 0.0}}, {"position": {"x": 10.0}}], [{} , "invalid"]])
+def test_task_adapter_invalid_route_is_a_failed_result_including_baseline(bad_route):
+    class BadRoute(SpyAdapter):
+        def prepare_driving_task(self, task, frame):
+            return bad_route
+
+    output = SimulationRunner(BadRoute()).run(scene(driving_task={
+        "destination": {"position": {"x": 100.0}}, "target_speed_mps": 3.0,
+    }), mode="test")
+    assert output.result.simulation.status == "failed"
+    assert output.result.driving_outcome.status == "failed"
+    assert output.result.control_audit.interventions == []
+    assert len(output.telemetry) == 1
+
+
+def test_task_baseline_keeps_red_light_observation_without_legacy_route_fallback():
+    class RedLight(SpyAdapter):
+        def traffic_light_observation(self):
+            return True
+
+        def observation(self, *args):
+            raise AssertionError("Task route must be independent of legacy fallback")
+
+    output = SimulationRunner(RedLight()).run(scene(driving_task={
+        "destination": {"position": {"x": 20.0}}, "target_speed_mps": 3.0,
+    }), mode="test")
+    assert output.result.simulation.status == "completed"
+    assert all(frame.control.brake == 1 for frame in output.telemetry[1:])
+
+
 def test_partial_rule_checks_cannot_claim_full_coverage_or_close_unchecked_rules():
     from evaluation import evaluate_safety, summarize_traffic_rules
 

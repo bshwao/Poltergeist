@@ -1,0 +1,21 @@
+{
+  "name": "Finite synthetic driving goal",
+  "map": "Town03",
+  "seed": 17,
+  "duration_s": 20.0,
+  "fixed_delta_seconds": 0.05,
+  "actors": [{
+    "id": "ego", "type": "ego_vehicle", "speed_mps": 1.0,
+    "spawn": {"position": {"x": 0.0, "y": 0.0, "z": 0.0}}
+  }],
+  "driving_task": {
+    "route_owner": "framework",
+    "destination": {"position": {"x": 20.0, "y": 0.0, "z": 0.0}},
+    "target_speed_mps": 4.0,
+    "completion_radius_m": 1.0,
+    "completion_height_tolerance_m": 1.0,
+    "completion_speed_mps": 0.3,
+    "completion_hold_s": 0.2,
+    "stop_on_completion": true
+  }
+}

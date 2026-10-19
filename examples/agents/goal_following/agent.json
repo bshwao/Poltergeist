@@ -1,0 +1,11 @@
+{
+  "protocol_version": "1.2",
+  "agent_id": "goal-following-example",
+  "name": "Goal-following teaching controller",
+  "version": "0.1.0",
+  "entry_point": "agent:GoalFollowingAgent",
+  "observation_mode": "simulator_state",
+  "navigation_mode": "agent_planner",
+  "required_features": ["structured_scene"],
+  "configuration": {"cruise_speed_mps": 4.0}
+}

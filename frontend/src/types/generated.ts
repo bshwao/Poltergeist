@@ -3,6 +3,7 @@
  * Regenerate with: npm run contracts:generate
  */
 
+export type Assistance = string[];
 export type HazardActorIds = string[];
 export type Maneuver = string | null;
 /**
@@ -24,8 +25,9 @@ export type Assets = string[];
 export type ControlMode = "vehicle_control";
 export type EntryPoint = string;
 export type Name = string;
+export type NavigationMode = "provided_route" | "agent_planner";
 export type ObservationMode = "simulator_state" | "sensors";
-export type ProtocolVersion = "1.0" | "1.1";
+export type ProtocolVersion = "1.0" | "1.1" | "1.2";
 export type RequiredFeatures = "structured_scene"[];
 export type RequirementsFile = string | null;
 export type Id = string;
@@ -38,10 +40,21 @@ export type X1 = number;
 export type Y1 = number;
 export type Z1 = number;
 export type SpeedLimitMps = number | null;
+export type CompletionHeightToleranceM = number;
+export type CompletionHoldS = number;
+export type CompletionRadiusM = number;
+export type CompletionSpeedMps = number | null;
+/**
+ * @maxItems 4096
+ */
+export type Route = Transform[];
+export type RouteOwner = "framework" | "agent";
+export type StopOnCompletion = boolean;
+export type TargetSpeedMps1 = number | null;
 export type DtS = number;
 export type Frame = number;
 export type ObservationMode1 = "simulator_state";
-export type ProtocolVersion1 = "1.0" | "1.1";
+export type ProtocolVersion1 = "1.0" | "1.1" | "1.2";
 export type RouteHeadingDeg = number | null;
 export type Objects = AgentSceneObject[] | null;
 export type ActorId1 = string;
@@ -56,18 +69,21 @@ export type EgoRow = number;
 export type Height = number;
 export type PixelsPerMeter = number;
 export type Width = number;
-export type Route = Transform[] | null;
+export type Route1 = Transform[] | null;
 export type SchemaVersion = "1.0";
 export type Source = "carla_ground_truth" | "synthetic";
 export type SpeedLimitMps1 = number | null;
-export type TargetSpeedMps1 = number;
+export type TargetSpeedMps2 = number | null;
 export type TimeS = number;
 export type TrafficLightRed = boolean | null;
 export type EgoActorId = string;
 export type FixedDeltaSeconds = number;
 export type MapName = string;
-export type ProtocolVersion2 = "1.0" | "1.1";
-export type Route1 = Transform[];
+export type ProtocolVersion2 = "1.0" | "1.1" | "1.2";
+/**
+ * @maxItems 4096
+ */
+export type Route2 = Transform[];
 export type Seed = number;
 export type Brake = number;
 export type HandBrake = boolean;
@@ -75,7 +91,7 @@ export type Reverse = boolean;
 export type Steer = number;
 export type Throttle = number;
 export type Frame1 = number;
-export type ProtocolVersion3 = "1.0" | "1.1";
+export type ProtocolVersion3 = "1.0" | "1.1" | "1.2";
 export type CollisionObservedRuns = number;
 export type CollisionRuns = number;
 export type FailureReports = number;
@@ -194,6 +210,36 @@ export type Kind1 = "telemetry" | "recording" | "report";
 export type MediaType = string;
 export type Path = string;
 export type Artifacts = ArtifactReference[];
+export type Controller = "baseline" | "legacy_custom" | "sdk_agent";
+export type Frame2 = number;
+export type Kind2 = "scripted_ego_speed_target" | "scripted_ego_braking";
+export type TargetSpeedMps3 = number | null;
+export type TimeS1 = number;
+/**
+ * @maxItems 200000
+ */
+export type Interventions = ControlIntervention[];
+export type Mode2 = "scripted" | "authoritative";
+export type Navigation = "legacy_assisted" | "framework_route" | "agent_planner";
+export type ControlMode1 = "scripted" | "authoritative";
+export type FinalDistanceM = number | null;
+export type FinalHeightErrorM = number | null;
+export type InitialSpeedMps = number | null;
+/**
+ * @maxItems 200000
+ */
+export type Interventions1 = ControlIntervention[];
+export type ReachedAtS = number | null;
+/**
+ * @maxItems 4096
+ */
+export type ResolvedRoute = Transform[];
+export type RouteLengthM = number | null;
+export type RouteOwner1 = "framework" | "agent";
+export type RouteProgressM = number | null;
+export type Status = "reached" | "timed_out" | "cancelled" | "failed" | "unavailable";
+export type TargetSpeedMps4 = number | null;
+export type TerminationReason = "goal_reached" | "duration_elapsed" | "cancelled" | "execution_failed";
 export type MeasuredDurationS = number;
 export type CollisionCount = number | null;
 export type ActorPairs = number;
@@ -226,7 +272,7 @@ export type CreatedAt2 = string;
 export type Error2 = string | null;
 export type FinishedAt1 = string | null;
 export type Id3 = string;
-export type Mode2 = "carla" | "test";
+export type Mode3 = "carla" | "test";
 export type Progress1 = number;
 export type StartedAt1 = string | null;
 export type SimulationStatus1 = "queued" | "running" | "completed" | "failed" | "cancelled";
@@ -239,14 +285,14 @@ export type Collisions = CollisionEvent[] | null;
 export type EventId = string | null;
 export type ImpulseNS = number;
 export type OtherActorId = string;
-export type Frame2 = number;
+export type Frame3 = number;
 export type RuleChecks = TrafficRule[] | null;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "TrafficRule".
  */
 export type TrafficRule = "red_light" | "stop_sign" | "speeding" | "wrong_way" | "sidewalk";
-export type TimeS1 = number;
+export type TimeS2 = number;
 export type TrafficViolations = TrafficViolation[] | null;
 export type ActorId4 = string;
 export type Details = string;
@@ -279,7 +325,7 @@ export type CancelRequested2 = boolean;
 export type CreatedAt4 = string;
 export type EngineVersion = string | null;
 export type Error3 = string | null;
-export type Mode3 = "carla" | "test";
+export type Mode4 = "carla" | "test";
 export type FinishedAt2 = string | null;
 export type Id5 = string;
 export type BestFailureId = string | null;
@@ -290,19 +336,19 @@ export type Summary1 = string;
 export type TrialsUsed = number;
 export type Unknowns = number;
 export type Request = SearchRequest | ReproductionRequest | MinimizeRequest;
-export type Kind2 = "search";
+export type Kind3 = "search";
 export type MinimumSeverity = number;
-export type Mode4 = "carla" | "test";
+export type Mode5 = "carla" | "test";
 export type Seed4 = number;
 export type Strategy = "random" | "optuna";
 export type Trials = number;
 export type FailureId = string;
-export type Kind3 = "reproduce";
+export type Kind4 = "reproduce";
 export type MinimumSeverity1 = number;
 export type Repeats = number;
 export type RequiredSuccesses = number | null;
 export type FailureId1 = string;
-export type Kind4 = "minimize";
+export type Kind5 = "minimize";
 export type MaxTrials = number;
 export type MinimumSeverity2 = number;
 export type Repeats1 = number;
@@ -358,6 +404,7 @@ export interface AgentContracts {
  * via the `definition` "AgentDiagnostics".
  */
 export interface AgentDiagnostics {
+  assistance: Assistance;
   hazard_actor_ids: HazardActorIds;
   maneuver: Maneuver;
   metadata: Metadata;
@@ -407,6 +454,7 @@ export interface AgentManifest {
   control_mode: ControlMode;
   entry_point: EntryPoint;
   name: Name;
+  navigation_mode: NavigationMode;
   observation_mode: ObservationMode;
   protocol_version: ProtocolVersion;
   required_features: RequiredFeatures;
@@ -435,6 +483,7 @@ export interface Attributes {
  */
 export interface AgentObservation {
   actors: Actors;
+  driving_task: DrivingTask | null;
   dt_s: DtS;
   ego: ActorState;
   frame: Frame;
@@ -442,7 +491,7 @@ export interface AgentObservation {
   protocol_version: ProtocolVersion1;
   route_heading_deg: RouteHeadingDeg;
   scene: AgentSceneContext | null;
-  target_speed_mps: TargetSpeedMps1;
+  target_speed_mps: TargetSpeedMps2;
   time_s: TimeS;
   traffic_light_red: TrafficLightRed;
 }
@@ -471,6 +520,26 @@ export interface BoundingBoxExtent {
   z: Z1;
 }
 /**
+ * Explicit navigation objective, independent of an actor's initial speed.
+ *
+ * Framework routes use world-coordinate waypoints. Agent-owned navigation
+ * supplies only a destination so the agent must plan the route itself.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DrivingTask".
+ */
+export interface DrivingTask {
+  completion_height_tolerance_m: CompletionHeightToleranceM;
+  completion_hold_s: CompletionHoldS;
+  completion_radius_m: CompletionRadiusM;
+  completion_speed_mps: CompletionSpeedMps;
+  destination: Transform | null;
+  route: Route;
+  route_owner: RouteOwner;
+  stop_on_completion: StopOnCompletion;
+  target_speed_mps: TargetSpeedMps1;
+}
+/**
  * Versioned optional privileged scene context for SDK 1.1 agents.
  *
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -479,7 +548,7 @@ export interface BoundingBoxExtent {
 export interface AgentSceneContext {
   objects: Objects;
   road_raster: AgentRoadRaster | null;
-  route: Route;
+  route: Route1;
   schema_version: SchemaVersion;
   source: Source;
   speed_limit_mps: SpeedLimitMps1;
@@ -526,11 +595,12 @@ export interface AgentRoadRaster {
  */
 export interface AgentReset {
   destination: Transform | null;
+  driving_task: DrivingTask | null;
   ego_actor_id: EgoActorId;
   fixed_delta_seconds: FixedDeltaSeconds;
   map_name: MapName;
   protocol_version: ProtocolVersion2;
-  route: Route1;
+  route: Route2;
   seed: Seed;
 }
 /**
@@ -662,6 +732,7 @@ export interface ScenarioRecord {
 export interface Scenario {
   actors: Actors1;
   description: Description;
+  driving_task: DrivingTask | null;
   duration_s: DurationS1;
   event: Event;
   events: Events;
@@ -841,6 +912,8 @@ export interface JobInfo {
  */
 export interface SimulationResult {
   artifacts: Artifacts;
+  control_audit: ControlAudit | null;
+  driving_outcome: DrivingOutcome | null;
   measured_duration_s: MeasuredDurationS;
   metrics: SafetyMetrics;
   runtime: SimulationRuntime | null;
@@ -855,6 +928,54 @@ export interface ArtifactReference {
   kind: Kind1;
   media_type: MediaType;
   path: Path;
+}
+/**
+ * Control ownership and scenario assistance for both new and legacy runs.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ControlAudit".
+ */
+export interface ControlAudit {
+  controller: Controller;
+  interventions: Interventions;
+  mode: Mode2;
+  navigation: Navigation;
+}
+/**
+ * A recorded scenario-script influence on the ego's requested control.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ControlIntervention".
+ */
+export interface ControlIntervention {
+  applied_control: ControlInput;
+  frame: Frame2;
+  kind: Kind2;
+  proposed_control: ControlInput;
+  target_speed_mps: TargetSpeedMps3;
+  time_s: TimeS1;
+}
+/**
+ * Navigation measurements separate from execution and safety outcomes.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DrivingOutcome".
+ */
+export interface DrivingOutcome {
+  control_mode: ControlMode1;
+  destination: Transform;
+  final_distance_m: FinalDistanceM;
+  final_height_error_m: FinalHeightErrorM;
+  initial_speed_mps: InitialSpeedMps;
+  interventions: Interventions1;
+  reached_at_s: ReachedAtS;
+  resolved_route: ResolvedRoute;
+  route_length_m: RouteLengthM;
+  route_owner: RouteOwner1;
+  route_progress_m: RouteProgressM;
+  status: Status;
+  target_speed_mps: TargetSpeedMps4;
+  termination_reason: TerminationReason;
 }
 /**
  * Null minima mean unavailable/no relevant interaction; never encode infinity.
@@ -926,7 +1047,7 @@ export interface Simulation {
   error: Error2;
   finished_at: FinishedAt1;
   id: Id3;
-  mode: Mode2;
+  mode: Mode3;
   progress: Progress1;
   scenario: Scenario;
   started_at: StartedAt1;
@@ -951,9 +1072,9 @@ export interface TelemetryFrame {
   collisions: Collisions;
   control: ControlInput;
   ego: ActorState;
-  frame: Frame2;
+  frame: Frame3;
   rule_checks: RuleChecks;
-  time_s: TimeS1;
+  time_s: TimeS2;
   traffic_violations: TrafficViolations;
 }
 /**
@@ -1048,7 +1169,7 @@ export interface OptimizationRecord {
  */
 export interface ExecutionSpec {
   evaluation_settings: EvaluationSettings;
-  mode: Mode3;
+  mode: Mode4;
   options: SimulationOptions;
 }
 /**
@@ -1072,9 +1193,9 @@ export interface OptimizationOutcome {
 export interface SearchRequest {
   evaluation_settings: EvaluationSettings;
   failure_kind: FailureKind | null;
-  kind: Kind2;
+  kind: Kind3;
   minimum_severity: MinimumSeverity;
-  mode: Mode4;
+  mode: Mode5;
   options: SimulationOptions;
   parameters: Parameters3;
   ranges: Ranges1;
@@ -1099,7 +1220,7 @@ export interface Ranges1 {
  */
 export interface ReproductionRequest {
   failure_id: FailureId;
-  kind: Kind3;
+  kind: Kind4;
   minimum_severity: MinimumSeverity1;
   repeats: Repeats;
   required_successes: RequiredSuccesses;
@@ -1110,7 +1231,7 @@ export interface ReproductionRequest {
  */
 export interface MinimizeRequest {
   failure_id: FailureId1;
-  kind: Kind4;
+  kind: Kind5;
   max_trials: MaxTrials;
   minimum_severity: MinimumSeverity2;
   repeats: Repeats1;

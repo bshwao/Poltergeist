@@ -65,6 +65,7 @@ class PlanTFeatures:
     ego_speed_mps: float
     bev_classes: "list[list[int]] | np.ndarray | None"
     omitted_objects: int
+    route_endpoint_padded: bool = False
 
 
 class PlanTFeatureBuilder:
@@ -87,7 +88,8 @@ class PlanTFeatureBuilder:
             raise ValueError("Reference AI requires the structured_scene observation feature")
         if observation.ego.transform is None or observation.ego.velocity_mps is None:
             raise ValueError("Reference AI requires observed ego pose and velocity")
-        if scene.route is None or len(scene.route) < 2:
+        task = observation.driving_task
+        if scene.route is None or not scene.route or (len(scene.route) < 2 and task is None):
             raise ValueError("Reference AI requires a map-derived route extending at least 21.5 metres ahead")
         if scene.objects is None:
             raise ValueError("Reference AI requires observed scene objects; null means unavailable")
@@ -140,19 +142,28 @@ class PlanTFeatureBuilder:
             # Leave space for BERT's path/waypoint/map tokens (512 total).
             candidates = sorted(candidates, key=lambda item: item[2])[:480]
         candidates.sort(key=lambda item: item[:2])
-        route = self._route(scene.route, ego_transform)
+        if task is not None and task.route_owner != "framework":
+            raise ValueError("Reference AI requires a framework-provided route; it is not a global route planner")
+        route, endpoint_padded = self._route(
+            scene.route, ego_transform, allow_endpoint_padding=task is not None, return_padding=True,
+        )
         bev = self._raster(scene.road_raster, as_array=self.raster_array) if self.input_bev else None
         return PlanTFeatures([item[3] for item in candidates], route,
-                             speed_category(scene.speed_limit_mps), ego_speed, bev, omitted)
+                             speed_category(scene.speed_limit_mps), ego_speed, bev, omitted, endpoint_padded)
 
     @staticmethod
-    def _route(world_route, ego_transform):
+    def _route(world_route, ego_transform, *, allow_endpoint_padding=False, return_padding=False):
         """Project onto the supplied map polyline; sample 2.5m..21.5m ahead.
 
         This is route preprocessing, not a learned/global route planner. No
         straight-line extrapolation is used when map route coverage ends.
+        Explicit finite driving tasks may repeat their final route point to
+        preserve the network's fixed input size near the actual destination.
         """
         points = [relative_position(item.position, ego_transform)[:2] for item in world_route]
+        if allow_endpoint_padding and len(points) == 1:
+            result = [list(points[0]) for _ in range(20)]
+            return (result, True) if return_padding else result
         segments, distance, closest = [], 0., None
         for first, second in zip(points, points[1:]):
             dx, dy = second[0] - first[0], second[1] - first[1]
@@ -166,18 +177,21 @@ class PlanTFeatureBuilder:
                 closest = candidate
             segments.append((distance, distance + length, first, second))
             distance += length
-        if closest is None or distance < closest[1] + 21.5 - 1e-8:
+        if closest is None or (not allow_endpoint_padding and distance < closest[1] + 21.5 - 1e-8):
             raise ValueError("Reference AI requires a map-derived route extending at least 21.5 metres ahead")
         result, segment_index = [], 0
+        endpoint_padded = distance < closest[1] + 21.5 - 1e-8
         for index in range(20):
             desired = closest[1] + 2.5 + index
+            if allow_endpoint_padding:
+                desired = min(desired, distance)
             while segment_index < len(segments) - 1 and segments[segment_index][1] < desired:
                 segment_index += 1
             start, end, first, second = segments[segment_index]
             fraction = (desired - start) / (end - start)
             result.append([first[0] + fraction * (second[0] - first[0]),
                            first[1] + fraction * (second[1] - first[1])])
-        return result
+        return (result, endpoint_padded) if return_padding else result
 
     @staticmethod
     def _raster(raster, *, as_array=False):

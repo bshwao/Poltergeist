@@ -20,6 +20,7 @@ from .scenario import (
     ActorSpec,
     ActorType,
     BrakingEvent,
+    DrivingTask,
     RelativeSpawn,
     Rotation,
     Scenario,
@@ -30,7 +31,10 @@ from .scenario import (
     Vector3,
     Weather,
 )
-from .simulation import ArtifactReference, FailureKind, FailureReport, Simulation, SimulationResult, SimulationRuntime, SimulationStatus
+from .simulation import (
+    ArtifactReference, ControlAudit, ControlIntervention, DrivingOutcome, FailureKind, FailureReport,
+    Simulation, SimulationResult, SimulationRuntime, SimulationStatus,
+)
 from .telemetry import (
     ActorState,
     BoundingBoxExtent,
@@ -47,6 +51,7 @@ __all__ = [
     "AgentReset", "AgentSensorSpec", "AgentStepResult",
     "AgentRoadRaster", "AgentSceneContext", "AgentSceneObject",
     "ActorSpec", "ActorState", "ActorType", "ArtifactReference", "BoundingBoxExtent", "BrakingEvent",
+    "ControlAudit", "ControlIntervention", "DrivingOutcome", "DrivingTask",
     "CollisionEvent", "ControlInput", "EvaluationCoverage", "EvaluationSettings", "FailureKind", "FailureReport", "RelativeSpawn", "Rotation",
     "SafetyMetrics", "Scenario", "ScenarioEvent", "ScenarioTemplate", "Simulation", "SimulationResult",
     "SpeedChangeEvent",

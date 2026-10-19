@@ -124,6 +124,16 @@ class CarlaReferenceScene:
         self._map_loaded = False
         self._cleared_stops: set[int] = set()
         self._signal_geometry: dict[tuple[str, int], list[Transform]] = {}
+        self._driving_task = None
+        self._task_route_tracker = None
+
+    def configure_driving_task(self, task, route: list[Transform]) -> None:
+        """Select finite guidance; agent-owned tasks disclose no route hints."""
+        self._driving_task = task.model_copy(deep=True)
+        self._route = [point.model_copy(deep=True) for point in route]
+        from .navigation import RouteTracker
+        self._task_route_tracker = RouteTracker(self._route,
+            height_tolerance_m=task.completion_height_tolerance_m)
 
     def context(self, frame: TelemetryFrame) -> AgentSceneContext:
         pose = frame.ego.transform
@@ -140,6 +150,10 @@ class CarlaReferenceScene:
         return AgentSceneContext.model_validate(context.model_dump(mode="python"))
 
     def _route_ahead(self, ego: Transform) -> list[Transform] | None:
+        if self._driving_task is not None:
+            if self._driving_task.route_owner == "agent":
+                return None
+            return self._task_route_tracker.local_route(ego)
         if not self._route:
             selected = getattr(self.manager, "_routes", {}).get(self.ego_id)
             if selected:
@@ -210,7 +224,7 @@ class CarlaReferenceScene:
                     transform=actor.bounding_box_transform or actor.transform,
                     extent=actor.bounding_box_extent, velocity_mps=actor.velocity_mps,
                 ))
-            if frame.ego.transform is not None and route:
+            if frame.ego.transform is not None and (route or self._driving_task is not None):
                 result.extend(self._signals(actors, frame, route))
             # CARLA's dynamic telemetry intentionally covers road users only.
             # Include actual world cone/obstacle props without moving them.
@@ -244,7 +258,7 @@ class CarlaReferenceScene:
                    for point in route[:32])
 
     def _signals(self, actors: list[Any], frame: TelemetryFrame,
-                 route: list[Transform]) -> list[AgentSceneObject]:
+                 route: list[Transform] | None) -> list[AgentSceneObject]:
         result = []
         ego = frame.ego.transform
         speed = math.hypot(*(getattr(frame.ego.velocity_mps, axis) for axis in ("x", "y", "z"))) \
@@ -256,7 +270,9 @@ class CarlaReferenceScene:
                 if key not in self._signal_geometry:
                     self._signal_geometry[key] = [from_carla(point.transform) for point in actor.get_stop_waypoints()]
                 points = self._signal_geometry[key]
-                relevant = [point for point in points if _distance(ego, point) <= 30.0 and self._on_route(point, route)]
+                relevant = [point for point in points if _distance(ego, point) <= 30.0 and
+                            abs(ego.position.z - point.position.z) <= 3.0 and
+                            (route is None or self._on_route(point, route))]
                 if relevant:
                     # Signal state is dynamic; geometry is static. Avoid a
                     # server RPC for every distant traffic light on every tick.
@@ -285,7 +301,9 @@ class CarlaReferenceScene:
                     self._cleared_stops.discard(actor.id)
                 if distance < 3.0 and speed is not None and speed < 0.1:
                     self._cleared_stops.add(actor.id)
-                if actor.id not in self._cleared_stops and distance <= 30.0 and self._on_route(point, route):
+                if (actor.id not in self._cleared_stops and distance <= 30.0 and
+                        abs(ego.position.z - point.position.z) <= 3.0 and
+                        (route is None or self._on_route(point, route))):
                     result.append(AgentSceneObject(actor_id=f"stop-sign:{actor.id}", kind="stop_sign",
                         transform=point, extent=BoundingBoxExtent(x=1.5, y=1.5, z=0.5), is_static=True))
         return result

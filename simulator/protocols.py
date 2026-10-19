@@ -19,7 +19,7 @@ class DrivingObservation:
     ego: ActorState
     actors: tuple[ActorState, ...]
     dt_s: float
-    target_speed_mps: float
+    target_speed_mps: float | None
     route_heading_deg: float | None = None
     traffic_light_red: bool | None = None
 

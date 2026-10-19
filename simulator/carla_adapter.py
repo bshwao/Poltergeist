@@ -37,6 +37,8 @@ class CarlaSimulationAdapter:
         self._opened = False
         self._versions = {}
         self._reference_scene = None
+        self._driving_task = None
+        self._driving_route = []
 
     def open(self, scenario: Scenario) -> TelemetryFrame:
         if self._opened:
@@ -167,7 +169,41 @@ class CarlaSimulationAdapter:
         if self._reference_scene is None:
             from .reference_scene import CarlaReferenceScene
             self._reference_scene = CarlaReferenceScene(self.world, self.carla, self.actor_manager, self.ego_id)
+            if self._driving_task is not None:
+                self._reference_scene.configure_driving_task(self._driving_task, self._driving_route)
         return self._reference_scene.context(frame)
+
+    def prepare_driving_task(self, task, frame: TelemetryFrame):
+        """Resolve a finite route without moving actors or ticking the world."""
+        if self.world is None or self.actor_manager is None or not self._opened:
+            raise SimulationError("CARLA simulation is not open")
+        if frame.ego.transform is None:
+            raise SimulationError("Driving task requires a measured initial ego position")
+        from shared.models import DrivingTask
+        from .navigation import resolve_carla_route
+        task = DrivingTask.model_validate(task.model_dump()).model_copy(deep=True)
+        route = resolve_carla_route(self.world.get_map(), self.carla, task, frame.ego.transform)
+        self._driving_task, self._driving_route = task, route
+        if self._reference_scene is not None:
+            self._reference_scene.configure_driving_task(task, route)
+        return [point.model_copy(deep=True) for point in route]
+
+    def traffic_light_observation(self) -> bool | None:
+        """Measure a signal without choosing a speed, route, or vehicle action."""
+        try:
+            if self.ego is None:
+                return None
+            if not self.ego.is_at_traffic_light():
+                return False
+            state = self.ego.get_traffic_light_state()
+            if state == self.carla.TrafficLightState.Red:
+                return True
+            if state in (self.carla.TrafficLightState.Green, self.carla.TrafficLightState.Yellow,
+                         self.carla.TrafficLightState.Off):
+                return False
+        except (AttributeError, RuntimeError):
+            pass
+        return None
 
     def finalize(self, frames: list[TelemetryFrame]) -> list[TelemetryFrame]:
         return self.sensors.finalize(frames) if self.sensors is not None else frames
@@ -194,5 +230,7 @@ class CarlaSimulationAdapter:
                     errors.append(f"{name}: {error}")
         self._opened = False
         self._reference_scene = None
+        self._driving_task = None
+        self._driving_route = []
         if errors:
             raise SimulationError("CARLA cleanup failed: " + "; ".join(errors))

@@ -14,13 +14,14 @@ import sys
 
 from evaluation import EvaluationSettings, evaluate_safety, validate_frames
 from scenarios import load_scenario, load_template, validate_scenario
-from shared.models import AgentObservation, AgentReset, AgentSceneContext, ControlInput, Scenario, Simulation, SimulationResult, SimulationRuntime, SimulationStatus, TelemetryFrame
+from shared.models import AgentObservation, AgentReset, AgentSceneContext, ControlAudit, ControlInput, ControlIntervention, DrivingTask, Scenario, Simulation, SimulationResult, SimulationRuntime, SimulationStatus, TelemetryFrame
 
 from .agents import BaseAgent, BaselineAgent
 from .agents.process import AgentProcessOptions, ProcessAgent
 from .agents.sdk import AgentSDKError
 from .errors import SimulationCancelled, SimulationError
-from .protocols import ActorCommand, SensorSample, SimulationAdapter, SimulationOptions
+from .protocols import ActorCommand, DrivingObservation, SensorSample, SimulationAdapter, SimulationOptions
+from .navigation import TaskMonitor
 from .timing import high_resolution_timer
 
 
@@ -63,7 +64,7 @@ class SimulationRunner:
         agent: BaseAgent | ProcessAgent | None = None, cancellation: Event | None = None,
         on_progress: Callable | None = None, on_frame: Callable | None = None,
         on_sensor: Callable[[SensorSample], None] | None = None,
-        agent_control_mode: str = "scripted", on_decision: Callable | None = None,
+        agent_control_mode: str | None = None, on_decision: Callable | None = None,
     ) -> RunOutput:
         if not self._lock.acquire(blocking=False):
             raise SimulationError("This runner is already executing")
@@ -99,8 +100,21 @@ class SimulationRunner:
         if agent is not None and not isinstance(agent, (BaseAgent, ProcessAgent)):
             raise SimulationError("Driving agent must implement BaseAgent or use ProcessAgent")
         driver = BaselineAgent() if agent is None else agent
+        task = validated.driving_task
+        sdk_protocol = driver.manifest.protocol_version if isinstance(driver, ProcessAgent) else None
+        if agent_control_mode in (None, "auto"):
+            agent_control_mode = ("authoritative" if isinstance(driver, ProcessAgent)
+                                  and (task is not None or sdk_protocol == "1.2") else "scripted")
         if agent_control_mode not in ("scripted", "authoritative"):
             raise SimulationError("agent_control_mode must be scripted or authoritative")
+        if task is not None:
+            if isinstance(driver, ProcessAgent):
+                if sdk_protocol != "1.2":
+                    raise SimulationError("Explicit driving tasks require an SDK 1.2 agent")
+                if task.route_owner == "agent" and driver.manifest.navigation_mode != "agent_planner":
+                    raise SimulationError("Agent-owned routes require an agent_planner manifest")
+            elif task.route_owner == "agent" or task.target_speed_mps is None:
+                raise SimulationError("Legacy/baseline task controllers require a framework route and explicit target_speed_mps")
         if agent_control_mode == "authoritative":
             if not isinstance(driver, ProcessAgent):
                 raise SimulationError("Authoritative control mode requires an external SDK agent")
@@ -124,6 +138,14 @@ class SimulationRunner:
         execution_started = None
         setup_wall_time_s = execution_wall_time_s = 0.0
         initial_scene = None
+        task_monitor = None
+        task_descriptor = None
+        prepared_reset = None
+        resolved_route = []
+        intervention_records = []
+        ego_speed_script_active = False
+        controller_kind = ("sdk_agent" if isinstance(driver, ProcessAgent) else
+                           "baseline" if isinstance(driver, BaselineAgent) else "legacy_custom")
         needs_scene = isinstance(driver, ProcessAgent) and "structured_scene" in driver.manifest.required_features
         if adapter is None:
             if simulation.mode == "test":
@@ -148,7 +170,7 @@ class SimulationRunner:
                 if on_sensor is not None:
                     on_sensor(sample)
 
-        def accept(raw, previous=None):
+        def accept(raw, previous=None, applied_interventions=()):
             frame = validate_frames([raw])[0]
             ego_id = next(actor.id for actor in validated.actors if actor.type == "ego_vehicle")
             if frame.ego.actor_id != ego_id:
@@ -161,6 +183,9 @@ class SimulationRunner:
             ):
                 raise SimulationError("Adapter skipped a frame or changed the fixed time step")
             trace.append(frame)
+            # An intervention is applied evidence only after a valid measured
+            # transition, including when a subsequent recording callback fails.
+            intervention_records.extend(applied_interventions)
             if on_frame is not None:
                 on_frame(frame.model_copy(deep=True))
             capture()
@@ -177,6 +202,25 @@ class SimulationRunner:
             phase = "initialization"
             open_attempted = True
             current = accept(adapter.open(validated.model_copy(deep=True)))
+            if task is not None:
+                # Keep a failure outcome even if planning fails after spawning.
+                task_monitor = TaskMonitor(task, [], current, agent_control_mode)
+                planner = getattr(adapter, "prepare_driving_task", None)
+                if not callable(planner):
+                    raise SimulationError("Adapter cannot prepare explicit driving tasks")
+                raw_route = planner(task.model_copy(deep=True), current.model_copy(deep=True))
+                # The full immutable route is sent once in reset.route. Each
+                # observation carries the stable goal without duplicating it.
+                task_descriptor = DrivingTask.model_validate(task.model_dump() | {"route": []})
+                # Validate adapter output even when a baseline controller is
+                # used. A malformed route must fail inside initialization.
+                prepared_reset = AgentReset(
+                    protocol_version="1.2", seed=validated.seed, map_name=validated.map,
+                    ego_actor_id=current.ego.actor_id, fixed_delta_seconds=validated.fixed_delta_seconds,
+                    route=raw_route, destination=task.destination, driving_task=task_descriptor,
+                )
+                resolved_route = prepared_reset.route
+                task_monitor = TaskMonitor(task, resolved_route, current, agent_control_mode)
             if isinstance(driver, ProcessAgent):
                 phase = "agent reset"
                 if needs_scene:
@@ -187,13 +231,15 @@ class SimulationRunner:
                     initial_scene = AgentSceneContext.model_validate(
                         raw_scene.model_dump() if isinstance(raw_scene, AgentSceneContext) else raw_scene,
                     )
-                driver.reset(AgentReset(
-                    protocol_version=driver.manifest.protocol_version,
+                driver.reset(prepared_reset if prepared_reset is not None else AgentReset(
+                    protocol_version=sdk_protocol,
                     seed=validated.seed, map_name=validated.map,
                     ego_actor_id=current.ego.actor_id,
                     fixed_delta_seconds=validated.fixed_delta_seconds,
-                    route=[] if initial_scene is None or initial_scene.route is None else initial_scene.route,
-                    destination=None if initial_scene is None or not initial_scene.route else initial_scene.route[-1],
+                    route=(resolved_route if task is not None else
+                           [] if initial_scene is None or initial_scene.route is None else initial_scene.route),
+                    destination=None if task is None else task.destination,
+                    driving_task=task_descriptor,
                 ))
             update(status=SimulationStatus.RUNNING, started_at=datetime.now(UTC))
             progress()
@@ -203,6 +249,8 @@ class SimulationRunner:
             events = sorted(enumerate(validated.events), key=lambda pair: (pair[1].trigger_time_s, pair[0]))
             next_event = 0
             for _ in range(ticks):
+                if task_monitor is not None and task.stop_on_completion and task_monitor.reached:
+                    break
                 step_started = perf_counter()
                 phase = "execution"
                 self._check_cancelled(cancellation)
@@ -210,11 +258,27 @@ class SimulationRunner:
                     event = events[next_event][1]
                     if event.action == "set_speed":
                         commands[event.actor_id] = ActorCommand(event.speed_mps)
+                        if event.actor_id == current.ego.actor_id:
+                            ego_speed_script_active = True
                     else:
                         commands[event.actor_id] = ActorCommand(0.0, event.deceleration_mps2)
+                        if event.actor_id == current.ego.actor_id:
+                            ego_speed_script_active = False
                     next_event += 1
                 ego_command = commands[current.ego.actor_id]
-                observation = deepcopy(adapter.observation(current.model_copy(deep=True), ego_command.target_speed_mps))
+                if task_monitor is None:
+                    observation = deepcopy(adapter.observation(current.model_copy(deep=True), ego_command.target_speed_mps))
+                else:
+                    target = (ego_command.target_speed_mps if ego_speed_script_active else task.target_speed_mps)
+                    signal_provider = getattr(adapter, "traffic_light_observation", None)
+                    observation = DrivingObservation(
+                        ego=current.ego.model_copy(deep=True),
+                        actors=tuple(item.model_copy(deep=True) for item in current.actors or []),
+                        dt_s=validated.fixed_delta_seconds, target_speed_mps=target,
+                        route_heading_deg=(task_monitor.guidance_heading(current)
+                                           if task.route_owner == "framework" else None),
+                        traffic_light_red=signal_provider() if callable(signal_provider) else None,
+                    )
                 scene = None
                 if needs_scene:
                     if initial_scene is not None:
@@ -230,7 +294,7 @@ class SimulationRunner:
                     # Preserve unavailable actor data (None) from telemetry;
                     # legacy DrivingObservation represents it as an empty tuple.
                     sdk_observation = AgentObservation(
-                        protocol_version=driver.manifest.protocol_version,
+                        protocol_version=sdk_protocol,
                         frame=current.frame, time_s=current.time_s,
                         ego=observation.ego, actors=current.actors,
                         dt_s=observation.dt_s,
@@ -238,6 +302,7 @@ class SimulationRunner:
                         route_heading_deg=observation.route_heading_deg,
                         traffic_light_red=observation.traffic_light_red,
                         scene=scene,
+                        driving_task=task_descriptor,
                     )
                     decision = driver.step(sdk_observation)
                     control = decision.control
@@ -247,13 +312,24 @@ class SimulationRunner:
                 control = ControlInput.model_validate(control.model_dump() if isinstance(control, ControlInput) else control)
                 proposed_control = control.model_copy(deep=True)
                 interventions = []
+                if ego_speed_script_active:
+                    interventions.append("scripted_ego_speed_target")
                 if ego_command.deceleration_mps2 is not None:
                     interventions.append("scripted_ego_braking")
                     control = ControlInput.model_validate(control.model_dump() | {
                         "throttle": 0.0, "brake": min(1.0, ego_command.deceleration_mps2 / 8.0),
                     })
+                applied_interventions = []
+                for intervention in interventions:
+                    applied_interventions.append(ControlIntervention(
+                        frame=current.frame, time_s=current.time_s, kind=intervention,
+                        proposed_control=proposed_control, applied_control=control,
+                        target_speed_mps=ego_command.target_speed_mps,
+                    ))
                 previous = current
-                current = accept(adapter.step(control, commands), current)
+                current = accept(adapter.step(control, commands), current, applied_interventions)
+                if task_monitor is not None:
+                    task_monitor.update(current)
                 # The internal progress is bounded arithmetic over validated
                 # telemetry; the unchanged recipe need not be rebuilt per tick.
                 self._simulation = self._simulation.model_copy(update={
@@ -264,11 +340,13 @@ class SimulationRunner:
                 if on_decision is not None:
                     if sdk_observation is None:
                         sdk_observation = AgentObservation(
+                            protocol_version="1.2" if task is not None else "1.0",
                             frame=previous.frame, time_s=previous.time_s, dt_s=observation.dt_s,
                             ego=observation.ego, actors=previous.actors,
                             target_speed_mps=observation.target_speed_mps,
                             route_heading_deg=observation.route_heading_deg,
                             traffic_light_red=observation.traffic_light_red,
+                            driving_task=task_descriptor,
                         )
                     timing = driver.last_timing if isinstance(driver, ProcessAgent) else None
                     on_decision({
@@ -282,6 +360,7 @@ class SimulationRunner:
                         "round_trip_wall_time_s": None if timing is None else timing.round_trip_wall_time_s,
                         "full_step_wall_time_s": full_step_wall_time_s,
                         "resulting_frame": current.frame, "resulting_ego": current.ego.model_dump(mode="json"),
+                        "control_mode": agent_control_mode,
                     })
                 # Include serialization, validation, writing/flushing evidence
                 # and any user callback in the actual control-loop cadence.
@@ -378,10 +457,30 @@ class SimulationRunner:
             update(status=SimulationStatus.FAILED, error=(earlier + "; " if earlier else "") + f"terminal progress callback: {error}")
             if not metrics.collision_count:
                 metrics.severity = None
+        final_status = self._simulation.status
+        driving_outcome = None
+        if task is not None and trace:
+            # Finalized telemetry is the persisted evidence. Replaying also
+            # covers failures in callbacks after accept appended a valid frame.
+            task_monitor = TaskMonitor(task, resolved_route, trace[0], agent_control_mode)
+            for frame in trace[1:]:
+                task_monitor.update(frame)
+        if task_monitor is not None:
+            reason = ("cancelled" if final_status == SimulationStatus.CANCELLED else
+                      "execution_failed" if final_status == SimulationStatus.FAILED else
+                      "goal_reached" if task.stop_on_completion and task_monitor.reached else "duration_elapsed")
+            driving_outcome = task_monitor.outcome(final_status.value, intervention_records, reason)
         result = SimulationResult(
             simulation=self.simulation, metrics=metrics, telemetry_frames=len(trace),
             measured_duration_s=0.0 if not trace else trace[-1].time_s - trace[0].time_s,
             runtime=runtime,
+            driving_outcome=driving_outcome,
+            control_audit=ControlAudit(
+                mode=agent_control_mode, controller=controller_kind,
+                navigation=("legacy_assisted" if task is None else
+                            "framework_route" if task.route_owner == "framework" else "agent_planner"),
+                interventions=intervention_records,
+            ),
         )
         return RunOutput(result, tuple(trace), setup_wall_time_s, execution_wall_time_s,
                          step_wall_times_s=tuple(step_wall_times_s))
@@ -407,7 +506,8 @@ def main(argv=None) -> int:
     parser.add_argument("--agent-load-timeout", type=float, help="Agent load deadline in wall-clock seconds (default: 30)")
     parser.add_argument("--agent-step-timeout", type=float, help="Per-step agent deadline in wall-clock seconds (default: 2)")
     parser.add_argument("--agent-close-timeout", type=float, help="Agent cleanup deadline in wall-clock seconds (default: 2)")
-    parser.add_argument("--agent-control-mode", choices=["scripted", "authoritative"], default="scripted")
+    parser.add_argument("--agent-control-mode", choices=["auto", "scripted", "authoritative"], default="auto")
+    parser.add_argument("--driving-task", type=Path, help="JSON driving task: destination/route, desired speed, ownership and goal criteria")
     args = parser.parse_args(argv)
     dependent = (args.agent_python, args.agent_load_timeout, args.agent_step_timeout, args.agent_close_timeout)
     if args.agent_package is None and any(value is not None for value in dependent):
@@ -426,6 +526,9 @@ def main(argv=None) -> int:
             }
             agent = ProcessAgent(args.agent_package, python_executable=args.agent_python, options=AgentProcessOptions(**timeouts))
         scenario = load_template(args.template) if args.template else load_scenario(args.scenario)
+        if args.driving_task is not None:
+            task = DrivingTask.model_validate_json(args.driving_task.read_text(encoding="utf-8"))
+            scenario = validate_scenario(scenario.model_dump() | {"driving_task": task.model_dump()})
         output = run_simulation(scenario, mode=args.mode, options=SimulationOptions(
             allow_map_reload=args.allow_map_reload, camera=args.camera, lidar=args.lidar,
             no_rendering_mode=True if args.no_rendering else None,

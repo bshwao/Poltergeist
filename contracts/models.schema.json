@@ -219,6 +219,14 @@
     "AgentDiagnostics": {
       "additionalProperties": false,
       "properties": {
+        "assistance": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Assistance",
+          "type": "array"
+        },
         "hazard_actor_ids": {
           "items": {
             "minLength": 1,
@@ -277,6 +285,7 @@
         }
       },
       "required": [
+        "assistance",
         "maneuver",
         "reason_codes",
         "hazard_actor_ids",
@@ -326,6 +335,15 @@
           "title": "Name",
           "type": "string"
         },
+        "navigation_mode": {
+          "default": "provided_route",
+          "enum": [
+            "provided_route",
+            "agent_planner"
+          ],
+          "title": "Navigation Mode",
+          "type": "string"
+        },
         "observation_mode": {
           "default": "simulator_state",
           "enum": [
@@ -339,7 +357,8 @@
           "default": "1.0",
           "enum": [
             "1.0",
-            "1.1"
+            "1.1",
+            "1.2"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -386,6 +405,7 @@
         "entry_point",
         "observation_mode",
         "control_mode",
+        "navigation_mode",
         "sensors",
         "assets",
         "requirements_file",
@@ -413,6 +433,17 @@
           "default": null,
           "title": "Actors"
         },
+        "driving_task": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrivingTask"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "dt_s": {
           "exclusiveMinimum": 0,
           "title": "Dt S",
@@ -436,7 +467,8 @@
           "default": "1.0",
           "enum": [
             "1.0",
-            "1.1"
+            "1.1",
+            "1.2"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -465,9 +497,17 @@
           "default": null
         },
         "target_speed_mps": {
-          "minimum": 0,
-          "title": "Target Speed Mps",
-          "type": "number"
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Speed Mps"
         },
         "time_s": {
           "minimum": 0,
@@ -498,7 +538,8 @@
         "target_speed_mps",
         "route_heading_deg",
         "traffic_light_red",
-        "scene"
+        "scene",
+        "driving_task"
       ],
       "title": "AgentObservation",
       "type": "object"
@@ -510,6 +551,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "driving_task": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrivingTask"
             },
             {
               "type": "null"
@@ -537,7 +589,8 @@
           "default": "1.0",
           "enum": [
             "1.0",
-            "1.1"
+            "1.1",
+            "1.2"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -546,6 +599,7 @@
           "items": {
             "$ref": "#/$defs/Transform"
           },
+          "maxItems": 4096,
           "title": "Route",
           "type": "array"
         },
@@ -563,7 +617,8 @@
         "ego_actor_id",
         "fixed_delta_seconds",
         "destination",
-        "route"
+        "route",
+        "driving_task"
       ],
       "title": "AgentReset",
       "type": "object"
@@ -878,7 +933,8 @@
           "default": "1.0",
           "enum": [
             "1.0",
-            "1.1"
+            "1.1",
+            "1.2"
           ],
           "title": "Protocol Version",
           "type": "string"
@@ -1093,6 +1149,54 @@
       "title": "CollisionEvent",
       "type": "object"
     },
+    "ControlAudit": {
+      "additionalProperties": false,
+      "description": "Control ownership and scenario assistance for both new and legacy runs.",
+      "properties": {
+        "controller": {
+          "enum": [
+            "baseline",
+            "legacy_custom",
+            "sdk_agent"
+          ],
+          "title": "Controller",
+          "type": "string"
+        },
+        "interventions": {
+          "items": {
+            "$ref": "#/$defs/ControlIntervention"
+          },
+          "maxItems": 200000,
+          "title": "Interventions",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "scripted",
+            "authoritative"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "navigation": {
+          "enum": [
+            "legacy_assisted",
+            "framework_route",
+            "agent_planner"
+          ],
+          "title": "Navigation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode",
+        "controller",
+        "navigation",
+        "interventions"
+      ],
+      "title": "ControlAudit",
+      "type": "object"
+    },
     "ControlInput": {
       "additionalProperties": false,
       "properties": {
@@ -1136,6 +1240,326 @@
         "reverse"
       ],
       "title": "ControlInput",
+      "type": "object"
+    },
+    "ControlIntervention": {
+      "additionalProperties": false,
+      "description": "A recorded scenario-script influence on the ego's requested control.",
+      "properties": {
+        "applied_control": {
+          "$ref": "#/$defs/ControlInput"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "scripted_ego_speed_target",
+            "scripted_ego_braking"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposed_control": {
+          "$ref": "#/$defs/ControlInput"
+        },
+        "target_speed_mps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Speed Mps"
+        },
+        "time_s": {
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "frame",
+        "time_s",
+        "kind",
+        "proposed_control",
+        "applied_control",
+        "target_speed_mps"
+      ],
+      "title": "ControlIntervention",
+      "type": "object"
+    },
+    "DrivingOutcome": {
+      "additionalProperties": false,
+      "description": "Navigation measurements separate from execution and safety outcomes.",
+      "properties": {
+        "control_mode": {
+          "enum": [
+            "scripted",
+            "authoritative"
+          ],
+          "title": "Control Mode",
+          "type": "string"
+        },
+        "destination": {
+          "$ref": "#/$defs/Transform"
+        },
+        "final_distance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Final Distance M"
+        },
+        "final_height_error_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Final Height Error M"
+        },
+        "initial_speed_mps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Initial Speed Mps"
+        },
+        "interventions": {
+          "items": {
+            "$ref": "#/$defs/ControlIntervention"
+          },
+          "maxItems": 200000,
+          "title": "Interventions",
+          "type": "array"
+        },
+        "reached_at_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reached At S"
+        },
+        "resolved_route": {
+          "items": {
+            "$ref": "#/$defs/Transform"
+          },
+          "maxItems": 4096,
+          "title": "Resolved Route",
+          "type": "array"
+        },
+        "route_length_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Route Length M"
+        },
+        "route_owner": {
+          "enum": [
+            "framework",
+            "agent"
+          ],
+          "title": "Route Owner",
+          "type": "string"
+        },
+        "route_progress_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Route Progress M"
+        },
+        "status": {
+          "enum": [
+            "reached",
+            "timed_out",
+            "cancelled",
+            "failed",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "target_speed_mps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Speed Mps"
+        },
+        "termination_reason": {
+          "enum": [
+            "goal_reached",
+            "duration_elapsed",
+            "cancelled",
+            "execution_failed"
+          ],
+          "title": "Termination Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "route_owner",
+        "control_mode",
+        "destination",
+        "target_speed_mps",
+        "resolved_route",
+        "initial_speed_mps",
+        "final_distance_m",
+        "final_height_error_m",
+        "reached_at_s",
+        "route_progress_m",
+        "route_length_m",
+        "interventions",
+        "termination_reason"
+      ],
+      "title": "DrivingOutcome",
+      "type": "object"
+    },
+    "DrivingTask": {
+      "additionalProperties": false,
+      "description": "Explicit navigation objective, independent of an actor's initial speed.\n\nFramework routes use world-coordinate waypoints. Agent-owned navigation\nsupplies only a destination so the agent must plan the route itself.",
+      "properties": {
+        "completion_height_tolerance_m": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Completion Height Tolerance M",
+          "type": "number"
+        },
+        "completion_hold_s": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Completion Hold S",
+          "type": "number"
+        },
+        "completion_radius_m": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Completion Radius M",
+          "type": "number"
+        },
+        "completion_speed_mps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Completion Speed Mps"
+        },
+        "destination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "route": {
+          "items": {
+            "$ref": "#/$defs/Transform"
+          },
+          "maxItems": 4096,
+          "title": "Route",
+          "type": "array"
+        },
+        "route_owner": {
+          "default": "framework",
+          "enum": [
+            "framework",
+            "agent"
+          ],
+          "title": "Route Owner",
+          "type": "string"
+        },
+        "stop_on_completion": {
+          "default": false,
+          "title": "Stop On Completion",
+          "type": "boolean"
+        },
+        "target_speed_mps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Speed Mps"
+        }
+      },
+      "required": [
+        "route_owner",
+        "destination",
+        "route",
+        "target_speed_mps",
+        "completion_radius_m",
+        "completion_height_tolerance_m",
+        "completion_speed_mps",
+        "completion_hold_s",
+        "stop_on_completion"
+      ],
+      "title": "DrivingTask",
       "type": "object"
     },
     "EvaluationCoverage": {
@@ -2467,6 +2891,17 @@
           "title": "Description",
           "type": "string"
         },
+        "driving_task": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrivingTask"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "duration_s": {
           "default": 60.0,
           "exclusiveMinimum": 0,
@@ -2606,6 +3041,7 @@
         "weather",
         "actors",
         "events",
+        "driving_task",
         "location",
         "event",
         "occlusion",
@@ -3293,6 +3729,28 @@
           "title": "Artifacts",
           "type": "array"
         },
+        "control_audit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlAudit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "driving_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrivingOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "measured_duration_s": {
           "minimum": 0,
           "title": "Measured Duration S",
@@ -3327,7 +3785,9 @@
         "telemetry_frames",
         "measured_duration_s",
         "artifacts",
-        "runtime"
+        "runtime",
+        "driving_outcome",
+        "control_audit"
       ],
       "title": "SimulationResult",
       "type": "object"

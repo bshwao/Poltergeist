@@ -28,6 +28,7 @@ const recipe = {
   name: "Repeatable crossing", description: "A crossing pedestrian", map: "Town03", seed: 17, duration_s: 30,
   template: "pedestrian_crossing", fixed_delta_seconds: 0.05,
   actors: [{ id: "ego", type: "ego_vehicle", speed_mps: 10 }], events: [], weather: {}, parameters: {},
+  driving_task: null,
 };
 const health = { status: "ok", service: "poltergeist" };
 const jsonResponse = (body, status = 200) => new Response(JSON.stringify(body), {
@@ -530,6 +531,7 @@ const unknownMetrics = {
 const completedSimulation = { ...acceptedRun.simulation, status: "completed", progress: 1, started_at: timestamp, finished_at: timestamp };
 const finalizedResult = {
   simulation: completedSimulation, metrics: unknownMetrics, telemetry_frames: 1, measured_duration_s: 0,
+  driving_outcome: null, control_audit: null,
   artifacts: [{ kind: "telemetry", path: `telemetry/${simulationId}/frames.ndjson`, media_type: "application/x-ndjson" }],
   runtime: { adapter: "test", server_version: null, client_version: null, map_name: "Town03", fixed_delta_seconds: 0.05, seed: 17, resolved_spawns: {}, sensor_samples_count: 0 },
 };
@@ -580,6 +582,34 @@ test("unknown result metrics remain null, observed zeros remain zero, and runtim
     globalThis.fetch = async () => jsonResponse(result);
     assert.deepEqual(await api.getSimulationResult(simulationId), result);
   }
+});
+
+test("driving tasks and outcomes round trip without enabling dashboard agent launches", async () => {
+  const destination = { position: { x: 10, y: 0, z: 1 }, rotation: { pitch_deg: 0, roll_deg: 0, yaw_deg: 0 } };
+  const task = { route_owner: "framework", destination, route: [], target_speed_mps: 8,
+    completion_radius_m: 2, completion_height_tolerance_m: 2, completion_speed_mps: null,
+    completion_hold_s: 0, stop_on_completion: false };
+  const scenario = { ...savedRecipe, driving_task: task };
+  const outcome = { status: "timed_out", route_owner: "framework", control_mode: "scripted", destination,
+    target_speed_mps: 8, resolved_route: [destination], initial_speed_mps: 10, final_distance_m: 5,
+    final_height_error_m: 0, reached_at_s: null, route_progress_m: 0, route_length_m: 0,
+    interventions: [], termination_reason: "duration_elapsed" };
+  const result = { ...finalizedResult, simulation: { ...completedSimulation, scenario }, driving_outcome: outcome,
+    control_audit: { mode: "scripted", controller: "baseline", navigation: "framework_route", interventions: [] } };
+  globalThis.fetch = async () => jsonResponse(scenario);
+  assert.deepEqual(await api.validateScenario(scenario), scenario);
+  globalThis.fetch = async () => jsonResponse(result);
+  assert.deepEqual(await api.getSimulationResult(simulationId), result);
+  for (const badTask of [{ ...task, completion_hold_s: -1 }, { ...task, destination: {} }, { ...task, route_owner: "automatic" }]) {
+    globalThis.fetch = async () => jsonResponse({ ...scenario, driving_task: badTask });
+    await assert.rejects(api.validateScenario(scenario), ApiError);
+  }
+  for (const fields of [{ final_distance_m: -1 }, { status: "successful" }, { reached_at_s: "soon" }, { resolved_route: [{}] }]) {
+    globalThis.fetch = async () => jsonResponse({ ...result, driving_outcome: { ...outcome, ...fields } });
+    await assert.rejects(api.getSimulationResult(simulationId), ApiError);
+  }
+  globalThis.fetch = async () => jsonResponse({ ...result, control_audit: { ...result.control_audit, controller: "unknown" } });
+  await assert.rejects(api.getSimulationResult(simulationId), ApiError);
 });
 
 test("results reject malformed metrics, coverage, artifacts, settings, and runtime fields", async () => {

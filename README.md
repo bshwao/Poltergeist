@@ -86,3 +86,8 @@ route. See [reference AI setup and launch](docs/reference-ai-pilot.md) and the
 20 Hz throughput are verified with the documented no-rendering `--performance`
 profile; see [performance acceptance](docs/reference-ai-performance.md).
 Dashboard agent selection remains a later phase.
+
+Phase 3 adds explicit driving goals, framework/agent route ownership,
+authoritative controls, intervention audits and measured goal completion.
+Try the synthetic example or the mapped reference AI Town03 goal in the
+[driving task guide](docs/driving-tasks.md).

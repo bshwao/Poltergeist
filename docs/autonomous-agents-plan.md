@@ -9,7 +9,7 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 | 1 | Versioned agent SDK, manifests, lifecycle, direct controls, reference/starter package, compatibility checks | A local example loads, receives synthetic observations, and returns validated frame-associated controls | Implemented |
 | 2 | External agent process and dependency environment, inference timing, cancellation, deadlines, cleanup | An external agent controls a Python-launched CARLA experiment; failures are explicit | Implemented; live verified through the reference AI pilot |
 | 2.5 | Poltergeist reference AI pilot: one pretrained learned driving policy, live control verification, and hardware timing | A pinned model drives a bounded CARLA route through the worker, with evidence that its predictions affect the vehicle and measured real-time performance | Complete; live control and 20 Hz throughput verified with the documented performance profile |
-| 3 | Initial conditions versus agent goals, route/planner ownership, authoritative agent controls and recorded interventions | The agent chooses its evolving response without silent scripted overrides | Planned |
+| 3 | Initial conditions versus agent goals, route/planner ownership, authoritative agent controls and recorded interventions | The agent chooses its evolving response without silent scripted overrides | Implemented; see driving task guide |
 | 4 | Declared camera/LiDAR inputs, synchronized observation delivery, separation of evaluator ground truth | One compatible sensor-based driving agent runs end to end | Planned |
 | 5 | Agent registry, API selection, durable job configuration and code/model fingerprints | Queued API runs retain the exact selected agent and observation mode | Planned |
 | 6 | Agents page, registration/readiness checks, dashboard launch selection | A user registers and launches a compatible agent from the dashboard | Planned |
@@ -223,16 +223,24 @@ report. The report must identify which parts are learned, which use ground
 truth, and which receive route/controller assistance. No trained model is
 integrated or verified merely by adding this plan.
 
-Functional control is now verified through live trials. Real-time claims still
-require 2.5e's measured gate, which currently fails. Use
+Functional control and the documented performance profile passed the live
+2.5e control and throughput checks. Use
 this known reference integration to shape later user import/registration and
 dashboard selection. Continue the broader Phase 3 work afterward; the small
 prerequisites pulled forward here do not mark all of Phase 3 complete.
 
-## After the pilot: phase 3
+## Phase 3 handoff
 
-Separate scenario initial conditions from agent goals and interventions. The
-current runner still supplies its existing route heading/target speed and
-honors explicit scripted ego braking events. Make agent controls authoritative
-and record interventions before claiming independent route planning or behavior
-analysis. Sensor observation delivery remains Phase 4.
+SDK 1.2 adds explicit driving tasks, route ownership, actual destinations,
+optional desired speed and measured completion criteria. The runner supplies a
+finite validated framework route or leaves planning to a declared agent planner.
+New SDK agents default to authoritative controls and reject scripted ego events.
+Deliberate scripted mode records affected controls in a typed audit, including
+legacy runs. Goal outcomes are separate from execution status; early completion
+is opt-in and independently verified against saved telemetry.
+
+The reference AI accepts finite framework tasks and declares endpoint input
+padding and deterministic goal/tracking assistance. The network still runs each
+decision. A complete synthetic teaching example is included. See
+[driving tasks and commands](driving-tasks.md) for ownership, measurements and
+limitations. Dashboard agent selection remains Phases 5–6; sensors remain Phase 4.

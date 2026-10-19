@@ -14,11 +14,11 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, JsonValue, StrictBool, StrictStr, field_validator, model_validator
 
 from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
-from .scenario import Transform, Vector3
+from .scenario import DrivingTask, Transform, Vector3
 from .telemetry import ActorState, BoundingBoxExtent, ControlInput
 
 AGENT_PROTOCOL_VERSION = "1.0"
-AgentProtocolVersion = Literal["1.0", "1.1"]
+AgentProtocolVersion = Literal["1.0", "1.1", "1.2"]
 AgentObservationMode = Literal["simulator_state", "sensors"]
 AgentSensorType = Literal[
     "sensor.camera.rgb", "sensor.lidar.ray_cast", "sensor.other.imu", "sensor.other.gnss",
@@ -92,6 +92,7 @@ class AgentManifest(ContractModel):
     entry_point: AgentEntryPoint
     observation_mode: AgentObservationMode = "simulator_state"
     control_mode: Literal["vehicle_control"] = "vehicle_control"
+    navigation_mode: Literal["provided_route", "agent_planner"] = "provided_route"
     sensors: list[AgentSensorSpec] = Field(default_factory=list)
     assets: list[NonEmptyString] = Field(default_factory=list)
     requirements_file: NonEmptyString | None = None
@@ -133,8 +134,10 @@ class AgentManifest(ContractModel):
             raise ValueError("Simulator-state observation mode must not declare sensors")
         if len(set(self.required_features)) != len(self.required_features):
             raise ValueError("Required agent features must be unique")
-        if self.required_features and (self.protocol_version != "1.1" or self.observation_mode != "simulator_state"):
-            raise ValueError("Structured scene features require SDK 1.1 simulator_state observations")
+        if self.required_features and (self.protocol_version not in {"1.1", "1.2"} or self.observation_mode != "simulator_state"):
+            raise ValueError("Structured scene features require SDK 1.1 or 1.2 simulator_state observations")
+        if self.navigation_mode == "agent_planner" and self.protocol_version != "1.2":
+            raise ValueError("Agent-owned navigation requires SDK protocol 1.2")
         return self
 
 
@@ -145,7 +148,41 @@ class AgentReset(ContractModel):
     ego_actor_id: NonEmptyString
     fixed_delta_seconds: Annotated[float, Field(gt=0, le=0.1, strict=True)]
     destination: Transform | None = None
-    route: list[Transform] = Field(default_factory=list)
+    route: list[Transform] = Field(default_factory=list, max_length=4096)
+    driving_task: DrivingTask | None = None
+
+    @model_validator(mode="after")
+    def validate_driving_task(self) -> Self:
+        if self.driving_task is not None:
+            if self.protocol_version != "1.2":
+                raise ValueError("Driving tasks require SDK protocol 1.2")
+            if self.driving_task.route:
+                raise ValueError("Reset driving task descriptor must omit its route; use reset.route")
+            if self.driving_task.route_owner == "agent" and self.route:
+                raise ValueError("Agent-owned navigation must not receive a framework route")
+            if self.driving_task.route_owner == "framework" and len(self.route) < 2:
+                at_destination = len(self.route) == 1 and math.dist(
+                    (self.route[0].position.x, self.route[0].position.y, self.route[0].position.z),
+                    (self.driving_task.destination.position.x, self.driving_task.destination.position.y,
+                     self.driving_task.destination.position.z),
+                ) <= 1e-6
+                if not at_destination:
+                    raise ValueError("Framework-owned navigation requires a resolved route or its single destination point")
+            if self.driving_task.route_owner == "framework":
+                for first, second in zip(self.route, self.route[1:]):
+                    if first.position == second.position:
+                        raise ValueError("Resolved route must not contain adjacent duplicate positions")
+                end = self.route[-1].position
+                destination = self.driving_task.destination.position
+                if math.dist((end.x, end.y, end.z), (destination.x, destination.y, destination.z)) > 1e-6:
+                    raise ValueError("Resolved route must end at the driving task destination")
+            if self.destination is None or math.dist(
+                (self.destination.position.x, self.destination.position.y, self.destination.position.z),
+                (self.driving_task.destination.position.x, self.driving_task.destination.position.y,
+                 self.driving_task.destination.position.z),
+            ) > 1e-6:
+                raise ValueError("Reset destination must match the driving task destination")
+        return self
 
 
 class AgentSceneObject(ContractModel):
@@ -225,22 +262,34 @@ class AgentObservation(ContractModel):
     ego: ActorState
     # None means unavailable; [] means observed with no other actors.
     actors: list[ActorState] | None = None
-    target_speed_mps: NonNegativeFloat
+    target_speed_mps: NonNegativeFloat | None = None
     route_heading_deg: Annotated[float, Field(strict=True)] | None = None
     traffic_light_red: StrictBool | None = None
     scene: AgentSceneContext | None = None
+    driving_task: DrivingTask | None = None
 
     @model_validator(mode="after")
     def validate_actor_ids(self) -> Self:
         ids = [self.ego.actor_id, *(actor.actor_id for actor in self.actors or [])]
         if len(ids) != len(set(ids)):
             raise ValueError("Observation actor IDs must be unique, including the ego")
-        if self.scene is not None and self.protocol_version != "1.1":
-            raise ValueError("Structured scene context requires SDK protocol 1.1")
+        if self.scene is not None and self.protocol_version not in {"1.1", "1.2"}:
+            raise ValueError("Structured scene context requires SDK protocol 1.1 or 1.2")
+        if self.protocol_version in {"1.0", "1.1"} and self.target_speed_mps is None:
+            raise ValueError("SDK 1.0 and 1.1 observations require a numeric target_speed_mps")
+        if self.driving_task is not None:
+            if self.protocol_version != "1.2":
+                raise ValueError("Driving tasks require SDK protocol 1.2")
+            if self.driving_task.route:
+                raise ValueError("Observation driving task descriptor must omit its route")
+            if self.driving_task.route_owner == "agent":
+                if self.route_heading_deg is not None or (self.scene is not None and self.scene.route is not None):
+                    raise ValueError("Agent-owned navigation must not receive a framework route or heading")
         return self
 
 
 class AgentDiagnostics(ContractModel):
+    assistance: list[NonEmptyString] = Field(default_factory=list)
     maneuver: NonEmptyString | None = None
     reason_codes: list[NonEmptyString] = Field(default_factory=list)
     hazard_actor_ids: list[NonEmptyString] = Field(default_factory=list)

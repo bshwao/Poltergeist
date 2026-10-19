@@ -211,6 +211,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && finiteNumber(value.fixed_delta_seconds) && value.fixed_delta_seconds > 0
     && Array.isArray(value.actors) && value.actors.length > 0 && value.actors.every(isActor)
     && Array.isArray(value.events) && value.events.every(isObject) && isObject(value.weather)
+    && (value.driving_task === undefined || value.driving_task === null || isDrivingTask(value.driving_task))
     && isObject(value.parameters) && Object.values(value.parameters).every(parameter =>
       typeof parameter === "string" || typeof parameter === "boolean" || finiteNumber(parameter));
   const isHealth = (value: unknown) => isObject(value) && typeof value.status === "string" && typeof value.service === "string";
@@ -267,6 +268,39 @@ export function createApiClient(baseUrl = API_BASE_URL) {
   const isVector = (value: unknown) => isObject(value) && ["x", "y", "z"].every(key => finiteNumber(value[key]));
   const isTransform = (value: unknown) => isObject(value) && isVector(value.position)
     && isObject(value.rotation) && ["pitch_deg", "roll_deg", "yaw_deg"].every(key => finiteNumber((value.rotation as Record<string, unknown>)[key]));
+  const isDrivingTask = (value: unknown) => isObject(value)
+    && ["framework", "agent"].includes(value.route_owner as string) && isTransform(value.destination)
+    && Array.isArray(value.route) && value.route.length <= 4096 && value.route.every(isTransform)
+    && value.route.length !== 1 && (value.route_owner !== "agent" || value.route.length === 0)
+    && nullableNumber(value.target_speed_mps) && nullableNumber(value.completion_speed_mps)
+    && finiteNumber(value.completion_radius_m) && value.completion_radius_m > 0
+    && finiteNumber(value.completion_height_tolerance_m) && value.completion_height_tolerance_m > 0
+    && nonnegative(value.completion_hold_s) && typeof value.stop_on_completion === "boolean";
+  const isControl = (value: unknown) => isObject(value) && bounded(value.throttle, 0, 1)
+    && bounded(value.brake, 0, 1) && bounded(value.steer, -1, 1)
+    && typeof value.hand_brake === "boolean" && typeof value.reverse === "boolean";
+  const isIntervention = (value: unknown) => isObject(value)
+    && integer(value.frame) && nonnegative(value.time_s) && nullableNumber(value.target_speed_mps)
+    && ["scripted_ego_speed_target", "scripted_ego_braking"].includes(value.kind as string)
+    && isControl(value.proposed_control) && isControl(value.applied_control);
+  const isControlAudit = (value: unknown) => isObject(value)
+    && ["scripted", "authoritative"].includes(value.mode as string)
+    && ["baseline", "legacy_custom", "sdk_agent"].includes(value.controller as string)
+    && ["legacy_assisted", "framework_route", "agent_planner"].includes(value.navigation as string)
+    && Array.isArray(value.interventions) && value.interventions.length <= 200000 && value.interventions.every(isIntervention);
+  const isDrivingOutcome = (value: unknown) => isObject(value)
+    && ["reached", "timed_out", "cancelled", "failed", "unavailable"].includes(value.status as string)
+    && ["framework", "agent"].includes(value.route_owner as string)
+    && ["scripted", "authoritative"].includes(value.control_mode as string) && isTransform(value.destination)
+    && ["goal_reached", "duration_elapsed", "cancelled", "execution_failed"].includes(value.termination_reason as string)
+    && ["target_speed_mps", "initial_speed_mps", "final_distance_m", "final_height_error_m", "reached_at_s", "route_length_m"].every(key => nullableNumber(value[key]))
+    && nullableNumber(value.route_progress_m)
+    && ((value.status === "reached") === (value.reached_at_s !== null))
+    && ((value.route_progress_m === null) === (value.route_length_m === null))
+    && (value.route_progress_m === null || (value.route_progress_m as number) <= (value.route_length_m as number) + 1e-6)
+    && Array.isArray(value.resolved_route) && value.resolved_route.length <= 4096 && value.resolved_route.every(isTransform)
+    && (value.route_owner !== "agent" || (value.resolved_route.length === 0 && value.route_progress_m === null))
+    && Array.isArray(value.interventions) && value.interventions.length <= 200000 && value.interventions.every(isIntervention);
   const isState = (value: unknown) => isObject(value) && nonemptyText(value.actor_id)
     && (value.transform === null || isTransform(value.transform))
     && ["velocity_mps", "acceleration_mps2"].every(key => value[key] === null || isVector(value[key]))
@@ -314,6 +348,8 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && isObject(value.simulation) && ["completed", "failed", "cancelled"].includes(value.simulation.status as string)
     && isMetrics(value.metrics) && nonnegative(value.measured_duration_s)
     && integer(value.telemetry_frames) && Array.isArray(value.artifacts) && value.artifacts.every(isArtifact)
+    && (value.driving_outcome === undefined || value.driving_outcome === null || isDrivingOutcome(value.driving_outcome))
+    && (value.control_audit === undefined || value.control_audit === null || isControlAudit(value.control_audit))
     && (value.runtime === null || (isRuntime(value.runtime) && isObject(value.runtime) && value.runtime.adapter === value.simulation.mode));
   const isSimulationRecord = (value: unknown) => isObject(value) && isSimulation(value.simulation)
     && nullableUuid(value.scenario_id) && integer(value.revision, 1)

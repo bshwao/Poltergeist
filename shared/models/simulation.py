@@ -9,7 +9,7 @@ from pydantic import AwareDatetime, Field, StrictBool, model_validator
 
 from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
 from .scenario import Scenario, Transform
-from .telemetry import SafetyMetrics
+from .telemetry import ControlInput, SafetyMetrics
 
 
 class SimulationStatus(StrEnum):
@@ -81,6 +81,89 @@ class SimulationRuntime(ContractModel):
     sensor_samples_count: NonNegativeInt = 0
 
 
+class ControlIntervention(ContractModel):
+    """A recorded scenario-script influence on the ego's requested control."""
+
+    frame: NonNegativeInt
+    time_s: NonNegativeFloat
+    kind: Literal["scripted_ego_speed_target", "scripted_ego_braking"]
+    proposed_control: ControlInput
+    applied_control: ControlInput
+    target_speed_mps: NonNegativeFloat | None = None
+
+
+class ControlAudit(ContractModel):
+    """Control ownership and scenario assistance for both new and legacy runs."""
+
+    mode: Literal["scripted", "authoritative"]
+    controller: Literal["baseline", "legacy_custom", "sdk_agent"]
+    navigation: Literal["legacy_assisted", "framework_route", "agent_planner"]
+    interventions: list[ControlIntervention] = Field(default_factory=list, max_length=200000)
+
+    @model_validator(mode="after")
+    def validate_intervention_order(self) -> Self:
+        if self.mode == "authoritative" and (self.controller != "sdk_agent" or self.interventions):
+            raise ValueError("Authoritative control requires an SDK agent and no scripted interventions")
+        for previous, current in zip(self.interventions, self.interventions[1:]):
+            if current.frame < previous.frame or current.time_s < previous.time_s:
+                raise ValueError("Control interventions must be ordered by frame and simulation time")
+        return self
+
+
+class DrivingOutcome(ContractModel):
+    """Navigation measurements separate from execution and safety outcomes."""
+
+    status: Literal["reached", "timed_out", "cancelled", "failed", "unavailable"]
+    route_owner: Literal["framework", "agent"]
+    control_mode: Literal["scripted", "authoritative"]
+    destination: Transform
+    target_speed_mps: NonNegativeFloat | None = None
+    resolved_route: list[Transform] = Field(default_factory=list, max_length=4096)
+    initial_speed_mps: NonNegativeFloat | None = None
+    final_distance_m: NonNegativeFloat | None = None
+    final_height_error_m: NonNegativeFloat | None = None
+    reached_at_s: NonNegativeFloat | None = None
+    route_progress_m: NonNegativeFloat | None = None
+    route_length_m: NonNegativeFloat | None = None
+    interventions: list[ControlIntervention] = Field(default_factory=list, max_length=200000)
+    termination_reason: Literal["goal_reached", "duration_elapsed", "cancelled", "execution_failed"]
+
+    @model_validator(mode="after")
+    def validate_outcome(self) -> Self:
+        if self.control_mode == "authoritative" and self.interventions:
+            raise ValueError("Authoritative driving outcomes must not contain scripted interventions")
+        if (self.status == "reached") != (self.reached_at_s is not None):
+            raise ValueError("Reached driving outcomes require reached_at_s; other statuses must omit it")
+        if self.termination_reason == "goal_reached" and self.status != "reached":
+            raise ValueError("Goal-reached termination requires a reached driving outcome")
+        if self.status == "reached" and self.termination_reason not in {"goal_reached", "duration_elapsed"}:
+            raise ValueError("Reached driving outcomes require goal-reached or duration-elapsed termination")
+        if self.status == "unavailable" and self.termination_reason != "duration_elapsed":
+            raise ValueError("Unavailable driving outcomes require duration-elapsed termination")
+        if self.status == "timed_out" and self.termination_reason != "duration_elapsed":
+            raise ValueError("Timed-out driving outcomes require duration-elapsed termination")
+        if self.status == "cancelled" and self.termination_reason != "cancelled":
+            raise ValueError("Cancelled driving outcomes require cancelled termination")
+        if self.status == "failed" and self.termination_reason != "execution_failed":
+            raise ValueError("Failed driving outcomes require execution-failed termination")
+        if self.route_owner == "agent" and self.resolved_route:
+            raise ValueError("Agent-owned navigation must not contain a framework resolved route")
+        if (self.route_progress_m is None) != (self.route_length_m is None):
+            raise ValueError("Route progress and length must be present or unavailable together")
+        if self.route_progress_m is not None and self.route_progress_m > self.route_length_m + 1e-6:
+            raise ValueError("Route progress must not exceed route length")
+        if self.route_owner == "agent" and self.route_progress_m is not None:
+            raise ValueError("Agent-owned navigation cannot report framework route progress")
+        previous = None
+        for intervention in self.interventions:
+            if previous is not None and (
+                intervention.frame < previous.frame or intervention.time_s < previous.time_s
+            ):
+                raise ValueError("Control interventions must be ordered by frame and simulation time")
+            previous = intervention
+        return self
+
+
 class SimulationResult(ContractModel):
     simulation: Simulation
     metrics: SafetyMetrics
@@ -88,6 +171,8 @@ class SimulationResult(ContractModel):
     measured_duration_s: NonNegativeFloat
     artifacts: list[ArtifactReference] = Field(default_factory=list)
     runtime: SimulationRuntime | None = None
+    driving_outcome: DrivingOutcome | None = None
+    control_audit: ControlAudit | None = None
 
     @model_validator(mode="after")
     def validate_terminal_run(self) -> Self:
@@ -95,6 +180,11 @@ class SimulationResult(ContractModel):
             raise ValueError("Results may only reference a terminal simulation")
         if self.runtime is not None and self.runtime.adapter != self.simulation.mode:
             raise ValueError("Runtime adapter must match the simulation mode")
+        if self.driving_outcome is not None and self.control_audit is not None:
+            if self.driving_outcome.interventions != self.control_audit.interventions:
+                raise ValueError("Driving outcome interventions must match the control audit")
+            if self.driving_outcome.control_mode != self.control_audit.mode:
+                raise ValueError("Driving outcome control mode must match the control audit")
         return self
 
 

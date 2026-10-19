@@ -1,11 +1,12 @@
 {
-  "protocol_version": "1.1",
+  "protocol_version": "1.2",
   "agent_id": "poltergeist-reference-ai",
   "name": "Poltergeist reference AI (PlanT 2.0)",
   "version": "0.1.0",
   "entry_point": "agent:ReferenceAgent",
   "observation_mode": "simulator_state",
   "control_mode": "vehicle_control",
+  "navigation_mode": "provided_route",
   "required_features": ["structured_scene"],
   "sensors": [],
   "assets": [],

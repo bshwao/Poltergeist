@@ -85,7 +85,7 @@ or independently choosing a destination/global route.
 The map raster is a Poltergeist adaptation, not the authors' precomputed map
 files. Lane widths and marking positions come from CARLA. Compound markings and
 dash representation are simplified; these differences can affect model behavior.
-The input axes, origin, scale, and source are explicit in SDK 1.1 scene messages.
+The input axes, origin, scale, and source are explicit in structured scene messages.
 Raster bytes use validated lossless base64 transport to avoid repeatedly
 copying/validating thousands of JSON integers. Existing SDK 1.0 agents retain
 their original interface.
@@ -155,3 +155,10 @@ the performance profile cannot guarantee 20 Hz under every workload.
 API/dashboard agent selection remains Phases 5 and 6. Current dashboard launches
 continue to use the existing baseline; use the command above for the learned
 reference pilot.
+
+Phase 3 adds SDK 1.2 explicit framework driving tasks, finite routes and measured
+goal completion. Use `--driving-task path.json` or embed the task in a recipe.
+Initial speed is distinct from the advisory desired speed. The reference stack
+declares endpoint padding, task speed caps and goal approach tracking assistance;
+raw learned speed and the capped tracking target remain in diagnostics. See
+[driving tasks](driving-tasks.md) for commands and outcome interpretation.

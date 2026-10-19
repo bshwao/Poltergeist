@@ -147,6 +147,43 @@ def test_route_projection_is_only_available_for_a_supplied_route():
     assert progress["final_cross_track_m"] == 0
 
 
+def test_report_uses_the_resolved_task_instead_of_the_moving_local_route():
+    from shared.models import ControlAudit, DrivingOutcome, DrivingTask
+
+    run = output([frame(0, 1.0), frame(1, 4.0)])
+    task = DrivingTask(destination={"position": {"x": 100}})
+    run.result.simulation.scenario.driving_task = task
+    run.result.driving_outcome = DrivingOutcome(
+        status="timed_out", route_owner="framework", control_mode="scripted", destination=task.destination,
+        resolved_route=[{"position": {"x": 0}}, {"position": {"x": 100}}],
+        initial_speed_mps=2.0, final_distance_m=96.0, final_height_error_m=0.0,
+        route_progress_m=4.0, route_length_m=100.0, termination_reason="duration_elapsed",
+    )
+    run.result.control_audit = ControlAudit(mode="scripted", controller="baseline", navigation="framework_route")
+    record = decision()
+    record["observation"]["scene"] = {"route": [{"position": {"x": 0, "y": 0}}, {"position": {"x": 10, "y": 0}}]}
+    summary = summarize_run(run, [record], total_wall_time_s=0.4, variant="baseline")
+    assert summary["route_progress"]["method"] == "resolved_driving_task"
+    assert summary["route_progress"]["route_length_m"] == 100
+    assert summary["route_progress"]["final_distance_to_destination_m"] == 96
+    assert summary["driving_outcome"] == run.result.driving_outcome.model_dump(mode="json")
+    assert summary["control_audit"] == run.result.control_audit.model_dump(mode="json")
+
+
+def test_agent_owned_navigation_reports_destination_without_claiming_framework_route_progress():
+    from shared.models import DrivingOutcome
+
+    outcome = DrivingOutcome(status="timed_out", route_owner="agent", control_mode="authoritative",
+        destination={"position": {"x": 100}}, final_distance_m=96.0, final_height_error_m=0.0,
+        termination_reason="duration_elapsed")
+    record = decision()
+    record["observation"]["scene"] = {"route": [{"position": {"x": 0, "y": 0}}, {"position": {"x": 10, "y": 0}}]}
+    progress = route_progress([frame(0, 1.0), frame(1, 4.0)], [record], driving_outcome=outcome)
+    assert progress["route_owner"] == "agent"
+    assert progress["route_length_m"] is progress["progress_m"] is None
+    assert progress["destination"]["position"]["x"] == 100
+
+
 def test_synthetic_success_does_not_claim_live_carla_or_missing_lane_measurements():
     summary = summarize_run(output(), [decision()], total_wall_time_s=0.4, variant="reference_ai")
     assert summary["control_evidence"]["complete_trace"]
@@ -154,6 +191,7 @@ def test_synthetic_success_does_not_claim_live_carla_or_missing_lane_measurement
     assert not summary["control_evidence"]["live_carla_execution"]
     assert summary["lane_departures"] is None
     assert summary["route_progress"] is None
+    assert summary["driving_outcome"] is summary["control_audit"] is None
     assert summary["timing"]["real_time_factor"] == 1
     assert summary["timing"]["setup_wall_time_s"] == 0.2
     assert summary["control_evidence"]["reported_checkpoint_sha256"] == ["abc"]

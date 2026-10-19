@@ -188,6 +188,153 @@ def test_completed_output_cannot_claim_success_with_a_shortened_trace(service, k
     assert not list(service.artifacts.root.rglob("frames.ndjson"))
 
 
+def task_output(service, task, positions, *, speeds=None, heights=None, termination_reason="goal_reached"):
+    """Create measured task evidence independently of the runner's loop."""
+    from datetime import UTC, datetime
+
+    from evaluation import evaluate_safety
+    from shared.models import ActorState, Simulation, SimulationResult, TelemetryFrame
+    from simulator.navigation import TaskMonitor
+    from simulator.simulation_runner import RunOutput
+
+    scenario = validate_scenario(scene().model_dump() | {"duration_s": 0.5, "driving_task": task})
+    queued = service.create_simulation(scenario, mode="test")
+    frames = tuple(TelemetryFrame(
+        frame=index, time_s=index * 0.05,
+        ego=ActorState(actor_id="ego", transform={"position": {"x": x, "z": 0 if heights is None else heights[index]}},
+                       velocity_mps={"x": 0 if speeds is None else speeds[index]}),
+        actors=[], collisions=[], traffic_violations=[],
+    ) for index, x in enumerate(positions))
+    route = [frames[0].ego.transform, scenario.driving_task.destination]
+    monitor = TaskMonitor(scenario.driving_task, route, frames[0], "scripted")
+    for frame in frames[1:]:
+        monitor.update(frame)
+    now = datetime.now(UTC)
+    simulation = Simulation.model_validate(queued.simulation.model_dump() | {
+        "status": "completed", "progress": 1.0, "started_at": now, "finished_at": now,
+    })
+    outcome = monitor.outcome("completed", [], termination_reason)
+    result = SimulationResult(simulation=simulation, metrics=evaluate_safety(frames),
+                              telemetry_frames=len(frames), measured_duration_s=frames[-1].time_s,
+                              driving_outcome=outcome)
+    return queued, RunOutput(result, frames)
+
+
+def completion_task(**changes):
+    return {"destination": {"position": {"x": 0.2}}, "completion_radius_m": 0.01,
+            "stop_on_completion": True, **changes}
+
+
+def test_goal_completion_can_persist_a_verified_shorter_trace(service):
+    queued, output = task_output(service, completion_task(), [0.0, 0.1, 0.2])
+    persisted = service.persist_output(output, expected_revision=queued.revision)
+    loaded = service.read_output(queued.simulation.id)
+    assert persisted == loaded
+    assert loaded.result.driving_outcome.status == "reached"
+    assert loaded.result.driving_outcome.reached_at_s == 0.1
+    assert loaded.result.measured_duration_s < loaded.result.simulation.scenario.duration_s
+
+
+@pytest.mark.parametrize("constraint", ["distance", "height", "speed", "hold", "claimed_time"])
+def test_claimed_early_goal_must_match_measured_distance_height_speed_and_hold(service, constraint):
+    task = completion_task(**{
+        "completion_height_tolerance_m": 0.5, "completion_speed_mps": 0.1,
+        "completion_hold_s": 0.1 if constraint == "hold" else 0.0,
+    })
+    positions = [0.0, 0.1, 0.15] if constraint == "distance" else [0.0, 0.1, 0.2]
+    heights = [0.0, 0.0, 3.0] if constraint == "height" else None
+    speeds = [0.0, 0.0, 2.0] if constraint == "speed" else None
+    queued, output = task_output(service, task, positions, speeds=speeds, heights=heights,
+                                 termination_reason="duration_elapsed")
+    # A forged success declaration must never make a truncated trace valid.
+    output.result.driving_outcome.status = "reached"
+    output.result.driving_outcome.reached_at_s = 0.05 if constraint == "claimed_time" else 0.1
+    output.result.driving_outcome.termination_reason = "goal_reached"
+    with pytest.raises(PersistenceError, match="task telemetry"):
+        service.persist_output(output, expected_revision=queued.revision)
+    assert not list(service.artifacts.root.rglob("frames.ndjson"))
+
+
+@pytest.mark.parametrize("stop_on_completion", [False, True])
+def test_early_completion_requires_opt_in_and_the_first_reached_frame(service, stop_on_completion):
+    positions = [0.0, 0.1, 0.2] if not stop_on_completion else [0.0, 0.2, 0.2]
+    queued, output = task_output(service, completion_task(stop_on_completion=stop_on_completion), positions)
+    with pytest.raises(PersistenceError, match="execution window|task telemetry"):
+        service.persist_output(output, expected_revision=queued.revision)
+
+
+def test_duration_completion_can_persist_an_unreached_driving_task(service):
+    queued, output = task_output(service, completion_task(stop_on_completion=False),
+                                 [0.0] * 11, termination_reason="duration_elapsed")
+    persisted = service.persist_output(output, expected_revision=queued.revision)
+    assert persisted.result.simulation.status == "completed"
+    assert persisted.result.driving_outcome.status == "timed_out"
+
+
+def test_task_cannot_use_a_missing_outcome_to_bypass_execution_window(service):
+    queued, output = task_output(service, completion_task(), [0.0, 0.1, 0.2])
+    output.result.driving_outcome = None
+    with pytest.raises(PersistenceError, match="recorded driving outcome"):
+        service.persist_output(output, expected_revision=queued.revision)
+
+
+@pytest.mark.parametrize("mismatch", [None, "frame", "time", "applied_control"])
+def test_control_audit_round_trips_only_frame_associated_applied_controls(service, mismatch):
+    from shared.models import ControlAudit, ControlIntervention
+
+    queued = service.create_simulation(scene(), mode="test")
+    output = SimulationRunner().run(queued.simulation)
+    before, after = output.telemetry[:2]
+    intervention = ControlIntervention(frame=before.frame, time_s=before.time_s,
+        kind="scripted_ego_speed_target", target_speed_mps=2.0,
+        proposed_control=after.control, applied_control=after.control)
+    if mismatch == "frame":
+        intervention.frame = output.telemetry[-1].frame
+    elif mismatch == "time":
+        intervention.time_s = 0.025
+    elif mismatch == "applied_control":
+        intervention.applied_control = intervention.applied_control.model_copy(update={"brake": 1.0})
+    output.result.control_audit = ControlAudit(mode="scripted", controller="baseline",
+        navigation="legacy_assisted", interventions=[intervention])
+    if mismatch is not None:
+        with pytest.raises(PersistenceError, match="Control intervention"):
+            service.persist_output(output, expected_revision=queued.revision)
+        assert not list(service.artifacts.root.rglob("frames.ndjson"))
+    else:
+        persisted = service.persist_output(output, expected_revision=queued.revision)
+        assert service.read_output(queued.simulation.id).result.control_audit == persisted.result.control_audit
+        assert persisted.result.control_audit.interventions == [intervention]
+
+
+@pytest.mark.parametrize("failure", ["adapter_step", "initial_frame_callback", "later_frame_callback"])
+def test_failed_task_execution_preserves_only_measured_interventions_and_goal_evidence(service, failure):
+    class FailingStep(TestSimulationAdapter):
+        def step(self, control, commands):
+            raise RuntimeError("world step failed")
+
+    scenario = validate_scenario(scene().model_dump() | {
+        "driving_task": completion_task(target_speed_mps=3.0, stop_on_completion=False),
+        "events": [{"action": "brake", "actor_id": "ego", "trigger_time_s": 0.0, "deceleration_mps2": 1.0}],
+    })
+    queued = service.create_simulation(scenario, mode="test")
+
+    def fail_on_frame(frame):
+        if (failure == "initial_frame_callback" and frame.frame == 0) or (
+                failure == "later_frame_callback" and frame.frame == 1):
+            raise RuntimeError("frame subscriber failed")
+
+    adapter = FailingStep() if failure == "adapter_step" else TestSimulationAdapter()
+    output = SimulationRunner(adapter).run(queued.simulation, on_frame=fail_on_frame)
+    assert output.result.simulation.status == "failed"
+    assert output.result.driving_outcome.status == "failed"
+    expected_steps = 1 if failure == "later_frame_callback" else 0
+    assert len(output.telemetry) == expected_steps + 1
+    assert len(output.result.control_audit.interventions) == expected_steps
+    assert output.result.driving_outcome.interventions == output.result.control_audit.interventions
+    persisted = service.persist_output(output, expected_revision=queued.revision)
+    assert service.read_output(queued.simulation.id) == persisted
+
+
 def test_conflict_at_database_commit_removes_only_this_attempts_files(service, monkeypatch):
     queued = service.create_simulation(scene(), mode="test")
     capture = service.artifacts.capture(queued.simulation.id)

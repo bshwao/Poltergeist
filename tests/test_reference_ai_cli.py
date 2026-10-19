@@ -125,6 +125,26 @@ def test_custom_recipe_seed_is_preserved_unless_explicitly_overridden(reference_
     assert read_report(override)["runs"][0]["seed"] == 29
 
 
+def test_cli_explicit_driving_task_is_saved_in_recipe_and_report(reference_package, tmp_path):
+    package, manifest = reference_package
+    manifest["protocol_version"] = "1.2"
+    (package / "agent.json").write_text(json.dumps(manifest))
+    source_path = package / "agent.py"
+    source_path.write_text(source_path.read_text().replace(
+        'return {"frame": observation.frame',
+        'return {"protocol_version": observation.protocol_version, "frame": observation.frame',
+    ))
+    task_path = tmp_path / "task.json"
+    task_path.write_text(json.dumps({"destination": {"position": {"x": 40.0}}, "target_speed_mps": 3.0}))
+    destination = tmp_path / "task-report"
+    assert invoke(destination, "--driving-task", str(task_path)) == 0
+    summary = read_report(destination)["runs"][0]
+    assert summary["driving_outcome"]["status"] == "timed_out"
+    assert summary["control_audit"]["mode"] == "authoritative"
+    saved = json.loads((destination / summary["evidence_directory"] / "recipe.json").read_text())
+    assert saved["driving_task"]["target_speed_mps"] == 3.0
+
+
 def test_cancelling_a_trial_stops_the_remaining_suite_variants(reference_package, tmp_path, monkeypatch):
     original = cli.SimulationRunner.run
     calls = []
