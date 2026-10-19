@@ -147,6 +147,14 @@ class TestSimulationAdapter:
             })
         return self._snapshot(control, collisions)
 
+    def agent_context(self, frame: TelemetryFrame):
+        """Virtual straight-road ground truth, with no invented CARLA raster."""
+        self._require_open()
+        from .reference_scene import synthetic_scene
+        actor_types = {actor.id: ("pedestrian" if actor.type == ActorType.PEDESTRIAN else "vehicle")
+                       for actor in self._scenario.actors}
+        return synthetic_scene(frame, actor_types, self._route_heading_deg, self.speed_limit_mps)
+
     def finalize(self, frames: list[TelemetryFrame]) -> list[TelemetryFrame]:
         self._require_open()
         return frames

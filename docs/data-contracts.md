@@ -25,6 +25,25 @@ import paths. Do not hand-edit the generated files.
 - NaN and infinity are never valid. Missing or inapplicable TTC/clearance is
   `null`, not infinity or zero. Zero represents actual zero clearance/TTC.
 
+## Autonomous agent messages
+
+The versioned user-agent messages are documented in [the agent SDK guide](agent-sdk.md).
+They include manifests, sensor declarations, episode resets, simulator-state
+observations, optional diagnostics, and frame-associated vehicle controls.
+Agent protocols `"1.0"` and `"1.1"` are independent of the scenario schema version. These types
+are exported alongside the existing contracts; dashboard agent launch support
+remains a later integration phase.
+
+SDK 1.1 agents can declare `required_features: ["structured_scene"]`. Their reset,
+observation, and response versions must match that manifest. `AgentSceneContext`
+has its own version, explicit ground-truth/synthetic source, nullable world route,
+classified objects with measured world box pose/extents/motion, map speed limit,
+and optional semantic `AgentRoadRaster`. The raster declares ego-relative axes,
+pixel origin, scale, and dimensions; exactly one validated flat class list or
+lossless base64 uint8 payload is accepted. Unknown data remains null. SDK 1.0
+observations retain their original behavior and do not carry scene context.
+See [the reference AI pilot](reference-ai-pilot.md) for the first consumer.
+
 ## Scenario and actors
 
 `Scenario` contains a name, optional template kind, map, seed, duration, fixed time

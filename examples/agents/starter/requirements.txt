@@ -1,0 +1,2 @@
+# No additional dependencies beyond the Poltergeist environment.
+# List your model's extra dependencies here. The checker never installs them.

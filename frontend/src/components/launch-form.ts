@@ -3,6 +3,7 @@ import type { EvaluationSettings, Scenario, SimulationLaunch, SimulationOptions 
 export type RunMode = "carla" | "test";
 export const DEFAULT_OPTIONS: SimulationOptions = {
   allow_map_reload: false, sensor_timeout_s: 2, sensor_settle_s: 0.02,
+  no_rendering_mode: null,
   max_ticks: 100_000, camera: false, lidar: false, camera_width: 640, camera_height: 360,
 };
 export const DEFAULT_EVALUATION: EvaluationSettings = {
@@ -93,7 +94,8 @@ export function makeLaunchRequest(scenario: Scenario | null, mode: RunMode | nul
   if (Object.keys(errors).length) return { errors };
   return { request: JSON.parse(JSON.stringify({
     scenario, scenario_id: null, mode,
-    options: { ...optionValues, allow_map_reload: options.allow_map_reload, camera: options.camera, lidar: options.lidar },
+    options: { ...optionValues, allow_map_reload: options.allow_map_reload, no_rendering_mode: null,
+      camera: options.camera, lidar: options.lidar },
     evaluation_settings: { method_version: "1.0", ...evaluationValues },
   })) as SimulationLaunch };
 }

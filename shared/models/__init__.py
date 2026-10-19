@@ -1,5 +1,18 @@
 """Public, CARLA-free data contracts. Import models from this module."""
 
+from .agent import (
+    AGENT_PROTOCOL_VERSION,
+    AgentContracts,
+    AgentDiagnostics,
+    AgentManifest,
+    AgentObservation,
+    AgentReset,
+    AgentRoadRaster,
+    AgentSceneContext,
+    AgentSceneObject,
+    AgentSensorSpec,
+    AgentStepResult,
+)
 from .evaluation import EvaluationCoverage, EvaluationSettings
 from .runtime import SimulationOptions
 
@@ -30,6 +43,9 @@ from .telemetry import (
 )
 
 __all__ = [
+    "AGENT_PROTOCOL_VERSION", "AgentContracts", "AgentDiagnostics", "AgentManifest", "AgentObservation",
+    "AgentReset", "AgentSensorSpec", "AgentStepResult",
+    "AgentRoadRaster", "AgentSceneContext", "AgentSceneObject",
     "ActorSpec", "ActorState", "ActorType", "ArtifactReference", "BoundingBoxExtent", "BrakingEvent",
     "CollisionEvent", "ControlInput", "EvaluationCoverage", "EvaluationSettings", "FailureKind", "FailureReport", "RelativeSpawn", "Rotation",
     "SafetyMetrics", "Scenario", "ScenarioEvent", "ScenarioTemplate", "Simulation", "SimulationResult",

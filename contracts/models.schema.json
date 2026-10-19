@@ -186,6 +186,713 @@
       "title": "ActorType",
       "type": "string"
     },
+    "AgentContracts": {
+      "additionalProperties": false,
+      "description": "Schema entry point; this grouping is not an agent message.",
+      "properties": {
+        "diagnostics": {
+          "$ref": "#/$defs/AgentDiagnostics"
+        },
+        "manifest": {
+          "$ref": "#/$defs/AgentManifest"
+        },
+        "observation": {
+          "$ref": "#/$defs/AgentObservation"
+        },
+        "reset": {
+          "$ref": "#/$defs/AgentReset"
+        },
+        "step_result": {
+          "$ref": "#/$defs/AgentStepResult"
+        }
+      },
+      "required": [
+        "manifest",
+        "reset",
+        "observation",
+        "diagnostics",
+        "step_result"
+      ],
+      "title": "AgentContracts",
+      "type": "object"
+    },
+    "AgentDiagnostics": {
+      "additionalProperties": false,
+      "properties": {
+        "hazard_actor_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Hazard Actor Ids",
+          "type": "array"
+        },
+        "maneuver": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maneuver"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "planned_trajectory": {
+          "items": {
+            "$ref": "#/$defs/Transform"
+          },
+          "title": "Planned Trajectory",
+          "type": "array"
+        },
+        "reason_codes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "target_speed_mps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Speed Mps"
+        }
+      },
+      "required": [
+        "maneuver",
+        "reason_codes",
+        "hazard_actor_ids",
+        "target_speed_mps",
+        "planned_trajectory",
+        "metadata"
+      ],
+      "title": "AgentDiagnostics",
+      "type": "object"
+    },
+    "AgentManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "assets": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Assets",
+          "type": "array"
+        },
+        "configuration": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Configuration",
+          "type": "object"
+        },
+        "control_mode": {
+          "const": "vehicle_control",
+          "default": "vehicle_control",
+          "title": "Control Mode",
+          "type": "string"
+        },
+        "entry_point": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*$",
+          "title": "Entry Point",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "observation_mode": {
+          "default": "simulator_state",
+          "enum": [
+            "simulator_state",
+            "sensors"
+          ],
+          "title": "Observation Mode",
+          "type": "string"
+        },
+        "protocol_version": {
+          "default": "1.0",
+          "enum": [
+            "1.0",
+            "1.1"
+          ],
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "required_features": {
+          "items": {
+            "const": "structured_scene",
+            "type": "string"
+          },
+          "title": "Required Features",
+          "type": "array"
+        },
+        "requirements_file": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirements File"
+        },
+        "sensors": {
+          "items": {
+            "$ref": "#/$defs/AgentSensorSpec"
+          },
+          "title": "Sensors",
+          "type": "array"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "agent_id",
+        "name",
+        "version",
+        "entry_point",
+        "observation_mode",
+        "control_mode",
+        "sensors",
+        "assets",
+        "requirements_file",
+        "configuration",
+        "required_features"
+      ],
+      "title": "AgentManifest",
+      "type": "object"
+    },
+    "AgentObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "actors": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ActorState"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actors"
+        },
+        "dt_s": {
+          "exclusiveMinimum": 0,
+          "title": "Dt S",
+          "type": "number"
+        },
+        "ego": {
+          "$ref": "#/$defs/ActorState"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "observation_mode": {
+          "const": "simulator_state",
+          "default": "simulator_state",
+          "title": "Observation Mode",
+          "type": "string"
+        },
+        "protocol_version": {
+          "default": "1.0",
+          "enum": [
+            "1.0",
+            "1.1"
+          ],
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "route_heading_deg": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Route Heading Deg"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentSceneContext"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_speed_mps": {
+          "minimum": 0,
+          "title": "Target Speed Mps",
+          "type": "number"
+        },
+        "time_s": {
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "traffic_light_red": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traffic Light Red"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "observation_mode",
+        "frame",
+        "time_s",
+        "dt_s",
+        "ego",
+        "actors",
+        "target_speed_mps",
+        "route_heading_deg",
+        "traffic_light_red",
+        "scene"
+      ],
+      "title": "AgentObservation",
+      "type": "object"
+    },
+    "AgentReset": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ego_actor_id": {
+          "minLength": 1,
+          "title": "Ego Actor Id",
+          "type": "string"
+        },
+        "fixed_delta_seconds": {
+          "exclusiveMinimum": 0,
+          "maximum": 0.1,
+          "title": "Fixed Delta Seconds",
+          "type": "number"
+        },
+        "map_name": {
+          "minLength": 1,
+          "title": "Map Name",
+          "type": "string"
+        },
+        "protocol_version": {
+          "default": "1.0",
+          "enum": [
+            "1.0",
+            "1.1"
+          ],
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "route": {
+          "items": {
+            "$ref": "#/$defs/Transform"
+          },
+          "title": "Route",
+          "type": "array"
+        },
+        "seed": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "seed",
+        "map_name",
+        "ego_actor_id",
+        "fixed_delta_seconds",
+        "destination",
+        "route"
+      ],
+      "title": "AgentReset",
+      "type": "object"
+    },
+    "AgentRoadRaster": {
+      "additionalProperties": false,
+      "description": "Ego-aligned semantic map, not camera perception.\n\nClasses: 0 background, 1 driving road, 2 sidewalk, 3 solid lane line,\n4 broken lane line. Rows increase ego-right, columns increase ego-forward.\nPayload is either flat row-major classes or lossless base64 uint8 bytes;\norigin identifies the ego reference point.",
+      "properties": {
+        "axes": {
+          "const": "rows_right_columns_forward",
+          "default": "rows_right_columns_forward",
+          "title": "Axes",
+          "type": "string"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 4,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 262144,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classes"
+        },
+        "data_base64": {
+          "anyOf": [
+            {
+              "maxLength": 349528,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Base64"
+        },
+        "ego_column": {
+          "minimum": 0,
+          "title": "Ego Column",
+          "type": "number"
+        },
+        "ego_row": {
+          "minimum": 0,
+          "title": "Ego Row",
+          "type": "number"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 512,
+          "title": "Height",
+          "type": "integer"
+        },
+        "pixels_per_meter": {
+          "exclusiveMinimum": 0,
+          "title": "Pixels Per Meter",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 512,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height",
+        "pixels_per_meter",
+        "classes",
+        "data_base64",
+        "axes",
+        "ego_row",
+        "ego_column"
+      ],
+      "title": "AgentRoadRaster",
+      "type": "object"
+    },
+    "AgentSceneContext": {
+      "additionalProperties": false,
+      "description": "Versioned optional privileged scene context for SDK 1.1 agents.",
+      "properties": {
+        "objects": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/AgentSceneObject"
+              },
+              "maxItems": 4096,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Objects"
+        },
+        "road_raster": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentRoadRaster"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "route": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Transform"
+              },
+              "maxItems": 256,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Route"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "carla_ground_truth",
+            "synthetic"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "speed_limit_mps": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Speed Limit Mps"
+        }
+      },
+      "required": [
+        "schema_version",
+        "source",
+        "route",
+        "objects",
+        "speed_limit_mps",
+        "road_raster"
+      ],
+      "title": "AgentSceneContext",
+      "type": "object"
+    },
+    "AgentSceneObject": {
+      "additionalProperties": false,
+      "description": "Privileged object state; transform is the measured world box center.",
+      "properties": {
+        "actor_id": {
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "extent": {
+          "$ref": "#/$defs/BoundingBoxExtent"
+        },
+        "is_static": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Is Static"
+        },
+        "kind": {
+          "enum": [
+            "vehicle",
+            "pedestrian",
+            "static",
+            "emergency",
+            "traffic_light",
+            "stop_sign"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "traffic_light_state": {
+          "anyOf": [
+            {
+              "enum": [
+                "red",
+                "yellow",
+                "green",
+                "off",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traffic Light State"
+        },
+        "transform": {
+          "$ref": "#/$defs/Transform"
+        },
+        "velocity_mps": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Vector3"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "actor_id",
+        "kind",
+        "transform",
+        "extent",
+        "velocity_mps",
+        "traffic_light_state",
+        "is_static"
+      ],
+      "title": "AgentSceneObject",
+      "type": "object"
+    },
+    "AgentSensorSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Attributes",
+          "type": "object"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "sensor.camera.rgb",
+            "sensor.lidar.ray_cast",
+            "sensor.other.imu",
+            "sensor.other.gnss"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "attributes"
+      ],
+      "title": "AgentSensorSpec",
+      "type": "object"
+    },
+    "AgentStepResult": {
+      "additionalProperties": false,
+      "properties": {
+        "control": {
+          "$ref": "#/$defs/ControlInput"
+        },
+        "diagnostics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentDiagnostics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "default": "1.0",
+          "enum": [
+            "1.0",
+            "1.1"
+          ],
+          "title": "Protocol Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "frame",
+        "control",
+        "diagnostics"
+      ],
+      "title": "AgentStepResult",
+      "type": "object"
+    },
     "AnalyticsSummary": {
       "additionalProperties": false,
       "properties": {
@@ -765,6 +1472,7 @@
       "title": "JobInfo",
       "type": "object"
     },
+    "JsonValue": {},
     "MinimizeRequest": {
       "additionalProperties": false,
       "properties": {
@@ -2381,6 +3089,18 @@
           "title": "Max Ticks",
           "type": "integer"
         },
+        "no_rendering_mode": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "No Rendering Mode"
+        },
         "sensor_settle_s": {
           "default": 0.02,
           "exclusiveMinimum": 0,
@@ -2396,6 +3116,7 @@
       },
       "required": [
         "allow_map_reload",
+        "no_rendering_mode",
         "sensor_timeout_s",
         "sensor_settle_s",
         "max_ticks",
@@ -3056,6 +3777,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "agent": {
+      "$ref": "#/$defs/AgentContracts"
+    },
     "api": {
       "$ref": "#/$defs/ApiContracts"
     },
@@ -3089,7 +3813,8 @@
     "result",
     "failure",
     "api",
-    "optimization"
+    "optimization",
+    "agent"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

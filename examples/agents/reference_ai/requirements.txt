@@ -1,0 +1,9 @@
+# Install the appropriate torch/torchvision wheels first (CPU or CUDA 12.4).
+# Python 3.12 is the validated worker environment; CARLA is not needed here.
+torch==2.6.0
+torchvision==0.21.0
+transformers==4.49.0
+timm==1.0.19
+omegaconf==2.3.0
+numpy==2.2.4
+scipy==1.15.2

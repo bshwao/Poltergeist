@@ -119,6 +119,26 @@ persist `SimulationOptions` and `EvaluationSettings` with the queued recipe and
 run each job through a fresh runner. Options live in `shared.models.runtime` and
 remain re-exported from `simulator` and `simulator.protocols` for Python callers.
 
+The autonomous-driving extension adds a versioned
+[`AutonomousAgent` SDK](agent-sdk.md) with load/reset/step/close lifecycle,
+package inspection, and a synthetic compatibility smoke test. Phase 2 connects
+these packages to this runner using `ProcessAgent` and a child Python process:
+
+```text
+python -m simulator --template intersection --mode test --agent-package examples/agents/starter
+python -m simulator --template intersection --mode carla --agent-package examples/agents/starter --agent-python C:/path/to/agent-env/Scripts/python.exe
+```
+
+The agent's environment must already contain the SDK and its dependencies.
+The parent remains the sole tick owner; requests/responses retain native frame
+association. Wall-clock deadlines, cancellation during blocked inference, and
+process-tree cleanup are enforced. CLI stderr includes an inference/round-trip
+timing summary; stdout/output files retain the normal result contract. See
+[agent setup and limits](agent-sdk.md#run-an-agent-in-a-separate-process).
+Existing scripted ego braking overrides still apply until Phase 3 of the
+[new plan](autonomous-agents-plan.md). API and dashboard launches still use the
+baseline controller; package selection there comes in Phases 5 and 6.
+
 ## CARLA execution
 
 Use Python 3.12 with the optional simulation requirements and a matching CARLA
@@ -135,6 +155,14 @@ frame check. CARLA's
 [synchrony guidance](https://carla.readthedocs.io/en/0.9.16/adv_synchrony_timestep/)
 describes the server assumptions; a seed alone does not guarantee deterministic
 physics.
+
+Rendering is preserved by default. `--no-rendering` or
+`SimulationOptions(no_rendering_mode=True)` disables the renderer for that run
+and restores the original setting during cleanup. `None` preserves the original
+setting and an explicit `False` enables rendering for the scoped run. Camera
+capture requires rendering and fails if it is disabled. The reference state-based
+AI can operate without a rendered spectator view; see its
+[launch and measurement guide](reference-ai-pilot.md).
 
 The loaded map must match the scenario by default. `SimulationOptions(
 allow_map_reload=True)` or CLI `--allow-map-reload` permits map changes only when

@@ -56,3 +56,32 @@ test** explicitly to try the full workflow without CARLA.
   from those contracts.
 
 See [`docs/setup.md`](docs/setup.md) for local development instructions.
+
+## User-supplied autonomous agents
+
+The [autonomous driving extension](docs/autonomous-agents-plan.md) is split into
+ten phases. Phases 1 and 2 add a versioned Python SDK, a baseline reference and
+editable starter package, local compatibility checks, and an external agent
+worker with deadlines, cancellation, cleanup, and inference timing:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.check_agent examples/agents/starter
+.\.venv\Scripts\python.exe -m scripts.check_agent examples/agents/starter --smoke-test
+.\.venv\Scripts\python.exe -m simulator --template intersection --mode test --agent-package examples/agents/starter
+```
+
+The default check does not execute agent code. The optional smoke test executes
+trusted local code against synthetic observations without CARLA. It does not
+assess driving quality. The simulation command runs the starter in a child
+process. Use `--agent-python PATH` to choose an already prepared dependency
+environment and `--mode carla` with a CARLA-compatible parent environment for a
+live run. Dashboard agent selection and sensor-based agents remain later phases.
+See the [agent SDK guide](docs/agent-sdk.md).
+
+Phase 2.5 adds a maintained **pretrained PlanT 2.0 reference agent**, live CARLA
+verification, model/control evidence, baseline and ablation comparisons, and
+timing reports. Its learned policy uses structured simulator state and a supplied
+route. See [reference AI setup and launch](docs/reference-ai-pilot.md) and the
+[measured validation results](docs/reference-ai-validation.md). Live control is
+verified; the complete loop currently falls short of the 20 Hz real-time target
+on the tested laptop. Dashboard agent selection remains a later phase.

@@ -36,6 +36,7 @@ class CarlaSimulationAdapter:
         self._rule_time_offset = 0.0
         self._opened = False
         self._versions = {}
+        self._reference_scene = None
 
     def open(self, scenario: Scenario) -> TelemetryFrame:
         if self._opened:
@@ -57,7 +58,8 @@ class CarlaSimulationAdapter:
         for kind, version in self._versions.items():
             if str(version).split("-")[0] != "0.9.16":
                 raise SimulationError(f"Expected CARLA 0.9.16 {kind}, received {version!r}")
-        self.world_manager = WorldManager(self.client, self.carla, allow_map_reload=self.options.allow_map_reload)
+        self.world_manager = WorldManager(self.client, self.carla, allow_map_reload=self.options.allow_map_reload,
+                                          no_rendering_mode=self.options.no_rendering_mode)
         self.world = self.world_manager.open(scenario)
         self.actor_manager = ActorManager(self.world, self.carla, scenario)
         actors = self.actor_manager.spawn()
@@ -157,6 +159,15 @@ class CarlaSimulationAdapter:
             raise SimulationError("Another client advanced the CARLA world; use a dedicated synchronous server")
         return self._frame(snapshot, control)
 
+    def agent_context(self, frame: TelemetryFrame):
+        """Optional privileged features; no client connection or world tick."""
+        if self.world is None or self.actor_manager is None or not self._opened:
+            raise SimulationError("CARLA simulation is not open")
+        if self._reference_scene is None:
+            from .reference_scene import CarlaReferenceScene
+            self._reference_scene = CarlaReferenceScene(self.world, self.carla, self.actor_manager, self.ego_id)
+        return self._reference_scene.context(frame)
+
     def finalize(self, frames: list[TelemetryFrame]) -> list[TelemetryFrame]:
         return self.sensors.finalize(frames) if self.sensors is not None else frames
 
@@ -181,5 +192,6 @@ class CarlaSimulationAdapter:
                 except Exception as error:
                     errors.append(f"{name}: {error}")
         self._opened = False
+        self._reference_scene = None
         if errors:
             raise SimulationError("CARLA cleanup failed: " + "; ".join(errors))

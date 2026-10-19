@@ -254,6 +254,27 @@ def test_world_partial_setup_failure_restores_previous_state():
     assert manager.world is None
 
 
+@pytest.mark.parametrize("original,override", [(False, True), (True, False), (True, None), (False, None)])
+def test_rendering_override_is_scoped_and_restored(original, override):
+    client = Client()
+    client.world.settings.no_rendering_mode = original
+    manager = WorldManager(client, CARLA, no_rendering_mode=override)
+    world = manager.open(scenario())
+    assert world.settings.no_rendering_mode is (original if override is None else override)
+    manager.close()
+    assert world.settings.no_rendering_mode is original
+
+
+def test_rendering_override_is_restored_after_partial_setup_failure():
+    client = Client()
+    client.world.settings.no_rendering_mode = False
+    client.world.fail_weather_once = True
+    manager = WorldManager(client, CARLA, no_rendering_mode=True)
+    with pytest.raises(SimulationError, match="weather failure"):
+        manager.open(scenario())
+    assert client.world.settings.no_rendering_mode is False
+
+
 def test_world_mismatched_map_is_opt_in_and_unavailable_map_is_actionable():
     client = Client()
     with pytest.raises(SimulationError, match="explicitly allow map reload"):

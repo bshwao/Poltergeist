@@ -20,6 +20,12 @@ that section's scope is complete, not that the whole application is functional.
 Target: a local application with one simulation worker. Authentication, public
 hosting, and training a custom ML agent are separate extensions.
 
+The subsequent user-supplied autonomous driving extension has its own
+[ten-phase plan](autonomous-agents-plan.md). Phases 1 and 2 implement the
+[versioned agent SDK, starter package, and external process runner](agent-sdk.md),
+including independent Python environments, deadlines, cancellation, and timing.
+The original sections below retain their completion history.
+
 ## Section 1 handoff
 
 - Python contracts live in `shared/models/`; public imports use `shared.models`.

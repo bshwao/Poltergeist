@@ -25,12 +25,15 @@ optimization = ["optuna>=4,<5", "scipy>=1.15,<2"]
 [project.scripts]
 poltergeist-experiment = "scripts.run_experiment:main"
 poltergeist-report = "scripts.export_report:main"
+poltergeist-check-agent = "scripts.check_agent:main"
+poltergeist-reference-ai = "scripts.run_reference_ai:main"
 
 [tool.setuptools.packages.find]
 include = ["backend*", "shared*", "simulator*", "scenarios*", "evaluation*", "optimization*", "scripts*"]
 
 [tool.setuptools.package-data]
 scenarios = ["templates/*.yaml"]
+simulator = ["agents/reference_ai/LICENSE.plant2"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

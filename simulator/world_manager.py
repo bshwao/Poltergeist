@@ -45,10 +45,13 @@ def _dynamic_actors(world: Any) -> list[Any]:
 
 
 class WorldManager:
-    def __init__(self, client: Any, carla_module: Any, *, allow_map_reload: bool = False):
+    def __init__(self, client: Any, carla_module: Any, *, allow_map_reload: bool = False, no_rendering_mode: bool | None = None):
         self.client = client
         self.carla = carla_module
         self.allow_map_reload = allow_map_reload
+        if no_rendering_mode is not None and type(no_rendering_mode) is not bool:
+            raise ValueError("no_rendering_mode must be a boolean or None")
+        self.no_rendering_mode = no_rendering_mode
         self.world: Any | None = None
         self._original_map: str | None = None
         self._original_settings: Any | None = None
@@ -91,6 +94,8 @@ class WorldManager:
                 self.world = world
             settings = _clone(world.get_settings(), self.carla.WorldSettings, _SETTINGS_FIELDS)
             settings.synchronous_mode = True
+            if self.no_rendering_mode is not None:
+                settings.no_rendering_mode = self.no_rendering_mode
             settings.fixed_delta_seconds = scenario.fixed_delta_seconds
             settings.substepping = True
             settings.max_substep_delta_time = 0.01
