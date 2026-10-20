@@ -139,7 +139,9 @@ These payload boundaries are for trusted local agent processes, not isolation
 against code that independently reads files or opens a CARLA connection. Public
 uploads still need isolated workers.
 
-The [Phase 5 registry](agent-registry.md) supports selecting these packages for
-queued API runs. Dashboard launch controls remain Phase 6; full persisted
-action-timeline review remains Phase 7.
+The [agent registry](agent-registry.md) supports selecting these packages for
+queued API and dashboard runs. Use the [dashboard guide](dashboard.md) to
+register the sensor pilot, supply its explicit task recipe, and enable rendering
+for RGB inputs. [Phase 7 decision review](decision-timeline.md) links recorded
+sensor inputs to actions and measured outcomes for queued API runs.
 See [Phase 4 validation](phase4-validation.md) for measured live results and limits.

@@ -15,6 +15,7 @@ from backend.database import Database
 from backend.persistence_errors import ConflictError, PersistenceError
 from backend.repositories import FailureRepository, ScenarioRepository, SimulationRepository
 from backend.storage import ArtifactStore, CaptureWriter
+from backend.decision_storage import DecisionWriter, decision_page
 
 
 def _canonical(model) -> str:
@@ -166,12 +167,14 @@ class PersistenceService:
         if _canonical(previous.scenario) != _canonical(current.scenario):
             raise PersistenceError("Runner output changed the queued scenario snapshot")
 
-    def persist_output(self, output: RunOutput, *, expected_revision: int, capture: CaptureWriter | None = None) -> RunOutput:
+    def persist_output(self, output: RunOutput, *, expected_revision: int, capture: CaptureWriter | None = None,
+                       decisions: DecisionWriter | None = None) -> RunOutput:
         """Publish finalized artifacts, then atomically save the terminal result.
 
         The caller supplies the current database revision (including any saved
-        progress updates). Failed executions discard staged raw captures while
-        retaining their finalized partial telemetry. This method never retries a
+        progress updates). Decision-enabled executions retain valid partial raw
+        inputs on failure; legacy callers keep their discard-on-failure behavior.
+        This method never retries a
         stale completion or replaces a previously saved result.
         """
         created = []
@@ -189,8 +192,10 @@ class PersistenceService:
             if capture is not None and not owns_capture:
                 raise PersistenceError("Capture belongs to a different simulation or artifact store")
 
+            if decisions is not None and (decisions.store is not self.artifacts or decisions.simulation_id != simulation_id):
+                raise PersistenceError("Decision writer belongs to a different run or store")
             if capture is not None:
-                if result.simulation.status == SimulationStatus.FAILED:
+                if result.simulation.status == SimulationStatus.FAILED and decisions is None:
                     capture.abort()
                 else:
                     reference = capture.commit()
@@ -200,15 +205,25 @@ class PersistenceService:
                     elif result.runtime is not None and result.runtime.sensor_samples_count:
                         raise PersistenceError("Capture is missing the sensor samples recorded by the runner")
             created.append(self.artifacts.write_telemetry(simulation_id, frames))
+            if decisions is not None:
+                recording_index = next((index for index, ref in enumerate(created) if ref.kind == "recording"), None)
+                created.append(decisions.commit(recording_index))
             for reference in created:
                 self.artifacts.validate_reference(reference, simulation_id=simulation_id)
             result = SimulationResult.model_validate(result.model_dump(mode="json") | {
                 "artifacts": [reference.model_dump(mode="json") for reference in created],
             })
+            if decisions is not None:
+                decision_page(self.artifacts, result, frames, validate_sensors=True)
             with self.database.session() as session:
                 SimulationRepository(session).complete(result, expected_revision=expected_revision)
             return RunOutput(result=result, telemetry=frames)
         except BaseException as error:
+            if decisions is not None and decisions.store is self.artifacts and decisions.simulation_id == simulation_id:
+                try:
+                    decisions.abort()
+                except BaseException as cleanup:
+                    error.add_note(f"Decision cleanup failed: {cleanup}")
             if owns_capture:
                 try:
                     capture.abort()
@@ -313,4 +328,16 @@ class PersistenceService:
         for reference in result.artifacts:
             if reference.kind == "recording":
                 self._validate_recording(reference, result, frames)
+        decision_page(self.artifacts, result, frames, validate_sensors=True)
         return RunOutput(result, frames)
+
+    def read_decisions(self, simulation_id: UUID, *, offset=0, limit=25):
+        stored = self.get_simulation(simulation_id)
+        if stored.result is None:
+            raise ConflictError("Simulation output is not finalized yet")
+        refs = [ref for ref in stored.result.artifacts if ref.kind == "telemetry"]
+        if len(refs) != 1:
+            raise PersistenceError("Persisted result must reference exactly one telemetry artifact")
+        self.artifacts.validate_reference(refs[0], simulation_id)
+        frames = self._validate_trace(stored.result, self.artifacts.read_telemetry(refs[0]))
+        return decision_page(self.artifacts, stored.result, frames, offset=offset, limit=limit)

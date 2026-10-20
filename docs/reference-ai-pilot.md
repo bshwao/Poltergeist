@@ -152,9 +152,10 @@ The model controls CARLA through a synchronous observation/action loop, and CARL
 waits for inference. Review the report's measured gate on the actual hardware;
 the performance profile cannot guarantee 20 Hz under every workload.
 
-API/dashboard agent selection remains Phases 5 and 6. Current dashboard launches
-continue to use the existing baseline; use the command above for the learned
-reference pilot.
+After preparing the worker environment and weights, register the reference
+package through the [Agents page or API](agent-registry.md), then select its
+registration when launching a scenario. The command above remains the dedicated
+pilot path for collecting the detailed performance report.
 
 Phase 3 adds SDK 1.2 explicit framework driving tasks, finite routes and measured
 goal completion. Use `--driving-task path.json` or embed the task in a recipe.

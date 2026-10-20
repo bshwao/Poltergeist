@@ -42,9 +42,13 @@ function checkbox(root, labelText) {
   assert.ok(label, `Missing checkbox: ${labelText}`);
   return label.findByType("input");
 }
-function setup(t, props = {}) {
+function setup(t, props = {}, mocks = {}) {
+  api.listAgents = async () => [];
+  api.getAgent = async () => { throw new Error("Unexpected agent request"); };
+  api.getAgentReadiness = async () => { throw new Error("Unexpected readiness request"); };
   api.getSimulationQueue = async () => { throw new Error("Unexpected queue request"); };
   api.launchSimulation = async () => { throw new Error("Unexpected launch request"); };
+  Object.assign(api, mocks);
   let view;
   act(() => { view = TestRenderer.create(React.createElement(LaunchPanel, { scenario: structuredClone(recipe), disabledReason: null, ...props })); });
   t.after(() => act(() => view.unmount()));
@@ -238,4 +242,178 @@ test("unmount aborts a pending launch without resubmitting it", async t => {
   assert.equal(signal.aborted, true);
   await act(async () => { pending.resolve(accepted()); await request; });
   assert.equal(launches, 1);
+});
+
+function registration(index = 1, changes = {}) {
+  const id = `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`;
+  return { id, active: true, created_at: "2026-10-19T12:00:00Z", snapshot: {
+    registration_id: id, observation_mode: "simulator_state", agent_control_mode: "authoritative",
+    package_sha256: "a".repeat(64), configuration: { target: 4 },
+    manifest: { name: `Agent ${index}`, version: "2.1", agent_id: `agent_${index}`, protocol_version: "1.3", navigation_mode: "provided_route", sensors: [] },
+    ...changes,
+  } };
+}
+function ready(record, passed = true) {
+  return { agent_id: record.id, checked_at: "2026-10-19T12:00:00Z", inspection: "static_only", inference_checked: false, ready: passed, issues: passed ? [] : ["Package files changed since registration"], limitations: ["Dependencies and inference were not executed"] };
+}
+function agentAccepted(record) {
+  const result = accepted();
+  result.simulation.agent = "custom";
+  result.simulation.agent_snapshot = structuredClone(record.snapshot);
+  result.job.agent_snapshot = structuredClone(record.snapshot);
+  return result;
+}
+async function selectAgent(view, id) {
+  await act(async () => field(view.root, "Ego controller").props.onChange({ target: { value: id } }));
+}
+
+test("active registry pagination exposes every controller while baseline remains the default", async t => {
+  const records = Array.from({ length: 101 }, (_, index) => registration(index + 1));
+  const pages = [];
+  const view = setup(t, {}, { listAgents: async pagination => { pages.push(pagination); return records.slice(pagination.offset, pagination.offset + pagination.limit); } });
+  await act(async () => {});
+  assert.deepEqual(pages, [{ limit: 100, offset: 0, active: true }, { limit: 100, offset: 100, active: true }]);
+  assert.equal(field(view.root, "Ego controller").props.value, "");
+  assert.equal(field(view.root, "Ego controller").findAllByType("option").length, 102);
+  assert.match(text(view.root), /Agent 101/);
+});
+
+test("selected agent survives recipe edits and receipt retains its exact ID and version", async t => {
+  const record = registration();
+  let checks = 0;
+  let sent;
+  const view = setup(t, {}, { listAgents: async () => [record], getAgent: async () => record, getAgentReadiness: async () => { checks += 1; return ready(record); }, launchSimulation: async input => { sent = input; return agentAccepted(record); } });
+  await act(async () => {});
+  await selectAgent(view, record.id);
+  assert.match(text(view.root), /Agent 1v2.1/);
+  assert.match(text(view.root), /Static checks passed/);
+  assert.match(text(view.root), /Inference and simulator connectivity were not tested/);
+  act(() => view.update(React.createElement(LaunchPanel, { scenario: null, disabledReason: "Validate edits" })));
+  assert.equal(field(view.root, "Ego controller").props.value, record.id);
+  act(() => view.update(React.createElement(LaunchPanel, { scenario: { ...recipe, name: "New recipe" }, disabledReason: null })));
+  choose(view, "test");
+  await submit(view);
+  assert.equal(checks, 2, "Static readiness is repeated immediately before launch");
+  assert.equal(sent.agent_id, record.id);
+  assert.equal(sent.scenario.name, "New recipe");
+  const receipt = view.root.findByProps({ className: "launch-receipt notice" });
+  assert.match(text(receipt), /Agent 1v2.1/);
+  assert.match(text(receipt), new RegExp(record.id));
+  await selectAgent(view, "");
+  assert.match(text(view.root.findByProps({ className: "launch-receipt notice" })), /Agent 1v2.1/);
+});
+
+test("readiness drift during preflight rejects the launch without uncertain acceptance", async t => {
+  const record = registration();
+  let checks = 0;
+  let posts = 0;
+  const view = setup(t, {}, { listAgents: async () => [record], getAgent: async () => record, getAgentReadiness: async () => ready(record, ++checks === 1), launchSimulation: async () => { posts += 1; return agentAccepted(record); } });
+  await act(async () => {});
+  await selectAgent(view, record.id);
+  choose(view, "test");
+  await submit(view);
+  assert.equal(posts, 0);
+  assert.match(text(view.root), /failed its current static checks/);
+  assert.match(text(view.root), /Package files changed/);
+  assert.doesNotMatch(text(view.root), /Run acceptance is uncertain/);
+});
+
+test("deactivated and missing selected registrations stay selected and never switch to baseline", async t => {
+  const record = registration();
+  let current = record;
+  let missing = false;
+  let posts = 0;
+  const view = setup(t, {}, { listAgents: async () => current.active ? [current] : [], getAgent: async () => { if (missing) throw new ApiError("Agent not found", 404); return current; }, getAgentReadiness: async () => ready(record), launchSimulation: async () => { posts += 1; return accepted(); } });
+  await act(async () => {});
+  await selectAgent(view, record.id);
+  choose(view, "test");
+  current = { ...record, active: false };
+  await act(async () => view.update(React.createElement(LaunchPanel, { scenario: recipe, disabledReason: null, registryRevision: 1 })));
+  assert.equal(field(view.root, "Ego controller").props.value, record.id);
+  assert.equal(button(view.root, "Launch simulation").props.disabled, true);
+  assert.match(text(view.root), /missing or deactivated/);
+  missing = true;
+  await act(async () => button(view.root, "Refresh agents").props.onClick());
+  assert.equal(field(view.root, "Ego controller").props.value, record.id);
+  assert.match(text(view.root), /Agent not found/);
+  await submit(view);
+  assert.equal(posts, 0);
+  await selectAgent(view, "");
+  await submit(view);
+  assert.equal(posts, 1);
+});
+
+test("late inspection responses cannot replace a newer controller selection", async t => {
+  const old = registration(1);
+  const next = registration(2);
+  const pending = deferred();
+  let oldSignal;
+  const view = setup(t, {}, { listAgents: async () => [old, next], getAgent: async (id, { signal }) => { if (id === old.id) { oldSignal = signal; return pending.promise; } return next; }, getAgentReadiness: async id => ready(id === old.id ? old : next) });
+  await act(async () => {});
+  await selectAgent(view, old.id);
+  await selectAgent(view, next.id);
+  assert.equal(oldSignal.aborted, true);
+  await act(async () => pending.resolve(old));
+  assert.equal(field(view.root, "Ego controller").props.value, next.id);
+  assert.match(text(view.root), /Agent 2v2.1/);
+});
+
+test("hidden launch panels stop registry reads and abort preflight without posting", async t => {
+  const record = registration();
+  let reads = 0;
+  let checks = 0;
+  let posts = 0;
+  const pending = deferred();
+  let preflightSignal;
+  const view = setup(t, { active: false }, { listAgents: async () => { reads += 1; return [record]; }, getAgent: async () => record, getAgentReadiness: async (_id, { signal }) => { checks += 1; if (checks === 2) { preflightSignal = signal; return pending.promise; } return ready(record); }, launchSimulation: async () => { posts += 1; return agentAccepted(record); } });
+  await act(async () => {});
+  assert.equal(reads, 0);
+  await act(async () => view.update(React.createElement(LaunchPanel, { scenario: recipe, disabledReason: null, active: true })));
+  await selectAgent(view, record.id);
+  choose(view, "test");
+  let request;
+  act(() => { request = view.root.findByType("form").props.onSubmit({ preventDefault() {} }); });
+  await act(async () => view.update(React.createElement(LaunchPanel, { scenario: recipe, disabledReason: null, active: false })));
+  assert.equal(preflightSignal.aborted, true);
+  await act(async () => { pending.resolve(ready(record)); await request; });
+  assert.equal(posts, 0);
+  assert.equal(reads, 1);
+});
+
+test("mismatched accepted agent identity or version warns of uncertain acknowledgement", async t => {
+  const record = registration();
+  let response = agentAccepted(registration(2));
+  const view = setup(t, {}, { listAgents: async () => [record], getAgent: async () => record, getAgentReadiness: async () => ready(record), launchSimulation: async () => response });
+  await act(async () => {});
+  await selectAgent(view, record.id);
+  choose(view, "test");
+  await submit(view);
+  assert.match(text(view.root), /Run acceptance is uncertain/);
+  assert.match(text(view.root), /did not match the selected agent and version/);
+  response = agentAccepted(record);
+  response.simulation.agent_snapshot.manifest.version = "other";
+  await submit(view);
+  assert.match(text(view.root), /Run acceptance is uncertain/);
+  assert.equal(view.root.findAllByProps({ className: "launch-receipt notice" }).length, 0);
+});
+
+test('a loading selection is not falsely reported as missing or deactivated', async t => {
+  const record = registration(); const pending = deferred();
+  const view = setup(t, {}, { listAgents: async () => [record], getAgent: async () => pending.promise, getAgentReadiness: async () => ready(record) });
+  await act(async () => {}); await selectAgent(view, record.id);
+  assert.match(text(view.root), /Checking the selected registration/);
+  assert.doesNotMatch(text(view.root), /missing or deactivated/);
+  assert.equal(button(view.root, 'Launch simulation').props.disabled, true);
+  await act(async () => pending.resolve(record));
+  assert.match(text(view.root), /Static checks passed/);
+});
+
+test('acceptance must preserve configuration and model identity as well as version and package hash', async t => {
+  const record = registration();
+  const response = agentAccepted(record); response.simulation.agent_snapshot.configuration.target = 99;
+  const view = setup(t, {}, { listAgents: async () => [record], getAgent: async () => record,
+    getAgentReadiness: async () => ready(record), launchSimulation: async () => response });
+  await act(async () => {}); await selectAgent(view, record.id); choose(view, 'test'); await submit(view);
+  assert.match(text(view.root), /Run acceptance is uncertain/);
+  assert.equal(view.root.findAllByProps({ className: 'launch-receipt notice' }).length, 0);
 });

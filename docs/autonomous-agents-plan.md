@@ -12,8 +12,8 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 | 3 | Initial conditions versus agent goals, route/planner ownership, authoritative agent controls and recorded interventions | The agent chooses its evolving response without silent scripted overrides | Implemented; see driving task guide |
 | 4 | Declared camera/LiDAR inputs, synchronized observation delivery, separation of evaluator ground truth | One compatible sensor-based driving agent runs end to end | Implemented; see sensor agent guide |
 | 5 | Agent registry, API selection, durable job configuration and code/model fingerprints | Queued API runs retain the exact selected agent and observation mode | Implemented; see agent registry guide |
-| 6 | Agents page, registration/readiness checks, dashboard launch selection | A user registers and launches a compatible agent from the dashboard | Planned |
-| 7 | Persisted input/action/diagnostic/intervention timeline and synchronized review | A recorded action can be traced to its preceding observation | Planned |
+| 6 | Agents page, registration/readiness checks, dashboard launch selection | A user registers and launches a compatible agent from the dashboard | Implemented; see dashboard guide |
+| 7 | Persisted input/action/diagnostic/intervention timeline and synchronized review | A recorded action can be traced to its preceding observation | Implemented; see decision timeline guide |
 | 8 | Response/route/behavior analysis and evidence-based reports | Reports distinguish measurements, agent diagnostics, and inferred explanations | Planned |
 | 9 | Agent/version comparisons, repeated trials, agent-aware reproduction/search/minimization | Comparisons retain traceable experiment conditions and agent versions | Planned |
 | 10 | Integration/failure validation, installation, supported examples and hardware guidance | A new user can complete the supported workflow from documentation | Planned |
@@ -67,8 +67,8 @@ remain unchanged.
   environment must already contain Poltergeist and the agent's dependencies.
   Nothing is installed automatically. See [commands and limits](agent-sdk.md#run-an-agent-in-a-separate-process).
 - Timing summaries are available through `ProcessAgent.stats` and CLI stderr.
-  Full persisted decision/diagnostic traces remain Phase 7. Queued API agent
-  selection is described in Phase 5 below; dashboard selection remains Phase 6.
+  Full persisted decision/diagnostic traces are implemented in Phase 7. Queued API agent
+  selection is described in Phase 5 below; the dashboard workflow is described in Phase 6.
 
 Validation on October 18, 2026: 1,790 Python regression tests passed. The final
 180 focused worker/process/runner/SDK cases passed with warnings treated as
@@ -243,7 +243,7 @@ The reference AI accepts finite framework tasks and declares endpoint input
 padding and deterministic goal/tracking assistance. The network still runs each
 decision. A complete synthetic teaching example is included. See
 [driving tasks and commands](driving-tasks.md) for ownership, measurements and
-limitations. Dashboard agent selection remains Phase 6; sensor support is
+limitations. Dashboard agent selection is described in Phase 6; sensor support is
 described in Phase 4 below.
 
 ## Phase 4 handoff
@@ -259,7 +259,7 @@ it is not a trained perception policy. PlanT remains the separate structured-sta
 reference AI. Results retain input provenance, multiple raw streams can be
 recorded, and a local CLI trace preserves exact inputs/actions. See
 [sensor agents and launch commands](sensor-agents.md). Registration, queued agent
-selection are described in Phase 5 below; dashboard controls remain Phase 6.
+selection are described in Phase 5 below; dashboard controls are described in Phase 6.
 
 ## Phase 5 handoff
 
@@ -278,6 +278,52 @@ registration alone is not proof of driving quality or CARLA readiness. See
 workflow and fingerprint limits, and [Phase 5 validation](phase5-validation.md)
 for measured test coverage.
 
-The Agents page and dashboard launch selector remain Phase 6. Full persisted
-decision timelines, behavior reports and agent-aware comparisons remain Phases
-7–9.
+The Agents page and dashboard launch selector are implemented in Phase 6;
+persisted decision review is implemented in Phase 7. Behavior reports and
+agent-aware comparisons remain Phases 8–9.
+
+
+## Phase 6 handoff
+
+The dashboard now provides an Agents page for trusted backend-local package
+registration, optional worker Python/configuration/model paths, advanced execution
+settings, paged active/inactive history, saved manifest and fingerprint inspection,
+static readiness checks, and deactivation. Registration does not execute code or
+install dependencies. Duplicate display names retain distinct registration IDs.
+
+Scenario launches offer the baseline or an explicit registered ego controller.
+The selection survives recipe edits and navigation; current static checks are
+repeated before launch. SDK/task/planner/control conflicts and RGB rendering
+requirements are shown before submission without rewriting the recipe. Sensor
+fixtures remain explicitly labelled in synthetic mode. Missing or deactivated
+selections remain visible until the user chooses another controller.
+
+Acceptance receipts, run history, run detail and failure evidence show the saved
+agent identity. They do not consult a mutable registry to relabel old results.
+Existing side-by-side failure views flag different or unknown custom identities;
+agent-aware experiment comparisons remain Phase 9. Hidden-page requests are
+cancelled, late responses are ignored, and uncertain mutations are not retried
+automatically.
+
+See [dashboard usage](dashboard.md) and [Phase 6 validation](phase6-validation.md).
+Persistent decision review is implemented in Phase 7. Behavior analysis and
+agent-aware optimization remain Phases 8–9.
+
+## Phase 7 handoff
+
+New API queue executions retain a streamed decision artifact. Each applied
+action links its preceding observation, optional agent diagnostics, proposed and
+applied control, interventions, timing and following measured frame. Successful
+SDK reset context is retained; sensor bytes are referenced in the existing raw
+capture rather than duplicated in decision JSON. Inputs interrupted by failure
+or cancellation are explicitly unresolved, and coverage describes missing links.
+
+The Simulations page provides paged, frame-synchronized review and on-demand
+sensor input verification. Legacy results remain readable and explicitly lack
+decision evidence. Publication checks the chain against finalized telemetry,
+authority/intervention audits, registered identity and sensor recording metadata.
+No internal model reasoning is inferred. Phase 8 remains behavior analysis and
+evidence-based reports; Phase 9 remains agent-aware comparisons and optimization.
+
+See [decision timeline usage and format](decision-timeline.md) and
+[Phase 7 validation](phase7-validation.md).

@@ -4,12 +4,12 @@ import type { RawCaptureManifest } from "../services/api";
 import type { SimulationResult } from "../types/generated";
 import { decodeBgra, inspectLidar, measurement, verifySample } from "./visual-data";
 
-type LoadedSample = { index: number } & (
+export type LoadedSample = { index: number } & (
   { kind: "camera"; width: number; height: number; rgba: Uint8ClampedArray }
   | { kind: "lidar"; statistics: ReturnType<typeof inspectLidar> }
 );
 
-function CameraFrame({ frame }: { frame: Extract<LoadedSample, { kind: "camera" }> }) {
+export function CameraFrame({ frame }: { frame: Extract<LoadedSample, { kind: "camera" }> }) {
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -95,7 +95,7 @@ function CaptureInspector({ simulationId, artifactIndex, active }: { simulationI
         <div className="capture-controls"><button className="button secondary small" disabled={!active || sampleIndex === 0} onClick={() => chooseSample(sampleIndex - 1)}>Previous sample</button>
           <div className="field"><label htmlFor={`${prefix}-sample`}>Sample number</label><input id={`${prefix}-sample`} type="number" min="1" max={manifest.sample_count} step="1" value={sampleIndex + 1} disabled={!active} onChange={event => chooseSample(Number(event.target.value) - 1)} /></div>
           <button className="button secondary small" disabled={!active || sampleIndex + 1 >= manifest.sample_count} onClick={() => chooseSample(sampleIndex + 1)}>Next sample</button></div>
-        <dl className="frame-values"><div><dt>Sensor</dt><dd>{sample.kind === "camera" ? "Camera" : "LiDAR"}</dd></div><div><dt>Frame / timestamp</dt><dd>{sample.frame} / {measurement(sample.timestamp, 3)} s</dd></div><div><dt>Raw encoding / size</dt><dd>{sample.metadata.encoding} / {sample.byte_length.toLocaleString()} bytes</dd></div></dl>
+        <dl className="frame-values"><div><dt>Sensor</dt><dd>{sample.kind === "camera" ? "Camera" : "LiDAR"}{typeof sample.metadata.agent_sensor_id === "string" && ` · ${sample.metadata.agent_sensor_id}`}</dd></div><div><dt>Frame / timestamp</dt><dd>{sample.frame} / {measurement(sample.timestamp, 3)} s</dd></div><div><dt>Raw encoding / size</dt><dd>{sample.metadata.encoding} / {sample.byte_length.toLocaleString()} bytes</dd></div></dl>
         <div className="capture-controls"><button className="button primary small" disabled={!active || loading !== null} onClick={loadSample}>Inspect sample</button><a className="button secondary small" href={api.sampleUrl(simulationId, artifactIndex, sampleIndex)} download>Download raw sample</a></div>
         {loading === "sample" && <p role="status">Loading and verifying sample…</p>}
         {loaded?.index === sampleIndex && <div className="verified-sample"><p className="badge badge-success">SHA-256 and byte length verified</p>
@@ -118,8 +118,9 @@ export function SimulationViewer({ result, active = true }: { result: Simulation
   return <section className="panel simulation-viewer" aria-label="Run artifacts and raw capture">
     <div className="panel-header"><div><p className="eyebrow">RECORDED OUTPUT</p><h2>Artifacts &amp; sensor frames</h2><p>Downloads use this run’s indexed artifact references.</p></div></div>
     <div className="form-section">
+      {result.agent_inputs?.source === "deterministic_fixture" && <p className="notice">Recorded sensor inputs use deterministic fixtures. These are synthetic test data, not rendered CARLA frames.</p>}
       {result.artifacts.length ? <ul className="artifact-list">{result.artifacts.map((artifact, index) => <li key={index}>
-        <span>{artifact.kind === "recording" ? "Raw capture manifest" : artifact.kind === "telemetry" ? "Telemetry trace" : "Report"} <small className="muted">{artifact.media_type}</small></span>
+        <span>{artifact.kind === "recording" ? "Raw capture manifest" : artifact.kind === "telemetry" ? "Telemetry trace" : artifact.kind === "decisions" ? "Decision timeline" : "Report"} <small className="muted">{artifact.media_type}</small></span>
         <a className="button secondary small" href={api.artifactUrl(result.simulation.id, index)} download>Download {artifact.kind === "recording" ? "manifest" : artifact.kind} {index + 1}</a>
       </li>)}</ul> : <p>No artifacts were recorded for this run.</p>}
       {selected >= 0 ? <>

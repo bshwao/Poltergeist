@@ -1,11 +1,13 @@
-# Registered autonomous agents (Phase 5)
+# Registered autonomous agents
 
 The local agent registry connects the external Python worker to persistent API
 jobs. Register a compatible package and its worker environment, select that
 registration when launching a simulation, and retain the selected agent's
 manifest, observation mode and code/model fingerprints with the queued run.
-The dashboard Agents page and launch selector remain Phase 6.
-See [Phase 5 validation](phase5-validation.md) for the tests and their limits.
+Use the dashboard's **Agents** page or the API below. Both create the same
+immutable registrations and launch through the same external worker.
+See [Phase 5 validation](phase5-validation.md) for the backend tests and their
+limits, and the [dashboard guide](dashboard.md) for the browser workflow.
 
 ## Prepare a trusted local package
 
@@ -25,6 +27,55 @@ Paths refer to files on the **backend's machine**, not a visitor's browser or
 another computer. Agent code runs with that backend user's filesystem, network
 and hardware access. Registration is for trusted local code; the worker process
 is not a security sandbox and does not make public uploads safe.
+
+## Register and select an agent in the dashboard
+
+1. Open **Agents**. Enter the absolute **Package directory** on the backend
+   machine and, optionally, the path to its prepared **Worker Python**. Leaving
+   Python blank selects the backend interpreter. The form registers existing
+   files; it does not upload a folder from the browser.
+2. Enter **Configuration overrides** as a JSON object. **External model files**
+   accepts one absolute path per line. **Advanced execution settings** provides
+   load/reset/step/close deadlines and control authority. Leave authoritative
+   control selected for ordinary agent experiments and all sensor agents.
+3. Acknowledge that you trust the local code, then choose **Register local
+   agent**. Inspect the saved
+   manifest, effective configuration, observation mode, control ownership,
+   interpreter, sensor declarations and fingerprint information.
+4. Choose **Check static readiness** for the selected registration. This checks
+   current declarations and files against the saved identity. It does not import code,
+   execute inference or connect to CARLA. A passed check is not a driving or
+   performance result.
+5. Open **Scenarios**, generate or load a recipe and validate any JSON edits.
+   Select the registration under **Ego controller**, explicitly choose CARLA or
+   synthetic test mode, review compatibility messages and launch. Keep
+   **Baseline controller** selected when you want the built-in controller.
+6. Track the accepted run in **Simulations**. Its saved agent identity belongs
+   to that run and remains available after the registration is deactivated.
+
+The starter is a convenient first synthetic test. Sensor packages also work
+with explicitly labelled deterministic fixtures in test mode; these are not
+CARLA sensor measurements. For a live sensor pilot, paste the JSON from
+`examples/scenarios/sensor_pilot_town03.json` into the recipe editor and validate
+it. The sensor pilot requires its explicit driving task; camera inputs also
+require **CARLA rendering → Enabled for this run** in execution settings. The
+optional capture checkboxes select extra
+recording streams, not the agent's declared input rig.
+
+Explicit driving tasks require SDK 1.2 or 1.3. An agent-owned route requires an
+`agent_planner` manifest. Authoritative agents reject scripted ego-control
+events; remove those events from a custom recipe or deliberately register a
+supported state agent in scripted mode. Navigation and task assistance are
+properties of the complete tested stack, not evidence of independent learned
+pathfinding. See [driving tasks](driving-tasks.md).
+
+To change a registration's package, weights, configuration or Python settings,
+register again. **Deactivate registration** prevents future launches and retains history; it
+does not cancel queued or active runs. Browser checks can become stale if files
+change afterward. The backend repeats its own checks when accepting and starting
+the job and fails explicitly on drift. The **Registration status** filter exposes
+active, inactive or all saved registrations; **Refresh registrations** rereads the
+selected page without changing the form draft.
 
 ## Register and run the starter through the API
 

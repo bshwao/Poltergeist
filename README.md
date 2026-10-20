@@ -44,15 +44,20 @@ results can be interpreted in context.
 - Repeatable experiment batches, failure reproduction, parameter search,
   scenario minimization, and report exports.
 - A Python agent SDK and external worker for trusted local packages, with
-  command-line execution and a persistent registry for queued API launches.
+  command-line execution and a persistent registry for queued experiments.
+- An Agents page for registering local packages, inspecting their saved
+  identity, checking static readiness, and selecting a controller when launching
+  a scenario.
 - A maintained pretrained PlanT 2.0 integration using structured simulator state,
   plus synchronized RGB camera and LiDAR inputs for compatible sensor agents.
+- A saved decision timeline linking each agent input to its proposed/applied
+  controls, diagnostics, interventions and following measured frame, with exact
+  sensor-input inspection in the dashboard.
 
 Autonomous agent integration is under active development. Registered agents can
-be launched through the API; dashboard registration and agent selection are
-planned. The included sensor pilot is a rule-based teaching example. PlanT is
-the trained reference model and uses structured state rather than camera-based
-perception.
+be launched through the dashboard or API. The included sensor pilot is a
+rule-based teaching example. PlanT is the trained reference model and uses
+structured state rather than camera-based perception.
 
 ## Where the project is going
 
@@ -60,9 +65,9 @@ The longer-term goal is a workspace where users can connect their own autonomous
 driving agents, test them against challenging scenarios, and compare their
 responses across versions and conditions.
 
-Planned work includes dashboard agent management, synchronized observation and
-action review, richer behavior analysis, and agent-aware comparisons and failure
-search. Reports should help explain observed behavior using recorded inputs,
+Planned work includes synchronized observation and action review, richer
+behavior analysis, and agent-aware comparisons and failure search. Reports
+should help explain observed behavior using recorded inputs,
 controls, outcomes, and any diagnostics supplied by the agent. They should
 distinguish measured evidence from inferred explanations of a model's reasoning.
 
@@ -82,7 +87,8 @@ For autonomous driving experiments, start with the
 [agent SDK](docs/agent-sdk.md), or the
 [camera and LiDAR agent guide](docs/sensor-agents.md).
 Use the [agent registry guide](docs/agent-registry.md) to register a trusted local
-package and select it for a queued API experiment.
+package and select it for a queued dashboard or API experiment.
+Review its recorded behavior using the [decision timeline guide](docs/decision-timeline.md).
 
 ## Learn more
 

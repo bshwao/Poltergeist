@@ -1554,6 +1554,9 @@
         "analytics": {
           "$ref": "#/$defs/AnalyticsSummary"
         },
+        "decision_page": {
+          "$ref": "#/$defs/DecisionPage"
+        },
         "queue_status": {
           "$ref": "#/$defs/QueueStatus"
         },
@@ -1601,6 +1604,7 @@
         "simulation_progress",
         "queue_status",
         "telemetry_page",
+        "decision_page",
         "reproduction_update",
         "analytics"
       ],
@@ -1614,7 +1618,8 @@
           "enum": [
             "telemetry",
             "recording",
-            "report"
+            "report",
+            "decisions"
           ],
           "title": "Kind",
           "type": "string"
@@ -1881,6 +1886,309 @@
         "target_speed_mps"
       ],
       "title": "ControlIntervention",
+      "type": "object"
+    },
+    "DecisionPage": {
+      "additionalProperties": false,
+      "properties": {
+        "applied": {
+          "minimum": 0,
+          "title": "Applied",
+          "type": "integer"
+        },
+        "available": {
+          "title": "Available",
+          "type": "boolean"
+        },
+        "coverage": {
+          "enum": [
+            "unavailable",
+            "empty",
+            "partial",
+            "complete"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "recording_artifact_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Recording Artifact Index"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/DecisionRecord"
+          },
+          "title": "Records",
+          "type": "array"
+        },
+        "reset": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentReset"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "telemetry": {
+          "items": {
+            "$ref": "#/$defs/TelemetryFrame"
+          },
+          "title": "Telemetry",
+          "type": "array"
+        },
+        "total": {
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "transitions": {
+          "minimum": 0,
+          "title": "Transitions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "simulation_id",
+        "available",
+        "coverage",
+        "total",
+        "applied",
+        "transitions",
+        "offset",
+        "limit",
+        "reset",
+        "recording_artifact_index",
+        "records",
+        "telemetry"
+      ],
+      "title": "DecisionPage",
+      "type": "object"
+    },
+    "DecisionRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_result": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentStepResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "applied_control": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "control_mode": {
+          "enum": [
+            "scripted",
+            "authoritative"
+          ],
+          "title": "Control Mode",
+          "type": "string"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "full_step_wall_time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Full Step Wall Time S"
+        },
+        "interventions": {
+          "items": {
+            "enum": [
+              "scripted_ego_speed_target",
+              "scripted_ego_braking"
+            ],
+            "type": "string"
+          },
+          "title": "Interventions",
+          "type": "array"
+        },
+        "observation": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Observation",
+          "type": "object"
+        },
+        "proposed_control": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ControlInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "resulting_ego": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActorState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "resulting_frame": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resulting Frame"
+        },
+        "round_trip_wall_time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Round Trip Wall Time S"
+        },
+        "sensors": {
+          "items": {
+            "$ref": "#/$defs/DecisionSensor"
+          },
+          "maxItems": 4,
+          "title": "Sensors",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "applied",
+            "unresolved"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "time_s": {
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "worker_step_wall_time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Worker Step Wall Time S"
+        }
+      },
+      "required": [
+        "frame",
+        "time_s",
+        "status",
+        "observation",
+        "sensors",
+        "agent_result",
+        "proposed_control",
+        "applied_control",
+        "interventions",
+        "worker_step_wall_time_s",
+        "round_trip_wall_time_s",
+        "full_step_wall_time_s",
+        "resulting_frame",
+        "resulting_ego",
+        "control_mode"
+      ],
+      "title": "DecisionRecord",
+      "type": "object"
+    },
+    "DecisionSensor": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_length": {
+          "minimum": 0,
+          "title": "Byte Length",
+          "type": "integer"
+        },
+        "header": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Header",
+          "type": "object"
+        },
+        "sample_index": {
+          "minimum": 0,
+          "title": "Sample Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "header",
+        "sample_index",
+        "byte_length"
+      ],
+      "title": "DecisionSensor",
       "type": "object"
     },
     "DrivingOutcome": {

@@ -34,6 +34,13 @@ export function settingsDifferences(left: EvaluationSettings | null, right: Eval
 export function comparisonNote(left: SimulationRecord, right: SimulationRecord): { comparable: boolean; message: string } {
   if (left.simulation.mode !== right.simulation.mode) return { comparable: false, message: "Different execution modes — compare observations separately. Synthetic tests do not establish CARLA driving behavior." };
   if (left.simulation.agent !== right.simulation.agent) return { comparable: false, message: "Different driving agents — compare observations separately." };
+  if (left.simulation.agent === "custom") {
+    const first = left.simulation.agent_snapshot, second = right.simulation.agent_snapshot;
+    if (!first || !second) return { comparable: false, message: "A custom agent's registered identity is unavailable — compare observations separately." };
+    const canonical = (value: unknown) => JSON.stringify(value, (_key, item) => item && typeof item === "object" && !Array.isArray(item)
+      ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item);
+    if (canonical(first) !== canonical(second)) return { comparable: false, message: "Different registered agents or agent settings — compare observations separately." };
+  }
   if (!left.job || !right.job || (Object.keys(left.job.options) as Array<keyof typeof left.job.options>).some(key => left.job?.options[key] !== right.job?.options[key])) return { comparable: false, message: "Different or unknown execution settings — compare observations separately." };
   if (!left.result || !right.result) return { comparable: false, message: "A finalized result is unavailable — compare observations separately." };
   if (settingsDifferences(left.result.metrics.evaluation_settings, right.result.metrics.evaluation_settings).length) return { comparable: false, message: "Different or unknown evaluation settings — compare observations separately." };

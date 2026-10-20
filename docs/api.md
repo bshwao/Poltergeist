@@ -128,7 +128,8 @@ readiness response says `inspection: "static_only"` and
 Use only trusted local packages/environments: execution has the backend user's
 permissions and the process boundary is not a security sandbox. See the
 [registry guide](agent-registry.md) for PowerShell examples, fingerprint coverage
-and drift behavior. Dashboard agent management remains Phase 6.
+and drift behavior. The [dashboard guide](dashboard.md) covers the Agents page
+and launch selector backed by these routes.
 
 ## Simulation jobs
 
@@ -142,6 +143,7 @@ and drift behavior. Dashboard agent management remains Phase 6.
 | `POST /simulations/{id}/cancel` | Request cancellation; HTTP 202 |
 | `GET /simulations/{id}/result` | Finalized `SimulationResult`; 409 while unfinished |
 | `GET /simulations/{id}/telemetry?offset=0&limit=1000` | Finalized telemetry page; 409 while unfinished |
+| `GET /simulations/{id}/decisions?offset=0&limit=25` | Recorded inputs/actions/diagnostics with synchronized telemetry; limit 1–100, 409 while unfinished |
 | `GET /simulations/{id}/artifacts/{artifact_index}` | Download a result-owned artifact |
 | `GET /simulations/{id}/artifacts/{artifact_index}/samples/{sample_index}` | Download one raw recording sample |
 
@@ -191,6 +193,12 @@ requires an application restart after the underlying problem is resolved. It
 does not replace an immutable result or report an unsaved run as completed.
 
 ## Results and artifacts
+
+New queued runs include a `decisions` NDJSON artifact and a paged review endpoint.
+Sensor inputs reference the existing raw recording instead of duplicating bytes.
+See [decision evidence](decision-timeline.md) for the format, reconstruction,
+coverage and compatibility rules. Agent diagnostics are reports from the agent,
+not inferred reasoning. Existing behavior-analysis exports remain Phase 8 work.
 
 Terminal results preserve metrics, unknown values, execution mode, scenario
 snapshot, runtime provenance when available, and storage-owned references.

@@ -219,7 +219,12 @@ class SimulationService:
         })
         result = SimulationResult(simulation=simulation, metrics=evaluate_safety([], settings=settings),
                                   telemetry_frames=0, measured_duration_s=0.0)
-        self.persistence.persist_output(RunOutput(result, ()), expected_revision=stored.revision)
+        from backend.decision_storage import DecisionWriter
+        decisions = DecisionWriter(self.persistence.artifacts, simulation.id)
+        try:
+            self.persistence.persist_output(RunOutput(result, ()), expected_revision=stored.revision, decisions=decisions)
+        finally:
+            decisions.abort()
 
     def _work(self):
         try:
@@ -260,6 +265,8 @@ class SimulationService:
         last_progress = None
         progress_error = None
         capture = None
+        capture_error = None
+        decisions = None
         driver = None
 
         def progress(simulation):
@@ -278,6 +285,18 @@ class SimulationService:
                 self._fatal(error)
                 raise
 
+        def record_sensor(sample):
+            nonlocal capture_error
+            try:
+                capture.write(sample)
+            except BaseException as error:
+                capture_error = error
+                try:
+                    capture.abort()
+                except BaseException as cleanup:
+                    error.add_note(f"Raw capture abort failed: {cleanup}")
+                raise
+
         try:
             snapshot = job.agent_snapshot
             # The job and run independently retain the same immutable selection.
@@ -290,6 +309,8 @@ class SimulationService:
                 return
             if job.options.camera or job.options.lidar or (snapshot is not None and snapshot.observation_mode == "sensors"):
                 capture = self.persistence.artifacts.capture(simulation_id)
+            from backend.decision_storage import DecisionWriter
+            decisions = DecisionWriter(self.persistence.artifacts, simulation_id, capture)
             try:
                 if snapshot is not None:
                     verify_agent_snapshot(snapshot)
@@ -306,7 +327,9 @@ class SimulationService:
                     "agent": driver, "agent_control_mode": snapshot.agent_control_mode,
                 }
                 output = runner.run(stored.simulation, cancellation=self._active_cancel, on_progress=progress,
-                                    on_sensor=None if capture is None else capture.write, **agent_arguments)
+                                    on_sensor=None if capture is None else record_sensor,
+                                    on_observation=decisions.observation, on_decision=decisions.decision,
+                                    on_agent_reset=decisions.reset, **agent_arguments)
             except BaseException as error:
                 if progress_error is not None:
                     raise progress_error
@@ -318,8 +341,19 @@ class SimulationService:
                 return
             if progress_error is not None:
                 raise progress_error
-            self.persistence.persist_output(output, expected_revision=revision, capture=capture)
+            if capture_error is not None:
+                # Raw-capture publication is one transaction. A write failure
+                # discards it, but must not prevent terminal telemetry from
+                # being saved. Never publish sensor-input references to bytes
+                # that were rolled back with that transaction.
+                capture.abort()
+                capture = None
+                if snapshot is not None and snapshot.observation_mode == "sensors":
+                    decisions.abort()
+                    decisions = None
+            self.persistence.persist_output(output, expected_revision=revision, capture=capture, decisions=decisions)
             capture = None
+            decisions = None
         finally:
             try:
                 if driver is not None:
@@ -327,3 +361,5 @@ class SimulationService:
             finally:
                 if capture is not None:
                     capture.abort()
+                if decisions is not None:
+                    decisions.abort()

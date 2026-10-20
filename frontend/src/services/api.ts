@@ -1,5 +1,7 @@
 import type { AgentReadiness, AgentRegistration, AnalyticsSummary, FailureReport, QueueStatus, RegisteredAgent, Scenario, ScenarioGenerate, ScenarioRecord, SimulationLaunch, SimulationProgress, SimulationRecord, SimulationResult, SimulationStatus, TelemetryPage, TemplateInfo } from "../types/generated";
 
+import type { DecisionPage } from "../types/generated";
+
 export interface ApiIssue {
   path: string;
   message: string;
@@ -12,6 +14,10 @@ export interface RequestOptions {
 export interface ScenarioPagination {
   limit?: number;
   offset?: number;
+}
+
+export interface AgentFilters extends ScenarioPagination {
+  active?: boolean;
 }
 
 export interface SimulationFilters extends ScenarioPagination {
@@ -388,7 +394,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && ["min_clearance_m", "min_ttc_s", "max_deceleration_mps2", "max_stopping_distance_m", "max_stopping_time_s"].every(key => nullableNumber(value[key]))
     && (value.severity === null || bounded(value.severity, 0, 100)) && isCoverage(value.coverage)
     && (value.evaluation_settings === null || isEvaluation(value.evaluation_settings));
-  const isArtifact = (value: unknown) => isObject(value) && typeof value.kind === "string" && ["telemetry", "recording", "report"].includes(value.kind)
+  const isArtifact = (value: unknown) => isObject(value) && typeof value.kind === "string" && ["telemetry", "recording", "report", "decisions"].includes(value.kind)
     && nonemptyText(value.path) && typeof value.path === "string" && !value.path.replace(/\\/g, "/").startsWith("/")
     && !value.path.includes(":") && !value.path.replace(/\\/g, "/").split("/").includes("..") && nonemptyText(value.media_type);
   const isRuntime = (value: unknown) => isObject(value) && (value.adapter === "test" || value.adapter === "carla")
@@ -477,6 +483,77 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && (value.frames.length === 0 || value.offset + value.frames.length <= value.total) && value.frames.every(isFrame)
     && value.frames.every((frame, index, frames) => index === 0 || (frame.frame > frames[index - 1].frame && frame.time_s > frames[index - 1].time_s));
   const failureKinds = new Set(["collision", "near_miss", "hard_braking", "traffic_violation"]);
+  const isDecisionPage = (value: unknown, id: string) => {
+    if (!isObject(value) || !sameId(value.simulation_id, id) || typeof value.available !== "boolean"
+      || !["unavailable", "empty", "partial", "complete"].includes(value.coverage as string)
+      || !integer(value.total) || !integer(value.applied) || !integer(value.transitions)
+      || value.applied > value.transitions || value.applied > value.total || value.total > value.applied + 1
+      || !integer(value.offset) || !integer(value.limit, 1) || value.limit > 100
+      || !(value.recording_artifact_index === null || integer(value.recording_artifact_index))
+      || !Array.isArray(value.records) || value.records.length !== Math.min(value.limit, Math.max(0, value.total - value.offset))
+      || !Array.isArray(value.telemetry) || !value.telemetry.every(isFrame)
+      || !(value.reset === null || (isObject(value.reset) && ["1.0", "1.1", "1.2", "1.3"].includes(value.reset.protocol_version as string)
+        && integer(value.reset.seed) && nonemptyText(value.reset.map_name) && nonemptyText(value.reset.ego_actor_id)
+        && finiteNumber(value.reset.fixed_delta_seconds) && value.reset.fixed_delta_seconds > 0 && value.reset.fixed_delta_seconds <= .1
+        && Array.isArray(value.reset.route) && value.reset.route.every(isTransform) && Array.isArray(value.reset.sensors) && value.reset.sensors.every(isAgentSensorSpec)
+        && (value.reset.destination === null || isTransform(value.reset.destination))
+        && (value.reset.driving_task === null || isDrivingTask(value.reset.driving_task))))) return false;
+    if (!value.available) return value.coverage === "unavailable" && value.total === 0 && value.applied === 0
+      && value.records.length === 0 && value.telemetry.length === 0 && value.reset === null && value.recording_artifact_index === null;
+    if (value.coverage === "unavailable" || (value.coverage === "empty") !== (value.total === 0 && value.transitions === 0)
+      || (value.coverage === "complete") !== (value.total > 0 && value.total === value.applied && value.applied === value.transitions)
+      || value.telemetry.length < value.records.length || value.telemetry.length > value.records.length + 1) return false;
+    const measured = value.telemetry;
+    const pageOffset = value.offset;
+    const pageTotal = value.total;
+    return value.records.every((record, index) => {
+      if (!isObject(record) || !integer(record.frame) || !nonnegative(record.time_s)
+        || !["scripted", "authoritative"].includes(record.control_mode as string)
+        || !isObject(record.observation) || record.observation.frame !== record.frame || record.observation.time_s !== record.time_s
+        || !["1.0", "1.1", "1.2", "1.3"].includes(record.observation.protocol_version as string)
+        || !finiteNumber(record.observation.dt_s) || record.observation.dt_s <= 0
+        || !isState(record.observation.ego) || !Array.isArray(record.observation.sensors) || record.observation.sensors.length
+        || !(record.observation.actors === null || (Array.isArray(record.observation.actors) && record.observation.actors.every(isState)))
+        || !Array.isArray(record.sensors) || record.sensors.length > 4
+        || !Array.isArray(record.interventions) || !record.interventions.every(kind => ["scripted_ego_speed_target", "scripted_ego_braking"].includes(kind as string))
+        || !["worker_step_wall_time_s", "round_trip_wall_time_s", "full_step_wall_time_s"].every(key => nullableNumber(record[key]))
+        || ["worker_step_wall_time_s", "round_trip_wall_time_s", "full_step_wall_time_s"].some(key => typeof record[key] === "number" && record[key] < 0)) return false;
+      const before = measured[index];
+      if (!isObject(before) || before.frame !== record.frame || before.time_s !== record.time_s
+        || !isObject(before.ego) || !isObject(record.observation.ego) || before.ego.actor_id !== record.observation.ego.actor_id) return false;
+      const sensorMode = record.observation.observation_mode === "sensors";
+      if (!sensorMode && record.observation.observation_mode !== "simulator_state") return false;
+      if (sensorMode ? !record.sensors.length || record.observation.actors !== null || record.observation.scene !== null
+          || record.observation.traffic_light_red !== null || value.recording_artifact_index === null
+          || !["carla_sensors", "deterministic_fixture"].includes(record.observation.sensor_source as string)
+        : record.sensors.length > 0) return false;
+      if (!record.sensors.every(sensor => isObject(sensor) && integer(sensor.sample_index) && integer(sensor.byte_length)
+        && isObject(sensor.header) && nonemptyText(sensor.header.sensor_id) && !Object.prototype.hasOwnProperty.call(sensor.header, "data_base64")
+        && sensor.header.frame === record.frame && sensor.header.timestamp_s === record.time_s && hash(sensor.header.sha256)
+        && (sensor.header.type === "sensor.camera.rgb" ? sensor.header.encoding === "bgra8"
+          && integer(sensor.header.width, 1) && integer(sensor.header.height, 1) && sensor.header.width <= 2048 && sensor.header.height <= 2048
+          && sensor.byte_length === sensor.header.width * sensor.header.height * 4 && bounded(sensor.header.fov_deg, .001, 179.999)
+          : sensor.header.type === "sensor.lidar.ray_cast" && sensor.header.encoding === "float32_xyzi"
+          && integer(sensor.header.channels, 1) && sensor.header.channels <= 128 && sensor.byte_length % 16 === 0))) return false;
+      if (new Set(record.sensors.map(sensor => (sensor as { header: { sensor_id: string } }).header.sensor_id)).size !== record.sensors.length) return false;
+      if (record.status === "unresolved") return pageOffset + index === pageTotal - 1 && record.agent_result === null
+        && ["proposed_control", "applied_control", "resulting_frame", "resulting_ego", "worker_step_wall_time_s", "round_trip_wall_time_s", "full_step_wall_time_s"].every(key => record[key] === null)
+        && record.interventions.length === 0;
+      const after = measured[index + 1];
+      if (record.status !== "applied" || !isControl(record.proposed_control) || !isControl(record.applied_control)
+        || !nonnegative(record.full_step_wall_time_s) || record.resulting_frame !== record.frame + 1 || !isState(record.resulting_ego)
+        || !isObject(after) || after.frame !== record.resulting_frame || canonicalJson(after.ego) !== canonicalJson(record.resulting_ego)
+        || canonicalJson(after.control) !== canonicalJson(record.applied_control)
+        || record.control_mode === "authoritative" && (record.interventions.length || canonicalJson(record.proposed_control) !== canonicalJson(record.applied_control))) return false;
+      if (record.agent_result === null) return true;
+      if (!isObject(record.agent_result) || record.agent_result.frame !== record.frame || record.agent_result.protocol_version !== record.observation.protocol_version
+        || canonicalJson(record.agent_result.control) !== canonicalJson(record.proposed_control)) return false;
+      const diagnostics = record.agent_result.diagnostics;
+      return diagnostics === null || (isObject(diagnostics) && nullableText(diagnostics.maneuver) && nullableNumber(diagnostics.target_speed_mps)
+        && ["assistance", "reason_codes", "hazard_actor_ids"].every(key => Array.isArray(diagnostics[key]) && diagnostics[key].every(nonemptyText))
+        && Array.isArray(diagnostics.planned_trajectory) && diagnostics.planned_trajectory.every(isTransform) && (isObject(diagnostics.metadata) && isJsonValue(diagnostics.metadata)));
+    });
+  };
   const isFailure = (value: unknown) => isObject(value) && isUuid(value.id) && isUuid(value.simulation_id)
     && isScenario(value.scenario) && typeof value.kind === "string" && failureKinds.has(value.kind)
     && nonemptyText(value.summary) && bounded(value.severity, 0, 100) && (value.reproduced === null || typeof value.reproduced === "boolean") && isTimestamp(value.created_at);
@@ -512,6 +589,14 @@ export function createApiClient(baseUrl = API_BASE_URL) {
   function checkedMode(mode: unknown): "carla" | "test" {
     if (mode !== "carla" && mode !== "test") throw new ApiError("Choose CARLA or test mode.", 422);
     return mode;
+  }
+  function agentFilterQuery(filters: AgentFilters): string {
+    const query = new URLSearchParams(paginationQuery(filters).slice(1));
+    if (filters.active !== undefined) {
+      if (typeof filters.active !== "boolean") throw new ApiError("Choose an active or inactive agent filter.", 422);
+      query.set("active", String(filters.active));
+    }
+    return query.size ? `?${query}` : "";
   }
   function filterQuery(filters: SimulationFilters | FailureFilters, kind: "simulation" | "failure"): string {
     if (!isObject(filters)) throw new ApiError("Valid list filters are required.", 422);
@@ -561,9 +646,12 @@ export function createApiClient(baseUrl = API_BASE_URL) {
           || sample.metadata.width > 4096 || sample.metadata.height > 4096 || sample.byte_length !== sample.metadata.width * sample.metadata.height * 4) return false;
       } else if (sample.metadata.encoding !== "float32_xyzi" || !integer(sample.metadata.channels, 1)
         || sample.metadata.channels > 4096 || sample.byte_length % 16 !== 0) return false;
-      const previous = last.get(sample.kind);
+      const sensorId = sample.metadata.agent_sensor_id;
+      if (sensorId !== undefined && !nonemptyText(sensorId)) return false;
+      const clock = JSON.stringify([sample.kind, sensorId ?? null]);
+      const previous = last.get(clock);
       if (previous && (sample.frame <= previous.frame || (sample.timestamp as number) <= previous.timestamp)) return false;
-      last.set(sample.kind, { frame: sample.frame as number, timestamp: sample.timestamp as number });
+      last.set(clock, { frame: sample.frame as number, timestamp: sample.timestamp as number });
       total += sample.byte_length;
       if (!Number.isSafeInteger(total)) return false;
     }
@@ -621,7 +709,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
   return {
     health: (options: RequestOptions = {}) => request<HealthStatus>("/health", options, isHealth),
     registerAgent: (input: AgentRegistration, options: RequestOptions = {}) => request<RegisteredAgent>("/agents", options, isRegisteredAgent, "POST", input, 201),
-    listAgents: (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<RegisteredAgent[]>(`/agents${paginationQuery(pagination)}`, options, value => Array.isArray(value) && value.every(isRegisteredAgent)),
+    listAgents: (filters: AgentFilters = {}, options: RequestOptions = {}) => request<RegisteredAgent[]>(`/agents${agentFilterQuery(filters)}`, options, value => Array.isArray(value) && value.every(isRegisteredAgent)),
     getAgent: (id: string, options: RequestOptions = {}) => request<RegisteredAgent>(`/agents/${checkedId(id)}`, options, value => isRegisteredAgent(value) && isObject(value) && sameId(value.id, id)),
     getAgentReadiness: (id: string, options: RequestOptions = {}) => request<AgentReadiness>(`/agents/${checkedId(id)}/readiness`, options, value => isReadiness(value) && isObject(value) && sameId(value.agent_id, id)),
     deactivateAgent: (id: string, options: RequestOptions = {}) => request<RegisteredAgent>(`/agents/${checkedId(id)}/deactivate`, options, value => isRegisteredAgent(value) && isObject(value) && sameId(value.id, id) && value.active === false, "POST", {}),
@@ -642,6 +730,12 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     cancelSimulation: async (id: string, options: RequestOptions = {}) => request<SimulationRecord>(`/simulations/${checkedId(id)}/cancel`, options, recordFor(id), "POST", {}, 202),
     getTelemetry: async (id: string, pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<TelemetryPage>(`/simulations/${checkedId(id)}/telemetry${paginationQuery(pagination)}`, options, value => isTelemetry(value)
       && isObject(value) && value.offset === (pagination.offset ?? 0) && value.limit === (pagination.limit ?? 1000), "GET", undefined, 200),
+    getDecisions: async (id: string, pagination: ScenarioPagination = {}, options: RequestOptions = {}) => {
+      const query = { offset: pagination.offset ?? 0, limit: pagination.limit ?? 25 };
+      if (!integer(query.limit, 1) || query.limit > 100) throw new ApiError("Choose 1–100 decisions per page.", 422);
+      return request<DecisionPage>(`/simulations/${checkedId(id)}/decisions${paginationQuery(query)}`, options,
+        value => isDecisionPage(value, id) && isObject(value) && value.offset === query.offset && value.limit === query.limit);
+    },
     listFailures: async (filters: FailureFilters = {}, options: RequestOptions = {}) => request<FailureReport[]>(`/failures${filterQuery(filters, "failure")}`, options, value => Array.isArray(value) && value.every(isFailure), "GET", undefined, 200),
     getFailure: async (id: string, options: RequestOptions = {}) => request<FailureReport>(`/failures/${checkedId(id)}`, options, value => isFailure(value) && isObject(value) && sameId(value.id, id), "GET", undefined, 200),
     createFailure: (report: FailureReport, options: RequestOptions = {}) => request<FailureReport>("/failures", options, value => isFailure(value) && isObject(value) && sameId(value.id, report.id) && sameId(value.simulation_id, report.simulation_id), "POST", report, 201),

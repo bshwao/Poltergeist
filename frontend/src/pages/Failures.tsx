@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FailureTable } from "../components/FailureTable";
+import { AgentIdentity } from "../components/AgentIdentity";
 import { api } from "../services/api";
 import { comparisonNote, failureKindLabel, metricRows, modeLabel, observation, reproductionLabel, settingsDifferences, validSimulationId } from "../services/failure-view";
 import type { FailureReport, SimulationRecord } from "../types/generated";
@@ -65,6 +66,7 @@ function EvidenceFacts({ evidence }: { evidence: Evidence }) {
     <p className="mode-label"><strong>{modeLabel(run.simulation.mode)}</strong>{run.simulation.mode === "test" ? " · Synthetic observations; real driving behavior is unverified." : " · Recorded CARLA execution."}</p>
     <dl className="detail-facts"><div><dt>Report ID</dt><dd><code>{report.id}</code></dd></div><div><dt>Parent run</dt><dd><a href={`#simulations/${report.simulation_id}`}>{report.simulation_id}</a></dd></div><div><dt>Kind</dt><dd>{failureKindLabel(report.kind)}</dd></div><div><dt>Reported severity</dt><dd>{observation(report.severity)} / 100</dd></div><div><dt>Reproduction</dt><dd>{reproductionLabel(report.reproduced)}</dd></div><div><dt>Recipe seed</dt><dd>{report.scenario.seed}</dd></div><div><dt>Map</dt><dd>{report.scenario.map}</dd></div><div><dt>Run status</dt><dd>{run.simulation.status}</dd></div><div><dt>Measured duration</dt><dd>{observation(result?.measured_duration_s)} s</dd></div><div><dt>Telemetry frames</dt><dd>{observation(result?.telemetry_frames)}</dd></div></dl>
     <p>{report.summary}</p>
+    <AgentIdentity simulation={run.simulation} detailed inputs={result?.agent_inputs} />
     <p className="muted">Reproduction records can be confirmed, not reproduced, or unknown. Opening a report does not rerun its scenario.</p>
     {result ? <>
       <div className="table-scroll"><table className="data-table"><caption>Parent run observations</caption><thead><tr><th scope="col">Metric</th><th scope="col">Observed value</th></tr></thead><tbody>{metricRows.map(row => <tr key={row.key}><th scope="row">{row.label}</th><td>{observation(result.metrics[row.key])}</td></tr>)}</tbody></table></div>
@@ -90,6 +92,7 @@ function Comparison({ items }: { items: [Evidence, Evidence] }) {
     <p className={`notice${note.comparable ? "" : " settings-difference"}`}>{note.message}</p>
     <div className="table-scroll"><table className="data-table comparison-table"><caption>Observed metrics, side by side. No risk reduction is inferred.</caption><thead><tr><th scope="col">Observation</th>{items.map(item => <th key={item.report.id} scope="col">{item.report.scenario.name}<br /><strong>{modeLabel(item.run.simulation.mode)}</strong><br /><small>{item.report.id}</small></th>)}</tr></thead><tbody>
       <tr><th scope="row">Failure kind</th>{items.map(item => <td key={item.report.id}>{failureKindLabel(item.report.kind)}</td>)}</tr>
+      <tr><th scope="row">Recorded agent</th>{items.map(item => <td key={item.report.id}><AgentIdentity simulation={item.run.simulation} /></td>)}</tr>
       <tr><th scope="row">Reproduction</th>{items.map(item => <td key={item.report.id}>{reproductionLabel(item.report.reproduced)}</td>)}</tr>
       <tr><th scope="row">Recipe seed</th>{items.map(item => <td key={item.report.id}>{item.report.scenario.seed}</td>)}</tr>
       <tr><th scope="row">Parent run</th>{items.map(item => <td key={item.report.id}><a href={`#simulations/${item.report.simulation_id}`}>{item.report.simulation_id}</a></td>)}</tr>

@@ -976,6 +976,20 @@ test('registry client preserves registration configuration, identities and readi
   assert.equal((await api.deactivateAgent(scenarioId, { signal: controller.signal })).active, false);
 });
 
+test('registry list status filters reach the API and invalid filters fail before fetch', async () => {
+  const requests = [];
+  globalThis.fetch = async url => { requests.push(url); return jsonResponse([]); };
+  await api.listAgents({ active: true, limit: 9, offset: 8 });
+  await api.listAgents({ active: false });
+  await api.listAgents({});
+  assert.equal(requests[0], `${API_BASE_URL}/agents?limit=9&offset=8&active=true`);
+  assert.equal(requests[1], `${API_BASE_URL}/agents?active=false`);
+  assert.equal(requests[2], `${API_BASE_URL}/agents`);
+  assert.throws(() => api.listAgents({ active: 'true' }), ApiError);
+  assert.throws(() => api.listAgents({ active: null }), ApiError);
+  assert.equal(requests.length, 3);
+});
+
 test('registered launch sends the selected UUID and retains the exact queued snapshot', async () => {
   globalThis.fetch = async (_url, options) => {
     assert.equal(JSON.parse(options.body).agent_id, scenarioId);
@@ -1028,5 +1042,24 @@ test('registered result controls and input mode must match the selected agent', 
     bad.control_audit[field] = field === 'mode' ? 'scripted' : 'baseline';
     globalThis.fetch = async () => jsonResponse(bad);
     await assert.rejects(api.getSimulationResult(simulationId), ApiError);
+  }
+});
+
+test('named cameras and legacy recording retain independent capture clocks', async () => {
+  const sample = (id, frame, index) => ({ ...cameraSample, frame, timestamp: frame * .05,
+    file: `${String(index).padStart(8, '0')}-camera.bin`,
+    metadata: { ...cameraSample.metadata, ...(id === null ? {} : { agent_sensor_id: id }) },
+  });
+  const samples = [sample('front', 1, 0), sample('rear', 1, 1), sample(null, 1, 2), sample('front', 2, 3)];
+  const capture = { ...manifest, samples, sample_count: samples.length, total_bytes: samples.reduce((sum, item) => sum + item.byte_length, 0) };
+  globalThis.fetch = async () => jsonResponse(capture);
+  assert.deepEqual(await api.getCaptureManifest(simulationId, 0), capture);
+  const bad = structuredClone(capture); bad.samples[1].metadata.agent_sensor_id = 'front';
+  globalThis.fetch = async () => jsonResponse(bad);
+  await assert.rejects(api.getCaptureManifest(simulationId, 0), ApiError);
+  for (const invalid of [null, '', '  ', 1]) {
+    const malformed = structuredClone(capture); malformed.samples[0].metadata.agent_sensor_id = invalid;
+    globalThis.fetch = async () => jsonResponse(malformed);
+    await assert.rejects(api.getCaptureManifest(simulationId, 0), ApiError);
   }
 });

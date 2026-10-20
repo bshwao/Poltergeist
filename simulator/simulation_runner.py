@@ -66,6 +66,7 @@ class SimulationRunner:
         on_progress: Callable | None = None, on_frame: Callable | None = None,
         on_sensor: Callable[[SensorSample], None] | None = None,
         agent_control_mode: str | None = None, on_decision: Callable | None = None,
+        on_observation: Callable | None = None, on_agent_reset: Callable | None = None,
     ) -> RunOutput:
         if not self._lock.acquire(blocking=False):
             raise SimulationError("This runner is already executing")
@@ -74,12 +75,12 @@ class SimulationRunner:
                 raise SimulationError("Create a new SimulationRunner for each run")
             self._used = True
             with high_resolution_timer() as timing_environment:
-                output = self._run(scenario, mode, agent, cancellation, on_progress, on_frame, on_sensor, agent_control_mode, on_decision)
+                output = self._run(scenario, mode, agent, cancellation, on_progress, on_frame, on_sensor, agent_control_mode, on_decision, on_observation, on_agent_reset)
             return replace(output, timing_environment=dict(timing_environment))
         finally:
             self._lock.release()
 
-    def _run(self, source, mode, agent, cancellation, on_progress, on_frame, on_sensor, agent_control_mode, on_decision):
+    def _run(self, source, mode, agent, cancellation, on_progress, on_frame, on_sensor, agent_control_mode, on_decision, on_observation, on_agent_reset):
         agent_kind = "baseline" if agent is None or isinstance(agent, BaselineAgent) else "custom"
         if isinstance(source, Simulation):
             simulation = Simulation.model_validate(source.model_dump())
@@ -267,7 +268,7 @@ class SimulationRunner:
                     initial_scene = AgentSceneContext.model_validate(
                         raw_scene.model_dump() if isinstance(raw_scene, AgentSceneContext) else raw_scene,
                     )
-                driver.reset(prepared_reset if prepared_reset is not None else AgentReset(
+                reset_context = prepared_reset if prepared_reset is not None else AgentReset(
                     protocol_version=sdk_protocol,
                     seed=validated.seed, map_name=validated.map,
                     ego_actor_id=current.ego.actor_id,
@@ -276,7 +277,10 @@ class SimulationRunner:
                            [] if initial_scene is None or initial_scene.route is None else initial_scene.route),
                     destination=None if task is None else task.destination,
                     driving_task=task_descriptor,
-                ))
+                )
+                driver.reset(reset_context)
+                if on_agent_reset is not None:
+                    on_agent_reset(reset_context.model_copy(deep=True))
             update(status=SimulationStatus.RUNNING, started_at=datetime.now(UTC))
             progress()
             setup_wall_time_s = perf_counter() - setup_started
@@ -346,10 +350,23 @@ class SimulationRunner:
                         ego_state_source="simulated_ego_kinematics" if sensor_agent else "simulator_state",
                         sensor_source=("carla_sensors" if simulation.mode == "carla" else "deterministic_fixture") if sensor_agent else None,
                     )
+                    if on_observation is not None:
+                        on_observation(sdk_observation.model_copy(deep=True), agent_control_mode)
                     decision = driver.step(sdk_observation)
                     control = decision.control
                     self._check_cancelled(cancellation)
                 else:
+                    if on_observation is not None:
+                        sdk_observation = AgentObservation(
+                            protocol_version="1.2" if task is not None else "1.0",
+                            frame=current.frame, time_s=current.time_s, dt_s=observation.dt_s,
+                            ego=observation.ego, actors=current.actors,
+                            target_speed_mps=observation.target_speed_mps,
+                            route_heading_deg=observation.route_heading_deg,
+                            traffic_light_red=observation.traffic_light_red,
+                            driving_task=task_descriptor,
+                        )
+                        on_observation(sdk_observation.model_copy(deep=True), agent_control_mode)
                     control = driver.run_step(observation)
                 control = ControlInput.model_validate(control.model_dump() if isinstance(control, ControlInput) else control)
                 proposed_control = control.model_copy(deep=True)

@@ -62,7 +62,7 @@ class Simulation(ContractModel):
 
 
 class ArtifactReference(ContractModel):
-    kind: Literal["telemetry", "recording", "report"]
+    kind: Literal["telemetry", "recording", "report", "decisions"]
     # Relative to configured storage; never an arbitrary local file path.
     path: NonEmptyString
     media_type: NonEmptyString

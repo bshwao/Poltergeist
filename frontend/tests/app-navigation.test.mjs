@@ -17,6 +17,7 @@ const text = node => typeof node === "string" || typeof node === "number" ? Stri
 async function setup(t, hash = "#scenarios") {
   const oldWindow = globalThis.window, oldFetch = globalThis.fetch, oldDocument = globalThis.document;
   globalThis.document = { title: "" };
+  api.listAgents = async () => [];
   const events = new Map();
   globalThis.window = { location: { hash }, setTimeout, clearTimeout, scrollTo() {},
     addEventListener: (name, handler) => events.set(name, handler), removeEventListener: name => events.delete(name) };
@@ -73,4 +74,47 @@ test("opening a run deep link selects that ID and leaving it aborts its pending 
   // The superseded request must not create detail content after navigation.
   await act(async () => pending.resolve({ simulation: { id, scenario: recipe, status: "queued" }, revision: 1, result: null, job: null }));
   assert.equal(app.view.root.findAllByProps({ "aria-label": "Selected simulation" }).length, 0);
+});
+
+test('Agents navigation preserves the recipe and refreshes launch selections after register/deactivate', async t => {
+  const app = await setup(t);
+  const saved = { id, active: true, created_at: '2026-10-19T12:00:00Z', snapshot: {
+    registration_id: id, package_path: 'C:/agents/pilot', python_executable: 'C:/agents/python.exe',
+    python_sha256: 'a'.repeat(64), python_size_bytes: 100, package_sha256: 'b'.repeat(64),
+    observation_mode: 'simulator_state', agent_control_mode: 'authoritative', configuration: {},
+    files: [], model_files: [], runtime_files: [], process_options: {},
+    manifest: { name: 'Navigation pilot', version: '1.0', protocol_version: '1.3', agent_id: 'navigation-pilot',
+      entry_point: 'agent:Driver', navigation_mode: 'provided_route', observation_mode: 'simulator_state', sensors: [], configuration: {} },
+  } };
+  let registrations = [], selectorReads = 0;
+  api.listAgents = async filters => { if (filters.limit === 100) selectorReads++; return registrations.filter(item => filters.active === undefined || filters.active === item.active); };
+  api.registerAgent = async () => { registrations = [saved]; return saved; };
+  api.getAgent = async () => registrations[0];
+  api.getAgentReadiness = async () => ({ agent_id: id, ready: registrations[0].active, issues: [], limitations: [], checked_at: '2026-10-19T12:00:00Z' });
+  api.deactivateAgent = async () => { registrations = [{ ...saved, active: false }]; return registrations[0]; };
+  const editor = () => app.view.root.findByProps({ id: 'scenario-json' });
+  const draft = editor().props.value;
+  await app.navigate('#agents');
+  assert.equal(document.title, 'Poltergeist · Agents');
+  act(() => app.view.root.findByProps({ id: 'agent-package-path' }).props.onChange({ target: { value: 'C:/agents/pilot' } }));
+  act(() => app.view.root.findByProps({ id: 'agent-trusted-code' }).props.onChange({ target: { checked: true } }));
+  await act(async () => app.view.root.findByProps({ className: 'panel agent-registration' }).findByType('form').props.onSubmit({ preventDefault() {} }));
+  assert.match(text(app.view.root), /Registered Navigation pilot/);
+  await app.navigate('#scenarios');
+  assert.equal(editor().props.value, draft);
+  const selector = () => {
+    const label = app.view.root.findAllByType('label').find(node => text(node) === 'Ego controller');
+    return app.view.root.findByProps({ id: label.props.htmlFor });
+  };
+  assert.ok(selector().findAllByType('option').some(node => node.props.value === id));
+  await act(async () => selector().props.onChange({ target: { value: id } }));
+  assert.equal(selector().props.value, id);
+  const reads = selectorReads;
+  await app.navigate('#agents');
+  await act(async () => app.view.root.findAllByType('button').find(node => text(node) === 'Deactivate registration').props.onClick());
+  assert.equal(selectorReads, reads, 'Hidden scenario page does not read registry on changes');
+  await app.navigate('#scenarios');
+  assert.equal(selector().props.value, id, 'Deactivation preserves the explicit prior selection');
+  assert.match(text(app.view.root), /missing or deactivated/);
+  assert.equal(editor().props.value, draft);
 });

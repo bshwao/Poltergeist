@@ -122,3 +122,60 @@ test("lost transport, malformed success and unexpected server errors warn about 
   for (const status of [0, 200, 201, 202, 204, 500, 502, 504]) assert.equal(acceptanceMayBeUncertain(status), true, String(status));
   for (const status of [400, 404, 409, 422, 429, 503]) assert.equal(acceptanceMayBeUncertain(status), false, String(status));
 });
+
+const registration = (snapshot = {}) => ({ id: "77889109-3248-48bd-a62f-d792cc244916", active: true, snapshot: {
+  agent_control_mode: "authoritative", observation_mode: "simulator_state",
+  manifest: { protocol_version: "1.3", navigation_mode: "provided_route", sensors: [] }, ...snapshot,
+} });
+function withAgent(record, recipe = scenario, options = {}, mode = "carla") {
+  return makeLaunchRequest(recipe, mode, { ...defaultOptionDraft(), ...options }, defaultEvaluationDraft(), { id: record?.id ?? "missing", record });
+}
+
+test("registered launches preserve the exact ID while baseline is explicit null", () => {
+  const record = registration();
+  assert.equal(withAgent(record).request.agent_id, record.id);
+  assert.equal(build().request.agent_id, null);
+  assert.match(withAgent(null).errors.agent_id, /missing or deactivated/);
+  assert.match(withAgent({ ...record, active: false }).errors.agent_id, /explicitly select Baseline/);
+  assert.equal(makeLaunchRequest(scenario, "carla", defaultOptionDraft(), defaultEvaluationDraft(), { id: "different", record }).request, undefined);
+});
+
+test("task SDK and planner ownership conflicts are actionable without changing the recipe", () => {
+  const recipe = { ...structuredClone(scenario), driving_task: { route_owner: "agent", destination: { x: 5 }, route: [] } };
+  const before = JSON.stringify(recipe);
+  const old = registration({ manifest: { protocol_version: "1.1", navigation_mode: "provided_route", sensors: [] } });
+  const errors = withAgent(old, recipe).errors;
+  assert.match(errors["agent.task"], /SDK 1.2 or 1.3/);
+  assert.match(errors["agent.planner"], /agent_planner/);
+  assert.equal(JSON.stringify(recipe), before);
+  const planner = registration({ manifest: { protocol_version: "1.3", navigation_mode: "agent_planner", sensors: [] } });
+  assert.ok(withAgent(planner, recipe).request);
+});
+
+test("authoritative agents reject only scripted ego events and never remove them", () => {
+  const recipe = { ...structuredClone(scenario), actors: [{ id: "ego", type: "ego_vehicle" }], events: [{ actor_id: "ego", type: "brake", trigger_time_s: 1 }] };
+  assert.match(withAgent(registration(), recipe).errors["agent.events"], /Remove those events in Full recipe JSON/);
+  assert.equal(recipe.events.length, 1);
+  assert.ok(withAgent(registration({ agent_control_mode: "scripted" }), recipe).request);
+  assert.ok(withAgent(registration(), { ...recipe, events: [{ ...recipe.events[0], actor_id: "other" }] }).request);
+});
+
+test("sensor agents require explicit tasks, authoritative control and explicit RGB rendering in CARLA", () => {
+  const sensor = registration({ observation_mode: "sensors", manifest: { protocol_version: "1.3", navigation_mode: "provided_route", sensors: [{ id: "rgb", type: "sensor.camera.rgb" }] } });
+  assert.match(withAgent(sensor).errors["agent.task"], /explicit driving_task/);
+  const recipe = { ...scenario, driving_task: { route_owner: "framework", route: [{ x: 4 }], destination: null } };
+  for (const rendering of ["inherit", "disabled"]) assert.match(withAgent(sensor, recipe, { rendering }).errors["options.rendering"], /Enabled for this run/);
+  assert.equal(withAgent(sensor, recipe, { rendering: "enabled" }).request.options.no_rendering_mode, false);
+  assert.ok(withAgent(sensor, recipe, {}, "test").request, "Synthetic sensor fixtures do not require CARLA rendering");
+  assert.match(withAgent({ ...sensor, snapshot: { ...sensor.snapshot, agent_control_mode: "scripted" } }, recipe, { rendering: "enabled" }).errors["agent.control"], /authoritative/);
+  const lidar = { ...sensor, snapshot: { ...sensor.snapshot, manifest: { ...sensor.snapshot.manifest, sensors: [{ type: "sensor.lidar.ray_cast" }] } } };
+  assert.ok(withAgent(lidar, recipe, { rendering: "disabled" }).request);
+});
+
+test("rendering selection maps exactly to nullable no-rendering mode and validates camera recording", () => {
+  assert.equal(build({ rendering: "inherit" }, {}, "carla").request.options.no_rendering_mode, null);
+  assert.equal(build({ rendering: "enabled" }, {}, "carla").request.options.no_rendering_mode, false);
+  assert.equal(build({ rendering: "disabled" }, {}, "carla").request.options.no_rendering_mode, true);
+  assert.match(build({ rendering: "disabled", camera: true }, {}, "carla").errors["options.rendering"], /Camera recording requires rendering/);
+  assert.ok(build({ rendering: "unexpected" }).errors["options.rendering"]);
+});

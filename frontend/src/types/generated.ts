@@ -156,6 +156,55 @@ export type TrafficObservedRuns = number;
 export type TrafficViolationRuns = number;
 export type UnscoredResults = number;
 export type Groups = ModeAnalytics[];
+export type Applied = number;
+export type Available = boolean;
+export type Coverage = "unavailable" | "empty" | "partial" | "complete";
+export type Limit = number;
+export type Offset = number;
+export type RecordingArtifactIndex = number | null;
+export type ControlMode1 = "scripted" | "authoritative";
+export type Frame3 = number;
+export type FullStepWallTimeS = number | null;
+export type Interventions = ("scripted_ego_speed_target" | "scripted_ego_braking")[];
+export type ResultingFrame = number | null;
+export type RoundTripWallTimeS = number | null;
+/**
+ * @maxItems 4
+ */
+export type Sensors3 =
+  | []
+  | [DecisionSensor]
+  | [DecisionSensor, DecisionSensor]
+  | [DecisionSensor, DecisionSensor, DecisionSensor]
+  | [DecisionSensor, DecisionSensor, DecisionSensor, DecisionSensor];
+export type ByteLength = number;
+export type SampleIndex = number;
+export type Status = "applied" | "unresolved";
+export type TimeS1 = number;
+export type WorkerStepWallTimeS = number | null;
+export type Records = DecisionRecord[];
+export type SimulationId = string;
+export type Actors1 = ActorState[] | null;
+export type Collisions = CollisionEvent[] | null;
+export type EventId = string | null;
+export type ImpulseNS = number;
+export type OtherActorId = string;
+export type Frame4 = number;
+export type RuleChecks = TrafficRule[] | null;
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "TrafficRule".
+ */
+export type TrafficRule = "red_light" | "stop_sign" | "speeding" | "wrong_way" | "sidewalk";
+export type TimeS2 = number;
+export type TrafficViolations = TrafficViolation[] | null;
+export type ActorId2 = string;
+export type Details = string;
+export type EventId1 = string | null;
+export type SourceId = string | null;
+export type Telemetry = TelemetryFrame[];
+export type Total = number;
+export type Transitions = number;
 export type Accepting = boolean;
 export type ActiveId = string | null;
 export type Error = string | null;
@@ -207,7 +256,7 @@ export type Revision = number;
 /**
  * @minItems 1
  */
-export type Actors1 = [ActorSpec, ...ActorSpec[]];
+export type Actors2 = [ActorSpec, ...ActorSpec[]];
 export type Blueprint = string | null;
 export type Id3 = string | null;
 export type AnchorActorId = string;
@@ -223,11 +272,11 @@ export type Description = string;
 export type DurationS1 = number;
 export type Event = string | null;
 export type Action = "set_speed";
-export type ActorId2 = string;
+export type ActorId3 = string;
 export type SpeedMps1 = number;
 export type TriggerTimeS = number;
 export type Action1 = "brake";
-export type ActorId3 = string;
+export type ActorId4 = string;
 export type DecelerationMps2 = number;
 export type TriggerTimeS1 = number;
 export type Events = (SpeedChangeEvent | BrakingEvent)[];
@@ -279,7 +328,7 @@ export type FinishedAt = string | null;
 export type Progress = number;
 export type QueuePosition = number | null;
 export type Revision1 = number;
-export type SimulationId = string;
+export type SimulationId1 = string;
 export type StartedAt = string | null;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -299,36 +348,36 @@ export type ObservationMode3 = "simulator_state" | "sensors";
 /**
  * @maxItems 4
  */
-export type Sensors3 =
+export type Sensors4 =
   | []
   | [AgentSensorSpec]
   | [AgentSensorSpec, AgentSensorSpec]
   | [AgentSensorSpec, AgentSensorSpec, AgentSensorSpec]
   | [AgentSensorSpec, AgentSensorSpec, AgentSensorSpec, AgentSensorSpec];
 export type Source1 = "carla_ground_truth" | "synthetic_state" | "carla_sensors" | "deterministic_fixture";
-export type Kind1 = "telemetry" | "recording" | "report";
+export type Kind1 = "telemetry" | "recording" | "report" | "decisions";
 export type MediaType = string;
 export type Path2 = string;
 export type Artifacts = ArtifactReference[];
 export type Controller = "baseline" | "legacy_custom" | "sdk_agent";
-export type Frame3 = number;
+export type Frame5 = number;
 export type Kind2 = "scripted_ego_speed_target" | "scripted_ego_braking";
 export type TargetSpeedMps3 = number | null;
-export type TimeS1 = number;
+export type TimeS3 = number;
 /**
  * @maxItems 200000
  */
-export type Interventions = ControlIntervention[];
+export type Interventions1 = ControlIntervention[];
 export type Mode2 = "scripted" | "authoritative";
 export type Navigation = "legacy_assisted" | "framework_route" | "agent_planner";
-export type ControlMode1 = "scripted" | "authoritative";
+export type ControlMode2 = "scripted" | "authoritative";
 export type FinalDistanceM = number | null;
 export type FinalHeightErrorM = number | null;
 export type InitialSpeedMps = number | null;
 /**
  * @maxItems 200000
  */
-export type Interventions1 = ControlIntervention[];
+export type Interventions2 = ControlIntervention[];
 export type ReachedAtS = number | null;
 /**
  * @maxItems 4096
@@ -337,7 +386,7 @@ export type ResolvedRoute = Transform[];
 export type RouteLengthM = number | null;
 export type RouteOwner1 = "framework" | "agent";
 export type RouteProgressM = number | null;
-export type Status = "reached" | "timed_out" | "cancelled" | "failed" | "unavailable";
+export type Status1 = "reached" | "timed_out" | "cancelled" | "failed" | "unavailable";
 export type TargetSpeedMps4 = number | null;
 export type TerminationReason = "goal_reached" | "duration_elapsed" | "cancelled" | "execution_failed";
 export type MeasuredDurationS = number;
@@ -380,28 +429,10 @@ export type TelemetryFrames = number;
 export type Revision2 = number;
 export type ScenarioId1 = string | null;
 export type UpdatedAt1 = string;
-export type Actors2 = ActorState[] | null;
-export type Collisions = CollisionEvent[] | null;
-export type EventId = string | null;
-export type ImpulseNS = number;
-export type OtherActorId = string;
-export type Frame4 = number;
-export type RuleChecks = TrafficRule[] | null;
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "TrafficRule".
- */
-export type TrafficRule = "red_light" | "stop_sign" | "speeding" | "wrong_way" | "sidewalk";
-export type TimeS2 = number;
-export type TrafficViolations = TrafficViolation[] | null;
-export type ActorId4 = string;
-export type Details = string;
-export type EventId1 = string | null;
-export type SourceId = string | null;
 export type Frames = TelemetryFrame[];
-export type Limit = number;
-export type Offset = number;
-export type Total = number;
+export type Limit1 = number;
+export type Offset1 = number;
+export type Total1 = number;
 export type Default = number;
 export type Description1 = string;
 export type Integer = boolean;
@@ -419,7 +450,7 @@ export type Id5 = string;
 export type FailureKind = "collision" | "near_miss" | "hard_braking" | "traffic_violation";
 export type Reproduced1 = boolean | null;
 export type Severity1 = number;
-export type SimulationId1 = string;
+export type SimulationId2 = string;
 export type Summary = string;
 export type CancelRequested2 = boolean;
 export type CreatedAt5 = string;
@@ -467,7 +498,7 @@ export type Reason = string | null;
 export type RepeatIndex = number;
 export type Role = "search" | "reproduce" | "minimize_baseline" | "minimize_candidate";
 export type Score = number | null;
-export type SimulationId2 = string;
+export type SimulationId3 = string;
 export type Trials1 = OptimizationTrial[];
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -760,6 +791,7 @@ export interface ApiContracts {
   agent_readiness: AgentReadiness;
   agent_registration: AgentRegistration;
   analytics: AnalyticsSummary;
+  decision_page: DecisionPage;
   queue_status: QueueStatus;
   registered_agent: RegisteredAgent;
   reproduction_update: ReproductionUpdate;
@@ -844,6 +876,94 @@ export interface FailureKinds {
 }
 export interface StatusCounts {
   [k: string]: number;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DecisionPage".
+ */
+export interface DecisionPage {
+  applied: Applied;
+  available: Available;
+  coverage: Coverage;
+  limit: Limit;
+  offset: Offset;
+  recording_artifact_index: RecordingArtifactIndex;
+  records: Records;
+  reset: AgentReset | null;
+  simulation_id: SimulationId;
+  telemetry: Telemetry;
+  total: Total;
+  transitions: Transitions;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DecisionRecord".
+ */
+export interface DecisionRecord {
+  agent_result: AgentStepResult | null;
+  applied_control: ControlInput | null;
+  control_mode: ControlMode1;
+  frame: Frame3;
+  full_step_wall_time_s: FullStepWallTimeS;
+  interventions: Interventions;
+  observation: Observation;
+  proposed_control: ControlInput | null;
+  resulting_ego: ActorState | null;
+  resulting_frame: ResultingFrame;
+  round_trip_wall_time_s: RoundTripWallTimeS;
+  sensors: Sensors3;
+  status: Status;
+  time_s: TimeS1;
+  worker_step_wall_time_s: WorkerStepWallTimeS;
+}
+export interface Observation {
+  [k: string]: JsonValue;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DecisionSensor".
+ */
+export interface DecisionSensor {
+  byte_length: ByteLength;
+  header: Header;
+  sample_index: SampleIndex;
+}
+export interface Header {
+  [k: string]: JsonValue;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "TelemetryFrame".
+ */
+export interface TelemetryFrame {
+  actors: Actors1;
+  collisions: Collisions;
+  control: ControlInput;
+  ego: ActorState;
+  frame: Frame4;
+  rule_checks: RuleChecks;
+  time_s: TimeS2;
+  traffic_violations: TrafficViolations;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CollisionEvent".
+ */
+export interface CollisionEvent {
+  event_id: EventId;
+  impulse_n_s: ImpulseNS;
+  other_actor_id: OtherActorId;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "TrafficViolation".
+ */
+export interface TrafficViolation {
+  actor_id: ActorId2;
+  details: Details;
+  event_id: EventId1;
+  rule: TrafficRule;
+  source_id: SourceId;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -953,7 +1073,7 @@ export interface ScenarioRecord {
  * via the `definition` "Scenario".
  */
 export interface Scenario {
-  actors: Actors1;
+  actors: Actors2;
   description: Description;
   driving_task: DrivingTask | null;
   duration_s: DurationS1;
@@ -1005,7 +1125,7 @@ export interface RelativeSpawn {
  */
 export interface SpeedChangeEvent {
   action: Action;
-  actor_id: ActorId2;
+  actor_id: ActorId3;
   speed_mps: SpeedMps1;
   trigger_time_s: TriggerTimeS;
 }
@@ -1017,7 +1137,7 @@ export interface SpeedChangeEvent {
  */
 export interface BrakingEvent {
   action: Action1;
-  actor_id: ActorId3;
+  actor_id: ActorId4;
   deceleration_mps2: DecelerationMps2;
   trigger_time_s: TriggerTimeS1;
 }
@@ -1103,7 +1223,7 @@ export interface SimulationProgress {
   progress: Progress;
   queue_position: QueuePosition;
   revision: Revision1;
-  simulation_id: SimulationId;
+  simulation_id: SimulationId1;
   started_at: StartedAt;
   status: SimulationStatus;
 }
@@ -1161,7 +1281,7 @@ export interface AgentInputInfo {
   ego_state_source: EgoStateSource1;
   ground_truth_actor_inputs: GroundTruthActorInputs;
   observation_mode: ObservationMode3;
-  sensors: Sensors3;
+  sensors: Sensors4;
   source: Source1;
 }
 /**
@@ -1181,7 +1301,7 @@ export interface ArtifactReference {
  */
 export interface ControlAudit {
   controller: Controller;
-  interventions: Interventions;
+  interventions: Interventions1;
   mode: Mode2;
   navigation: Navigation;
 }
@@ -1193,11 +1313,11 @@ export interface ControlAudit {
  */
 export interface ControlIntervention {
   applied_control: ControlInput;
-  frame: Frame3;
+  frame: Frame5;
   kind: Kind2;
   proposed_control: ControlInput;
   target_speed_mps: TargetSpeedMps3;
-  time_s: TimeS1;
+  time_s: TimeS3;
 }
 /**
  * Navigation measurements separate from execution and safety outcomes.
@@ -1206,18 +1326,18 @@ export interface ControlIntervention {
  * via the `definition` "DrivingOutcome".
  */
 export interface DrivingOutcome {
-  control_mode: ControlMode1;
+  control_mode: ControlMode2;
   destination: Transform;
   final_distance_m: FinalDistanceM;
   final_height_error_m: FinalHeightErrorM;
   initial_speed_mps: InitialSpeedMps;
-  interventions: Interventions1;
+  interventions: Interventions2;
   reached_at_s: ReachedAtS;
   resolved_route: ResolvedRoute;
   route_length_m: RouteLengthM;
   route_owner: RouteOwner1;
   route_progress_m: RouteProgressM;
-  status: Status;
+  status: Status1;
   target_speed_mps: TargetSpeedMps4;
   termination_reason: TerminationReason;
 }
@@ -1304,43 +1424,9 @@ export interface Simulation {
  */
 export interface TelemetryPage {
   frames: Frames;
-  limit: Limit;
-  offset: Offset;
-  total: Total;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "TelemetryFrame".
- */
-export interface TelemetryFrame {
-  actors: Actors2;
-  collisions: Collisions;
-  control: ControlInput;
-  ego: ActorState;
-  frame: Frame4;
-  rule_checks: RuleChecks;
-  time_s: TimeS2;
-  traffic_violations: TrafficViolations;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "CollisionEvent".
- */
-export interface CollisionEvent {
-  event_id: EventId;
-  impulse_n_s: ImpulseNS;
-  other_actor_id: OtherActorId;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "TrafficViolation".
- */
-export interface TrafficViolation {
-  actor_id: ActorId4;
-  details: Details;
-  event_id: EventId1;
-  rule: TrafficRule;
-  source_id: SourceId;
+  limit: Limit1;
+  offset: Offset1;
+  total: Total1;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -1375,7 +1461,7 @@ export interface FailureReport {
   reproduced: Reproduced1;
   scenario: Scenario;
   severity: Severity1;
-  simulation_id: SimulationId1;
+  simulation_id: SimulationId2;
   summary: Summary;
 }
 /**
@@ -1504,7 +1590,7 @@ export interface OptimizationTrial {
   role: Role;
   scenario: Scenario;
   score: Score;
-  simulation_id: SimulationId2;
+  simulation_id: SimulationId3;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema

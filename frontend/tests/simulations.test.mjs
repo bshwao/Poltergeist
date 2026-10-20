@@ -320,3 +320,46 @@ test("manual records without worker jobs cannot issue cancellation requests", as
   assert.match(text(view.root), /manually stored record has no API job to cancel/);
   assert.equal(button(view.root, "Cancel run"), undefined);
 });
+
+const agentSnapshot = {
+  registration_id: id(901), package_path: 'C:/agents/original-pilot', python_executable: 'C:/agents/env/python.exe',
+  python_sha256: 'a'.repeat(64), python_size_bytes: 100, package_sha256: 'b'.repeat(64),
+  observation_mode: 'simulator_state', agent_control_mode: 'authoritative',
+  manifest: { name: 'Recorded driving pilot', version: '2.1', protocol_version: '1.3', agent_id: 'pilot',
+    entry_point: 'agent:Driver', observation_mode: 'simulator_state', navigation_mode: 'provided_route',
+    control_mode: 'vehicle_control', sensors: [], assets: [], configuration: { target: 4 } },
+  configuration: { target: 4 }, files: [{ path: 'agent.py', sha256: 'c'.repeat(64), size_bytes: 100 }],
+  model_files: [], runtime_files: [], process_options: { load_timeout_s: 30, step_timeout_s: 2 },
+};
+
+test('history and run detail preserve the recorded agent identity without consulting its current registration', async t => {
+  defaults();
+  const saved = complete();
+  saved.simulation.agent = 'custom'; saved.simulation.agent_snapshot = agentSnapshot;
+  saved.result.agent_inputs = { source: 'synthetic_state', assistance: [] };
+  api.listSimulations = async () => [saved];
+  api.getSimulation = async () => saved;
+  let registryReads = 0;
+  api.getAgent = async () => { registryReads++; throw new ApiError('Registration has been deactivated', 409); };
+  const view = await mount(t, Simulations, { active: true, selectedId: id(1) });
+  assert.ok(view.root.findAllByType('thead').some(node => /Agent/.test(text(node))));
+  assert.match(text(view.root), /Recorded driving pilot/);
+  assert.match(text(view.root), /v2.1/);
+  assert.match(text(view.root), /Registration 00000000/);
+  const details = view.root.findByProps({ 'aria-label': 'Recorded agent' });
+  assert.match(text(details), /C:\/agents\/original-pilot/);
+  assert.match(text(details), /Recorded input source: Synthetic state/);
+  assert.match(text(details), /Agent controls the ego vehicle/);
+  assert.match(text(details), /v2.1/);
+  assert.equal(registryReads, 0);
+});
+
+test('older custom runs display unavailable identity instead of inferring a current agent', async t => {
+  defaults();
+  const saved = complete(); saved.simulation.agent = 'custom';
+  api.getSimulation = async () => saved;
+  const view = await mount(t, RunDetail, { id: id(1), active: true });
+  const details = view.root.findByProps({ 'aria-label': 'Recorded agent' });
+  assert.match(text(details), /Version and input mode not recorded/);
+  assert.match(text(details), /cannot be inferred/);
+});

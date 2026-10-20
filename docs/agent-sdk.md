@@ -311,6 +311,7 @@ speed and event behavior. The starter remains a rule-based controller. See
 
 Sensor inputs and provenance are implemented in Phase 4. Phase 5 adds immutable
 trusted local registrations, fingerprint checks and queued API agent selection;
-see [the registry guide](agent-registry.md). Dashboard agent selection, full
-persisted decision timeline review and behavior explanations remain later phases
-in the [integration plan](autonomous-agents-plan.md).
+see [the registry guide](agent-registry.md). The [dashboard](dashboard.md) supports
+registered agent selection, and [Phase 7](decision-timeline.md) adds persisted
+decision review. Behavior analysis and explanations remain Phase 8 in the
+[integration plan](autonomous-agents-plan.md).

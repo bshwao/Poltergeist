@@ -281,3 +281,16 @@ test("list errors retry explicitly and unmount aborts requests", async t => {
   assert.equal(signal.aborted, true);
   await act(async () => pending.resolve([]));
 });
+
+test('different registered agents or unknown custom identities cannot be labelled matched', () => {
+  const left = run(failure(1)); const right = run(failure(2));
+  left.simulation.agent = right.simulation.agent = 'custom';
+  assert.equal(comparisonNote(left, right).comparable, false);
+  left.simulation.agent_snapshot = { registration_id: id(10), configuration: { brake: .5 }, observation_mode: 'simulator_state' };
+  right.simulation.agent_snapshot = { registration_id: id(11), configuration: { brake: .5 }, observation_mode: 'simulator_state' };
+  assert.match(comparisonNote(left, right).message, /Different registered agents/);
+  right.simulation.agent_snapshot = structuredClone(left.simulation.agent_snapshot);
+  assert.equal(comparisonNote(left, right).comparable, true);
+  right.simulation.agent_snapshot.configuration.brake = .8;
+  assert.equal(comparisonNote(left, right).comparable, false);
+});

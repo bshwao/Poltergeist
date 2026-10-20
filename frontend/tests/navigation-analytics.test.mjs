@@ -25,6 +25,7 @@ const group = mode => ({ mode, total_runs: 5, status_counts: { completed: 3, fai
 test("hash routes accept only known pages and complete UUID run IDs", () => {
   assert.deepEqual(routeFromHash("#overview"), { page: "overview", simulationId: null });
   assert.deepEqual(routeFromHash("#failures"), { page: "failures", simulationId: null });
+  assert.deepEqual(routeFromHash("#agents"), { page: "agents", simulationId: null });
   assert.deepEqual(routeFromHash(simulationLink(id)), { page: "simulations", simulationId: id });
   for (const hash of ["#simulations/../../private", "#simulations/javascript:alert(1)", `#simulations/${id}/extra`, "#simulations"]) assert.deepEqual(routeFromHash(hash), { page: "simulations", simulationId: null });
   assert.deepEqual(routeFromHash("#unknown"), { page: "scenarios", simulationId: null });

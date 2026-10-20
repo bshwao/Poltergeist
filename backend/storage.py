@@ -26,6 +26,7 @@ _LAYOUT = {
     "telemetry": ("telemetry", "frames.ndjson", "application/x-ndjson"),
     "recording": ("recordings", "manifest.json", "application/json"),
     "report": ("reports", "report.json", "application/json"),
+    "decisions": ("decisions", "timeline.ndjson", "application/x-ndjson"),
 }
 _RESERVED = re.compile(r"^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)", re.IGNORECASE)
 _SAMPLE_FILE = re.compile(r"^\d{8,}-(?:camera|lidar)\.bin$")
@@ -372,6 +373,7 @@ class CaptureWriter:
         self._closed = False
         self._count = self._bytes = 0
         self._last: dict[tuple[str, str | None], tuple[int, float]] = {}
+        self._agent_samples: dict[str, tuple[int, str, int]] = {}
 
     @property
     def simulation_id(self) -> UUID:
@@ -410,11 +412,20 @@ class CaptureWriter:
             with self._store._contained(self._stage / ".samples.jsonl").open("ab") as manifest:
                 manifest.write((_json(entry) + "\n").encode("utf-8"))
             self._last[stream] = sample.frame, sample.timestamp
+            if stream[1] is not None:
+                self._agent_samples[stream[1]] = (sample.frame, entry["sha256"], self._count)
             self._count += 1
             self._bytes += len(sample.data)
         except BaseException:
             self.abort()
             raise
+
+    def agent_sample_index(self, sensor_id: str, frame: int, digest: str) -> int:
+        """Bind an input to bytes already captured; memory is bounded by rig size."""
+        sample = self._agent_samples.get(sensor_id)
+        if sample is None or sample[:2] != (frame, digest):
+            raise ArtifactError("Decision sensor input has no matching captured sample")
+        return sample[2]
 
     def commit(self) -> ArtifactReference | None:
         if self._closed:

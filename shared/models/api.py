@@ -12,6 +12,7 @@ from .registry import AgentReadiness, AgentRegistration, AgentSnapshot, Register
 from .scenario import Scenario, ScenarioTemplate
 from .simulation import Simulation, SimulationResult, SimulationStatus
 from .telemetry import TelemetryFrame
+from .decision import DecisionPage
 
 
 def _normalize(value):
@@ -164,5 +165,6 @@ class ApiContracts(ContractModel):
     simulation_progress: SimulationProgress
     queue_status: QueueStatus
     telemetry_page: TelemetryPage
+    decision_page: DecisionPage
     reproduction_update: ReproductionUpdate
     analytics: AnalyticsSummary

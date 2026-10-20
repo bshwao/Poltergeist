@@ -564,7 +564,7 @@ def test_raw_capture_callbacks_publish_only_after_successful_finalization(worker
     worker = workers(runner_factory=lambda **kwargs: SimulationRunner(Capturing(), **kwargs))
     stored = terminal(worker, worker.submit(scene(), mode="test", options=SimulationOptions(camera=True)).simulation.id)
     assert stored.simulation.status == "completed"
-    assert [artifact.kind for artifact in stored.result.artifacts] == ["recording", "telemetry"]
+    assert [artifact.kind for artifact in stored.result.artifacts] == ["recording", "telemetry", "decisions"]
     assert persistence.artifacts.read_capture_manifest(stored.result.artifacts[0])["sample_count"] == 5
 
 
@@ -583,5 +583,6 @@ def test_failed_capture_write_aborts_recording_but_keeps_failed_trace(workers, p
     stored = terminal(worker, worker.submit(scene(), mode="test", options=SimulationOptions(camera=True)).simulation.id)
     assert stored.simulation.status == "failed"
     assert "capture write failed" in stored.simulation.error
-    assert [artifact.kind for artifact in stored.result.artifacts] == ["telemetry"]
+    assert [artifact.kind for artifact in stored.result.artifacts] == ["telemetry", "decisions"]
+    assert persistence.read_decisions(stored.simulation.id).coverage == "empty"
     assert not list(persistence.artifacts.root.rglob("*.bin"))

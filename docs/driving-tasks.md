@@ -148,10 +148,12 @@ goal stopping.
 ```
 
 Use a new report directory. Recipes/results preserve the task, audit and outcome;
-decision diagnostics preserve tracking assistance. Full timeline review remains
-Phase 7. Sensor support is described in [Phase 4](sensor-agents.md), and
+decision diagnostics preserve tracking assistance. [Phase 7 decision review](decision-timeline.md)
+is available for queued API runs. Sensor support is described in [Phase 4](sensor-agents.md), and
 [Phase 5 registration](agent-registry.md) supports queued API agent selection.
-Dashboard launch controls remain Phase 6.
+The [dashboard launch selector](dashboard.md#configure-and-launch-a-run) can use
+a registered agent. Paste a recipe containing the required `driving_task` into
+the scenario JSON editor and validate it before launching.
 
 The mapped example was verified on CARLA 0.9.16 Town03. Start one idle CARLA
 instance with that map loaded, or add `--allow-map-reload` to load it. The reference

@@ -150,3 +150,13 @@ test("unmount aborts an outstanding telemetry read and an outstanding raw sample
   const viewer = setup(t, SimulationViewer, { result: result("carla", recording) }); await click(viewer, "Load capture manifest");
   act(() => { button(viewer, "Inspect sample").props.onClick(); }); act(() => viewer.unmount()); assert.equal(captureSignal.aborted, true);
 });
+
+test('synthetic sensor recordings disclose fixtures and identify the named stream', async t => {
+  const capture = manifest(); capture.samples[0].metadata.agent_sensor_id = 'front-camera';
+  api.getCaptureManifest = async () => capture;
+  const data = result('test', recording); data.agent_inputs = { source: 'deterministic_fixture' };
+  const view = setup(t, SimulationViewer, { result: data });
+  assert.match(text(view.root), /deterministic fixtures.*not rendered CARLA frames/);
+  await click(view, 'Load capture manifest');
+  assert.match(text(view.root), /Camera · front-camera/);
+});

@@ -27,7 +27,7 @@ function TemplateGlyph({ template }: { template: string }) {
   );
 }
 
-export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
+export function ScenarioBuilder({ templates, active = true, registryRevision = 0 }: { templates: TemplateInfo[]; active?: boolean; registryRevision?: number }) {
   const [selectedId, setSelectedId] = useState<string | null>(templates[0]?.template ?? null);
   const selected = templates.find((template) => template.template === selectedId);
   const [seed, setSeed] = useState("0");
@@ -352,7 +352,7 @@ export function ScenarioBuilder({ templates }: { templates: TemplateInfo[] }) {
         {saveNotice && <div className={`notice ${saveNotice.error ? "error-notice" : "success-notice"}`} role={saveNotice.error ? "alert" : "status"}><p>{saveNotice.message}</p>{saveNotice.conflictId && <button className="button secondary small" type="button" onClick={() => void loadSaved(saveNotice.conflictId!)} disabled={saving}>Load latest revision</button>}</div>}
         <div className="form-actions"><button className="button primary" type="button" disabled={!ready || saving || Boolean(savedRecord) && !dirty} onClick={() => void save(savedRecord ? "update" : "create")}>{saving ? "Saving…" : savedRecord ? "Update saved recipe" : "Save new recipe"}</button>{savedRecord && <button className="button secondary" type="button" disabled={!ready || saving} onClick={() => void save("create")}>Save a copy</button>}</div>
       </section>
-      <LaunchPanel scenario={ready ? recipe : null} disabledReason={ready ? null : busy === "load" ? "Loading a saved recipe…" : formChanged ? "Regenerate the changed parameters or validate the JSON recipe first." : "Generate or load a recipe, then validate its current JSON before launching."} />
+      <LaunchPanel active={active} registryRevision={registryRevision} scenario={ready ? recipe : null} disabledReason={ready ? null : busy === "load" ? "Loading a saved recipe…" : formChanged ? "Regenerate the changed parameters or validate the JSON recipe first." : "Generate or load a recipe, then validate its current JSON before launching."} />
     </div>
   );
 }

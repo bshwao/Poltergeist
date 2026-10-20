@@ -13,6 +13,7 @@ from backend.services.persistence_service import PersistenceService
 from backend.services.simulation_service import SimulationService
 from shared.models import SimulationResult, SimulationStatus
 from shared.models.api import QueueStatus, SimulationLaunch, SimulationProgress, SimulationRecord, TelemetryPage
+from shared.models.decision import DecisionPage
 
 
 router = APIRouter(prefix="/simulations", tags=["simulations"])
@@ -107,6 +108,15 @@ def _artifact(simulation_id, artifact_index, persistence):
     reference = artifacts[artifact_index]
     path = persistence.artifacts.validate_reference(reference, simulation_id=simulation_id)
     return reference, path
+
+
+@router.get("/{simulation_id}/decisions", response_model=DecisionPage)
+def decisions(
+    simulation_id: UUID, persistence: Persistence,
+    limit: Annotated[int, Query(ge=1, le=100)] = 25,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> DecisionPage:
+    return persistence.read_decisions(simulation_id, offset=offset, limit=limit)
 
 
 @router.get("/{simulation_id}/artifacts/{artifact_index}", response_class=FileResponse)

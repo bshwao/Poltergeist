@@ -1,6 +1,6 @@
 # Dashboard workspace
 
-Sections 8 and 9 provide Overview, Scenarios, Simulations, and Failures pages.
+The workspace provides Overview, Scenarios, Agents, Simulations, and Failures pages.
 Build and launch a validated recipe, follow its saved run, inspect actual
 observations, and compare recorded failure evidence. Search, automated
 reproduction, and minimization remain available through the section 7 APIs;
@@ -78,6 +78,27 @@ constraints. It does not certify real map geometry or driving behavior. During
 CARLA execution, built-in templates automatically select a suitable complete
 road layout and validate it against the loaded map. Custom coordinates stay fixed.
 
+## Register a local controller
+
+Open **Agents** to register an existing trusted package on the backend machine.
+Provide the package folder, optionally its prepared worker Python, and any
+configuration overrides. A browser on a different computer still refers to
+files on the backend machine. Registration does not upload code, install
+dependencies or download weights.
+
+The page lists persisted registrations, including inactive ones, and lets you
+inspect the saved manifest, configuration, input mode, worker settings and
+fingerprints. Static readiness checks detect unavailable or changed registered
+files without executing the agent. Their result does not prove that dependencies
+import, inference works, CARLA is reachable or the vehicle drives safely.
+
+Use only packages and interpreters you trust: the external worker has the
+backend user's permissions. Deactivation prevents new launches while preserving
+the immutable registration, queued work and historical runs. Create a new
+registration to change code, configuration or worker settings. See the
+[agent registry guide](agent-registry.md#register-and-select-an-agent-in-the-dashboard)
+for package preparation and the full workflow.
+
 ## Save and load scenarios
 
 Select **Open library** to read saved scenarios from the configured backend.
@@ -107,25 +128,38 @@ separate from unsaved page edits; saving is always an explicit action.
 1. Generate a recipe and validate its JSON, or load a saved recipe. Changed
    template parameters must be regenerated or replaced by validating the JSON
    before launch is available.
-2. Choose **CARLA** or **Synthetic test** explicitly. No mode is preselected.
+2. Choose **Ego controller**: **Baseline controller** or an active registered agent. Use **Refresh agents** to refresh
+   the available registrations after adding one on **Agents**. Inspect the
+   selected identity, observation mode and static readiness before launch.
+   Compatibility messages explain missing tasks, unsupported task ownership or
+   conflicting ego events. Add a `driving_task` through **Full recipe JSON**
+   when the selected agent requires one, then validate the recipe again.
+3. Choose **CARLA** or **Synthetic test** explicitly. No mode is preselected.
    CARLA uses the configured server and requested map. Synthetic test exercises
    the pipeline with approximate telemetry and cannot certify real map placement
-   or driving safety. Test mode disables camera/LiDAR capture and clears capture
-   selections made in CARLA mode.
-3. Expand **Execution settings** to adjust map reload permission, sensor timing,
+   or driving safety. Test mode disables optional CARLA camera/LiDAR capture and
+   clears those capture selections. Sensor agents receive labelled deterministic
+   fixtures in test mode; those fixtures do not demonstrate perception in CARLA.
+4. Expand **Execution settings** to adjust map reload permission, sensor timing,
    maximum ticks, camera dimensions, and optional CARLA camera/LiDAR capture.
    Timing values must be positive; tick counts/dimensions must be whole numbers.
-   Camera dimensions remain validated even when capture is disabled.
-4. Expand **Evaluation settings** to adjust episode gaps, thresholds, and severity
+   Camera dimensions remain validated even when capture is disabled. Rendering
+   must be set to **Enabled for this run** under **CARLA rendering** for live RGB
+   agent inputs. The declared agent input rig is
+   independent of the optional camera/LiDAR recording checkboxes and dimensions.
+5. Expand **Evaluation settings** to adjust episode gaps, thresholds, and severity
    weights saved with the run. The TTC horizon must cover its warning time;
    full-severity braking must exceed the hard-braking threshold. The four severity
    weights must total 100%. Field errors explain the required bounds. Editing
    execution/evaluation settings does not invalidate the recipe's JSON validation.
-5. Select **Launch simulation**. The request freezes a copy of the validated
-   recipe and selected settings. Loading or editing a different recipe afterwards
-   cannot change that submission. A launch uses inline JSON rather than its saved
+6. Select **Launch simulation**. The request freezes a copy of the validated
+   recipe, selected registration and settings. Loading or editing a different
+   recipe afterwards cannot change that submission. A launch uses inline JSON rather than its saved
    scenario ID, so a concurrent server edit cannot change the submitted recipe.
    The run stores the recipe snapshot without a link to the saved library record.
+   The backend rechecks the selected registration and retains its immutable
+   configuration and code/model fingerprints. It never substitutes the baseline
+   if the selected agent is unavailable.
 
 When a CARLA run initializes successfully, the CARLA window's spectator camera
 automatically moves to an overhead view of the scenario actors. This uses the
@@ -169,8 +203,13 @@ temporary errors retain the last confirmed observation and retry with a bounded
 delay. A missing run requires an explicit refresh. Leaving the Simulations page
 aborts its requests and polling; reopening it reads the current saved state.
 
-The detail view shows mode, agent, progress, queue position, timestamps, recipe
+The detail view shows mode, saved agent identity, progress, queue position, timestamps, recipe
 seed/map, revision, and the frozen recipe/execution/evaluation settings.
+For a registered agent, inspect its saved registration ID, manifest version,
+observation mode, configuration, worker settings and fingerprints. This identity
+comes from the accepted run snapshot, so deactivating or replacing a current
+registration does not rewrite history. Older runs without a snapshot keep their
+recorded agent label and explicitly lack that extra identity information.
 **Cancel run** requests cooperative cancellation for API jobs. A confirmed
 request is displayed separately from a terminal cancelled result: native calls
 must return before cleanup and partial-result persistence can finish. An
@@ -279,6 +318,16 @@ are stored as samples/manifests rather than encoded video playback. See
 [live execution checks and limits](simulation.md#rule-coverage-results-and-limitations).
 
 ## Verify frontend changes
+
+Phase 7 adds **Inputs, decisions & outcomes** to finished runs. Select a frame
+to inspect its preceding input, proposal/applied controls, interventions,
+agent-reported diagnostics, following measured telemetry and exact sensor bytes.
+Older runs explicitly show unavailable evidence. See the
+[decision timeline guide](decision-timeline.md) for coverage and limitations.
+
+The agent-management and controller-selection workflow is covered in
+[Phase 6 validation](phase6-validation.md), including real browser registration,
+synthetic external-agent execution, sensor inspection and deactivation checks.
 
 ```powershell
 cd frontend
