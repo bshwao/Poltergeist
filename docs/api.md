@@ -144,6 +144,8 @@ and launch selector backed by these routes.
 | `GET /simulations/{id}/result` | Finalized `SimulationResult`; 409 while unfinished |
 | `GET /simulations/{id}/telemetry?offset=0&limit=1000` | Finalized telemetry page; 409 while unfinished |
 | `GET /simulations/{id}/decisions?offset=0&limit=25` | Recorded inputs/actions/diagnostics with synchronized telemetry; limit 1–100, 409 while unfinished |
+| `GET /simulations/{id}/analysis` | Deterministic behavior analysis of finalized evidence with default settings; 409 while unfinished |
+| `POST /simulations/{id}/analysis` | Same read-only analysis with a `BehaviorSettings` JSON body; does not launch or alter a run |
 | `GET /simulations/{id}/artifacts/{artifact_index}` | Download a result-owned artifact |
 | `GET /simulations/{id}/artifacts/{artifact_index}/samples/{sample_index}` | Download one raw recording sample |
 
@@ -198,7 +200,9 @@ New queued runs include a `decisions` NDJSON artifact and a paged review endpoin
 Sensor inputs reference the existing raw recording instead of duplicating bytes.
 See [decision evidence](decision-timeline.md) for the format, reconstruction,
 coverage and compatibility rules. Agent diagnostics are reports from the agent,
-not inferred reasoning. Existing behavior-analysis exports remain Phase 8 work.
+not inferred reasoning. Phase 8.1 provides [behavior analysis](behavior-analysis.md)
+through the read-only analysis endpoints. Dashboard presentation and behavior
+report exports remain Phase 8.2.
 
 Terminal results preserve metrics, unknown values, execution mode, scenario
 snapshot, runtime provenance when available, and storage-owned references.

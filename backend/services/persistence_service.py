@@ -313,7 +313,7 @@ class PersistenceService:
                 except BaseException as cleanup:
                     error.add_note(f"Artifact cleanup failed for {reference.path}: {cleanup}")
 
-    def read_output(self, simulation_id: UUID) -> RunOutput:
+    def read_output(self, simulation_id: UUID, *, on_decision=None) -> RunOutput:
         """Load a saved terminal result and its validated finalized trace."""
         stored = self.get_simulation(simulation_id)
         result = stored.result
@@ -328,7 +328,7 @@ class PersistenceService:
         for reference in result.artifacts:
             if reference.kind == "recording":
                 self._validate_recording(reference, result, frames)
-        decision_page(self.artifacts, result, frames, validate_sensors=True)
+        decision_page(self.artifacts, result, frames, validate_sensors=True, on_record=on_decision)
         return RunOutput(result, frames)
 
     def read_decisions(self, simulation_id: UUID, *, offset=0, limit=25):

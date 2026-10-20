@@ -4,6 +4,8 @@ import type { ControlInput, DecisionPage, DecisionRecord, DecisionSensor, Teleme
 import { CameraFrame } from "./SimulationViewer";
 import type { LoadedSample } from "./SimulationViewer";
 import { decodeBgra, inspectLidar, verifySample } from "./visual-data";
+import { locateFrame } from "./evidence-navigation";
+import type { EvidenceFocus } from "./evidence-navigation";
 
 const PAGE_SIZE = 10;
 const number = (value: unknown, digits = 3) => typeof value === "number" ? value.toFixed(digits) : "Unavailable";
@@ -76,45 +78,59 @@ function DecisionDetail({ record, before, after, page, active }: { record: Decis
   </div>;
 }
 
-export function DecisionTimeline({ simulationId, active }: { simulationId: string; active: boolean }) {
+export function DecisionTimeline({ simulationId, active, focus }: { simulationId: string; active: boolean; focus?: EvidenceFocus }) {
   const prefix = useId();
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState(0);
   const [attempt, setAttempt] = useState(0);
+  const [dismissedFocus, setDismissedFocus] = useState<number | null>(null);
+  const target = focus && focus.token !== dismissedFocus ? focus : undefined;
   const [state, setState] = useState<{ key: string; data?: DecisionPage; error?: string; loading: boolean } | null>(null);
-  const key = `${simulationId}/${offset}/${attempt}`;
+  const key = `${simulationId}/${offset}/${attempt}/${target?.token ?? ""}`;
   useEffect(() => {
     if (!active) return;
     const controller = new AbortController();
     let current = true;
-    const deadline = setTimeout(() => controller.abort(), 12_000);
+    const deadline = setTimeout(() => controller.abort(), target ? 30_000 : 12_000);
     setState({ key, loading: true });
-    void api.getDecisions(simulationId, { offset, limit: PAGE_SIZE }, { signal: controller.signal }).then(data => {
-      if (current && !controller.signal.aborted) setState({ key, loading: false, data });
-    }, error => {
+    void (async () => {
+      let start = offset;
+      if (target) {
+        const index = await locateFrame(target.frame, async at => {
+          const data = await api.getDecisions(simulationId, { offset: at, limit: 1 }, { signal: controller.signal });
+          return { total: data.total, items: data.records };
+        }, controller.signal);
+        if (index === null) throw new ApiError(`No recorded decision input exists at frame ${target.frame}. Inspect its telemetry evidence instead.`);
+        start = index;
+      }
+      if (controller.signal.aborted) return;
+      const data = await api.getDecisions(simulationId, { offset: start, limit: PAGE_SIZE }, { signal: controller.signal });
+      if (current && !controller.signal.aborted) { setSelected(0); setState({ key, loading: false, data }); }
+    })().catch(error => {
       if (current) setState({ key, loading: false, error: controller.signal.aborted ? "Decision timeline timed out. Retry when the API is available."
         : error instanceof ApiError ? error.message : "Could not load decision evidence." });
     }).finally(() => clearTimeout(deadline));
     return () => { current = false; controller.abort(); clearTimeout(deadline); };
-  }, [active, simulationId, offset, attempt, key]);
+  }, [active, simulationId, offset, attempt, key, target?.frame, target?.token]);
   const visible = state?.key === key ? state : null;
   const page = visible?.data;
   const record = page?.records[selected];
-  const move = (next: number) => { setOffset(next); setSelected(0); };
+  const move = (next: number) => { setDismissedFocus(focus?.token ?? null); setOffset(next); setSelected(0); };
   return <section className="panel decision-timeline" aria-labelledby={`${prefix}-title`}>
     <div className="panel-header"><div><p className="eyebrow">DECISION EVIDENCE</p><h2 id={`${prefix}-title`}>Inputs, decisions &amp; outcomes</h2><p>Review the input before an action alongside the following measured frame.</p></div>
       <button className="button secondary small" disabled={!active || visible?.loading} onClick={() => { setSelected(0); setAttempt(value => value + 1); }}>Refresh timeline</button></div>
     <div className="form-section">
       {(!visible || visible.loading) && <p role="status">Loading decision timeline…</p>}
       {visible?.error && <p className="notice error-notice" role="alert">{visible.error}</p>}
+      {target && page && <p className="notice" role="status">Opened supporting decision input at native frame {target.frame}. The following frame is its measured result.</p>}
       {page && (!page.available ? <p className="notice">Decision evidence is unavailable for this run. Older results and failed input-storage transactions can lack a timeline. Agent inputs and diagnostics cannot be reconstructed retroactively from telemetry. Execute a new run to record a timeline.</p> : <>
         <p className={page.coverage === "partial" ? "notice" : "muted"}>Evidence coverage: <strong>{page.coverage}</strong> · {page.applied} recorded actions / {page.transitions} measured transitions · {page.total - page.applied} unresolved inputs.</p>
         <p className="field-hint">Coverage describes the saved decision chain. It does not measure safety or explain the agent’s internal reasoning.</p>
         {page.reset && <details><summary>Delivered episode reset, route and sensor calibration</summary><pre>{JSON.stringify(page.reset, null, 2)}</pre></details>}
         {page.total === 0 && <p>No decision inputs were recorded before this run ended.</p>}
-        {page.records.length > 0 && <><div className="table-scroll"><table className="data-table"><caption className="sr-only">Decision inputs, page {Math.floor(offset / PAGE_SIZE) + 1}</caption><thead><tr><th>Input frame</th><th>Time</th><th>State</th><th>Agent maneuver</th><th>Interventions</th></tr></thead>
+        {page.records.length > 0 && <><div className="table-scroll"><table className="data-table"><caption className="sr-only">Decision inputs {page.offset + 1}–{page.offset + page.records.length}</caption><thead><tr><th>Input frame</th><th>Time</th><th>State</th><th>Agent maneuver</th><th>Interventions</th></tr></thead>
           <tbody>{page.records.map((item, index) => <tr key={item.frame} className={selected === index ? "selected-row" : undefined}><th scope="row"><button className="button secondary small" aria-pressed={selected === index} onClick={() => setSelected(index)}>Frame {item.frame}</button></th><td>{number(item.time_s)} s</td><td>{item.status}</td><td>{item.agent_result?.diagnostics?.maneuver ?? "Not reported"}</td><td>{item.interventions.length}</td></tr>)}</tbody></table></div>
-          <div className="pagination"><button className="button secondary small" disabled={!active || offset === 0} onClick={() => move(Math.max(0, offset - PAGE_SIZE))}>Previous decisions</button><span>{offset + 1}–{offset + page.records.length} of {page.total} inputs</span><button className="button secondary small" disabled={!active || offset + page.records.length >= page.total} onClick={() => move(offset + PAGE_SIZE)}>Next decisions</button></div>
+          <div className="pagination"><button className="button secondary small" disabled={!active || page.offset === 0} onClick={() => move(Math.max(0, page.offset - PAGE_SIZE))}>Previous decisions</button><span>{page.offset + 1}–{page.offset + page.records.length} of {page.total} inputs</span><button className="button secondary small" disabled={!active || page.offset + page.records.length >= page.total} onClick={() => move(page.offset + PAGE_SIZE)}>Next decisions</button></div>
         </>}
         {record && <DecisionDetail key={`${simulationId}/${record.frame}`} record={record} before={page.telemetry[selected]} after={page.telemetry[selected + 1]} page={page} active={active} />}
       </>)}

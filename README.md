@@ -53,6 +53,12 @@ results can be interpreted in context.
 - A saved decision timeline linking each agent input to its proposed/applied
   controls, diagnostics, interventions and following measured frame, with exact
   sensor-input inspection in the dashboard.
+- A read-only behavior-analysis API for event-relative control/motion response,
+  braking/stopping episodes and recorded route measurements, with frame evidence,
+  explicit coverage and preserved historical safety scores. See the
+  [analysis guide](docs/behavior-analysis.md). Finished runs include a dashboard
+  behavior review with event markers and links to supporting decision/telemetry
+  frames. Behavior report exports are planned for Phase 8.2.2.
 
 Autonomous agent integration is under active development. Registered agents can
 be launched through the dashboard or API. The included sensor pilot is a

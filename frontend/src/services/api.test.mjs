@@ -1,8 +1,14 @@
-import test, { afterEach } from "node:test";
+import test, { after, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { loadTypeScript } from "../../scripts/load-typescript.mjs";
+import { loadComponents } from "../../scripts/load-components.mjs";
 
-const { api, ApiError, API_BASE_URL, createApiClient } = await loadTypeScript(new URL("./api.ts", import.meta.url));
+async function loadApiModule() {
+  const loaded = await loadComponents("services/api.ts");
+  after(() => loaded.cleanup());
+  return loaded.module;
+}
+
+const { api, ApiError, API_BASE_URL, createApiClient } = await loadApiModule();
 const originalFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = originalFetch; });
 
@@ -513,7 +519,7 @@ test("launch capacity and availability failures remain errors and do not trigger
 });
 
 test("all section 8 client functions are also available as named exports", async () => {
-  const module = await loadTypeScript(new URL("./api.ts", import.meta.url));
+  const module = await loadApiModule();
   for (const name of ["listScenarios", "getScenario", "createScenario", "updateScenario", "deleteScenario", "getSimulationQueue", "launchSimulation"]) {
     assert.equal(module[name], module.api[name]);
   }
@@ -930,7 +936,7 @@ test("raw sample fetch and body aborts retain the original AbortError", async ()
 });
 
 test("section9 client functions are available as named exports", async () => {
-  const module = await loadTypeScript(new URL("./api.ts", import.meta.url));
+  const module = await loadApiModule();
   for (const name of ["listSimulations", "getSimulation", "getSimulationProgress", "getSimulationResult", "cancelSimulation", "getTelemetry", "listFailures", "getFailure", "createFailure", "updateReproduction", "getAnalytics", "artifactUrl", "sampleUrl", "getCaptureManifest", "getCaptureSample"]) assert.equal(module[name], module.api[name]);
 });
 

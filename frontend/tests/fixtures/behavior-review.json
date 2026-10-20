@@ -1,0 +1,4812 @@
+{
+  "analysis": {
+    "schema_version": "1.0",
+    "simulation_id": "00000000-0000-4000-8000-000000000001",
+    "mode": "test",
+    "execution_status": "completed",
+    "agent": "custom",
+    "agent_snapshot": null,
+    "agent_inputs": null,
+    "control_mode": null,
+    "settings": {
+      "method_version": "1.0",
+      "response_window_s": 0.2,
+      "brake_threshold": 0.1,
+      "steering_change_threshold": 0.15,
+      "deceleration_threshold_mps2": 0.5,
+      "heading_change_deg": 5.0,
+      "hazard_ttc_s": 3.0,
+      "hazard_clearance_m": 2.0,
+      "max_sample_gap_s": 0.5,
+      "route_height_tolerance_m": 2.0,
+      "max_response_events": 200,
+      "max_stopping_episodes": 200
+    },
+    "coverage": {
+      "telemetry_frames": 24,
+      "telemetry_gaps": 0,
+      "pose_frames": 24,
+      "velocity_frames": 24,
+      "measured_duration_s": 1.1500000000000001,
+      "decision_coverage": "complete",
+      "applied_decisions": 23,
+      "unresolved_inputs": 0,
+      "script_intervention_frames": 0,
+      "changed_control_frames": 0,
+      "hazard_clearance_pairs": 0,
+      "hazard_ttc_pairs": 0,
+      "total_response_events": 1,
+      "response_events_truncated": false
+    },
+    "stored_safety_metrics": {
+      "collision_count": 0,
+      "traffic_violation_count": 0,
+      "min_clearance_m": null,
+      "min_ttc_s": null,
+      "max_deceleration_mps2": 20.0,
+      "hard_braking_count": 1,
+      "max_stopping_distance_m": 0.024999999999999994,
+      "max_stopping_time_s": 0.04999999999999999,
+      "severity": 15.0,
+      "coverage": {
+        "total_frames": 24,
+        "collision_frames": 24,
+        "traffic_rule_frames": 24,
+        "braking_frames": 24,
+        "clearance_frames": 24,
+        "ttc_frames": 24,
+        "actor_pairs": 0,
+        "clearance_pairs": 0,
+        "ttc_pairs": 0,
+        "has_gaps": false
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      }
+    },
+    "safety_evidence": [
+      {
+        "source": "stored_safety_metrics",
+        "first_frame": 100,
+        "last_frame": 123,
+        "first_time_s": 0.0,
+        "last_time_s": 1.1500000000000001
+      }
+    ],
+    "driving_outcome": {
+      "status": "timed_out",
+      "route_owner": "framework",
+      "control_mode": "authoritative",
+      "destination": {
+        "position": {
+          "x": 10.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation": {
+          "pitch_deg": 0.0,
+          "yaw_deg": 0.0,
+          "roll_deg": 0.0
+        }
+      },
+      "target_speed_mps": null,
+      "resolved_route": [
+        {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 10.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        }
+      ],
+      "initial_speed_mps": null,
+      "final_distance_m": null,
+      "final_height_error_m": null,
+      "reached_at_s": null,
+      "route_progress_m": 2.3,
+      "route_length_m": 10.0,
+      "interventions": [],
+      "termination_reason": "duration_elapsed"
+    },
+    "task_evidence": [
+      {
+        "source": "driving_outcome",
+        "first_frame": 123,
+        "last_frame": 123,
+        "first_time_s": 1.1500000000000001,
+        "last_time_s": 1.1500000000000001
+      }
+    ],
+    "braking": {
+      "settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      },
+      "settings_source": "recorded_evaluation",
+      "max_deceleration": {
+        "value": 20.0,
+        "unit": "m/s²",
+        "coverage": "complete",
+        "observed_samples": 24,
+        "eligible_samples": 24,
+        "reason": null,
+        "evidence": [
+          {
+            "source": "telemetry",
+            "first_frame": 100,
+            "last_frame": 123,
+            "first_time_s": 0.0,
+            "last_time_s": 1.1500000000000001
+          }
+        ]
+      },
+      "hard_braking_count": {
+        "value": 1.0,
+        "unit": "episodes",
+        "coverage": "complete",
+        "observed_samples": 24,
+        "eligible_samples": 24,
+        "reason": null,
+        "evidence": [
+          {
+            "source": "telemetry",
+            "first_frame": 100,
+            "last_frame": 123,
+            "first_time_s": 0.0,
+            "last_time_s": 1.1500000000000001
+          }
+        ]
+      },
+      "stopping_episodes": [
+        {
+          "duration_s": 0.04999999999999999,
+          "distance_m": 0.024999999999999994,
+          "evidence": {
+            "source": "telemetry",
+            "first_frame": 104,
+            "last_frame": 105,
+            "first_time_s": 0.2,
+            "last_time_s": 0.25
+          },
+          "script_influenced": false,
+          "intervention_frames": 0
+        }
+      ],
+      "total_stopping_episodes": 1,
+      "episodes_truncated": false
+    },
+    "route": {
+      "route_owner": "framework",
+      "reference_source": "recorded_resolved_route",
+      "max_deviation": {
+        "value": 2.220446049250313e-16,
+        "unit": "m",
+        "coverage": "complete",
+        "observed_samples": 24,
+        "eligible_samples": 24,
+        "reason": null,
+        "evidence": [
+          {
+            "source": "telemetry",
+            "first_frame": 118,
+            "last_frame": 118,
+            "first_time_s": 0.9,
+            "last_time_s": 0.9
+          }
+        ]
+      },
+      "mean_deviation": {
+        "value": 2.3129646346357426e-17,
+        "unit": "m",
+        "coverage": "complete",
+        "observed_samples": 24,
+        "eligible_samples": 24,
+        "reason": null,
+        "evidence": [
+          {
+            "source": "telemetry",
+            "first_frame": 100,
+            "last_frame": 123,
+            "first_time_s": 0.0,
+            "last_time_s": 1.1500000000000001
+          }
+        ]
+      },
+      "recorded_progress": {
+        "value": 2.3,
+        "unit": "m",
+        "coverage": "complete",
+        "observed_samples": 1,
+        "eligible_samples": 1,
+        "reason": null,
+        "evidence": [
+          {
+            "source": "driving_outcome",
+            "first_frame": 100,
+            "last_frame": 123,
+            "first_time_s": 0.0,
+            "last_time_s": 1.1500000000000001
+          }
+        ]
+      },
+      "recorded_length": {
+        "value": 10.0,
+        "unit": "m",
+        "coverage": "complete",
+        "observed_samples": 1,
+        "eligible_samples": 1,
+        "reason": null,
+        "evidence": [
+          {
+            "source": "driving_outcome",
+            "first_frame": 100,
+            "last_frame": 123,
+            "first_time_s": 0.0,
+            "last_time_s": 1.1500000000000001
+          }
+        ]
+      },
+      "recorded_completion_fraction": {
+        "value": 0.22999999999999998,
+        "unit": "fraction",
+        "coverage": "complete",
+        "observed_samples": 1,
+        "eligible_samples": 1,
+        "reason": null,
+        "evidence": [
+          {
+            "source": "driving_outcome",
+            "first_frame": 100,
+            "last_frame": 123,
+            "first_time_s": 0.0,
+            "last_time_s": 1.1500000000000001
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "anchor": {
+          "id": "event:0",
+          "kind": "scenario_event",
+          "source": "scenario_script",
+          "actor_id": "npc",
+          "time_s": 0.05,
+          "frame": 101,
+          "event_index": 0,
+          "event_action": "brake",
+          "scheduled_time_s": 0.05,
+          "ego_event": false,
+          "onset": "scheduled_command",
+          "ttc_s": null,
+          "clearance_m": null,
+          "reason": null
+        },
+        "responses": [
+          {
+            "channel": "proposed_braking",
+            "status": "observed",
+            "latency_s": 0.10000000000000002,
+            "response_frame": 103,
+            "response_time_s": 0.15000000000000002,
+            "value": 0.8,
+            "threshold": 0.1,
+            "unit": "normalized_control",
+            "reference_frame": 100,
+            "reference_value": 0.0,
+            "attribution": "sdk_agent",
+            "observed_until_s": 0.25,
+            "window_end_s": 0.25,
+            "window_complete": true,
+            "reason": null,
+            "evidence": [
+              {
+                "source": "telemetry",
+                "first_frame": 100,
+                "last_frame": 104,
+                "first_time_s": 0.0,
+                "last_time_s": 0.2
+              },
+              {
+                "source": "decisions",
+                "first_frame": 100,
+                "last_frame": 103,
+                "first_time_s": 0.0,
+                "last_time_s": 0.15000000000000002
+              }
+            ]
+          },
+          {
+            "channel": "applied_braking",
+            "status": "observed",
+            "latency_s": 0.10000000000000002,
+            "response_frame": 103,
+            "response_time_s": 0.15000000000000002,
+            "value": 0.8,
+            "threshold": 0.1,
+            "unit": "normalized_control",
+            "reference_frame": 100,
+            "reference_value": 0.0,
+            "attribution": "sdk_agent",
+            "observed_until_s": 0.25,
+            "window_end_s": 0.25,
+            "window_complete": true,
+            "reason": null,
+            "evidence": [
+              {
+                "source": "telemetry",
+                "first_frame": 100,
+                "last_frame": 104,
+                "first_time_s": 0.0,
+                "last_time_s": 0.2
+              },
+              {
+                "source": "decisions",
+                "first_frame": 100,
+                "last_frame": 103,
+                "first_time_s": 0.0,
+                "last_time_s": 0.15000000000000002
+              }
+            ]
+          },
+          {
+            "channel": "proposed_steering_change",
+            "status": "observed",
+            "latency_s": 0.2,
+            "response_frame": 105,
+            "response_time_s": 0.25,
+            "value": 0.3,
+            "threshold": 0.15,
+            "unit": "normalized_control",
+            "reference_frame": 100,
+            "reference_value": 0.0,
+            "attribution": "sdk_agent",
+            "observed_until_s": 0.25,
+            "window_end_s": 0.25,
+            "window_complete": true,
+            "reason": null,
+            "evidence": [
+              {
+                "source": "telemetry",
+                "first_frame": 100,
+                "last_frame": 106,
+                "first_time_s": 0.0,
+                "last_time_s": 0.30000000000000004
+              },
+              {
+                "source": "decisions",
+                "first_frame": 100,
+                "last_frame": 105,
+                "first_time_s": 0.0,
+                "last_time_s": 0.25
+              }
+            ]
+          },
+          {
+            "channel": "applied_steering_change",
+            "status": "observed",
+            "latency_s": 0.2,
+            "response_frame": 105,
+            "response_time_s": 0.25,
+            "value": 0.3,
+            "threshold": 0.15,
+            "unit": "normalized_control",
+            "reference_frame": 100,
+            "reference_value": 0.0,
+            "attribution": "sdk_agent",
+            "observed_until_s": 0.25,
+            "window_end_s": 0.25,
+            "window_complete": true,
+            "reason": null,
+            "evidence": [
+              {
+                "source": "telemetry",
+                "first_frame": 100,
+                "last_frame": 106,
+                "first_time_s": 0.0,
+                "last_time_s": 0.30000000000000004
+              },
+              {
+                "source": "decisions",
+                "first_frame": 100,
+                "last_frame": 105,
+                "first_time_s": 0.0,
+                "last_time_s": 0.25
+              }
+            ]
+          },
+          {
+            "channel": "measured_deceleration",
+            "status": "observed",
+            "latency_s": 0.15000000000000002,
+            "response_frame": 104,
+            "response_time_s": 0.2,
+            "value": 20.0,
+            "threshold": 0.5,
+            "unit": "m/s²",
+            "reference_frame": 100,
+            "reference_value": 0.0,
+            "attribution": "measured_motion",
+            "observed_until_s": 0.25,
+            "window_end_s": 0.25,
+            "window_complete": true,
+            "reason": null,
+            "evidence": [
+              {
+                "source": "telemetry",
+                "first_frame": 100,
+                "last_frame": 104,
+                "first_time_s": 0.0,
+                "last_time_s": 0.2
+              }
+            ]
+          },
+          {
+            "channel": "measured_heading_change",
+            "status": "not_observed",
+            "latency_s": null,
+            "response_frame": null,
+            "response_time_s": null,
+            "value": null,
+            "threshold": 5.0,
+            "unit": "degrees",
+            "reference_frame": 101,
+            "reference_value": 0.0,
+            "attribution": "measured_motion",
+            "observed_until_s": 0.25,
+            "window_end_s": 0.25,
+            "window_complete": true,
+            "reason": null,
+            "evidence": [
+              {
+                "source": "telemetry",
+                "first_frame": 101,
+                "last_frame": 105,
+                "first_time_s": 0.05,
+                "last_time_s": 0.25
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "interpretation_notes": [
+      "Synthetic fixture measurements are not CARLA or real-driving evidence.",
+      "Response intervals start at a scheduled command's aligned input frame or a measured hazard frame, not known agent perception.",
+      "Already-active signals have no onset latency. Missing signals and unobserved windows are not zero response time.",
+      "Hazard anchors use evaluator ground truth and do not establish that an agent received or perceived that information.",
+      "Control proposals, applied controls and measured motion are distinct; motion alone does not establish agent intent or causality.",
+      "Steering changes use a preceding control when available, otherwise the anchor control; heading changes use the anchor heading.",
+      "Route deviation is planar distance to the recorded finite route with height gating, not lane compliance; progress is the saved task monitor value.",
+      "Stored safety metrics/settings are unchanged. Agent-reported diagnostics remain separate in the decision timeline."
+    ]
+  },
+  "telemetry": [
+    {
+      "frame": 100,
+      "time_s": 0.0,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 101,
+      "time_s": 0.05,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.1,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 102,
+      "time_s": 0.1,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.2,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 103,
+      "time_s": 0.15000000000000002,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.30000000000000004,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 104,
+      "time_s": 0.2,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.4,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 1.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": -20.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 105,
+      "time_s": 0.25,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.5,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": -20.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 106,
+      "time_s": 0.30000000000000004,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.6000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 107,
+      "time_s": 0.35000000000000003,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.7000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 108,
+      "time_s": 0.4,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.8,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 109,
+      "time_s": 0.45,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.9,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 110,
+      "time_s": 0.5,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 111,
+      "time_s": 0.55,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.1,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 112,
+      "time_s": 0.6000000000000001,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.2000000000000002,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 113,
+      "time_s": 0.65,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.3,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 114,
+      "time_s": 0.7000000000000001,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.4000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 115,
+      "time_s": 0.75,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.5,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 116,
+      "time_s": 0.8,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.6,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 117,
+      "time_s": 0.8500000000000001,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.7000000000000002,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 118,
+      "time_s": 0.9,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.8,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 119,
+      "time_s": 0.9500000000000001,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.9000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 120,
+      "time_s": 1.0,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 121,
+      "time_s": 1.05,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.1,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 122,
+      "time_s": 1.1,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.2,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    },
+    {
+      "frame": 123,
+      "time_s": 1.1500000000000001,
+      "ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.3000000000000003,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "actors": [],
+      "control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "collisions": [],
+      "traffic_violations": [],
+      "rule_checks": null
+    }
+  ],
+  "records": [
+    {
+      "frame": 100,
+      "time_s": 0.0,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 100,
+        "time_s": 0.0,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 100,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.0,
+          "brake": 0.0,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "cruise",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 101,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.1,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 101,
+      "time_s": 0.05,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 101,
+        "time_s": 0.05,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.1,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 101,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.0,
+          "brake": 0.0,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "cruise",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 102,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.2,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 102,
+      "time_s": 0.1,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 102,
+        "time_s": 0.1,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.2,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 102,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.0,
+          "brake": 0.0,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "cruise",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 103,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.30000000000000004,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 2.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 103,
+      "time_s": 0.15000000000000002,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 103,
+        "time_s": 0.15000000000000002,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.30000000000000004,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 103,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.0,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 104,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.4,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 1.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": -20.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 104,
+      "time_s": 0.2,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 104,
+        "time_s": 0.2,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.4,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": -20.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 104,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.0,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.0,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 105,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.5,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": -20.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 105,
+      "time_s": 0.25,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 105,
+        "time_s": 0.25,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.5,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": -20.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 105,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 106,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.6000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 106,
+      "time_s": 0.30000000000000004,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 106,
+        "time_s": 0.30000000000000004,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.6000000000000001,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 106,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 107,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.7000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 107,
+      "time_s": 0.35000000000000003,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 107,
+        "time_s": 0.35000000000000003,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.7000000000000001,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 107,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 108,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.8,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 108,
+      "time_s": 0.4,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 108,
+        "time_s": 0.4,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.8,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 108,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 109,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 0.9,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 109,
+      "time_s": 0.45,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 109,
+        "time_s": 0.45,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 0.9,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 109,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 110,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 110,
+      "time_s": 0.5,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 110,
+        "time_s": 0.5,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 110,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 111,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.1,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 111,
+      "time_s": 0.55,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 111,
+        "time_s": 0.55,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.1,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 111,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 112,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.2000000000000002,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 112,
+      "time_s": 0.6000000000000001,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 112,
+        "time_s": 0.6000000000000001,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.2000000000000002,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 112,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 113,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.3,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 113,
+      "time_s": 0.65,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 113,
+        "time_s": 0.65,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.3,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 113,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 114,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.4000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 114,
+      "time_s": 0.7000000000000001,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 114,
+        "time_s": 0.7000000000000001,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.4000000000000001,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 114,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 115,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.5,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 115,
+      "time_s": 0.75,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 115,
+        "time_s": 0.75,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.5,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 115,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 116,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.6,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 116,
+      "time_s": 0.8,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 116,
+        "time_s": 0.8,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.6,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 116,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 117,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.7000000000000002,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 117,
+      "time_s": 0.8500000000000001,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 117,
+        "time_s": 0.8500000000000001,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.7000000000000002,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 117,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 118,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.8,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 118,
+      "time_s": 0.9,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 118,
+        "time_s": 0.9,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.8,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 118,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 119,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 1.9000000000000001,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 119,
+      "time_s": 0.9500000000000001,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 119,
+        "time_s": 0.9500000000000001,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 1.9000000000000001,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 119,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 120,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 120,
+      "time_s": 1.0,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 120,
+        "time_s": 1.0,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 2.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 120,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 121,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.1,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 121,
+      "time_s": 1.05,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 121,
+        "time_s": 1.05,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 2.1,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 121,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 122,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.2,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    },
+    {
+      "frame": 122,
+      "time_s": 1.1,
+      "status": "applied",
+      "observation": {
+        "protocol_version": "1.3",
+        "observation_mode": "simulator_state",
+        "frame": 122,
+        "time_s": 1.1,
+        "dt_s": 0.05,
+        "ego": {
+          "actor_id": "ego",
+          "transform": {
+            "position": {
+              "x": 2.2,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "velocity_mps": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "acceleration_mps2": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "bounding_box_extent": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "bounding_box_transform": null,
+          "speed_limit_mps": null
+        },
+        "actors": [],
+        "target_speed_mps": null,
+        "route_heading_deg": null,
+        "traffic_light_red": null,
+        "scene": null,
+        "driving_task": null,
+        "ego_state_source": "simulator_state",
+        "sensor_source": null,
+        "sensors": []
+      },
+      "sensors": [],
+      "agent_result": {
+        "protocol_version": "1.3",
+        "frame": 122,
+        "control": {
+          "throttle": 0.0,
+          "steer": 0.3,
+          "brake": 0.8,
+          "hand_brake": false,
+          "reverse": false
+        },
+        "diagnostics": {
+          "assistance": [],
+          "maneuver": "brake",
+          "reason_codes": [
+            "synthetic_fixture"
+          ],
+          "hazard_actor_ids": [],
+          "target_speed_mps": null,
+          "planned_trajectory": [],
+          "metadata": {}
+        }
+      },
+      "proposed_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "applied_control": {
+        "throttle": 0.0,
+        "steer": 0.3,
+        "brake": 0.8,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "interventions": [],
+      "worker_step_wall_time_s": null,
+      "round_trip_wall_time_s": null,
+      "full_step_wall_time_s": 0.001,
+      "resulting_frame": 123,
+      "resulting_ego": {
+        "actor_id": "ego",
+        "transform": {
+          "position": {
+            "x": 2.3000000000000003,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        "velocity_mps": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "acceleration_mps2": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "bounding_box_extent": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "bounding_box_transform": null,
+        "speed_limit_mps": null
+      },
+      "control_mode": "authoritative"
+    }
+  ],
+  "result": {
+    "simulation": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "behavior measurements",
+        "template": null,
+        "description": "",
+        "map": "Town03",
+        "seed": 0,
+        "duration_s": 1.2000000000000002,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "pitch_deg": 0.0,
+                "yaw_deg": 0.0,
+                "roll_deg": 0.0
+              }
+            },
+            "spawn_point_index": null,
+            "relative_spawn": null,
+            "speed_mps": 0.0
+          },
+          {
+            "type": "vehicle",
+            "id": "npc",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": {
+              "position": {
+                "x": 80.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation": {
+                "pitch_deg": 0.0,
+                "yaw_deg": 0.0,
+                "roll_deg": 0.0
+              }
+            },
+            "spawn_point_index": null,
+            "relative_spawn": null,
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "npc",
+            "trigger_time_s": 0.05,
+            "deceleration_mps2": 4.0
+          }
+        ],
+        "driving_task": {
+          "route_owner": "framework",
+          "destination": {
+            "position": {
+              "x": 10.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "route": [],
+          "target_speed_mps": 3.0,
+          "completion_radius_m": 2.0,
+          "completion_height_tolerance_m": 2.0,
+          "completion_speed_mps": null,
+          "completion_hold_s": 0.0,
+          "stop_on_completion": false
+        },
+        "location": null,
+        "event": null,
+        "occlusion": false,
+        "parameters": {}
+      },
+      "agent": "custom",
+      "agent_snapshot": null,
+      "mode": "test",
+      "status": "completed",
+      "progress": 1.0,
+      "created_at": "2026-10-19T00:00:00Z",
+      "started_at": "2026-10-19T00:00:00Z",
+      "finished_at": "2026-10-19T00:00:00Z",
+      "error": null
+    },
+    "metrics": {
+      "collision_count": 0,
+      "traffic_violation_count": 0,
+      "min_clearance_m": null,
+      "min_ttc_s": null,
+      "max_deceleration_mps2": 20.0,
+      "hard_braking_count": 1,
+      "max_stopping_distance_m": 0.024999999999999994,
+      "max_stopping_time_s": 0.04999999999999999,
+      "severity": 15.0,
+      "coverage": {
+        "total_frames": 24,
+        "collision_frames": 24,
+        "traffic_rule_frames": 24,
+        "braking_frames": 24,
+        "clearance_frames": 24,
+        "ttc_frames": 24,
+        "actor_pairs": 0,
+        "clearance_pairs": 0,
+        "ttc_pairs": 0,
+        "has_gaps": false
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      }
+    },
+    "telemetry_frames": 24,
+    "measured_duration_s": 1.1500000000000001,
+    "artifacts": [],
+    "runtime": null,
+    "driving_outcome": {
+      "status": "timed_out",
+      "route_owner": "framework",
+      "control_mode": "authoritative",
+      "destination": {
+        "position": {
+          "x": 10.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation": {
+          "pitch_deg": 0.0,
+          "yaw_deg": 0.0,
+          "roll_deg": 0.0
+        }
+      },
+      "target_speed_mps": null,
+      "resolved_route": [
+        {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 10.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        }
+      ],
+      "initial_speed_mps": null,
+      "final_distance_m": null,
+      "final_height_error_m": null,
+      "reached_at_s": null,
+      "route_progress_m": 2.3,
+      "route_length_m": 10.0,
+      "interventions": [],
+      "termination_reason": "duration_elapsed"
+    },
+    "control_audit": null,
+    "agent_inputs": null
+  }
+}

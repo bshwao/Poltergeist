@@ -6,6 +6,8 @@ import { FailureReportForm } from "../components/FailureReportForm";
 import { ReportDownloads } from "../components/ReportDownloads";
 import { AgentIdentity } from "../components/AgentIdentity";
 import { DecisionTimeline } from "../components/DecisionTimeline";
+import { BehaviorReview } from "../components/BehaviorReview";
+import type { EvidenceFocus } from "../components/evidence-navigation";
 import { isTerminal, useSimulation } from "../hooks/useSimulation";
 import { simulationLink } from "../navigation";
 import { api, ApiError } from "../services/api";
@@ -59,6 +61,15 @@ export function Simulations({ active, selectedId }: { active: boolean; selectedI
 }
 
 export function RunDetail({ id, active }: { id: string; active: boolean }) {
+  const [focus, setFocus] = useState<(EvidenceFocus & { source: "decisions" | "telemetry" }) | null>(null);
+  const inspect = (source: "decisions" | "telemetry", frame: number) => {
+    setFocus(current => ({ source, frame, token: (current?.token ?? 0) + 1 }));
+    if (typeof document !== "undefined") {
+      const element = document.getElementById(`evidence-${id}-${source}`);
+      element?.scrollIntoView({ behavior: "smooth", block: "start" });
+      element?.focus({ preventScroll: true });
+    }
+  };
   const state = useSimulation(id, active);
   const { record, progress } = state;
   const simulation = record?.simulation;
@@ -92,8 +103,9 @@ export function RunDetail({ id, active }: { id: string; active: boolean }) {
     </div>
     {record?.result && <>
       <SafetyMetrics result={record.result} />
-      <DecisionTimeline key={id} simulationId={id} active={active} />
-      <MetricsChart simulationId={id} active={active} maxSampleGapS={record.result.metrics.evaluation_settings?.max_sample_gap_s ?? (record.result.runtime?.fixed_delta_seconds ?? record.result.simulation.scenario.fixed_delta_seconds) * 1.5} />
+      <BehaviorReview key={id} simulationId={id} active={active} inspect={inspect} />
+      <div id={`evidence-${id}-decisions`} tabIndex={-1} className="evidence-destination"><DecisionTimeline key={id} simulationId={id} active={active} focus={focus?.source === "decisions" ? focus : undefined} /></div>
+      <div id={`evidence-${id}-telemetry`} tabIndex={-1} className="evidence-destination"><MetricsChart simulationId={id} active={active} focus={focus?.source === "telemetry" ? focus : undefined} maxSampleGapS={record.result.metrics.evaluation_settings?.max_sample_gap_s ?? (record.result.runtime?.fixed_delta_seconds ?? record.result.simulation.scenario.fixed_delta_seconds) * 1.5} /></div>
       <SimulationViewer result={record.result} active={active} />
       <ReportDownloads simulationId={id} />
       <FailureReportForm result={record.result} active={active} />

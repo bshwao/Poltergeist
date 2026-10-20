@@ -13,6 +13,7 @@ from .scenario import Scenario, ScenarioTemplate
 from .simulation import Simulation, SimulationResult, SimulationStatus
 from .telemetry import TelemetryFrame
 from .decision import DecisionPage
+from .behavior import BehaviorAnalysis, BehaviorSettings
 
 
 def _normalize(value):
@@ -166,5 +167,7 @@ class ApiContracts(ContractModel):
     queue_status: QueueStatus
     telemetry_page: TelemetryPage
     decision_page: DecisionPage
+    behavior_analysis: BehaviorAnalysis
+    behavior_settings: BehaviorSettings
     reproduction_update: ReproductionUpdate
     analytics: AnalyticsSummary

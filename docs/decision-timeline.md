@@ -8,8 +8,9 @@ inputs, with controls to move through the episode.
 
 Agent-reported maneuver, reason codes, hazard IDs, target speed, trajectory and
 metadata appear separately from measurements. Diagnostics are optional statements
-from agent code; they do not establish internal reasoning or causality. Phase 8
-will add behavior analysis and evidence-based reporting.
+from agent code; they do not establish internal reasoning or causality.
+[Phase 8.1](behavior-analysis.md) adds a read-only behavior-analysis API. Its
+dashboard presentation and behavior report exports remain Phase 8.2.
 
 ## What is retained
 

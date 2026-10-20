@@ -313,5 +313,6 @@ Sensor inputs and provenance are implemented in Phase 4. Phase 5 adds immutable
 trusted local registrations, fingerprint checks and queued API agent selection;
 see [the registry guide](agent-registry.md). The [dashboard](dashboard.md) supports
 registered agent selection, and [Phase 7](decision-timeline.md) adds persisted
-decision review. Behavior analysis and explanations remain Phase 8 in the
+decision review. [Phase 8.1](behavior-analysis.md) provides backend behavior
+measurements; dashboard presentation and behavior exports remain Phase 8.2 in the
 [integration plan](autonomous-agents-plan.md).

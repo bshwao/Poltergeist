@@ -1554,6 +1554,12 @@
         "analytics": {
           "$ref": "#/$defs/AnalyticsSummary"
         },
+        "behavior_analysis": {
+          "$ref": "#/$defs/BehaviorAnalysis"
+        },
+        "behavior_settings": {
+          "$ref": "#/$defs/BehaviorSettings"
+        },
         "decision_page": {
           "$ref": "#/$defs/DecisionPage"
         },
@@ -1605,6 +1611,8 @@
         "queue_status",
         "telemetry_page",
         "decision_page",
+        "behavior_analysis",
+        "behavior_settings",
         "reproduction_update",
         "analytics"
       ],
@@ -1643,6 +1651,774 @@
       "title": "ArtifactReference",
       "type": "object"
     },
+    "BehaviorAnalysis": {
+      "additionalProperties": false,
+      "properties": {
+        "agent": {
+          "enum": [
+            "baseline",
+            "custom"
+          ],
+          "title": "Agent",
+          "type": "string"
+        },
+        "agent_inputs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentInputInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "agent_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "braking": {
+          "$ref": "#/$defs/BrakingBehavior"
+        },
+        "control_mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "scripted",
+                "authoritative"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Control Mode"
+        },
+        "coverage": {
+          "$ref": "#/$defs/BehaviorCoverage"
+        },
+        "driving_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrivingOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "events": {
+          "items": {
+            "$ref": "#/$defs/EventBehavior"
+          },
+          "title": "Events",
+          "type": "array"
+        },
+        "execution_status": {
+          "$ref": "#/$defs/SimulationStatus"
+        },
+        "interpretation_notes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Interpretation Notes",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "route": {
+          "$ref": "#/$defs/RouteBehavior"
+        },
+        "safety_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSpan"
+          },
+          "title": "Safety Evidence",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "settings": {
+          "$ref": "#/$defs/BehaviorSettings"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "stored_safety_metrics": {
+          "$ref": "#/$defs/SafetyMetrics"
+        },
+        "task_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSpan"
+          },
+          "title": "Task Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "simulation_id",
+        "mode",
+        "execution_status",
+        "agent",
+        "agent_snapshot",
+        "agent_inputs",
+        "control_mode",
+        "settings",
+        "coverage",
+        "stored_safety_metrics",
+        "safety_evidence",
+        "driving_outcome",
+        "task_evidence",
+        "braking",
+        "route",
+        "events",
+        "interpretation_notes"
+      ],
+      "title": "BehaviorAnalysis",
+      "type": "object"
+    },
+    "BehaviorAnchor": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "clearance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Clearance M"
+        },
+        "ego_event": {
+          "default": false,
+          "title": "Ego Event",
+          "type": "boolean"
+        },
+        "event_action": {
+          "anyOf": [
+            {
+              "enum": [
+                "set_speed",
+                "brake"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Action"
+        },
+        "event_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Index"
+        },
+        "frame": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Frame"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "scenario_event",
+            "measured_hazard"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "onset": {
+          "enum": [
+            "scheduled_command",
+            "threshold_crossing",
+            "first_observed"
+          ],
+          "title": "Onset",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "scheduled_time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scheduled Time S"
+        },
+        "source": {
+          "enum": [
+            "scenario_script",
+            "evaluator_ground_truth"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "time_s": {
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "ttc_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ttc S"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "source",
+        "actor_id",
+        "time_s",
+        "frame",
+        "event_index",
+        "event_action",
+        "scheduled_time_s",
+        "ego_event",
+        "onset",
+        "ttc_s",
+        "clearance_m",
+        "reason"
+      ],
+      "title": "BehaviorAnchor",
+      "type": "object"
+    },
+    "BehaviorCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "applied_decisions": {
+          "minimum": 0,
+          "title": "Applied Decisions",
+          "type": "integer"
+        },
+        "changed_control_frames": {
+          "minimum": 0,
+          "title": "Changed Control Frames",
+          "type": "integer"
+        },
+        "decision_coverage": {
+          "enum": [
+            "unavailable",
+            "empty",
+            "partial",
+            "complete"
+          ],
+          "title": "Decision Coverage",
+          "type": "string"
+        },
+        "hazard_clearance_pairs": {
+          "minimum": 0,
+          "title": "Hazard Clearance Pairs",
+          "type": "integer"
+        },
+        "hazard_ttc_pairs": {
+          "minimum": 0,
+          "title": "Hazard Ttc Pairs",
+          "type": "integer"
+        },
+        "measured_duration_s": {
+          "minimum": 0,
+          "title": "Measured Duration S",
+          "type": "number"
+        },
+        "pose_frames": {
+          "minimum": 0,
+          "title": "Pose Frames",
+          "type": "integer"
+        },
+        "response_events_truncated": {
+          "title": "Response Events Truncated",
+          "type": "boolean"
+        },
+        "script_intervention_frames": {
+          "minimum": 0,
+          "title": "Script Intervention Frames",
+          "type": "integer"
+        },
+        "telemetry_frames": {
+          "minimum": 0,
+          "title": "Telemetry Frames",
+          "type": "integer"
+        },
+        "telemetry_gaps": {
+          "minimum": 0,
+          "title": "Telemetry Gaps",
+          "type": "integer"
+        },
+        "total_response_events": {
+          "minimum": 0,
+          "title": "Total Response Events",
+          "type": "integer"
+        },
+        "unresolved_inputs": {
+          "minimum": 0,
+          "title": "Unresolved Inputs",
+          "type": "integer"
+        },
+        "velocity_frames": {
+          "minimum": 0,
+          "title": "Velocity Frames",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "telemetry_frames",
+        "telemetry_gaps",
+        "pose_frames",
+        "velocity_frames",
+        "measured_duration_s",
+        "decision_coverage",
+        "applied_decisions",
+        "unresolved_inputs",
+        "script_intervention_frames",
+        "changed_control_frames",
+        "hazard_clearance_pairs",
+        "hazard_ttc_pairs",
+        "total_response_events",
+        "response_events_truncated"
+      ],
+      "title": "BehaviorCoverage",
+      "type": "object"
+    },
+    "BehaviorMeasure": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "enum": [
+            "complete",
+            "partial",
+            "unavailable"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "eligible_samples": {
+          "minimum": 0,
+          "title": "Eligible Samples",
+          "type": "integer"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSpan"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "observed_samples": {
+          "minimum": 0,
+          "title": "Observed Samples",
+          "type": "integer"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "unit": {
+          "enum": [
+            "m",
+            "m/s\u00b2",
+            "episodes",
+            "fraction"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "coverage",
+        "observed_samples",
+        "eligible_samples",
+        "reason",
+        "evidence"
+      ],
+      "title": "BehaviorMeasure",
+      "type": "object"
+    },
+    "BehaviorResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "attribution": {
+          "enum": [
+            "sdk_agent",
+            "baseline_controller",
+            "legacy_custom",
+            "script_influenced",
+            "unknown",
+            "measured_motion"
+          ],
+          "title": "Attribution",
+          "type": "string"
+        },
+        "channel": {
+          "enum": [
+            "proposed_braking",
+            "applied_braking",
+            "proposed_steering_change",
+            "applied_steering_change",
+            "measured_deceleration",
+            "measured_heading_change"
+          ],
+          "title": "Channel",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSpan"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "latency_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Latency S"
+        },
+        "observed_until_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed Until S"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "reference_frame": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference Frame"
+        },
+        "reference_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference Value"
+        },
+        "response_frame": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Response Frame"
+        },
+        "response_time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Response Time S"
+        },
+        "status": {
+          "enum": [
+            "observed",
+            "already_active",
+            "not_observed",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "threshold": {
+          "exclusiveMinimum": 0,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "unit": {
+          "enum": [
+            "normalized_control",
+            "m/s\u00b2",
+            "degrees"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "window_complete": {
+          "title": "Window Complete",
+          "type": "boolean"
+        },
+        "window_end_s": {
+          "minimum": 0,
+          "title": "Window End S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "channel",
+        "status",
+        "latency_s",
+        "response_frame",
+        "response_time_s",
+        "value",
+        "threshold",
+        "unit",
+        "reference_frame",
+        "reference_value",
+        "attribution",
+        "observed_until_s",
+        "window_end_s",
+        "window_complete",
+        "reason",
+        "evidence"
+      ],
+      "title": "BehaviorResponse",
+      "type": "object"
+    },
+    "BehaviorSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "brake_threshold": {
+          "default": 0.1,
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Brake Threshold",
+          "type": "number"
+        },
+        "deceleration_threshold_mps2": {
+          "default": 0.5,
+          "exclusiveMinimum": 0,
+          "title": "Deceleration Threshold Mps2",
+          "type": "number"
+        },
+        "hazard_clearance_m": {
+          "default": 2.0,
+          "minimum": 0,
+          "title": "Hazard Clearance M",
+          "type": "number"
+        },
+        "hazard_ttc_s": {
+          "default": 3.0,
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Hazard Ttc S",
+          "type": "number"
+        },
+        "heading_change_deg": {
+          "default": 5.0,
+          "exclusiveMinimum": 0,
+          "maximum": 180,
+          "title": "Heading Change Deg",
+          "type": "number"
+        },
+        "max_response_events": {
+          "default": 200,
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Max Response Events",
+          "type": "integer"
+        },
+        "max_sample_gap_s": {
+          "default": 0.5,
+          "exclusiveMinimum": 0,
+          "title": "Max Sample Gap S",
+          "type": "number"
+        },
+        "max_stopping_episodes": {
+          "default": 200,
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Max Stopping Episodes",
+          "type": "integer"
+        },
+        "method_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "response_window_s": {
+          "default": 3.0,
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Response Window S",
+          "type": "number"
+        },
+        "route_height_tolerance_m": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Route Height Tolerance M",
+          "type": "number"
+        },
+        "steering_change_threshold": {
+          "default": 0.15,
+          "exclusiveMinimum": 0,
+          "maximum": 2,
+          "title": "Steering Change Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "method_version",
+        "response_window_s",
+        "brake_threshold",
+        "steering_change_threshold",
+        "deceleration_threshold_mps2",
+        "heading_change_deg",
+        "hazard_ttc_s",
+        "hazard_clearance_m",
+        "max_sample_gap_s",
+        "route_height_tolerance_m",
+        "max_response_events",
+        "max_stopping_episodes"
+      ],
+      "title": "BehaviorSettings",
+      "type": "object"
+    },
     "BoundingBoxExtent": {
       "additionalProperties": false,
       "description": "Positive half-lengths of an actor's bounding box, in metres.",
@@ -1669,6 +2445,55 @@
         "z"
       ],
       "title": "BoundingBoxExtent",
+      "type": "object"
+    },
+    "BrakingBehavior": {
+      "additionalProperties": false,
+      "properties": {
+        "episodes_truncated": {
+          "title": "Episodes Truncated",
+          "type": "boolean"
+        },
+        "hard_braking_count": {
+          "$ref": "#/$defs/BehaviorMeasure"
+        },
+        "max_deceleration": {
+          "$ref": "#/$defs/BehaviorMeasure"
+        },
+        "settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "settings_source": {
+          "enum": [
+            "recorded_evaluation",
+            "legacy_defaults"
+          ],
+          "title": "Settings Source",
+          "type": "string"
+        },
+        "stopping_episodes": {
+          "items": {
+            "$ref": "#/$defs/StoppingEpisode"
+          },
+          "title": "Stopping Episodes",
+          "type": "array"
+        },
+        "total_stopping_episodes": {
+          "minimum": 0,
+          "title": "Total Stopping Episodes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "settings",
+        "settings_source",
+        "max_deceleration",
+        "hard_braking_count",
+        "stopping_episodes",
+        "total_stopping_episodes",
+        "episodes_truncated"
+      ],
+      "title": "BrakingBehavior",
       "type": "object"
     },
     "BrakingEvent": {
@@ -2657,6 +3482,71 @@
         "traffic_rule_weight"
       ],
       "title": "EvaluationSettings",
+      "type": "object"
+    },
+    "EventBehavior": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "$ref": "#/$defs/BehaviorAnchor"
+        },
+        "responses": {
+          "items": {
+            "$ref": "#/$defs/BehaviorResponse"
+          },
+          "title": "Responses",
+          "type": "array"
+        }
+      },
+      "required": [
+        "anchor",
+        "responses"
+      ],
+      "title": "EventBehavior",
+      "type": "object"
+    },
+    "EvidenceSpan": {
+      "additionalProperties": false,
+      "properties": {
+        "first_frame": {
+          "minimum": 0,
+          "title": "First Frame",
+          "type": "integer"
+        },
+        "first_time_s": {
+          "minimum": 0,
+          "title": "First Time S",
+          "type": "number"
+        },
+        "last_frame": {
+          "minimum": 0,
+          "title": "Last Frame",
+          "type": "integer"
+        },
+        "last_time_s": {
+          "minimum": 0,
+          "title": "Last Time S",
+          "type": "number"
+        },
+        "source": {
+          "enum": [
+            "telemetry",
+            "decisions",
+            "driving_outcome",
+            "stored_safety_metrics"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "first_frame",
+        "last_frame",
+        "first_time_s",
+        "last_time_s"
+      ],
+      "title": "EvidenceSpan",
       "type": "object"
     },
     "ExecutionSpec": {
@@ -3658,6 +4548,64 @@
         "roll_deg"
       ],
       "title": "Rotation",
+      "type": "object"
+    },
+    "RouteBehavior": {
+      "additionalProperties": false,
+      "properties": {
+        "max_deviation": {
+          "$ref": "#/$defs/BehaviorMeasure"
+        },
+        "mean_deviation": {
+          "$ref": "#/$defs/BehaviorMeasure"
+        },
+        "recorded_completion_fraction": {
+          "$ref": "#/$defs/BehaviorMeasure"
+        },
+        "recorded_length": {
+          "$ref": "#/$defs/BehaviorMeasure"
+        },
+        "recorded_progress": {
+          "$ref": "#/$defs/BehaviorMeasure"
+        },
+        "reference_source": {
+          "anyOf": [
+            {
+              "const": "recorded_resolved_route",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reference Source"
+        },
+        "route_owner": {
+          "anyOf": [
+            {
+              "enum": [
+                "framework",
+                "agent"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Route Owner"
+        }
+      },
+      "required": [
+        "route_owner",
+        "reference_source",
+        "max_deviation",
+        "mean_deviation",
+        "recorded_progress",
+        "recorded_length",
+        "recorded_completion_fraction"
+      ],
+      "title": "RouteBehavior",
       "type": "object"
     },
     "SafetyMetrics": {
@@ -4895,6 +5843,49 @@
         "speed_mps"
       ],
       "title": "SpeedChangeEvent",
+      "type": "object"
+    },
+    "StoppingEpisode": {
+      "additionalProperties": false,
+      "properties": {
+        "distance_m": {
+          "minimum": 0,
+          "title": "Distance M",
+          "type": "number"
+        },
+        "duration_s": {
+          "minimum": 0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "evidence": {
+          "$ref": "#/$defs/EvidenceSpan"
+        },
+        "intervention_frames": {
+          "minimum": 0,
+          "title": "Intervention Frames",
+          "type": "integer"
+        },
+        "script_influenced": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Script Influenced"
+        }
+      },
+      "required": [
+        "duration_s",
+        "distance_m",
+        "evidence",
+        "script_influenced",
+        "intervention_frames"
+      ],
+      "title": "StoppingEpisode",
       "type": "object"
     },
     "TelemetryFrame": {

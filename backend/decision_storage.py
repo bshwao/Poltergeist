@@ -101,7 +101,7 @@ class DecisionWriter:
             self.closed = True
 
 
-def decision_page(store, result, frames, *, offset=0, limit=25, validate_sensors=False):
+def decision_page(store, result, frames, *, offset=0, limit=25, validate_sensors=False, on_record=None):
     """Validate the entire lightweight trace, retaining only the requested page.
 
     Raw bytes are verified at publication and on indexed sample downloads; page
@@ -198,6 +198,10 @@ def decision_page(store, result, frames, *, offset=0, limit=25, validate_sensors
                 applied += 1
             if offset <= count < offset + limit:
                 records.append(record)
+            if on_record is not None:
+                # Consumers must publish nothing until this function returns:
+                # the whole-file count/checksum is verified after the stream.
+                on_record(record)
             count += 1
         if (type(header.get("total")) is not int or header["total"] != count
                 or type(header.get("applied")) is not int or header["applied"] != applied

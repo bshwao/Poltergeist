@@ -14,7 +14,9 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 | 5 | Agent registry, API selection, durable job configuration and code/model fingerprints | Queued API runs retain the exact selected agent and observation mode | Implemented; see agent registry guide |
 | 6 | Agents page, registration/readiness checks, dashboard launch selection | A user registers and launches a compatible agent from the dashboard | Implemented; see dashboard guide |
 | 7 | Persisted input/action/diagnostic/intervention timeline and synchronized review | A recorded action can be traced to its preceding observation | Implemented; see decision timeline guide |
-| 8 | Response/route/behavior analysis and evidence-based reports | Reports distinguish measurements, agent diagnostics, and inferred explanations | Planned |
+| 8.1 | Behavior measurement engine and analysis API | A finalized run produces reproducible response/route measurements with settings, coverage and supporting frame references | Implemented; see behavior analysis guide |
+| 8.2.1 | Dashboard behavior review and evidence navigation | Users can inspect measurements and open their supporting recorded frames | Implemented; see behavior review guide |
+| 8.2.2 | Behavior report exports and final review polish | Exported reports carry the same findings, identity, settings and evidence limits as the dashboard | Planned; depends on 8.2.1 |
 | 9 | Agent/version comparisons, repeated trials, agent-aware reproduction/search/minimization | Comparisons retain traceable experiment conditions and agent versions | Planned |
 | 10 | Integration/failure validation, installation, supported examples and hardware guidance | A new user can complete the supported workflow from documentation | Planned |
 
@@ -327,3 +329,132 @@ evidence-based reports; Phase 9 remains agent-aware comparisons and optimization
 
 See [decision timeline usage and format](decision-timeline.md) and
 [Phase 7 validation](phase7-validation.md).
+
+## Phase 8 plan: two subphases
+
+Phase 8 is complete when 8.1, 8.2.1 and 8.2.2 are implemented. Phase 8.2 is split
+into dashboard review first and report exports second. Phases 9 and 10 keep
+their existing numbers and scope. Both subphases build on the finalized telemetry,
+driving outcomes, immutable agent identity and decision evidence already saved by
+Phases 3–7. Analysis runs on recorded data and does not start another simulation
+or invoke the driving model.
+
+### 8.1 — Behavior measurements and backend analysis
+
+Build the analysis engine and API first, with a defined result contract that
+8.2 can consume without reimplementing calculations in the browser.
+
+- Reuse existing safety and braking evaluation. Add measured behavior summaries
+  for braking/steering response, stopping episodes, task completion, and route
+  progress/deviation where the recorded route and pose support them. Keep
+  agent-owned navigation without an independently recorded route explicitly
+  unavailable for route-adherence measurements.
+- Define event anchors, thresholds and observation windows before calculating
+  response intervals. Identify whether an anchor is a scripted scenario event
+  or a measured hazard condition. An interval after that anchor is an observed
+  response measurement, not proof of when the agent perceived a hazard. If the
+  input, anchor or continuous measurements are missing, report unavailable or
+  no response observed within the measured window, as appropriate.
+- Distinguish proposed controls, applied controls, script interventions and
+  measured vehicle response. Script-driven braking must not be credited as an
+  autonomous agent response. Preserve sensor/state input provenance and keep
+  evaluator ground truth separate from what the agent actually received.
+- Return a versioned analysis with explicit settings/units, coverage, run and
+  agent identity, and supporting frame/time references for each finding. Retain
+  useful measurements from partial and legacy runs without inventing missing
+  decision inputs, diagnostics or outcomes. Preserve existing safety scores and
+  their evaluation settings rather than silently changing their definitions.
+- Add an on-demand endpoint for finalized-run analysis and meaningful tests for
+  complete, failed, cancelled, partial, legacy and script-influenced runs.
+  Identical saved evidence and settings must produce identical analysis.
+
+Completion checkpoint: the API can analyze a saved run and explain exactly which
+recorded frames support each available measurement, with missing evidence and
+script assistance explicit. A new dashboard analysis panel and behavior report
+presentation belong to 8.2.
+
+### 8.2.1 — Dashboard behavior review and evidence navigation
+
+Use the analysis contract from 8.1 to make the measurements useful to someone
+reviewing an experiment.
+
+- Add a behavior summary to finished-run detail, with response/route findings,
+  appropriate charts or event markers, units, analysis settings and coverage.
+  Selecting a finding should open its supporting frames in the Phase 7 decision
+  timeline when those records exist; legacy findings can refer to telemetry.
+- Present measured facts, agent-reported diagnostics and qualified
+  interpretations separately. Generate concise descriptions from the saved
+  evidence, such as when braking began relative to a defined event, while
+  avoiding unsupported claims about internal model reasoning or causality.
+- Handle zero versus unknown values, incomplete evidence, old results, loading,
+  request failures and stale responses. Add frontend tests and visually verify
+  the review workflow with recorded synthetic examples.
+
+Completion checkpoint: a user can open a finished run, understand its measured
+response and inspect the supporting evidence. The dashboard uses the existing
+8.1 analysis API; behavior exports belong to 8.2.2. This subphase includes its
+own tests and usable loading/error states.
+
+### 8.2.2 — Behavior report exports and final polish
+
+- Extend the existing JSON, CSV and HTML report exports with behavior analysis,
+  supporting frame references, agent/version identity, input provenance,
+  settings and evidence limits. Keep the dashboard and exports consistent by
+  using the same backend analysis and effective settings rather than separate
+  calculations.
+- Preserve the dashboard distinctions between measured facts, agent-reported
+  diagnostics and qualified interpretations in every export. Include partial,
+  unavailable and script-influenced evidence without inventing values.
+- Test export contents and dashboard/report consistency for complete, partial
+  and legacy runs. Finish accessibility, responsive layout and report formatting
+  polish, and document the complete review/download workflow.
+- Verify the combined workflow with recorded synthetic examples. CARLA and
+  trained-model execution are not prerequisites for either 8.2 subphase.
+
+Completion checkpoint: a user can open a finished run, understand its measured
+response, inspect the supporting evidence and download a report carrying the
+same findings and limitations. Cross-agent comparisons, repeated trials and
+agent-aware search/minimization remain Phase 9; broader installation and live
+hardware validation remain Phase 10.
+
+### Phase 8.1 handoff
+
+The versioned `BehaviorAnalysis` contract and deterministic evaluation engine
+analyze finalized telemetry, compact validated decision controls, saved task
+outcomes and original safety settings. Explicit event/hazard anchors drive six
+control/motion response channels with frame/time evidence, complete/truncated
+windows, already-active signals and unavailable-data reasons. Script-influenced
+controls remain distinct from independent controller proposals and measured motion.
+
+Braking analysis reuses existing episode calculations. Finite height-aware route
+distance uses a reusable spatial index; progress/completion are the recorded task
+monitor values rather than inferred route shortcuts. Input provenance, immutable
+agent identity, partial/legacy history and unchanged safety scoring remain explicit.
+
+`GET /simulations/{id}/analysis` uses default settings; `POST` to the same path
+accepts a `BehaviorSettings` body for a read-only calculation. Neither starts
+the queue, CARLA or a model, changes historical results, or verifies mutable
+current agent code. Response/stop findings have configurable caps and total counts.
+
+See [analysis definitions and API usage](behavior-analysis.md) and
+[Phase 8.1 validation](phase81-validation.md). Dashboard review is implemented in
+8.2.1; behavior report exports remain 8.2.2.
+
+### Phase 8.2.1 handoff
+
+Finished-run detail now requests the 8.1 analysis API and displays measured
+braking/stopping, route progress/deviation and task outcomes. Event markers and
+paged event selection expose all six response channels, their thresholds,
+attribution, observation windows and supporting frames. Coverage, effective
+analysis settings, legacy/partial results and interpretation limits stay explicit.
+
+Evidence links open an exact native frame in the existing decision timeline or
+telemetry inspector. They verify a contiguous-frame candidate before falling back
+to binary search for sparse recordings; missing frames are never substituted.
+Requests are cancelled when run/selection ownership changes, with stale results
+ignored and timeout/retry states available. Agent diagnostics remain separately
+labelled in the synchronized timeline. No model or simulator is invoked.
+
+See [dashboard behavior review](behavior-review.md) and
+[Phase 8.2.1 validation](phase821-validation.md). JSON/CSV/HTML behavior exports
+and the final report/review polish remain Phase 8.2.2.

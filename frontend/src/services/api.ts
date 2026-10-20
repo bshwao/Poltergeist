@@ -1,6 +1,8 @@
 import type { AgentReadiness, AgentRegistration, AnalyticsSummary, FailureReport, QueueStatus, RegisteredAgent, Scenario, ScenarioGenerate, ScenarioRecord, SimulationLaunch, SimulationProgress, SimulationRecord, SimulationResult, SimulationStatus, TelemetryPage, TemplateInfo } from "../types/generated";
 
 import type { DecisionPage } from "../types/generated";
+import type { BehaviorAnalysis } from "../types/generated";
+import { isBehaviorAnalysis } from "./behavior-contract";
 
 export interface ApiIssue {
   path: string;
@@ -727,6 +729,11 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     getSimulation: async (id: string, options: RequestOptions = {}) => request<SimulationRecord>(`/simulations/${checkedId(id)}`, options, recordFor(id), "GET", undefined, 200),
     getSimulationProgress: async (id: string, options: RequestOptions = {}) => request<SimulationProgress>(`/simulations/${checkedId(id)}/progress`, options, value => isProgress(value) && isObject(value) && sameId(value.simulation_id, id), "GET", undefined, 200),
     getSimulationResult: async (id: string, options: RequestOptions = {}) => request<SimulationResult>(`/simulations/${checkedId(id)}/result`, options, value => isResult(value) && isObject(value) && isObject(value.simulation) && sameId(value.simulation.id, id), "GET", undefined, 200),
+    getBehaviorAnalysis: async (id: string, options: RequestOptions = {}) => request<BehaviorAnalysis>(`/simulations/${checkedId(id)}/analysis`, options,
+      value => isBehaviorAnalysis(value, id) && isMetrics(value.stored_safety_metrics) && isEvaluation(value.braking.settings)
+        && (value.driving_outcome === null || isDrivingOutcome(value.driving_outcome))
+        && (value.agent_inputs === null || isAgentInputInfo(value.agent_inputs))
+        && (value.agent_snapshot === null || isAgentSnapshot(value.agent_snapshot))),
     cancelSimulation: async (id: string, options: RequestOptions = {}) => request<SimulationRecord>(`/simulations/${checkedId(id)}/cancel`, options, recordFor(id), "POST", {}, 202),
     getTelemetry: async (id: string, pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<TelemetryPage>(`/simulations/${checkedId(id)}/telemetry${paginationQuery(pagination)}`, options, value => isTelemetry(value)
       && isObject(value) && value.offset === (pagination.offset ?? 0) && value.limit === (pagination.limit ?? 1000), "GET", undefined, 200),
@@ -762,6 +769,6 @@ export const {
   registerAgent, listAgents, getAgent, getAgentReadiness, deactivateAgent,
   health, listTemplates, generateScenario, validateScenario, listScenarios, getScenario,
   createScenario, updateScenario, deleteScenario, getSimulationQueue, launchSimulation,
-  listSimulations, getSimulation, getSimulationProgress, getSimulationResult, cancelSimulation, getTelemetry,
+  listSimulations, getSimulation, getSimulationProgress, getSimulationResult, getBehaviorAnalysis, cancelSimulation, getTelemetry,
   listFailures, getFailure, createFailure, updateReproduction, getAnalytics, artifactUrl, sampleUrl, reportUrl, getCaptureManifest, getCaptureSample,
 } = api;
