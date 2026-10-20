@@ -933,3 +933,100 @@ test("section9 client functions are available as named exports", async () => {
   const module = await loadTypeScript(new URL("./api.ts", import.meta.url));
   for (const name of ["listSimulations", "getSimulation", "getSimulationProgress", "getSimulationResult", "cancelSimulation", "getTelemetry", "listFailures", "getFailure", "createFailure", "updateReproduction", "getAnalytics", "artifactUrl", "sampleUrl", "getCaptureManifest", "getCaptureSample"]) assert.equal(module[name], module.api[name]);
 });
+
+const registrySnapshot = {
+  registration_id: scenarioId, package_path: 'C:/agents/pilot', python_executable: 'C:/agents/env/python.exe',
+  python_sha256: 'a'.repeat(64), python_size_bytes: 100, package_sha256: 'b'.repeat(64),
+  observation_mode: 'simulator_state', agent_control_mode: 'authoritative',
+  manifest: {
+    protocol_version: '1.3', agent_id: 'registered-pilot', name: 'Registered pilot', version: '1',
+    entry_point: 'agent:Driver', observation_mode: 'simulator_state', control_mode: 'vehicle_control',
+    navigation_mode: 'provided_route', sensors: [], assets: [], requirements_file: null,
+    required_features: [], configuration: { brake: .5 },
+  },
+  configuration: { brake: .5 },
+  files: [{ path: 'agent.json', sha256: 'c'.repeat(64), size_bytes: 100 }], model_files: [], runtime_files: [],
+  process_options: { load_timeout_s: 30, reset_timeout_s: 10, step_timeout_s: 2, close_timeout_s: 2, terminate_timeout_s: 1, max_message_bytes: 4194304 },
+};
+const registeredAgent = { id: scenarioId, active: true, created_at: timestamp, snapshot: registrySnapshot };
+const registeredRun = {
+  ...acceptedRun, simulation: { ...acceptedRun.simulation, agent: 'custom', agent_snapshot: registrySnapshot },
+  job: { ...acceptedRun.job, agent_snapshot: registrySnapshot },
+};
+
+test('registry client preserves registration configuration, identities and readiness scope', async () => {
+  const controller = new AbortController();
+  const requests = [];
+  const readiness = { agent_id: scenarioId, ready: true, inspection: 'static_only', inference_checked: false, issues: [], limitations: ['Dependencies not executed'], checked_at: timestamp };
+  globalThis.fetch = async (url, options) => {
+    requests.push({ url, options });
+    assert.equal(options.signal, controller.signal);
+    if (url.endsWith('/readiness')) return jsonResponse(readiness);
+    if (url.endsWith('/deactivate')) return jsonResponse({ ...registeredAgent, active: false });
+    if (options.method === 'POST') return jsonResponse(registeredAgent, 201);
+    if (url.includes('?')) return jsonResponse([registeredAgent]);
+    return jsonResponse(registeredAgent);
+  };
+  const input = { package_path: 'C:/agents/pilot', trusted_local_code: true, configuration: { brake: .5 } };
+  assert.deepEqual(await api.registerAgent(input, { signal: controller.signal }), registeredAgent);
+  assert.deepEqual(JSON.parse(requests[0].options.body), input);
+  assert.deepEqual(await api.listAgents({ limit: 10, offset: 0 }, { signal: controller.signal }), [registeredAgent]);
+  assert.deepEqual(await api.getAgent(scenarioId, { signal: controller.signal }), registeredAgent);
+  assert.deepEqual(await api.getAgentReadiness(scenarioId, { signal: controller.signal }), readiness);
+  assert.equal((await api.deactivateAgent(scenarioId, { signal: controller.signal })).active, false);
+});
+
+test('registered launch sends the selected UUID and retains the exact queued snapshot', async () => {
+  globalThis.fetch = async (_url, options) => {
+    assert.equal(JSON.parse(options.body).agent_id, scenarioId);
+    return jsonResponse(registeredRun, 202);
+  };
+  assert.deepEqual(await api.launchSimulation({ ...launch, agent_id: scenarioId }), registeredRun);
+});
+
+for (const [label, modify] of [
+  ['hash', value => { value.files[0].sha256 = 'unverified'; }],
+  ['configuration', value => { value.manifest.configuration.brake = true; }],
+  ['mode', value => { value.observation_mode = 'sensors'; }],
+  ['deadline', value => { value.process_options.step_timeout_s = -1; }],
+  ['duplicate file', value => { value.files.push({ ...value.files[0] }); }],
+]) test(`registry client rejects invalid snapshot ${label}`, async () => {
+  const item = structuredClone(registeredAgent);
+  modify(item.snapshot);
+  globalThis.fetch = async () => jsonResponse(item);
+  await assert.rejects(api.getAgent(scenarioId), ApiError);
+});
+
+test('run reads reject a queued snapshot that differs from its durable job', async () => {
+  const item = structuredClone(registeredRun);
+  item.job.agent_snapshot = structuredClone(item.job.agent_snapshot);
+  item.job.agent_snapshot.configuration.brake = .9;
+  item.job.agent_snapshot.manifest.configuration.brake = .9;
+  globalThis.fetch = async () => jsonResponse(item);
+  await assert.rejects(api.getSimulation(simulationId), ApiError);
+});
+
+test('registry reads reject the wrong registration identity and inference claims', async () => {
+  globalThis.fetch = async () => jsonResponse({ ...registeredAgent, id: simulationId });
+  await assert.rejects(api.getAgent(scenarioId), ApiError);
+  globalThis.fetch = async () => jsonResponse({ agent_id: scenarioId, ready: true, inspection: 'static_only', inference_checked: true, issues: [], limitations: [], checked_at: timestamp });
+  await assert.rejects(api.getAgentReadiness(scenarioId), ApiError);
+});
+
+test('registered result controls and input mode must match the selected agent', async () => {
+  const result = {
+    ...finalizedResult,
+    simulation: { ...completedSimulation, agent: 'custom', agent_snapshot: registrySnapshot },
+    control_audit: { mode: 'authoritative', controller: 'sdk_agent', navigation: 'legacy_assisted', interventions: [] },
+    agent_inputs: { observation_mode: 'simulator_state', source: 'synthetic_state', ego_state_source: 'simulator_state',
+      sensors: [], ground_truth_actor_inputs: true, assistance: [] },
+  };
+  globalThis.fetch = async () => jsonResponse(result);
+  assert.deepEqual(await api.getSimulationResult(simulationId), result);
+  for (const field of ['mode', 'controller']) {
+    const bad = structuredClone(result);
+    bad.control_audit[field] = field === 'mode' ? 'scripted' : 'baseline';
+    globalThis.fetch = async () => jsonResponse(bad);
+    await assert.rejects(api.getSimulationResult(simulationId), ApiError);
+  }
+});

@@ -14,7 +14,7 @@ from backend.dependencies import ApiRuntime
 from backend.persistence_errors import ConflictError, DatabaseInitializationError, NotFoundError, PersistenceError
 from backend.services.simulation_service import QueueFullError, QueueUnavailableError
 from backend.storage import ArtifactError
-from backend.routes import analytics, failures, scenarios, simulations, optimizations, reports
+from backend.routes import agents, analytics, failures, scenarios, simulations, optimizations, reports
 from optimization.bayesian_search import OptimizationDependencyError
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ def create_app(settings: Settings | None = None, *, runner_factory=None) -> Fast
     ):
         application.add_exception_handler(error_type, handler(code, message))
 
-    for router in (scenarios.router, simulations.router, failures.router, analytics.router, optimizations.router, reports.router):
+    for router in (scenarios.router, simulations.router, failures.router, analytics.router, optimizations.router, reports.router, agents.router):
         application.include_router(router)
 
     @application.get("/health", tags=["health"])

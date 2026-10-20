@@ -12,6 +12,7 @@ from .simulation import SimulationRecord
 from .failure import FailureRecord
 from .simulation_job import SimulationJobRecord
 from .optimization import OptimizationOperationRecord, OptimizationTrialRecord
+from .agent_registration import AgentRegistrationRecord
 
 __all__ = ["Base", "ScenarioRecord", "SimulationRecord", "FailureRecord", "SimulationJobRecord",
-           "OptimizationOperationRecord", "OptimizationTrialRecord"]
+           "OptimizationOperationRecord", "OptimizationTrialRecord", "AgentRegistrationRecord"]

@@ -84,16 +84,33 @@ def serve(package_path: str | Path, input_stream, output_stream, *, max_message_
                 elif request.operation == "load":
                     if session is not None:
                         raise AgentLifecycleError("Agent is already loaded")
-                    if set(request.payload) != {"manifest"}:
-                        raise AgentProtocolError("load payload must contain exactly manifest")
+                    if set(request.payload) not in ({"manifest"}, {"manifest", "snapshot"}):
+                        raise AgentProtocolError("load payload must contain manifest and an optional registered snapshot")
+                    snapshot = None
+                    if "snapshot" in request.payload:
+                        from shared.models.registry import AgentSnapshot
+                        from .fingerprints import verify_agent_snapshot
+                        snapshot = AgentSnapshot.model_validate(request.payload["snapshot"])
+                        verify_agent_snapshot(snapshot)
+                        if str(Path(package_path).resolve()) != snapshot.package_path:
+                            raise AgentProtocolError("Worker package path does not match registered snapshot")
                     package = inspect_agent_package(package_path)
                     declared = json.dumps(request.payload["manifest"], sort_keys=True, allow_nan=False)
                     inspected = json.dumps(package.manifest.model_dump(mode="json"), sort_keys=True, allow_nan=False)
                     if declared != inspected:
                         raise AgentProtocolError("Agent package manifest does not match the inspected parent manifest")
+                    effective = package.manifest
+                    if snapshot is not None:
+                        effective = type(effective).model_validate(effective.model_dump(mode="json") | {
+                            "configuration": snapshot.configuration,
+                        })
+                        if json.dumps(effective.model_dump(mode="json"), sort_keys=True, allow_nan=False) != json.dumps(
+                            snapshot.manifest.model_dump(mode="json"), sort_keys=True, allow_nan=False,
+                        ):
+                            raise AgentProtocolError("Effective worker manifest does not match registered snapshot")
                     agent = load_agent_package(package)
                     try:
-                        session = AgentSession(agent, package.manifest)
+                        session = AgentSession(agent, effective)
                     except BaseException as error:
                         try:
                             agent.close()

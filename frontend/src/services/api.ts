@@ -1,4 +1,4 @@
-import type { AnalyticsSummary, FailureReport, QueueStatus, Scenario, ScenarioGenerate, ScenarioRecord, SimulationLaunch, SimulationProgress, SimulationRecord, SimulationResult, SimulationStatus, TelemetryPage, TemplateInfo } from "../types/generated";
+import type { AgentReadiness, AgentRegistration, AnalyticsSummary, FailureReport, QueueStatus, RegisteredAgent, Scenario, ScenarioGenerate, ScenarioRecord, SimulationLaunch, SimulationProgress, SimulationRecord, SimulationResult, SimulationStatus, TelemetryPage, TemplateInfo } from "../types/generated";
 
 export interface ApiIssue {
   path: string;
@@ -251,11 +251,14 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && Math.abs(["ttc_weight", "clearance_weight", "braking_weight", "traffic_rule_weight"].reduce<number>((sum, key) => sum + (value[key] as number), 0) - 100) <= 1e-9;
   const isJob = (value: unknown) => isObject(value) && typeof value.cancel_requested === "boolean"
     && (value.queue_position === null || integer(value.queue_position, 1))
-    && isOptions(value.options) && isEvaluation(value.evaluation_settings);
+    && isOptions(value.options) && isEvaluation(value.evaluation_settings)
+    && (value.agent_snapshot === undefined || value.agent_snapshot === null || isAgentSnapshot(value.agent_snapshot));
   const simulationStatuses = new Set(["queued", "running", "completed", "failed", "cancelled"]);
   const isSimulation = (value: unknown) => isObject(value) && isUuid(value.id)
     && typeof value.mode === "string" && ["carla", "test"].includes(value.mode)
     && typeof value.agent === "string" && ["baseline", "custom"].includes(value.agent)
+    && (value.agent_snapshot === undefined || value.agent_snapshot === null
+      || (value.agent === "custom" && isAgentSnapshot(value.agent_snapshot)))
     && typeof value.status === "string" && simulationStatuses.has(value.status)
     && finiteNumber(value.progress) && value.progress >= 0 && value.progress <= 1 && isScenario(value.scenario)
     && isTimestamp(value.created_at) && nullableTimestamp(value.started_at) && nullableTimestamp(value.finished_at)
@@ -393,6 +396,55 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && finiteNumber(value.fixed_delta_seconds) && value.fixed_delta_seconds > 0 && integer(value.seed) && value.seed <= 2 ** 31 - 1
     && integer(value.sensor_samples_count) && isObject(value.resolved_spawns)
     && Object.entries(value.resolved_spawns).every(([key, transform]) => nonemptyText(key) && isTransform(transform));
+  const isJsonValue = (value: unknown): boolean => value === null || typeof value === "string" || typeof value === "boolean"
+    || finiteNumber(value) || (Array.isArray(value) ? value.every(isJsonValue) : isObject(value) && Object.values(value).every(isJsonValue));
+  const canonicalJson = (value: unknown): string => JSON.stringify(value, (_key, item) => isObject(item)
+    ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item);
+  const hash = (value: unknown) => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+  const isFingerprint = (value: unknown) => isObject(value) && nonemptyText(value.path) && hash(value.sha256) && integer(value.size_bytes);
+  const fingerprintList = (value: unknown, max: number) => Array.isArray(value) && value.length <= max
+    && value.every(isFingerprint) && value.every((item, i) => i === 0 || value[i - 1].path < item.path);
+  const isAgentSnapshot = (value: unknown) => {
+    if (!isObject(value) || !isUuid(value.registration_id) || !nonemptyText(value.package_path)
+      || !nonemptyText(value.python_executable) || !hash(value.python_sha256) || !integer(value.python_size_bytes)
+      || !hash(value.package_sha256) || !["simulator_state", "sensors"].includes(value.observation_mode as string)
+      || !["authoritative", "scripted"].includes(value.agent_control_mode as string)
+      || !isObject(value.configuration) || !isJsonValue(value.configuration)
+      || !Array.isArray(value.files) || !fingerprintList(value.files, 20000) || value.files.length === 0
+      || !fingerprintList(value.model_files, 256) || !fingerprintList(value.runtime_files, 20000)
+      || !isObject(value.process_options) || !isObject(value.manifest)) return false;
+    const timeouts = value.process_options;
+    const manifest = value.manifest;
+    return ["load_timeout_s", "reset_timeout_s", "step_timeout_s", "close_timeout_s", "terminate_timeout_s"].every(key => finiteNumber(timeouts[key]) && timeouts[key] > 0)
+      && integer(timeouts.max_message_bytes, 1) && timeouts.max_message_bytes <= 64 * 1024 * 1024
+      && ["1.0", "1.1", "1.2", "1.3"].includes(manifest.protocol_version as string)
+      && typeof manifest.agent_id === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(manifest.agent_id)
+      && nonemptyText(manifest.name) && nonemptyText(manifest.version) && nonemptyText(manifest.entry_point)
+      && manifest.observation_mode === value.observation_mode && manifest.control_mode === "vehicle_control"
+      && ["provided_route", "agent_planner"].includes(manifest.navigation_mode as string)
+      && canonicalJson(manifest.configuration) === canonicalJson(value.configuration)
+      && Array.isArray(manifest.required_features) && manifest.required_features.every(item => item === "structured_scene")
+      && Array.isArray(manifest.assets) && manifest.assets.every(nonemptyText) && nullableText(manifest.requirements_file)
+      && Array.isArray(manifest.sensors) && (value.observation_mode === "sensors"
+        ? manifest.protocol_version === "1.3" && manifest.sensors.length > 0 && manifest.sensors.length <= 4 && manifest.sensors.every(isAgentSensorSpec)
+        : manifest.sensors.length === 0);
+  };
+  const isRegisteredAgent = (value: unknown) => isObject(value) && isUuid(value.id) && typeof value.active === "boolean"
+    && isTimestamp(value.created_at) && isAgentSnapshot(value.snapshot) && isObject(value.snapshot) && value.snapshot.registration_id === value.id;
+  const isReadiness = (value: unknown) => isObject(value) && isUuid(value.agent_id) && typeof value.ready === "boolean"
+    && value.inspection === "static_only" && value.inference_checked === false && isTimestamp(value.checked_at)
+    && Array.isArray(value.issues) && value.issues.every(nonemptyText)
+    && Array.isArray(value.limitations) && value.limitations.every(nonemptyText);
+  const consistentRegisteredResult = (value: Record<string, unknown>) => {
+    if (!isObject(value.simulation) || value.simulation.agent_snapshot == null) return true;
+    const snapshot = value.simulation.agent_snapshot;
+    if (!isObject(snapshot) || !isObject(snapshot.manifest)) return false;
+    if (value.control_audit != null && (!isObject(value.control_audit)
+      || value.control_audit.controller !== "sdk_agent" || value.control_audit.mode !== snapshot.agent_control_mode)) return false;
+    return value.agent_inputs == null || (isObject(value.agent_inputs)
+      && value.agent_inputs.observation_mode === snapshot.observation_mode
+      && canonicalJson(value.agent_inputs.sensors) === canonicalJson(snapshot.manifest.sensors));
+  };
   const isResult = (value: unknown) => isObject(value) && isSimulation(value.simulation)
     && isObject(value.simulation) && ["completed", "failed", "cancelled"].includes(value.simulation.status as string)
     && isMetrics(value.metrics) && nonnegative(value.measured_duration_s)
@@ -401,14 +453,18 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && (value.control_audit === undefined || value.control_audit === null || isControlAudit(value.control_audit))
     && (value.agent_inputs === undefined || value.agent_inputs === null || isAgentInputInfo(value.agent_inputs))
     && consistentAgentInputs(value)
+    && consistentRegisteredResult(value)
     && (value.runtime === null || (isRuntime(value.runtime) && isObject(value.runtime) && value.runtime.adapter === value.simulation.mode));
   const isSimulationRecord = (value: unknown) => isObject(value) && isSimulation(value.simulation)
     && nullableUuid(value.scenario_id) && integer(value.revision, 1)
     && isTimestamp(value.created_at) && isTimestamp(value.updated_at)
-    && (value.job === null || isJob(value.job)) && (value.result === null || (isResult(value.result)
+    && (value.job === null || (isJob(value.job) && isObject(value.job) && isObject(value.simulation)
+      && canonicalJson(value.job.agent_snapshot ?? null) === canonicalJson(value.simulation.agent_snapshot ?? null)))
+    && (value.result === null || (isResult(value.result)
       && isObject(value.result) && isObject(value.result.simulation) && isObject(value.simulation)
       && value.result.simulation.id === value.simulation.id && value.result.simulation.mode === value.simulation.mode
-      && value.result.simulation.status === value.simulation.status));
+      && value.result.simulation.status === value.simulation.status
+      && canonicalJson(value.result.simulation.agent_snapshot ?? null) === canonicalJson(value.simulation.agent_snapshot ?? null)));
   const isQueue = (value: unknown) => isObject(value)
     && ["started", "accepting", "worker_alive"].every(key => typeof value[key] === "boolean")
     && integer(value.pending) && nullableUuid(value.active_id) && nullableText(value.error);
@@ -564,6 +620,11 @@ export function createApiClient(baseUrl = API_BASE_URL) {
 
   return {
     health: (options: RequestOptions = {}) => request<HealthStatus>("/health", options, isHealth),
+    registerAgent: (input: AgentRegistration, options: RequestOptions = {}) => request<RegisteredAgent>("/agents", options, isRegisteredAgent, "POST", input, 201),
+    listAgents: (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<RegisteredAgent[]>(`/agents${paginationQuery(pagination)}`, options, value => Array.isArray(value) && value.every(isRegisteredAgent)),
+    getAgent: (id: string, options: RequestOptions = {}) => request<RegisteredAgent>(`/agents/${checkedId(id)}`, options, value => isRegisteredAgent(value) && isObject(value) && sameId(value.id, id)),
+    getAgentReadiness: (id: string, options: RequestOptions = {}) => request<AgentReadiness>(`/agents/${checkedId(id)}/readiness`, options, value => isReadiness(value) && isObject(value) && sameId(value.agent_id, id)),
+    deactivateAgent: (id: string, options: RequestOptions = {}) => request<RegisteredAgent>(`/agents/${checkedId(id)}/deactivate`, options, value => isRegisteredAgent(value) && isObject(value) && sameId(value.id, id) && value.active === false, "POST", {}),
     listTemplates: (options: RequestOptions = {}) => request<TemplateInfo[]>("/scenarios/templates", options, isTemplates),
     generateScenario: (input: ScenarioGenerate, options: RequestOptions = {}) => request<Scenario>("/scenarios/generate", options, isScenario, "POST", input),
     validateScenario: (recipe: unknown, options: RequestOptions = {}) => request<Scenario>("/scenarios/validate", options, isScenario, "POST", recipe),
@@ -604,6 +665,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
 
 export const api = createApiClient();
 export const {
+  registerAgent, listAgents, getAgent, getAgentReadiness, deactivateAgent,
   health, listTemplates, generateScenario, validateScenario, listScenarios, getScenario,
   createScenario, updateScenario, deleteScenario, getSimulationQueue, launchSimulation,
   listSimulations, getSimulation, getSimulationProgress, getSimulationResult, cancelSimulation, getTelemetry,

@@ -243,6 +243,9 @@ class SimulationRepository(_Repository):
         immutable = ("id", "agent", "mode", "created_at")
         if any(getattr(previous, field) != getattr(current, field) for field in immutable) or (
             _canonical(previous.scenario) != _canonical(current.scenario)
+        ) or (
+            (None if previous.agent_snapshot is None else _canonical(previous.agent_snapshot))
+            != (None if current.agent_snapshot is None else _canonical(current.agent_snapshot))
         ):
             raise PersistenceError("Run identity, scenario snapshot, agent, mode, and creation time are immutable")
         if previous.status not in (SimulationStatus.QUEUED, SimulationStatus.RUNNING):

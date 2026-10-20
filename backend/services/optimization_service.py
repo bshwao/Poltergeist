@@ -111,6 +111,8 @@ class OptimizationService:
                 source = FailureRepository(session).get(request.failure_id)
                 run = SimulationRepository(session).get(source.simulation_id)
                 job = JobRepository(session).get(source.simulation_id, required=False)
+            if run.simulation.agent != "baseline":
+                raise ConflictError("Custom-agent reproduction and minimization require agent-aware optimization (Phase 9)")
             if job is None:
                 raise PersistenceError("Reproduction and minimization require recorded execution settings")
             execution = ExecutionSpec(mode=run.simulation.mode, options=job.options, evaluation_settings=job.evaluation_settings)

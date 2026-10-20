@@ -101,6 +101,17 @@ class SimulationRunner:
         if agent is not None and not isinstance(agent, (BaseAgent, ProcessAgent)):
             raise SimulationError("Driving agent must implement BaseAgent or use ProcessAgent")
         driver = BaselineAgent() if agent is None else agent
+        if simulation.agent_snapshot is not None:
+            registered = simulation.agent_snapshot
+            canonical = lambda value: json.dumps(value.model_dump(mode="json"), sort_keys=True, allow_nan=False)
+            if (not isinstance(driver, ProcessAgent) or driver.snapshot is None
+                    or canonical(driver.snapshot) != canonical(registered)
+                    or canonical(driver.manifest) != canonical(registered.manifest)):
+                raise SimulationError("Injected agent must match the immutable registered agent snapshot")
+            if agent_control_mode in (None, "auto"):
+                agent_control_mode = registered.agent_control_mode
+            elif agent_control_mode != registered.agent_control_mode:
+                raise SimulationError("Agent control mode must match the immutable registered agent snapshot")
         task = validated.driving_task
         sdk_protocol = driver.manifest.protocol_version if isinstance(driver, ProcessAgent) else None
         sensor_agent = isinstance(driver, ProcessAgent) and driver.manifest.observation_mode == "sensors"

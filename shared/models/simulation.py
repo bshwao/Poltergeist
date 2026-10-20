@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 from pydantic import AwareDatetime, Field, StrictBool, model_validator
 
 from .agent import AgentInputInfo
+from .registry import AgentSnapshot
 from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
 from .scenario import Scenario, Transform
 from .telemetry import ControlInput, SafetyMetrics
@@ -25,6 +26,7 @@ class Simulation(ContractModel):
     id: UUID = Field(default_factory=uuid4)
     scenario: Scenario
     agent: Literal["baseline", "custom"] = "baseline"
+    agent_snapshot: AgentSnapshot | None = None
     mode: Literal["carla", "test"] = "carla"
     status: SimulationStatus = SimulationStatus.QUEUED
     progress: Annotated[float, Field(ge=0, le=1, strict=True)] = 0.0
@@ -35,6 +37,8 @@ class Simulation(ContractModel):
 
     @model_validator(mode="after")
     def validate_lifecycle(self) -> Self:
+        if self.agent_snapshot is not None and self.agent != "custom":
+            raise ValueError("A registered agent snapshot requires a custom simulation")
         if self.started_at is not None and self.started_at < self.created_at:
             raise ValueError("started_at cannot precede created_at")
         if self.finished_at is not None and self.finished_at < (self.started_at or self.created_at):
@@ -182,7 +186,16 @@ class SimulationResult(ContractModel):
             raise ValueError("Results may only reference a terminal simulation")
         if self.runtime is not None and self.runtime.adapter != self.simulation.mode:
             raise ValueError("Runtime adapter must match the simulation mode")
+        snapshot = self.simulation.agent_snapshot
+        if snapshot is not None and self.control_audit is not None:
+            if self.control_audit.controller != "sdk_agent" or self.control_audit.mode != snapshot.agent_control_mode:
+                raise ValueError("Control audit must match the registered SDK agent and control mode")
         if self.agent_inputs is not None:
+            if (self.simulation.agent_snapshot is not None
+                    and self.agent_inputs.observation_mode != self.simulation.agent_snapshot.observation_mode):
+                raise ValueError("Agent input mode must match the immutable registered agent snapshot")
+            if snapshot is not None and self.agent_inputs.sensors != snapshot.manifest.sensors:
+                raise ValueError("Agent input calibration must match the registered sensor rig")
             valid_sources = {"carla_ground_truth", "carla_sensors"} if self.simulation.mode == "carla" else {
                 "synthetic_state", "deterministic_fixture",
             }

@@ -8,6 +8,7 @@ from pydantic import AwareDatetime, BeforeValidator, Field, StrictBool, StrictFl
 from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
 from .evaluation import EvaluationSettings
 from .runtime import SimulationOptions
+from .registry import AgentReadiness, AgentRegistration, AgentSnapshot, RegisteredAgent
 from .scenario import Scenario, ScenarioTemplate
 from .simulation import Simulation, SimulationResult, SimulationStatus
 from .telemetry import TelemetryFrame
@@ -67,6 +68,7 @@ class SimulationLaunch(ContractModel):
     scenario_id: UUID | None = None
     scenario: ScenarioInput | None = None
     mode: Mode = "carla"
+    agent_id: UUID | None = None
     options: SimulationOptions = Field(default_factory=SimulationOptions)
     evaluation_settings: EvaluationSettings = Field(default_factory=EvaluationSettings)
 
@@ -84,6 +86,7 @@ class JobInfo(ContractModel):
     queue_position: Annotated[int, Field(ge=1, strict=True)] | None
     options: SimulationOptions
     evaluation_settings: EvaluationSettings
+    agent_snapshot: AgentSnapshot | None = None
 
 
 class SimulationRecord(ContractModel):
@@ -149,6 +152,9 @@ class AnalyticsSummary(ContractModel):
 
 
 class ApiContracts(ContractModel):
+    agent_registration: AgentRegistration
+    registered_agent: RegisteredAgent
+    agent_readiness: AgentReadiness
     scenario_record: ScenarioRecord
     scenario_update: ScenarioUpdate
     scenario_generate: ScenarioGenerate

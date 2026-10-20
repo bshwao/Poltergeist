@@ -149,8 +149,9 @@ goal stopping.
 
 Use a new report directory. Recipes/results preserve the task, audit and outcome;
 decision diagnostics preserve tracking assistance. Full timeline review remains
-Phase 7. Sensors remain Phase 4; agent registration/API selection and dashboard
-launch controls remain Phases 5–6.
+Phase 7. Sensor support is described in [Phase 4](sensor-agents.md), and
+[Phase 5 registration](agent-registry.md) supports queued API agent selection.
+Dashboard launch controls remain Phase 6.
 
 The mapped example was verified on CARLA 0.9.16 Town03. Start one idle CARLA
 instance with that map loaded, or add `--allow-map-reload` to load it. The reference

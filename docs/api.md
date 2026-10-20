@@ -105,6 +105,31 @@ within the normal sampling ranges documented in the scenario engine. Fixed value
 can lie outside those sampling ranges, within the accepted input constraints. See
 [scenario generation](scenarios.md).
 
+## Local agent registry
+
+| Method and route | Behavior |
+| --- | --- |
+| `POST /agents` | Persist an immutable trusted local registration; HTTP 201 |
+| `GET /agents` | List registrations |
+| `GET /agents/{id}` | Read the registration's snapshot and active state |
+| `GET /agents/{id}/readiness` | Static declaration/fingerprint checks; never executes agent code |
+| `POST /agents/{id}/deactivate` | Disable future launches, preserving queued jobs and history |
+
+Registration requires `package_path` and `trusted_local_code: true`. Optional
+fields are `python_executable`, configuration overrides in `configuration`,
+absolute external weight paths in `model_files`, `process_options` and
+`agent_control_mode` (`authoritative` by default). Omitted Python selects the
+backend interpreter. Paths belong to the backend machine. Every registration
+receives a new UUID; changing code or configuration requires registering again.
+Inspection does not import code, install dependencies or start CARLA. The
+readiness response says `inspection: "static_only"` and
+`inference_checked: false`; it does not establish model or simulator readiness.
+
+Use only trusted local packages/environments: execution has the backend user's
+permissions and the process boundary is not a security sandbox. See the
+[registry guide](agent-registry.md) for PowerShell examples, fingerprint coverage
+and drift behavior. Dashboard agent management remains Phase 6.
+
 ## Simulation jobs
 
 | Method and route | Behavior |
@@ -121,9 +146,13 @@ can lie outside those sampling ranges, within the accepted input constraints. Se
 | `GET /simulations/{id}/artifacts/{artifact_index}/samples/{sample_index}` | Download one raw recording sample |
 
 Launch accepts exactly one of `scenario_id` or `scenario`, plus `mode`, `options`,
-and `evaluation_settings`. Options and evaluation settings use shared contracts
-and are stored with the job, including for restart. The API launches the baseline
-agent; it does not accept uploaded agent code or a custom agent selector. See
+`evaluation_settings` and optional `agent_id`. Options and evaluation settings
+use shared contracts and are stored with the job, including for restart. Omit
+`agent_id` or pass null for the baseline; otherwise pass an active registration's
+UUID from `/agents`. The resolved agent snapshot is persisted with the job and
+simulation, including effective configuration, observation mode, worker settings
+and file fingerprints. Launch does not accept agent-package paths, uploads or
+per-run agent overrides. See [registered agents](agent-registry.md),
 [execution options](simulation.md) and [contracts](data-contracts.md).
 
 One FIFO worker executes one run at a time. A nonblocking OS lease prevents two

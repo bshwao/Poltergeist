@@ -12,6 +12,7 @@ from pathlib import Path
 from queue import Empty, Full, Queue
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 from threading import Lock, Thread
 from time import perf_counter as monotonic
 from typing import Callable
@@ -84,7 +85,10 @@ class _RemoteAgent(AutonomousAgent):
         deadline = started + owner.options.load_timeout_s
         identity, _ = owner._request("hello", {}, deadline=deadline)
         owner._accept_identity(identity)
-        payload, _ = owner._request("load", {"manifest": owner.manifest.model_dump(mode="json")}, deadline=deadline)
+        request = {"manifest": owner.package.manifest.model_dump(mode="json")}
+        if owner.snapshot is not None:
+            request["snapshot"] = owner.snapshot.model_dump(mode="json")
+        payload, _ = owner._request("load", request, deadline=deadline)
         if payload != identity:
             raise AgentProcessError("Worker identity changed during load")
 
@@ -136,8 +140,16 @@ class ProcessAgent(AutonomousAgent):
 
     STDERR_LIMIT_BYTES = 64 * 1024
 
-    def __init__(self, package, *, python_executable=None, options=None):
+    def __init__(self, package, *, python_executable=None, options=None, snapshot=None):
         self.package = inspect_agent_package(package)
+        self.snapshot = None
+        if snapshot is not None:
+            from shared.models.registry import AgentSnapshot
+            from .fingerprints import verify_agent_snapshot
+            self.snapshot = AgentSnapshot.model_validate(snapshot.model_dump(mode="json"))
+            verify_agent_snapshot(self.snapshot)
+            if str(self.package.directory) != self.snapshot.package_path:
+                raise AgentProcessError("Agent package path must match the registered snapshot")
         self.options = AgentProcessOptions() if options is None else options
         if not isinstance(self.options, AgentProcessOptions):
             raise TypeError("options must be AgentProcessOptions")
@@ -146,8 +158,14 @@ class ProcessAgent(AutonomousAgent):
         self.python_executable = Path(os.path.abspath(os.path.expanduser(str(python_executable or sys.executable))))
         if not self.python_executable.is_file():
             raise AgentProcessError(f"Agent Python executable is unavailable: {self.python_executable}")
+        if self.snapshot is not None and (
+            str(self.python_executable) != self.snapshot.python_executable
+            or self.options != AgentProcessOptions(**self.snapshot.process_options.model_dump())
+        ):
+            raise AgentProcessError("Agent environment and process options must match the registered snapshot")
         self._process = None
         self._group = None
+        self._bytecode_cache = None
         self._threads = []
         self._responses = Queue(maxsize=2)
         self._writes = Queue(maxsize=1)
@@ -160,7 +178,7 @@ class ProcessAgent(AutonomousAgent):
         self._faulted = False
         self._stats = AgentProcessStats()
         self._last_timing = self._pending_timing = None
-        self._session = AgentSession(_RemoteAgent(self), self.package.manifest)
+        self._session = AgentSession(_RemoteAgent(self), self.package.manifest if self.snapshot is None else self.snapshot.manifest)
 
     @property
     def manifest(self):
@@ -222,9 +240,16 @@ class ProcessAgent(AutonomousAgent):
             environment["VIRTUAL_ENV"] = str(potential_env)
         else:
             environment.pop("VIRTUAL_ENV", None)
-        arguments = [str(self.python_executable), "-u", "-m", "simulator.agents.worker",
-                     "--package", str(self.package.directory), "--max-message-bytes", str(self.options.max_message_bytes)]
         try:
+            # Timestamp/size based .pyc files can contain different code from
+            # the source bytes checked by a registered snapshot. A private,
+            # initially empty prefix prevents reading old caches for package,
+            # runtime and dependency imports; -B also prevents writing new ones.
+            # -B alone would still read an existing stale cache.
+            self._bytecode_cache = TemporaryDirectory(prefix="poltergeist-agent-cache-")
+            arguments = [str(self.python_executable), "-u", "-B", "-X",
+                         f"pycache_prefix={self._bytecode_cache.name}", "-m", "simulator.agents.worker",
+                         "--package", str(self.package.directory), "--max-message-bytes", str(self.options.max_message_bytes)]
             self._process = subprocess.Popen(
                 arguments, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 cwd=Path(__file__).resolve().parents[2], env=environment, shell=False,
@@ -331,6 +356,9 @@ class ProcessAgent(AutonomousAgent):
     def _stop(self):
         process = self._process
         if process is None:
+            if self._bytecode_cache is not None:
+                self._bytecode_cache.cleanup()
+                self._bytecode_cache = None
             return
         deadline = monotonic() + self.options.terminate_timeout_s
         errors = []
@@ -370,6 +398,11 @@ class ProcessAgent(AutonomousAgent):
         if errors:
             error = AgentProcessError("Agent process cleanup failed: " + "; ".join(str(item) for item in errors))
             raise error from errors[0]
+        # Keep the directory if termination or pipe cleanup failed, so a later
+        # close can retry after the complete process group has exited.
+        if self._bytecode_cache is not None:
+            self._bytecode_cache.cleanup()
+            self._bytecode_cache = None
 
     def _stop_preserving(self, primary_error):
         try:
@@ -385,8 +418,7 @@ class ProcessAgent(AutonomousAgent):
 
     def load(self, configuration):
         with self._lock:
-            # A process is tied to its inspected manifest. Configuration overrides
-            # belong in that package's manifest, rather than an untracked payload.
+            # A process is tied to its inspected or registered effective manifest.
             supplied = AgentManifest.model_validate(self.manifest.model_dump() | {"configuration": configuration})
             if json.dumps(supplied.model_dump(mode="json"), sort_keys=True, allow_nan=False) != json.dumps(
                 self.manifest.model_dump(mode="json"), sort_keys=True, allow_nan=False,

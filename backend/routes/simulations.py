@@ -36,6 +36,7 @@ def launch(request: SimulationLaunch, worker: Worker) -> SimulationRecord:
     stored = worker.submit(
         request.scenario_id if request.scenario_id is not None else request.scenario,
         mode=request.mode, options=request.options, evaluation_settings=request.evaluation_settings,
+        agent_id=request.agent_id,
     )
     return _record(stored, worker)
 

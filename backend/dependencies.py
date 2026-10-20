@@ -20,6 +20,7 @@ class ApiRuntime:
         self._persistence = None
         self._worker = None
         self._optimizer = None
+        self._registry = None
         self._lock = RLock()
         self._closed = False
 
@@ -78,6 +79,15 @@ class ApiRuntime:
                 self._optimizer = optimizer
             return self._optimizer
 
+    def registry(self):
+        from backend.services.agent_registry_service import AgentRegistryService
+
+        with self._lock:
+            persistence = self.persistence()
+            if self._registry is None:
+                self._registry = AgentRegistryService(persistence.database)
+            return self._registry
+
     def close(self) -> bool:
         with self._lock:
             self._closed = True
@@ -101,3 +111,7 @@ def get_worker(request: Request) -> SimulationService:
 
 def get_optimizer(request: Request):
     return request.app.state.runtime.optimizer()
+
+
+def get_registry(request: Request):
+    return request.app.state.runtime.registry()

@@ -123,6 +123,27 @@ export type Steer = number;
 export type Throttle = number;
 export type Frame2 = number;
 export type ProtocolVersion3 = "1.0" | "1.1" | "1.2" | "1.3";
+export type AgentId1 = string;
+export type CheckedAt = string;
+export type InferenceChecked = false;
+export type Inspection = "static_only";
+export type Issues = string[];
+export type Limitations = string[];
+export type Ready = boolean;
+export type AgentControlMode = "authoritative" | "scripted";
+/**
+ * @maxItems 256
+ */
+export type ModelFiles = string[];
+export type PackagePath = string;
+export type CloseTimeoutS = number;
+export type LoadTimeoutS = number;
+export type MaxMessageBytes = number;
+export type ResetTimeoutS = number;
+export type StepTimeoutS = number;
+export type TerminateTimeoutS = number;
+export type PythonExecutable = string | null;
+export type TrustedLocalCode = true;
 export type CollisionObservedRuns = number;
 export type CollisionRuns = number;
 export type FailureReports = number;
@@ -141,6 +162,36 @@ export type Error = string | null;
 export type Pending = number;
 export type Started = boolean;
 export type WorkerAlive = boolean;
+export type Active = boolean;
+export type CreatedAt = string;
+export type Id1 = string;
+export type AgentControlMode1 = "authoritative" | "scripted";
+/**
+ * @minItems 1
+ * @maxItems 20000
+ */
+export type Files = [AgentFileFingerprint, ...AgentFileFingerprint[]];
+export type Path = string;
+export type Sha2561 = string;
+export type SizeBytes = number;
+export type Path1 = string;
+export type Sha2562 = string;
+export type SizeBytes1 = number;
+/**
+ * @maxItems 256
+ */
+export type ModelFiles1 = AgentExternalFileFingerprint[];
+export type ObservationMode2 = "simulator_state" | "sensors";
+export type PackagePath1 = string;
+export type PackageSha256 = string;
+export type PythonExecutable1 = string;
+export type PythonSha256 = string;
+export type PythonSizeBytes = number;
+export type RegistrationId = string;
+/**
+ * @maxItems 20000
+ */
+export type RuntimeFiles = AgentExternalFileFingerprint[];
 export type Reproduced = boolean | null;
 export type DurationS = number | null;
 export type Sample = boolean;
@@ -150,15 +201,15 @@ export type Seed1 = number;
  * via the `definition` "ScenarioTemplate".
  */
 export type ScenarioTemplate = "intersection" | "pedestrian_crossing" | "occluded_pedestrian" | "sudden_braking";
-export type CreatedAt = string;
-export type Id1 = string;
+export type CreatedAt1 = string;
+export type Id2 = string;
 export type Revision = number;
 /**
  * @minItems 1
  */
 export type Actors1 = [ActorSpec, ...ActorSpec[]];
 export type Blueprint = string | null;
-export type Id2 = string | null;
+export type Id3 = string | null;
 export type AnchorActorId = string;
 export type YawOffsetDeg = number;
 export type SpawnPointIndex = number | null;
@@ -194,6 +245,7 @@ export type SunAltitudeDeg = number;
 export type Wetness = number;
 export type UpdatedAt = string;
 export type ExpectedRevision = number;
+export type AgentId2 = string | null;
 export type BrakingFullSeverityMps2 = number;
 export type BrakingWeight = number;
 export type ClearanceWarningM = number;
@@ -234,7 +286,7 @@ export type StartedAt = string | null;
  * via the `definition` "SimulationStatus".
  */
 export type SimulationStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
-export type CreatedAt1 = string;
+export type CreatedAt2 = string;
 export type CancelRequested1 = boolean;
 export type QueuePosition1 = number | null;
 /**
@@ -243,7 +295,7 @@ export type QueuePosition1 = number | null;
 export type Assistance1 = string[];
 export type EgoStateSource1 = "simulator_state" | "simulated_ego_kinematics";
 export type GroundTruthActorInputs = boolean;
-export type ObservationMode2 = "simulator_state" | "sensors";
+export type ObservationMode3 = "simulator_state" | "sensors";
 /**
  * @maxItems 4
  */
@@ -256,7 +308,7 @@ export type Sensors3 =
 export type Source1 = "carla_ground_truth" | "synthetic_state" | "carla_sensors" | "deterministic_fixture";
 export type Kind1 = "telemetry" | "recording" | "report";
 export type MediaType = string;
-export type Path = string;
+export type Path2 = string;
 export type Artifacts = ArtifactReference[];
 export type Controller = "baseline" | "legacy_custom" | "sdk_agent";
 export type Frame3 = number;
@@ -316,10 +368,10 @@ export type Seed3 = number;
 export type SensorSamplesCount = number;
 export type ServerVersion = string | null;
 export type Agent = "baseline" | "custom";
-export type CreatedAt2 = string;
+export type CreatedAt3 = string;
 export type Error2 = string | null;
 export type FinishedAt1 = string | null;
-export type Id3 = string;
+export type Id4 = string;
 export type Mode3 = "carla" | "test";
 export type Progress1 = number;
 export type StartedAt1 = string | null;
@@ -358,8 +410,8 @@ export type Minimum = number;
 export type Name2 = string;
 export type Unit = string;
 export type Parameters2 = ParameterInfo[];
-export type CreatedAt3 = string;
-export type Id4 = string;
+export type CreatedAt4 = string;
+export type Id5 = string;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "FailureKind".
@@ -370,12 +422,12 @@ export type Severity1 = number;
 export type SimulationId1 = string;
 export type Summary = string;
 export type CancelRequested2 = boolean;
-export type CreatedAt4 = string;
+export type CreatedAt5 = string;
 export type EngineVersion = string | null;
 export type Error3 = string | null;
 export type Mode4 = "carla" | "test";
 export type FinishedAt2 = string | null;
-export type Id5 = string;
+export type Id6 = string;
 export type BestFailureId = string | null;
 export type BestSimulationId = string | null;
 export type Reproduced2 = boolean | null;
@@ -705,8 +757,11 @@ export interface ControlInput {
  * via the `definition` "ApiContracts".
  */
 export interface ApiContracts {
+  agent_readiness: AgentReadiness;
+  agent_registration: AgentRegistration;
   analytics: AnalyticsSummary;
   queue_status: QueueStatus;
+  registered_agent: RegisteredAgent;
   reproduction_update: ReproductionUpdate;
   scenario_generate: ScenarioGenerate;
   scenario_record: ScenarioRecord;
@@ -716,6 +771,47 @@ export interface ApiContracts {
   simulation_record: SimulationRecord;
   telemetry_page: TelemetryPage;
   template: TemplateInfo;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentReadiness".
+ */
+export interface AgentReadiness {
+  agent_id: AgentId1;
+  checked_at: CheckedAt;
+  inference_checked: InferenceChecked;
+  inspection: Inspection;
+  issues: Issues;
+  limitations: Limitations;
+  ready: Ready;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentRegistration".
+ */
+export interface AgentRegistration {
+  agent_control_mode: AgentControlMode;
+  configuration: Configuration1;
+  model_files: ModelFiles;
+  package_path: PackagePath;
+  process_options: AgentExecutionOptions;
+  python_executable: PythonExecutable;
+  trusted_local_code: TrustedLocalCode;
+}
+export interface Configuration1 {
+  [k: string]: JsonValue;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentExecutionOptions".
+ */
+export interface AgentExecutionOptions {
+  close_timeout_s: CloseTimeoutS;
+  load_timeout_s: LoadTimeoutS;
+  max_message_bytes: MaxMessageBytes;
+  reset_timeout_s: ResetTimeoutS;
+  step_timeout_s: StepTimeoutS;
+  terminate_timeout_s: TerminateTimeoutS;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -763,6 +859,57 @@ export interface QueueStatus {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RegisteredAgent".
+ */
+export interface RegisteredAgent {
+  active: Active;
+  created_at: CreatedAt;
+  id: Id1;
+  snapshot: AgentSnapshot;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentSnapshot".
+ */
+export interface AgentSnapshot {
+  agent_control_mode: AgentControlMode1;
+  configuration: Configuration2;
+  files: Files;
+  manifest: AgentManifest;
+  model_files: ModelFiles1;
+  observation_mode: ObservationMode2;
+  package_path: PackagePath1;
+  package_sha256: PackageSha256;
+  process_options: AgentExecutionOptions;
+  python_executable: PythonExecutable1;
+  python_sha256: PythonSha256;
+  python_size_bytes: PythonSizeBytes;
+  registration_id: RegistrationId;
+  runtime_files: RuntimeFiles;
+}
+export interface Configuration2 {
+  [k: string]: JsonValue;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentFileFingerprint".
+ */
+export interface AgentFileFingerprint {
+  path: Path;
+  sha256: Sha2561;
+  size_bytes: SizeBytes;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AgentExternalFileFingerprint".
+ */
+export interface AgentExternalFileFingerprint {
+  path: Path1;
+  sha256: Sha2562;
+  size_bytes: SizeBytes1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "ReproductionUpdate".
  */
 export interface ReproductionUpdate {
@@ -795,8 +942,8 @@ export interface Ranges {
  * via the `definition` "ScenarioRecord".
  */
 export interface ScenarioRecord {
-  created_at: CreatedAt;
-  id: Id1;
+  created_at: CreatedAt1;
+  id: Id2;
   revision: Revision;
   scenario: Scenario;
   updated_at: UpdatedAt;
@@ -829,7 +976,7 @@ export interface Scenario {
  */
 export interface ActorSpec {
   blueprint: Blueprint;
-  id: Id2;
+  id: Id3;
   relative_spawn: RelativeSpawn | null;
   spawn: Transform | null;
   spawn_point_index: SpawnPointIndex;
@@ -901,6 +1048,7 @@ export interface ScenarioUpdate {
  * via the `definition` "SimulationLaunch".
  */
 export interface SimulationLaunch {
+  agent_id: AgentId2;
   evaluation_settings: EvaluationSettings;
   mode: Mode1;
   options: SimulationOptions;
@@ -964,7 +1112,7 @@ export interface SimulationProgress {
  * via the `definition` "SimulationRecord".
  */
 export interface SimulationRecord {
-  created_at: CreatedAt1;
+  created_at: CreatedAt2;
   job: JobInfo | null;
   result: SimulationResult | null;
   revision: Revision2;
@@ -977,6 +1125,7 @@ export interface SimulationRecord {
  * via the `definition` "JobInfo".
  */
 export interface JobInfo {
+  agent_snapshot: AgentSnapshot | null;
   cancel_requested: CancelRequested1;
   evaluation_settings: EvaluationSettings;
   options: SimulationOptions;
@@ -1011,7 +1160,7 @@ export interface AgentInputInfo {
   assistance: Assistance1;
   ego_state_source: EgoStateSource1;
   ground_truth_actor_inputs: GroundTruthActorInputs;
-  observation_mode: ObservationMode2;
+  observation_mode: ObservationMode3;
   sensors: Sensors3;
   source: Source1;
 }
@@ -1022,7 +1171,7 @@ export interface AgentInputInfo {
 export interface ArtifactReference {
   kind: Kind1;
   media_type: MediaType;
-  path: Path;
+  path: Path2;
 }
 /**
  * Control ownership and scenario assistance for both new and legacy runs.
@@ -1138,10 +1287,11 @@ export interface ResolvedSpawns {
  */
 export interface Simulation {
   agent: Agent;
-  created_at: CreatedAt2;
+  agent_snapshot: AgentSnapshot | null;
+  created_at: CreatedAt3;
   error: Error2;
   finished_at: FinishedAt1;
-  id: Id3;
+  id: Id4;
   mode: Mode3;
   progress: Progress1;
   scenario: Scenario;
@@ -1219,8 +1369,8 @@ export interface ParameterInfo {
  * via the `definition` "FailureReport".
  */
 export interface FailureReport {
-  created_at: CreatedAt3;
-  id: Id4;
+  created_at: CreatedAt4;
+  id: Id5;
   kind: FailureKind;
   reproduced: Reproduced1;
   scenario: Scenario;
@@ -1245,12 +1395,12 @@ export interface OptimizationContracts {
  */
 export interface OptimizationRecord {
   cancel_requested: CancelRequested2;
-  created_at: CreatedAt4;
+  created_at: CreatedAt5;
   engine_version: EngineVersion;
   error: Error3;
   execution: ExecutionSpec;
   finished_at: FinishedAt2;
-  id: Id5;
+  id: Id6;
   outcome: OptimizationOutcome | null;
   request: Request;
   revision: Revision3;

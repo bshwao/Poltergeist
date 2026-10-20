@@ -7,6 +7,7 @@ from uuid import UUID
 from sqlalchemy import select, update
 
 from shared.models import EvaluationSettings
+from shared.models.registry import AgentSnapshot
 from simulator.protocols import SimulationOptions
 
 from .models import SimulationJobRecord, SimulationRecord
@@ -21,6 +22,7 @@ class StoredJob:
     evaluation_settings: EvaluationSettings
     cancel_requested: bool
     claimed: bool
+    agent_snapshot: AgentSnapshot | None = None
 
 
 class JobRepository:
@@ -30,12 +32,15 @@ class JobRepository:
     @staticmethod
     def _stored(row):
         return StoredJob(UUID(row.simulation_id), SimulationOptions.model_validate_json(row.options),
-                         EvaluationSettings.model_validate_json(row.evaluation_settings), row.cancel_requested, row.claimed)
+                         EvaluationSettings.model_validate_json(row.evaluation_settings), row.cancel_requested, row.claimed,
+                         None if row.agent_snapshot is None else AgentSnapshot.model_validate_json(row.agent_snapshot))
 
-    def create(self, simulation_id, options, evaluation_settings):
+    def create(self, simulation_id, options, evaluation_settings, *, agent_snapshot=None):
         row = SimulationJobRecord(
             simulation_id=_id(simulation_id), options=options.model_dump_json(),
             evaluation_settings=evaluation_settings.model_dump_json(), cancel_requested=False, claimed=False,
+            agent_snapshot=None if agent_snapshot is None else AgentSnapshot.model_validate(
+                agent_snapshot.model_dump(mode="json")).model_dump_json(),
             created_at=datetime.now(UTC).isoformat(timespec="microseconds"),
         )
         self.session.add(row)

@@ -346,7 +346,7 @@ def test_revision_two_upgrade_preserves_historical_records_byte_for_byte(tmp_pat
     database.initialize()
     try:
         with database.engine.connect() as connection:
-            assert connection.exec_driver_sql("SELECT revision FROM schema_migrations ORDER BY revision").scalars().all() == [1, 2, 3]
+            assert connection.exec_driver_sql("SELECT revision FROM schema_migrations ORDER BY revision").scalars().all() == [1, 2, 3, 4]
             assert tuple(connection.exec_driver_sql("SELECT payload,revision,created_at,updated_at FROM scenarios").one()) == ("preserve original bytes", 7, "2026-01-01", "2026-01-02")
     finally:
         database.dispose()

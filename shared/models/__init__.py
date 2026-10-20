@@ -17,6 +17,10 @@ from .agent import (
 )
 from .evaluation import EvaluationCoverage, EvaluationSettings
 from .runtime import SimulationOptions
+from .registry import (
+    AgentExecutionOptions, AgentExternalFileFingerprint, AgentFileFingerprint,
+    AgentReadiness, AgentRegistration, AgentSnapshot, RegisteredAgent,
+)
 
 from .scenario import (
     ActorSpec,
@@ -49,6 +53,8 @@ from .telemetry import (
 )
 
 __all__ = [
+    "AgentExecutionOptions", "AgentExternalFileFingerprint", "AgentFileFingerprint",
+    "AgentReadiness", "AgentRegistration", "AgentSnapshot", "RegisteredAgent",
     "AGENT_PROTOCOL_VERSION", "AgentContracts", "AgentDiagnostics", "AgentManifest", "AgentInputInfo", "AgentObservation",
     "AgentReset", "AgentSensorSpec", "AgentSensorFrame", "AgentStepResult",
     "AgentRoadRaster", "AgentSceneContext", "AgentSceneObject",

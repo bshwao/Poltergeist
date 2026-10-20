@@ -18,6 +18,7 @@ class SimulationJobRecord(Base):
     simulation_id: Mapped[str] = mapped_column(String(36), ForeignKey("simulations.id", ondelete="RESTRICT"), nullable=False)
     options: Mapped[str] = mapped_column(Text, nullable=False)
     evaluation_settings: Mapped[str] = mapped_column(Text, nullable=False)
+    agent_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
     cancel_requested: Mapped[bool] = mapped_column(Boolean, nullable=False)
     claimed: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_at: Mapped[str] = mapped_column(String(32), nullable=False)

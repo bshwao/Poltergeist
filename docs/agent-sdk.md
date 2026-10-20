@@ -2,8 +2,8 @@
 
 Phases 1 and 2 provide a Python interface for user-supplied driving agents and an
 external worker connected to the simulation runner. The current dashboard still
-launches its original baseline controller; use Python or the CLI for external
-agents. See the
+launches its original baseline controller; use Python, the CLI or the
+[registered-agent API](agent-registry.md) for external agents. See the
 [ten-phase integration plan](autonomous-agents-plan.md).
 
 The [Phase 2.5 reference AI pilot](reference-ai-pilot.md) integrates a maintained
@@ -309,7 +309,8 @@ default to authoritative mode; older no-task packages retain the legacy heading,
 speed and event behavior. The starter remains a rule-based controller. See
 [driving tasks](driving-tasks.md) for the current contract and examples.
 
-Sensor inputs and provenance are implemented in Phase 4. Registry/version
-pinning, queued API selection, dashboard agent selection, full persisted decision
-timeline review and behavior explanations remain later phases in the
-[integration plan](autonomous-agents-plan.md).
+Sensor inputs and provenance are implemented in Phase 4. Phase 5 adds immutable
+trusted local registrations, fingerprint checks and queued API agent selection;
+see [the registry guide](agent-registry.md). Dashboard agent selection, full
+persisted decision timeline review and behavior explanations remain later phases
+in the [integration plan](autonomous-agents-plan.md).

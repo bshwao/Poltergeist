@@ -14,7 +14,7 @@ from sqlalchemy import Connection, inspect
 from .persistence_errors import DatabaseInitializationError
 
 
-CURRENT_REVISION = 3
+CURRENT_REVISION = 4
 
 _INITIAL_DDL = (
     """CREATE TABLE scenarios (
@@ -107,9 +107,24 @@ _OPTIMIZATION_CHECKSUM = sha256("\n".join(_OPTIMIZATION_DDL).encode("utf-8")).he
 _COLUMNS["optimization_operations"] = {"id", "payload", "status", "revision", "cancel_requested", "created_at", "updated_at"}
 _COLUMNS["optimization_trials"] = {"operation_id", "number", "simulation_id", "failure_id", "payload", "assessed"}
 
+_AGENTS_DDL = (
+    """CREATE TABLE agent_registrations (
+        id VARCHAR(36) PRIMARY KEY NOT NULL,
+        payload TEXT NOT NULL,
+        active BOOLEAN NOT NULL CONSTRAINT ck_agent_registrations_active CHECK (active IN (0,1)),
+        created_at VARCHAR(32) NOT NULL
+    )""",
+    "CREATE INDEX ix_agent_registrations_created_id ON agent_registrations (created_at, id)",
+    "CREATE INDEX ix_agent_registrations_active_created_id ON agent_registrations (active, created_at, id)",
+    "ALTER TABLE simulation_jobs ADD COLUMN agent_snapshot TEXT",
+)
+_AGENTS_CHECKSUM = sha256("\n".join(_AGENTS_DDL).encode("utf-8")).hexdigest()
+_COLUMNS["agent_registrations"] = {"id", "payload", "active", "created_at"}
+_COLUMNS["simulation_jobs"].add("agent_snapshot")
+
 
 def _table_revision(name: str) -> int:
-    return 3 if name.startswith("optimization_") else 2 if name == "simulation_jobs" else 1
+    return 4 if name == "agent_registrations" else 3 if name.startswith("optimization_") else 2 if name == "simulation_jobs" else 1
 
 
 def _sql(value: str) -> str:
@@ -120,7 +135,10 @@ def _verify_schema(connection: Connection, *, revision: int = CURRENT_REVISION) 
     from .models import Base
 
     inspector = inspect(connection)
-    expected_columns = {name: columns for name, columns in _COLUMNS.items() if _table_revision(name) <= revision}
+    expected_columns = {
+        name: columns - ({"agent_snapshot"} if name == "simulation_jobs" and revision < 4 else set())
+        for name, columns in _COLUMNS.items() if _table_revision(name) <= revision
+    }
     if set(inspector.get_table_names()) != set(expected_columns):
         raise DatabaseInitializationError("Database tables do not match the recorded migration")
     for name, expected in expected_columns.items():
@@ -176,7 +194,8 @@ def migrate(connection: Connection) -> None:
             raise DatabaseInitializationError("Malformed migration history")
         history = list(connection.exec_driver_sql("SELECT revision, name, checksum FROM schema_migrations ORDER BY revision"))
         expected = [(1, "initial_persistence", _INITIAL_CHECKSUM), (2, "simulation_jobs", _JOBS_CHECKSUM),
-                    (3, "optimization_journal", _OPTIMIZATION_CHECKSUM)][:len(history)]
+                    (3, "optimization_journal", _OPTIMIZATION_CHECKSUM),
+                    (4, "agent_registry", _AGENTS_CHECKSUM)][:len(history)]
         if [tuple(row) for row in history] != expected:
             raise DatabaseInitializationError("Unknown, future, or noncontiguous migration history")
         if not history and tables != {"schema_migrations"}:
@@ -207,5 +226,14 @@ def migrate(connection: Connection) -> None:
         connection.exec_driver_sql(
             "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
             (3, "optimization_journal", _OPTIMIZATION_CHECKSUM, datetime.now(UTC).isoformat()),
+        )
+        history = [*history, (3, "optimization_journal", _OPTIMIZATION_CHECKSUM)]
+    if len(history) == 3:
+        _verify_schema(connection, revision=3)
+        for statement in _AGENTS_DDL:
+            connection.exec_driver_sql(statement)
+        connection.exec_driver_sql(
+            "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
+            (4, "agent_registry", _AGENTS_CHECKSUM, datetime.now(UTC).isoformat()),
         )
     _verify_schema(connection)

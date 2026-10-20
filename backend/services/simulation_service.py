@@ -20,6 +20,8 @@ from shared.models import EvaluationSettings, Scenario, Simulation, SimulationRe
 from simulator import SimulationRunner
 from simulator.protocols import SimulationOptions
 from simulator.simulation_runner import RunOutput
+from simulator.agents.process import AgentProcessOptions, ProcessAgent
+from simulator.agents.fingerprints import verify_agent_snapshot
 
 from backend.job_repository import JobRepository
 from backend.persistence_errors import ConflictError
@@ -96,7 +98,7 @@ class SimulationService:
             raise QueueUnavailableError(self._error or "Simulation worker is not accepting jobs")
 
     def submit(self, scenario: Scenario | Mapping | UUID, *, mode="carla", options=None, evaluation_settings=None,
-               on_created=None):
+               agent_id=None, on_created=None):
         options = SimulationOptions.model_validate({} if options is None else options.model_dump(mode="python"))
         settings = EvaluationSettings.model_validate({} if evaluation_settings is None else evaluation_settings.model_dump(mode="python"))
         with self._condition:
@@ -106,14 +108,41 @@ class SimulationService:
             with self.persistence.database.session() as session:
                 scenario_id = scenario if isinstance(scenario, UUID) else None
                 recipe = ScenarioRepository(session).get(scenario_id).scenario if scenario_id is not None else validate_scenario(scenario)
-                simulation = Simulation(scenario=recipe, mode=mode, agent="baseline")
+                snapshot = None
+                if agent_id is not None:
+                    from backend.services.agent_registry_service import AgentRegistryService
+                    snapshot = AgentRegistryService(self.persistence.database).resolve(agent_id, session=session)
+                    self._validate_agent_launch(recipe, snapshot, options)
+                simulation = Simulation(scenario=recipe, mode=mode,
+                                        agent="baseline" if snapshot is None else "custom", agent_snapshot=snapshot)
                 stored = SimulationRepository(session).create(simulation, scenario_id=scenario_id)
-                JobRepository(session).create(simulation.id, options, settings)
+                JobRepository(session).create(simulation.id, options, settings, agent_snapshot=snapshot)
                 if on_created is not None:
                     on_created(session, stored)
             self._pending.append(simulation.id)
             self._condition.notify()
             return stored
+
+    @staticmethod
+    def _validate_agent_launch(recipe, snapshot, options):
+        """Reject incompatible declared choices before a durable job is created."""
+        manifest, task = snapshot.manifest, recipe.driving_task
+        if task is not None:
+            if manifest.protocol_version not in {"1.2", "1.3"}:
+                raise ValueError("Explicit driving tasks require an SDK 1.2 or 1.3 agent")
+            if task.route_owner == "agent" and manifest.navigation_mode != "agent_planner":
+                raise ValueError("Agent-owned routes require an agent_planner manifest")
+        if snapshot.agent_control_mode == "authoritative":
+            ego_id = next(actor.id for actor in recipe.actors if actor.type == "ego_vehicle")
+            if any(event.actor_id == ego_id for event in recipe.events):
+                raise ValueError("Authoritative agent mode rejects scripted ego-control events")
+        if snapshot.observation_mode == "sensors":
+            if task is None or snapshot.agent_control_mode != "authoritative":
+                raise ValueError("Sensor agents require an explicit driving task and authoritative control mode")
+            if options.no_rendering_mode is True and any(
+                spec.type == "sensor.camera.rgb" for spec in manifest.sensors
+            ):
+                raise ValueError("RGB agent inputs require rendering; set no_rendering_mode to false")
 
     def get(self, simulation_id):
         return self.persistence.get_simulation(simulation_id)
@@ -131,6 +160,7 @@ class SimulationService:
                 "cancel_requested": job.cancel_requested,
                 "queue_position": waiting.index(job.simulation_id) + 1 if job.simulation_id in waiting else None,
                 "options": job.options, "evaluation_settings": job.evaluation_settings,
+                "agent_snapshot": job.agent_snapshot,
             }
 
     def cancel(self, simulation_id):
@@ -230,6 +260,7 @@ class SimulationService:
         last_progress = None
         progress_error = None
         capture = None
+        driver = None
 
         def progress(simulation):
             nonlocal revision, last_progress, progress_error
@@ -248,16 +279,34 @@ class SimulationService:
                 raise
 
         try:
-            if job.options.camera or job.options.lidar:
+            snapshot = job.agent_snapshot
+            # The job and run independently retain the same immutable selection.
+            # Never substitute the current registry record or a baseline agent.
+            if ((None if snapshot is None else snapshot.model_dump_json())
+                    != (None if stored.simulation.agent_snapshot is None
+                        else stored.simulation.agent_snapshot.model_dump_json())):
+                self._persist_empty(stored, job.evaluation_settings, SimulationStatus.FAILED,
+                                    "Stored job agent snapshot does not match its simulation")
+                return
+            if job.options.camera or job.options.lidar or (snapshot is not None and snapshot.observation_mode == "sensors"):
                 capture = self.persistence.artifacts.capture(simulation_id)
             try:
+                if snapshot is not None:
+                    verify_agent_snapshot(snapshot)
+                    self._validate_agent_launch(stored.simulation.scenario, snapshot, job.options)
+                    driver = ProcessAgent(snapshot.package_path, python_executable=snapshot.python_executable,
+                                          options=AgentProcessOptions(**snapshot.process_options.model_dump()),
+                                          snapshot=snapshot)
                 runner = self._factory(options=job.options, evaluation_settings=job.evaluation_settings)
                 with self._condition:
                     self._active_runner = runner
                     if self._active_cancel.is_set():
                         runner.cancel()
+                agent_arguments = {} if snapshot is None else {
+                    "agent": driver, "agent_control_mode": snapshot.agent_control_mode,
+                }
                 output = runner.run(stored.simulation, cancellation=self._active_cancel, on_progress=progress,
-                                    on_sensor=None if capture is None else capture.write)
+                                    on_sensor=None if capture is None else capture.write, **agent_arguments)
             except BaseException as error:
                 if progress_error is not None:
                     raise progress_error
@@ -272,5 +321,9 @@ class SimulationService:
             self.persistence.persist_output(output, expected_revision=revision, capture=capture)
             capture = None
         finally:
-            if capture is not None:
-                capture.abort()
+            try:
+                if driver is not None:
+                    driver.close()
+            finally:
+                if capture is not None:
+                    capture.abort()

@@ -43,13 +43,13 @@ results can be interpreted in context.
   without running the simulator.
 - Repeatable experiment batches, failure reproduction, parameter search,
   scenario minimization, and report exports.
-- A Python agent SDK and external worker for running compatible, trusted local
-  agent packages through the command line.
+- A Python agent SDK and external worker for trusted local packages, with
+  command-line execution and a persistent registry for queued API launches.
 - A maintained pretrained PlanT 2.0 integration using structured simulator state,
   plus synchronized RGB camera and LiDAR inputs for compatible sensor agents.
 
-Autonomous agent integration is under active development. Custom agent launch
-currently uses the command line; dashboard registration and agent selection are
+Autonomous agent integration is under active development. Registered agents can
+be launched through the API; dashboard registration and agent selection are
 planned. The included sensor pilot is a rule-based teaching example. PlanT is
 the trained reference model and uses structured state rather than camera-based
 perception.
@@ -81,6 +81,8 @@ For autonomous driving experiments, start with the
 [reference AI guide](docs/reference-ai-pilot.md), the
 [agent SDK](docs/agent-sdk.md), or the
 [camera and LiDAR agent guide](docs/sensor-agents.md).
+Use the [agent registry guide](docs/agent-registry.md) to register a trusted local
+package and select it for a queued API experiment.
 
 ## Learn more
 

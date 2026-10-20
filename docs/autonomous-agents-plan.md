@@ -11,7 +11,7 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 | 2.5 | Poltergeist reference AI pilot: one pretrained learned driving policy, live control verification, and hardware timing | A pinned model drives a bounded CARLA route through the worker, with evidence that its predictions affect the vehicle and measured real-time performance | Complete; live control and 20 Hz throughput verified with the documented performance profile |
 | 3 | Initial conditions versus agent goals, route/planner ownership, authoritative agent controls and recorded interventions | The agent chooses its evolving response without silent scripted overrides | Implemented; see driving task guide |
 | 4 | Declared camera/LiDAR inputs, synchronized observation delivery, separation of evaluator ground truth | One compatible sensor-based driving agent runs end to end | Implemented; see sensor agent guide |
-| 5 | Agent registry, API selection, durable job configuration and code/model fingerprints | Queued API runs retain the exact selected agent and observation mode | Planned |
+| 5 | Agent registry, API selection, durable job configuration and code/model fingerprints | Queued API runs retain the exact selected agent and observation mode | Implemented; see agent registry guide |
 | 6 | Agents page, registration/readiness checks, dashboard launch selection | A user registers and launches a compatible agent from the dashboard | Planned |
 | 7 | Persisted input/action/diagnostic/intervention timeline and synchronized review | A recorded action can be traced to its preceding observation | Planned |
 | 8 | Response/route/behavior analysis and evidence-based reports | Reports distinguish measurements, agent diagnostics, and inferred explanations | Planned |
@@ -67,8 +67,8 @@ remain unchanged.
   environment must already contain Poltergeist and the agent's dependencies.
   Nothing is installed automatically. See [commands and limits](agent-sdk.md#run-an-agent-in-a-separate-process).
 - Timing summaries are available through `ProcessAgent.stats` and CLI stderr.
-  Full persisted decision/diagnostic traces remain Phase 7. The dashboard/API
-  continue to use their existing baseline until Phases 5 and 6.
+  Full persisted decision/diagnostic traces remain Phase 7. Queued API agent
+  selection is described in Phase 5 below; dashboard selection remains Phase 6.
 
 Validation on October 18, 2026: 1,790 Python regression tests passed. The final
 180 focused worker/process/runner/SDK cases passed with warnings treated as
@@ -243,7 +243,7 @@ The reference AI accepts finite framework tasks and declares endpoint input
 padding and deterministic goal/tracking assistance. The network still runs each
 decision. A complete synthetic teaching example is included. See
 [driving tasks and commands](driving-tasks.md) for ownership, measurements and
-limitations. Dashboard agent selection remains Phases 5–6; sensor support is
+limitations. Dashboard agent selection remains Phase 6; sensor support is
 described in Phase 4 below.
 
 ## Phase 4 handoff
@@ -259,4 +259,25 @@ it is not a trained perception policy. PlanT remains the separate structured-sta
 reference AI. Results retain input provenance, multiple raw streams can be
 recorded, and a local CLI trace preserves exact inputs/actions. See
 [sensor agents and launch commands](sensor-agents.md). Registration, queued agent
-selection and dashboard controls remain Phases 5–6.
+selection are described in Phase 5 below; dashboard controls remain Phase 6.
+
+## Phase 5 handoff
+
+The persistent local registry records a trusted package, its selected worker
+Python, SDK manifest and code/model fingerprints. API launches can select a
+registered agent, and queued jobs retain their resolved selection rather than
+looking up a mutable current default when execution starts. Changed or missing
+package content fails explicitly instead of silently substituting an agent.
+Existing baseline launches remain available.
+
+Registration and inspection do not install dependencies or import agent code.
+Execution uses the same bounded external worker and observation contracts as
+the CLI. Sensor and simulator-state inputs retain their distinct provenance;
+registration alone is not proof of driving quality or CARLA readiness. See
+[registration, API launch and provenance](agent-registry.md) for the supported
+workflow and fingerprint limits, and [Phase 5 validation](phase5-validation.md)
+for measured test coverage.
+
+The Agents page and dashboard launch selector remain Phase 6. Full persisted
+decision timelines, behavior reports and agent-aware comparisons remain Phases
+7–9.

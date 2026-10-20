@@ -296,6 +296,112 @@
       "title": "AgentDiagnostics",
       "type": "object"
     },
+    "AgentExecutionOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "close_timeout_s": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Close Timeout S",
+          "type": "number"
+        },
+        "load_timeout_s": {
+          "default": 30.0,
+          "exclusiveMinimum": 0,
+          "title": "Load Timeout S",
+          "type": "number"
+        },
+        "max_message_bytes": {
+          "default": 4194304,
+          "exclusiveMinimum": 0,
+          "maximum": 67108864,
+          "title": "Max Message Bytes",
+          "type": "integer"
+        },
+        "reset_timeout_s": {
+          "default": 10.0,
+          "exclusiveMinimum": 0,
+          "title": "Reset Timeout S",
+          "type": "number"
+        },
+        "step_timeout_s": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "title": "Step Timeout S",
+          "type": "number"
+        },
+        "terminate_timeout_s": {
+          "default": 1.0,
+          "exclusiveMinimum": 0,
+          "title": "Terminate Timeout S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "load_timeout_s",
+        "reset_timeout_s",
+        "step_timeout_s",
+        "close_timeout_s",
+        "terminate_timeout_s",
+        "max_message_bytes"
+      ],
+      "title": "AgentExecutionOptions",
+      "type": "object"
+    },
+    "AgentExternalFileFingerprint": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "AgentExternalFileFingerprint",
+      "type": "object"
+    },
+    "AgentFileFingerprint": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "AgentFileFingerprint",
+      "type": "object"
+    },
     "AgentInputInfo": {
       "additionalProperties": false,
       "description": "Persisted provenance of agent inputs, separate from evaluator telemetry.\n\nSensor driving still receives ideal simulated ego localization. Naming that\nassistance prevents a camera/LiDAR run from implying a learned localization\nstack, or a deterministic fixture from implying actual CARLA sensor data.",
@@ -646,6 +752,131 @@
         "sensors"
       ],
       "title": "AgentObservation",
+      "type": "object"
+    },
+    "AgentReadiness": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "format": "uuid",
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "checked_at": {
+          "format": "date-time",
+          "title": "Checked At",
+          "type": "string"
+        },
+        "inference_checked": {
+          "const": false,
+          "default": false,
+          "title": "Inference Checked",
+          "type": "boolean"
+        },
+        "inspection": {
+          "const": "static_only",
+          "default": "static_only",
+          "title": "Inspection",
+          "type": "string"
+        },
+        "issues": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "ready": {
+          "title": "Ready",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "agent_id",
+        "ready",
+        "inspection",
+        "inference_checked",
+        "issues",
+        "limitations",
+        "checked_at"
+      ],
+      "title": "AgentReadiness",
+      "type": "object"
+    },
+    "AgentRegistration": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_control_mode": {
+          "default": "authoritative",
+          "enum": [
+            "authoritative",
+            "scripted"
+          ],
+          "title": "Agent Control Mode",
+          "type": "string"
+        },
+        "configuration": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Configuration",
+          "type": "object"
+        },
+        "model_files": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Model Files",
+          "type": "array"
+        },
+        "package_path": {
+          "minLength": 1,
+          "title": "Package Path",
+          "type": "string"
+        },
+        "process_options": {
+          "$ref": "#/$defs/AgentExecutionOptions"
+        },
+        "python_executable": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Python Executable"
+        },
+        "trusted_local_code": {
+          "const": true,
+          "title": "Trusted Local Code",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "package_path",
+        "python_executable",
+        "configuration",
+        "model_files",
+        "process_options",
+        "agent_control_mode",
+        "trusted_local_code"
+      ],
+      "title": "AgentRegistration",
       "type": "object"
     },
     "AgentReset": {
@@ -1143,6 +1374,114 @@
       "title": "AgentSensorSpec",
       "type": "object"
     },
+    "AgentSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_control_mode": {
+          "default": "authoritative",
+          "enum": [
+            "authoritative",
+            "scripted"
+          ],
+          "title": "Agent Control Mode",
+          "type": "string"
+        },
+        "configuration": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Configuration",
+          "type": "object"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/AgentFileFingerprint"
+          },
+          "maxItems": 20000,
+          "minItems": 1,
+          "title": "Files",
+          "type": "array"
+        },
+        "manifest": {
+          "$ref": "#/$defs/AgentManifest"
+        },
+        "model_files": {
+          "items": {
+            "$ref": "#/$defs/AgentExternalFileFingerprint"
+          },
+          "maxItems": 256,
+          "title": "Model Files",
+          "type": "array"
+        },
+        "observation_mode": {
+          "enum": [
+            "simulator_state",
+            "sensors"
+          ],
+          "title": "Observation Mode",
+          "type": "string"
+        },
+        "package_path": {
+          "minLength": 1,
+          "title": "Package Path",
+          "type": "string"
+        },
+        "package_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Package Sha256",
+          "type": "string"
+        },
+        "process_options": {
+          "$ref": "#/$defs/AgentExecutionOptions"
+        },
+        "python_executable": {
+          "minLength": 1,
+          "title": "Python Executable",
+          "type": "string"
+        },
+        "python_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Python Sha256",
+          "type": "string"
+        },
+        "python_size_bytes": {
+          "minimum": 0,
+          "title": "Python Size Bytes",
+          "type": "integer"
+        },
+        "registration_id": {
+          "format": "uuid",
+          "title": "Registration Id",
+          "type": "string"
+        },
+        "runtime_files": {
+          "items": {
+            "$ref": "#/$defs/AgentExternalFileFingerprint"
+          },
+          "maxItems": 20000,
+          "title": "Runtime Files",
+          "type": "array"
+        }
+      },
+      "required": [
+        "registration_id",
+        "package_path",
+        "python_executable",
+        "python_sha256",
+        "python_size_bytes",
+        "manifest",
+        "configuration",
+        "observation_mode",
+        "files",
+        "model_files",
+        "runtime_files",
+        "package_sha256",
+        "process_options",
+        "agent_control_mode"
+      ],
+      "title": "AgentSnapshot",
+      "type": "object"
+    },
     "AgentStepResult": {
       "additionalProperties": false,
       "properties": {
@@ -1206,11 +1545,20 @@
     "ApiContracts": {
       "additionalProperties": false,
       "properties": {
+        "agent_readiness": {
+          "$ref": "#/$defs/AgentReadiness"
+        },
+        "agent_registration": {
+          "$ref": "#/$defs/AgentRegistration"
+        },
         "analytics": {
           "$ref": "#/$defs/AnalyticsSummary"
         },
         "queue_status": {
           "$ref": "#/$defs/QueueStatus"
+        },
+        "registered_agent": {
+          "$ref": "#/$defs/RegisteredAgent"
         },
         "reproduction_update": {
           "$ref": "#/$defs/ReproductionUpdate"
@@ -1241,6 +1589,9 @@
         }
       },
       "required": [
+        "agent_registration",
+        "registered_agent",
+        "agent_readiness",
         "scenario_record",
         "scenario_update",
         "scenario_generate",
@@ -2101,6 +2452,17 @@
     "JobInfo": {
       "additionalProperties": false,
       "properties": {
+        "agent_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "cancel_requested": {
           "title": "Cancel Requested",
           "type": "boolean"
@@ -2128,7 +2490,8 @@
         "cancel_requested",
         "queue_position",
         "options",
-        "evaluation_settings"
+        "evaluation_settings",
+        "agent_snapshot"
       ],
       "title": "JobInfo",
       "type": "object"
@@ -2830,6 +3193,36 @@
         "active_id"
       ],
       "title": "QueueStatus",
+      "type": "object"
+    },
+    "RegisteredAgent": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/AgentSnapshot"
+        }
+      },
+      "required": [
+        "id",
+        "snapshot",
+        "active",
+        "created_at"
+      ],
+      "title": "RegisteredAgent",
       "type": "object"
     },
     "RelativeSpawn": {
@@ -3580,6 +3973,17 @@
           "title": "Agent",
           "type": "string"
         },
+        "agent_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "created_at": {
           "format": "date-time",
           "title": "Created At",
@@ -3657,6 +4061,7 @@
         "id",
         "scenario",
         "agent",
+        "agent_snapshot",
         "mode",
         "status",
         "progress",
@@ -3671,6 +4076,19 @@
     "SimulationLaunch": {
       "additionalProperties": false,
       "properties": {
+        "agent_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Id"
+        },
         "evaluation_settings": {
           "$ref": "#/$defs/EvaluationSettings"
         },
@@ -3715,6 +4133,7 @@
         "scenario_id",
         "scenario",
         "mode",
+        "agent_id",
         "options",
         "evaluation_settings"
       ],
