@@ -110,6 +110,8 @@ def download_report(
             expected_type = {"json": "application/json", "csv": "text/csv", "html": "text/html"}[format]
             if response.headers.get_content_type() != expected_type:
                 raise ExportError(f"The API returned an unexpected content type; expected {expected_type}. Check --api-url.")
+            if include_behavior and response.headers.get("X-Poltergeist-Report-Schema") != "poltergeist-run-report-v2":
+                raise ExportError("The API did not confirm support for behavior exports. Restart the backend after updating and check that any proxy forwards the report schema header; no report was saved.")
             length = response.headers.get("Content-Length")
             try:
                 expected_length = None if length is None else int(length)

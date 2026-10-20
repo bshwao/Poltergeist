@@ -176,17 +176,17 @@ test("a late acceptance remains visible after the recipe changes and retains the
   assert.match(text(receipt), /894d8ac8/);
 });
 
-test("queue full and unavailable responses are clear rejections while lost responses warn before retry", async t => {
+test("queue full is rejected while lost responses and server failures warn before retry", async t => {
   const view = setup(t);
   choose(view, "test");
-  for (const [status, message] of [[429, "The simulation queue is full."], [503, "The service is temporarily unavailable."]]) {
+  for (const [status, message] of [[429, "The simulation queue is full."]]) {
     api.launchSimulation = async () => { throw new ApiError(message, status); };
     await submit(view);
     assert.match(text(view.root), /Run was not accepted/);
     assert.match(text(view.root), new RegExp(message.replace(/[.]/g, "\\.")));
     assert.doesNotMatch(text(view.root), /Check run history before retrying/);
   }
-  for (const status of [0, 202]) {
+  for (const status of [0, 202, 503]) {
     api.launchSimulation = async () => { throw new ApiError("The response could not be read.", status); };
     await submit(view);
     assert.match(text(view.root), /Run acceptance is uncertain/);

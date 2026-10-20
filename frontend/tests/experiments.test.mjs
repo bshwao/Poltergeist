@@ -85,6 +85,50 @@ test("switching selected experiments aborts and ignores stale reads", async t =>
   assert.ok(codes.includes(id(3))); assert.ok(!codes.includes(id(1)));
 });
 
+test("a delayed mutation cannot navigate back to an experiment the user left", async t => {
+  const view = await setup(t, { selectedId: id(1) });
+  window.location.hash = `#experiments/${id(1)}`;
+  const pending = deferred();
+  api.resumeOptimization = () => pending.promise;
+  await act(async () => { button(view, "Resume remaining trials").props.onClick(); });
+  window.location.hash = `#experiments/${id(3)}`;
+  api.getOptimization = async () => ({ operation: record({ id: id(3) }), trials: [] });
+  await act(async () => view.update(React.createElement(Experiments, { selectedId: id(3), templates: [] })));
+  await act(async () => pending.resolve(record()));
+  assert.equal(window.location.hash, `#experiments/${id(3)}`);
+});
+
+test("history pagination clears old records while the requested page loads", async t => {
+  const view = await setup(t);
+  const pending = deferred();
+  api.listOptimizations = async ({ offset, limit }) => offset ? pending.promise : Array.from({ length: 11 }, (_, i) => record({ id: id(i + 1) })).slice(0, limit);
+  await act(async () => button(view, "Refresh history").props.onClick());
+  assert.equal(view.root.findAllByType("a").filter(a => a.props.href?.startsWith("#experiments/")).length, 10);
+  await act(async () => button(view, "Next").props.onClick());
+  assert.equal(button(view, "Next").props.disabled, true);
+  assert.equal(view.root.findAllByType("a").filter(a => a.props.href?.startsWith("#experiments/")).length, 0);
+  assert.match(text(view.root), /Loading experiment history/);
+  await act(async () => pending.resolve([record({ id: id(12) })]));
+  assert.ok(view.root.findAllByType("a").some(a => a.props.href === `#experiments/${id(12)}`));
+});
+
+test("a failed registry request does not hide available experiment history", async t => {
+  const view = await setup(t);
+  api.listAgents = async () => { throw new Error("Agent registry unavailable"); };
+  api.listOptimizations = async () => [record()];
+  await act(async () => button(view, "Refresh history").props.onClick());
+  assert.match(text(view.root), /Agent registry unavailable/);
+  assert.ok(view.root.findAllByType("a").some(a => a.props.href === `#experiments/${id(1)}`));
+  assert.equal(button(view, "Next").props.disabled, true);
+});
+
+test("an exactly full final history page does not offer an empty next page", async t => {
+  const view = await setup(t);
+  api.listOptimizations = async () => Array.from({ length: 10 }, (_, i) => record({ id: id(i + 1) }));
+  await act(async () => button(view, "Refresh history").props.onClick());
+  assert.equal(button(view, "Next").props.disabled, true);
+});
+
 test("comparison review preserves unavailable observations and links each trial's evidence", async t => {
   const view = await setup(t);
   const operation = record({ status: "completed", request: { kind: "compare" }, source_failure: null });

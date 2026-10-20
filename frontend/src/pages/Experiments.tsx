@@ -29,10 +29,13 @@ export function Experiments({ active = true, selectedId, sourceFailureId, initia
   const [draft, setDraft] = useState(emptyExperiment);
   const [agents, setAgents] = useState<RegisteredAgent[]>([]);
   const [history, setHistory] = useState<OptimizationRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
   const [offset, setOffset] = useState(0);
   const [view, setView] = useState<OptimizationView | null>(null);
   const [comparison, setComparison] = useState<ComparisonReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [agentsError, setAgentsError] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -48,11 +51,22 @@ export function Experiments({ active = true, selectedId, sourceFailureId, initia
   useEffect(() => {
     if (!active) return;
     const controller = new AbortController();
-    Promise.all([api.listAgents({ active: true, limit: 100 }, { signal: controller.signal }), api.listOptimizations({ limit: 10, offset }, { signal: controller.signal })])
-      .then(([a, h]) => { if (!controller.signal.aborted) { setAgents(a); setHistory(h); setListError(null); } })
-      .catch(e => { if (!controller.signal.aborted) setListError(message(e)); });
+    setAgentsError(null);
+    void api.listAgents({ active: true, limit: 100 }, { signal: controller.signal })
+      .then(a => { if (!controller.signal.aborted) setAgents(a); })
+      .catch(e => { if (!controller.signal.aborted) setAgentsError(message(e)); });
     return () => controller.abort();
-  }, [active, offset, refresh, registryRevision]);
+  }, [active, refresh, registryRevision]);
+  useEffect(() => {
+    if (!active) return;
+    const controller = new AbortController();
+    setHistoryLoading(true); setHistory([]); setHasNext(false); setListError(null);
+    void api.listOptimizations({ limit: 11, offset }, { signal: controller.signal })
+      .then(h => { if (!controller.signal.aborted) { setHistory(h.slice(0, 10)); setHasNext(h.length > 10); } })
+      .catch(e => { if (!controller.signal.aborted) setListError(message(e)); })
+      .finally(() => { if (!controller.signal.aborted) setHistoryLoading(false); });
+    return () => controller.abort();
+  }, [active, offset, refresh]);
   useEffect(() => {
     setView(null); setComparison(null); setTrialPage(0); setError(null);
     if (!active || !selectedId) return;
@@ -75,10 +89,11 @@ export function Experiments({ active = true, selectedId, sourceFailureId, initia
   function field<K extends keyof ExperimentDraft>(key: K, value: ExperimentDraft[K]) { setDraft(d => ({ ...d, [key]: value })); }
   async function mutate(action: () => Promise<OptimizationRecord>) {
     if (mutation.current) return;
+    const origin = window.location.hash;
     mutation.current = new AbortController(); setBusy(true); setError(null);
     try {
       const result = await action();
-      if (mounted.current) { if (visible.current) window.location.hash = `experiments/${result.id}`; setRefresh(r => r + 1); }
+      if (mounted.current) { if (visible.current && window.location.hash === origin) window.location.hash = `experiments/${result.id}`; setRefresh(r => r + 1); }
     } catch (e) {
       if (mounted.current) {
         const uncertain = !(e instanceof ApiError) || e.status === 0 || e.status >= 500 || e.status < 400;
@@ -102,6 +117,7 @@ export function Experiments({ active = true, selectedId, sourceFailureId, initia
   const operation = view?.operation;
   return <div className="experiments-page">
     <header className="page-heading"><div><p className="eyebrow">MATCHED TRIALS & FAILURE SEARCH</p><h1>Experiments</h1><p>Compare registered agents, repeat matched seeds, and investigate recorded failures.</p></div></header>
+    {agentsError && <p className="error-banner" role="alert">{agentsError} Agent selections could not be refreshed. Use Refresh history to retry.</p>}
     <section className="panel"><div className="panel-header"><h2>Plan an experiment</h2></div><form className="experiment-form" onSubmit={e => { e.preventDefault(); try { const input = experimentInput(draft); void mutate(() => api.createOptimization(input, { signal: mutation.current!.signal })); } catch (e) { setError(message(e)); } }}>
       <label>Experiment type<select value={draft.kind} disabled={busy} onChange={e => field("kind", e.target.value as ExperimentKind)}><option value="compare">Agent comparison / repeated trials</option><option value="search">Search for failures</option><option value="reproduce">Reproduce a recorded failure</option><option value="minimize">Minimize a recorded failure</option></select></label>
       {source ? <><label>Source failure ID<input value={draft.failureId} onChange={e => field("failureId", e.target.value)} required /></label><p className="notice">The source run's registered agent, simulation options and scoring settings are inherited. Changed or inactive agents cannot be silently substituted. Find source IDs in the Failures tab.</p></> : <>
@@ -116,7 +132,7 @@ export function Experiments({ active = true, selectedId, sourceFailureId, initia
       <div className="button-row"><button className="button primary" disabled={busy}>{busy ? "Working…" : `Start ${draft.kind} · ${planned}${source ? "" : ` · ${draft.mode}`}`}</button><button type="button" className="button secondary" disabled={busy} onClick={() => setRefresh(r => r + 1)}>Refresh history</button></div>
     </form></section>
     {error && <p className="error-banner" role="alert">{error} <button type="button" onClick={() => setRefresh(r => r + 1)}>Refresh</button></p>}
-    <section className="panel"><div className="panel-header"><h2>Experiment history</h2></div>{listError && <p role="alert">{listError}</p>}<div className="panel-body">{history.length ? <ul className="experiment-history">{history.map(r => <li key={r.id}><a href={`#experiments/${r.id}`}>{r.request.kind} · {r.execution.mode} · {r.status} · {r.id}</a><span>{new Date(r.created_at).toLocaleString()}</span></li>)}</ul> : <p>No experiments on this page.</p>}<div className="button-row"><button className="button secondary" disabled={offset === 0} onClick={() => setOffset(n => Math.max(0, n - 10))}>Previous</button><span>Page {offset / 10 + 1}</span><button className="button secondary" disabled={history.length < 10} onClick={() => setOffset(n => n + 10)}>Next</button></div></div></section>
+    <section className="panel"><div className="panel-header"><h2>Experiment history</h2></div>{listError && <p role="alert">{listError}</p>}<div className="panel-body">{historyLoading ? <p role="status">Loading experiment history…</p> : history.length ? <ul className="experiment-history">{history.map(r => <li key={r.id}><a href={`#experiments/${r.id}`}>{r.request.kind} · {r.execution.mode} · {r.status} · {r.id}</a><span>{new Date(r.created_at).toLocaleString()}</span></li>)}</ul> : !listError && <p>No experiments on this page.</p>}<div className="button-row"><button className="button secondary" disabled={historyLoading || offset === 0} onClick={() => setOffset(n => Math.max(0, n - 10))}>Previous</button><span>Page {offset / 10 + 1}</span><button className="button secondary" disabled={historyLoading || !hasNext} onClick={() => setOffset(n => n + 10)}>Next</button></div></div></section>
     {selectedId && !view && !error && <p role="status">Loading experiment…</p>}
     {operation && view && <section className="panel"><div className="panel-header"><h2>{operation.request.kind} · {operation.status}</h2></div><div className="panel-body"><p><code>{operation.id}</code> · Revision {operation.revision} · {view.trials.length} executions submitted</p><p>{operation.outcome?.summary ?? "Execution is in progress; unknown outcomes are preserved."}</p>{operation.error && <p role="alert">{operation.error}</p>}<div className="button-row">{ongoing(operation) && <button className="button secondary" disabled={busy || operation.cancel_requested} onClick={() => void mutate(() => api.cancelOptimization(operation.id, { signal: mutation.current!.signal }))}>{operation.cancel_requested ? "Cancellation requested" : "Cancel experiment"}</button>}{operation.status === "interrupted" && <button className="button primary" disabled={busy} onClick={() => void mutate(() => api.resumeOptimization(operation.id, operation.revision, { signal: mutation.current!.signal }))}>Resume remaining trials</button>}</div>
       <details><summary>Frozen recipe, agents and execution settings</summary><pre>{JSON.stringify(operation, null, 2)}</pre></details>

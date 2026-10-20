@@ -16,12 +16,14 @@ from scripts import export_report as cli
 
 
 class Response(BytesIO):
-    def __init__(self, content=b'{"schema":"poltergeist-run-report-v1"}', *, content_type="application/json", length=None, status=200):
+    def __init__(self, content=b'{"schema":"poltergeist-run-report-v1"}', *, content_type="application/json", length=None, status=200, schema=None):
         super().__init__(content)
         self.status = status
         self.headers = Message()
         self.headers["Content-Type"] = content_type
         self.headers["Content-Length"] = str(len(content)) if length is None else length
+        if schema is not None:
+            self.headers["X-Poltergeist-Report-Schema"] = schema
 
 
 @pytest.fixture
@@ -66,9 +68,21 @@ def test_api_prefix_and_opt_in_trace_are_preserved(download):
 def test_behavior_export_option_is_forwarded_for_every_format(download):
     run, defaults, requests, responses = download
     for format, content_type in [("json", "application/json"), ("csv", "text/csv"), ("html", "text/html")]:
-        responses.append(Response(b"behavior report", content_type=content_type))
+        responses.append(Response(b"behavior report", content_type=content_type, schema="poltergeist-run-report-v2"))
         run(format=format, include_behavior=True, output=defaults["output"].with_suffix("." + format))
         assert requests[-1][0].full_url.endswith(f"?format={format}&include_behavior=true")
+
+
+@pytest.mark.parametrize("schema", [None, "poltergeist-run-report-v1", "unknown"])
+@pytest.mark.parametrize("format,content_type", [("json", "application/json"), ("csv", "text/csv"), ("html", "text/html")])
+def test_behavior_export_rejects_silent_legacy_response_without_replacing_output(download, schema, format, content_type):
+    run, defaults, _, responses = download
+    defaults["output"].write_bytes(b"existing report")
+    responses.append(Response(b"legacy report", content_type=content_type, schema=schema))
+    with pytest.raises(cli.ExportError, match="behavior exports"):
+        run(format=format, include_behavior=True, force=True)
+    assert defaults["output"].read_bytes() == b"existing report"
+    assert not list(defaults["output"].parent.glob(".poltergeist-report-*.tmp"))
 
 
 def test_existing_output_is_preserved_before_making_a_request(download):

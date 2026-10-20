@@ -57,6 +57,15 @@ def test_doctor_invalid_configuration_never_attempts_probe(monkeypatch):
     assert any(c["name"] == "configuration" and c["status"] == "fail" for c in report["checks"])
 
 
+@pytest.mark.parametrize("url", ["postgresql://localhost/poltergeist", "sqlite:///unused.db?mode=ro"])
+def test_doctor_rejects_database_options_the_backend_cannot_open(monkeypatch, url):
+    monkeypatch.setenv("DATABASE_URL", url)
+    monkeypatch.setattr(doctor, "carla_probe", lambda *a: pytest.fail("Invalid storage settings reached CARLA"))
+    report = doctor.collect(carla=True)
+    assert not report["passed"]
+    assert any(c["name"] == "configuration" and c["status"] == "fail" for c in report["checks"])
+
+
 def test_validation_refuses_existing_output_without_touching_it(tmp_path, capsys):
     marker = tmp_path / "keep.txt"
     marker.write_text("existing user data")

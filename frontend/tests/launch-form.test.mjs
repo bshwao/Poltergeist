@@ -119,8 +119,8 @@ test("each new form gets independent editable defaults", () => {
 });
 
 test("lost transport, malformed success and unexpected server errors warn about uncertain acceptance", () => {
-  for (const status of [0, 200, 201, 202, 204, 500, 502, 504]) assert.equal(acceptanceMayBeUncertain(status), true, String(status));
-  for (const status of [400, 404, 409, 422, 429, 503]) assert.equal(acceptanceMayBeUncertain(status), false, String(status));
+  for (const status of [0, 200, 201, 202, 204, 500, 502, 503, 504]) assert.equal(acceptanceMayBeUncertain(status), true, String(status));
+  for (const status of [400, 404, 409, 422, 429]) assert.equal(acceptanceMayBeUncertain(status), false, String(status));
 });
 
 const registration = (snapshot = {}) => ({ id: "77889109-3248-48bd-a62f-d792cc244916", active: true, snapshot: {

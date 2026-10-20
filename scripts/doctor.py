@@ -12,6 +12,7 @@ import subprocess
 import sys
 
 from backend.config import Settings
+from backend.database import Database
 
 CORE = ("poltergeist", "fastapi", "uvicorn", "pydantic", "pydantic-settings", "PyYAML", "sqlalchemy")
 CARLA_VERSION = "0.9.16"
@@ -63,6 +64,9 @@ def collect(*, frontend=False, carla=False, carla_python=None, timeout=5., hardw
             versions[name], "Install requirements.txt from the checkout, or install the project package.")
     try:
         settings = Settings()
+        # Construction validates the supported driver/URL options without
+        # connecting, migrating or creating any files.
+        Database(settings.database_url)
         add("configuration", "pass", {"database_url": settings.database_url, "storage_dir": str(settings.storage_dir),
             "api_host": settings.api_host, "api_port": settings.api_port, "cors_origins": settings.cors_origins})
         parent = settings.storage_dir

@@ -387,6 +387,18 @@ def test_bad_transport_response_is_uncertain_for_launch_and_not_retried(response
     assert len(client.opener.calls) == 1
 
 
+@pytest.mark.parametrize("method,path", [("POST", "/optimizations"), ("POST", "/agents"),
+    ("PUT", "/scenarios/example"), ("PATCH", "/failures/example/reproduction"),
+    ("DELETE", "/scenarios/example")])
+def test_lost_mutation_responses_remain_uncertain_for_all_api_resources(method, path):
+    client = cli.ApiClient("http://localhost:8000", 1)
+    client.opener = Opener(URLError("connection lost after sending request"))
+    with pytest.raises(cli.ApiError) as caught:
+        client.request(method, path, {})
+    assert caught.value.uncertain
+    assert len(client.opener.calls) == 1
+
+
 @pytest.mark.parametrize("status,uncertain", [(422, False), (429, False), (500, True), (503, True), (307, True)])
 def test_http_error_status_distinguishes_rejection_and_unknown_acceptance(status, uncertain):
     client = cli.ApiClient("http://localhost:8000", 1)

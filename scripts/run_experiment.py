@@ -84,7 +84,9 @@ class ApiClient:
         data = None if payload is None else json.dumps(payload, allow_nan=False).encode("utf-8")
         request = Request(self.base_url + path, data=data, method=method,
                           headers={"Accept": "application/json", "Content-Type": "application/json"})
-        mutation = method == "POST" and path.startswith("/simulations")
+        # This transport also serves agent registrations and optimization
+        # submissions. A lost response cannot prove any mutation was rejected.
+        mutation = method.upper() not in {"GET", "HEAD", "OPTIONS"}
         try:
             with self.opener.open(request, timeout=self.timeout if timeout is None else timeout) as response:
                 if response.status != expected:

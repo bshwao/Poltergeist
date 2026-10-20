@@ -125,5 +125,7 @@ export function makeLaunchRequest(scenario: Scenario | null, mode: RunMode | nul
 }
 
 export function acceptanceMayBeUncertain(status: number): boolean {
-  return status === 0 || (status >= 200 && status < 300) || (status >= 500 && status !== 503);
+  // A 503 can occur while assembling the receipt after enqueue committed.
+  // The status alone cannot prove that no job was accepted.
+  return status === 0 || (status >= 200 && status < 300) || status >= 500;
 }
