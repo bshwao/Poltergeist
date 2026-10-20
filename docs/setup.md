@@ -1,5 +1,10 @@
 # Local development
 
+For a new checkout, start with the [first-run walkthrough](first-run.md), which
+includes `python -m scripts.doctor --frontend` and an isolated agent/sensor
+validation command. See [hardware profiles](hardware.md) and
+[troubleshooting](troubleshooting.md) for execution choices and errors.
+
 Use **Python 3.12** for full CARLA development and **Node.js 24 LTS** for the
 dashboard. The core API, shared models, synthetic simulation, and tests also work
 without CARLA and are checked in the existing Python 3.14 environment. CARLA 0.9.16 publishes Python
@@ -51,8 +56,10 @@ Random search uses only core dependencies. To enable optional Optuna search:
 
 Optuna 4.x is required; 4.9.0 has been exercised locally, and resuming a search
 requires its recorded exact engine version. See [optimization usage](optimization.md).
-The adapter requires a matching CARLA 0.9.16 client/server; live GPU integration
-remains unverified.
+The adapter requires a matching CARLA 0.9.16 client/server. The
+[reference performance record](reference-ai-performance.md) and
+[Phase 10 validation](phase10-validation.md) distinguish tested native Windows
+workflows from unverified hardware/container combinations.
 
 ## Configuration
 

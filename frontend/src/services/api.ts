@@ -3,6 +3,8 @@ import type { AgentReadiness, AgentRegistration, AnalyticsSummary, FailureReport
 import type { DecisionPage } from "../types/generated";
 import type { BehaviorAnalysis } from "../types/generated";
 import { isBehaviorAnalysis } from "./behavior-contract";
+import { experimentContracts } from "./experiment-contract";
+import type { ComparisonReport, OptimizationRecord, OptimizationView } from "../types/generated";
 
 export interface ApiIssue {
   path: string;
@@ -708,7 +710,51 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     return bytes.buffer;
   }
 
+  function reportUrl(id: string, format: "json" | "csv" | "html", includeTelemetry = false, includeBehavior = false) {
+    if (!["json", "csv", "html"].includes(format) || typeof includeTelemetry !== "boolean" || typeof includeBehavior !== "boolean" || includeTelemetry && format !== "json") throw new ApiError("Choose a supported report format. Telemetry is available in JSON reports only.", 422);
+    return `${base}/reports/simulations/${checkedId(id)}?format=${format}${includeTelemetry ? "&include_telemetry=true" : ""}${includeBehavior ? "&include_behavior=true" : ""}`;
+  }
+
+  async function getReport(id: string, format: "json" | "csv" | "html", includeTelemetry = false, includeBehavior = true, options: RequestOptions = {}): Promise<Blob> {
+    const url = reportUrl(id, format, includeTelemetry, includeBehavior);
+    const mediaType = { json: "application/json", csv: "text/csv", html: "text/html" }[format];
+    let response: Response;
+    try { response = await fetch(url, { headers: { Accept: mediaType }, signal: options.signal }); }
+    catch (error) {
+      if (options.signal?.aborted || error instanceof Error && error.name === "AbortError") throw error;
+      throw new ApiError("Could not reach the report service. Check that the backend is running.");
+    }
+    if (!response.ok) {
+      let payload: unknown;
+      try { payload = await response.json(); } catch (error) { if (options.signal?.aborted || error instanceof Error && error.name === "AbortError") throw error; }
+      throw responseError(response.status, payload);
+    }
+    if (response.status !== 200 || response.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !== mediaType) {
+      await response.body?.cancel(); throw new ApiError("The report service returned an unexpected file type.");
+    }
+    if (includeBehavior && response.headers.get("X-Poltergeist-Report-Schema") !== "poltergeist-run-report-v2") {
+      await response.body?.cancel(); throw new ApiError("The report service does not support behavior exports. Restart the backend after updating; check that any proxy forwards the report schema header.");
+    }
+    try {
+      const blob = await response.blob();
+      const length = response.headers.get("Content-Length"), encoding = response.headers.get("Content-Encoding");
+      if (!blob.size || (!encoding || encoding === "identity") && length !== null && (!/^\d+$/.test(length) || !Number.isSafeInteger(Number(length)) || blob.size !== Number(length))) throw new ApiError("The report transfer was empty or incomplete. Retry the download.");
+      return blob;
+    } catch (error) {
+      if (options.signal?.aborted || error instanceof ApiError || error instanceof Error && error.name === "AbortError") throw error;
+      throw new ApiError("Could not download the complete report. Retry the download.");
+    }
+  }
+
+  const experiments = experimentContracts({ scenario: isScenario, options: isOptions, evaluation: isEvaluation, snapshot: isAgentSnapshot, failure: isFailure });
   return {
+    listOptimizations: (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<OptimizationRecord[]>(`/optimizations${paginationQuery(pagination)}`, options, v => Array.isArray(v) && v.every(experiments.record)),
+    createOptimization: (input: unknown, options: RequestOptions = {}) => request<OptimizationRecord>("/optimizations", options, experiments.record, "POST", input, 202),
+    getOptimization: (id: string, options: RequestOptions = {}) => request<OptimizationView>(`/optimizations/${checkedId(id)}`, options, v => experiments.view(v, id)),
+    cancelOptimization: (id: string, options: RequestOptions = {}) => request<OptimizationRecord>(`/optimizations/${checkedId(id)}/cancel`, options, v => experiments.record(v) && v.id.toLowerCase() === id.toLowerCase(), "POST", {}, 202),
+    resumeOptimization: (id: string, revision: number, options: RequestOptions = {}) => request<OptimizationRecord>(`/optimizations/${checkedId(id)}/resume`, options, v => experiments.record(v) && v.id.toLowerCase() === id.toLowerCase(), "POST", { expected_revision: checkedRevision(revision) }, 202),
+    getComparison: (id: string, options: RequestOptions = {}) => request<ComparisonReport>(`/optimizations/${checkedId(id)}/comparison`, options, v => experiments.comparison(v, id)),
+    comparisonExportUrl: (id: string) => `${base}/optimizations/${checkedId(id)}/comparison?download=true`,
     health: (options: RequestOptions = {}) => request<HealthStatus>("/health", options, isHealth),
     registerAgent: (input: AgentRegistration, options: RequestOptions = {}) => request<RegisteredAgent>("/agents", options, isRegisteredAgent, "POST", input, 201),
     listAgents: (filters: AgentFilters = {}, options: RequestOptions = {}) => request<RegisteredAgent[]>(`/agents${agentFilterQuery(filters)}`, options, value => Array.isArray(value) && value.every(isRegisteredAgent)),
@@ -755,10 +801,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
       && (mode === undefined || (isObject(value) && Array.isArray(value.groups) && value.groups.length === 1 && value.groups[0].mode === mode)), "GET", undefined, 200),
     artifactUrl: (id: string, index: number) => `${base}${artifactPath(id, index)}`,
     sampleUrl: (id: string, artifactIndex: number, sampleIndex: number) => `${base}${samplePath(id, artifactIndex, sampleIndex)}`,
-    reportUrl: (id: string, format: "json" | "csv" | "html", includeTelemetry = false) => {
-      if (!["json", "csv", "html"].includes(format) || typeof includeTelemetry !== "boolean" || includeTelemetry && format !== "json") throw new ApiError("Choose a supported report format. Telemetry is available in JSON reports only.", 422);
-      return `${base}/reports/simulations/${checkedId(id)}?format=${format}${includeTelemetry ? "&include_telemetry=true" : ""}`;
-    },
+    reportUrl, getReport,
     getCaptureManifest: async (id: string, index: number, options: RequestOptions = {}) => request<RawCaptureManifest>(artifactPath(id, index), options, value => isManifest(value, id), "GET", undefined, 200),
     getCaptureSample: async (id: string, artifactIndex: number, sampleIndex: number, options: RequestOptions = {}) => sampleBytes(samplePath(id, artifactIndex, sampleIndex), options),
   };
@@ -770,5 +813,5 @@ export const {
   health, listTemplates, generateScenario, validateScenario, listScenarios, getScenario,
   createScenario, updateScenario, deleteScenario, getSimulationQueue, launchSimulation,
   listSimulations, getSimulation, getSimulationProgress, getSimulationResult, getBehaviorAnalysis, cancelSimulation, getTelemetry,
-  listFailures, getFailure, createFailure, updateReproduction, getAnalytics, artifactUrl, sampleUrl, reportUrl, getCaptureManifest, getCaptureSample,
+  listFailures, getFailure, createFailure, updateReproduction, getAnalytics, artifactUrl, sampleUrl, reportUrl, getReport, getCaptureManifest, getCaptureSample,
 } = api;

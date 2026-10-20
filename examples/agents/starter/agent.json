@@ -1,8 +1,8 @@
 {
-  "protocol_version": "1.0",
+  "protocol_version": "1.3",
   "agent_id": "starter-agent",
   "name": "Starter rule-based agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "entry_point": "agent:StarterAgent",
   "observation_mode": "simulator_state",
   "control_mode": "vehicle_control",

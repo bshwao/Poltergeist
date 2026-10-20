@@ -358,6 +358,348 @@ export type MinTtcS = number | null;
 export type Severity = number | null;
 export type TrafficViolationCount = number | null;
 export type TaskEvidence = EvidenceSpan[];
+export type CancelRequested = boolean;
+/**
+ * @maxItems 8
+ */
+export type ComparisonAgents =
+  | []
+  | [ComparisonAgent]
+  | [ComparisonAgent, ComparisonAgent]
+  | [ComparisonAgent, ComparisonAgent, ComparisonAgent]
+  | [ComparisonAgent, ComparisonAgent, ComparisonAgent, ComparisonAgent]
+  | [ComparisonAgent, ComparisonAgent, ComparisonAgent, ComparisonAgent, ComparisonAgent]
+  | [ComparisonAgent, ComparisonAgent, ComparisonAgent, ComparisonAgent, ComparisonAgent, ComparisonAgent]
+  | [
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent
+    ]
+  | [
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent,
+      ComparisonAgent
+    ];
+export type AgentId2 = string | null;
+export type CreatedAt = string;
+export type EngineVersion = string | null;
+export type Error = string | null;
+export type Mode2 = "carla" | "test";
+export type AllowMapReload = boolean;
+export type Camera = boolean;
+export type CameraHeight = number;
+export type CameraWidth = number;
+export type Lidar = boolean;
+export type MaxTicks = number;
+export type NoRenderingMode = boolean | null;
+export type SensorSettleS = number;
+export type SensorTimeoutS = number;
+export type FinishedAt = string | null;
+export type Id2 = string;
+export type BestFailureId = string | null;
+/**
+ * @minItems 1
+ */
+export type Actors1 = [ActorSpec, ...ActorSpec[]];
+export type Blueprint = string | null;
+export type Id3 = string | null;
+export type AnchorActorId = string;
+export type YawOffsetDeg = number;
+export type SpawnPointIndex = number | null;
+export type SpeedMps = number;
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ActorType".
+ */
+export type ActorType = "ego_vehicle" | "vehicle" | "lead_vehicle" | "crossing_vehicle" | "pedestrian";
+export type Description = string;
+export type DurationS1 = number;
+export type Event = string | null;
+export type Action = "set_speed";
+export type ActorId3 = string;
+export type SpeedMps1 = number;
+export type TriggerTimeS = number;
+export type Action1 = "brake";
+export type ActorId4 = string;
+export type DecelerationMps2 = number;
+export type TriggerTimeS1 = number;
+export type Events1 = (SpeedChangeEvent | BrakingEvent)[];
+export type FixedDeltaSeconds1 = number;
+export type Location = string | null;
+export type Map = string;
+export type Name1 = string;
+export type Occlusion = boolean;
+export type SchemaVersion2 = "1.0";
+export type Seed1 = number;
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ScenarioTemplate".
+ */
+export type ScenarioTemplate = "intersection" | "pedestrian_crossing" | "occluded_pedestrian" | "sudden_braking";
+export type Cloudiness = number;
+export type FogDensity = number;
+export type Precipitation = number;
+export type SunAltitudeDeg = number;
+export type Wetness = number;
+export type BestSimulationId = string | null;
+export type Reproduced = boolean | null;
+export type Successes = number;
+export type Summary = string;
+export type TrialsUsed = number;
+export type Unknowns = number;
+export type Request = SearchRequest | ComparisonRequest | ReproductionRequest | MinimizeRequest;
+export type AgentId3 = string | null;
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "FailureKind".
+ */
+export type FailureKind = "collision" | "near_miss" | "hard_braking" | "traffic_violation";
+export type Kind3 = "search";
+export type MinimumSeverity = number;
+export type Mode3 = "carla" | "test";
+export type Seed2 = number;
+export type Strategy = "random" | "optuna";
+export type Trials = number;
+/**
+ * @minItems 1
+ * @maxItems 8
+ */
+export type Agents =
+  | [string | null]
+  | [string | null, string | null]
+  | [string | null, string | null, string | null]
+  | [string | null, string | null, string | null, string | null]
+  | [string | null, string | null, string | null, string | null, string | null]
+  | [string | null, string | null, string | null, string | null, string | null, string | null]
+  | [string | null, string | null, string | null, string | null, string | null, string | null, string | null]
+  | [
+      string | null,
+      string | null,
+      string | null,
+      string | null,
+      string | null,
+      string | null,
+      string | null,
+      string | null
+    ];
+export type Kind4 = "compare";
+export type MinimumSeverity1 = number;
+export type Mode4 = "carla" | "test";
+export type Repeats = number;
+/**
+ * @minItems 1
+ * @maxItems 20
+ */
+export type Seeds =
+  | [number]
+  | [number, number]
+  | [number, number, number]
+  | [number, number, number, number]
+  | [number, number, number, number, number]
+  | [number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number, number, number, number]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ];
+export type FailureId = string;
+export type Kind5 = "reproduce";
+export type MinimumSeverity2 = number;
+export type Repeats1 = number;
+export type RequiredSuccesses = number | null;
+export type FailureId1 = string;
+export type Kind6 = "minimize";
+export type MaxTrials = number;
+export type MinimumSeverity3 = number;
+export type Repeats2 = number;
+export type Revision = number;
+export type CreatedAt1 = string;
+export type Id4 = string;
+export type Reproduced1 = boolean | null;
+export type Severity1 = number;
+export type SimulationId1 = string;
+export type Summary1 = string;
+export type StartedAt = string | null;
+export type OptimizationStatus = "queued" | "running" | "completed" | "failed" | "cancelled" | "interrupted";
+export type AgentIndex = number;
+export type Assessed = boolean;
+export type CandidateIndex = number;
+export type FailureId2 = string | null;
+export type Matches = boolean | null;
+export type Number = number;
+export type OperationId = string;
+export type Reason3 = string | null;
+export type RepeatIndex = number;
+export type Role = "search" | "compare" | "reproduce" | "minimize_baseline" | "minimize_candidate";
+export type Score = number | null;
+export type SimulationId2 = string;
+export type Trials1 = OptimizationTrial[];
+export type AgentIndex1 = number;
+export type AssessedRuns = number;
+export type CompletedRuns = number;
+export type MatchingRuns = number;
+export type EligibleResults = number;
+export type Maximum = number | null;
+export type Mean = number | null;
+export type Minimum = number | null;
+export type ObservedResults = number;
+export type SampleStddev = number | null;
+export type UnavailableResults = number;
+export type Unit2 = string;
+export type Name2 = string;
+export type NegativeRuns = number;
+export type PartialCoverageResults = number;
+export type PlannedRuns = number;
+export type RegistrationId1 = string | null;
+export type SimulationIds = string[];
+export type UnassessedRuns = number;
+export type UnknownRuns = number;
+export type Version1 = string | null;
+export type Groups1 = ComparisonGroup[];
+export type Notes = string[];
+export type ComparedAgentIndex = number;
+export type ComparedSimulationId = string | null;
+export type Reason4 = string;
+export type ReferenceSimulationId = string | null;
+export type RepeatIndex1 = number;
+export type Seed3 = number;
+export type SeverityDifference = number | null;
+/**
+ * @maxItems 200
+ */
+export type Pairs = ComparisonPair[];
+export type ReferenceAgentIndex = 0;
+export type PairedComparisons = PairedComparison[];
+export type SchemaVersion3 = "poltergeist-comparison-v1";
 export type Applied = number;
 export type Available = boolean;
 export type Coverage1 = "unavailable" | "empty" | "partial" | "complete";
@@ -385,8 +727,8 @@ export type Status2 = "applied" | "unresolved";
 export type TimeS3 = number;
 export type WorkerStepWallTimeS = number | null;
 export type Records = DecisionRecord[];
-export type SimulationId1 = string;
-export type Actors1 = ActorState[] | null;
+export type SimulationId3 = string;
+export type Actors2 = ActorState[] | null;
 export type Collisions = CollisionEvent[] | null;
 export type EventId = string | null;
 export type ImpulseNS = number;
@@ -400,7 +742,7 @@ export type RuleChecks = TrafficRule[] | null;
 export type TrafficRule = "red_light" | "stop_sign" | "speeding" | "wrong_way" | "sidewalk";
 export type TimeS4 = number;
 export type TrafficViolations = TrafficViolation[] | null;
-export type ActorId3 = string;
+export type ActorId5 = string;
 export type Details = string;
 export type EventId1 = string | null;
 export type SourceId = string | null;
@@ -409,90 +751,37 @@ export type Total = number;
 export type Transitions = number;
 export type Accepting = boolean;
 export type ActiveId = string | null;
-export type Error = string | null;
+export type Error1 = string | null;
 export type Pending = number;
 export type Started = boolean;
 export type WorkerAlive = boolean;
 export type Active = boolean;
-export type CreatedAt = string;
-export type Id2 = string;
-export type Reproduced = boolean | null;
-export type DurationS1 = number | null;
+export type CreatedAt2 = string;
+export type Id5 = string;
+export type Reproduced2 = boolean | null;
+export type DurationS2 = number | null;
 export type Sample = boolean;
-export type Seed1 = number;
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "ScenarioTemplate".
- */
-export type ScenarioTemplate = "intersection" | "pedestrian_crossing" | "occluded_pedestrian" | "sudden_braking";
-export type CreatedAt1 = string;
-export type Id3 = string;
-export type Revision = number;
-/**
- * @minItems 1
- */
-export type Actors2 = [ActorSpec, ...ActorSpec[]];
-export type Blueprint = string | null;
-export type Id4 = string | null;
-export type AnchorActorId = string;
-export type YawOffsetDeg = number;
-export type SpawnPointIndex = number | null;
-export type SpeedMps = number;
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "ActorType".
- */
-export type ActorType = "ego_vehicle" | "vehicle" | "lead_vehicle" | "crossing_vehicle" | "pedestrian";
-export type Description = string;
-export type DurationS2 = number;
-export type Event = string | null;
-export type Action = "set_speed";
-export type ActorId4 = string;
-export type SpeedMps1 = number;
-export type TriggerTimeS = number;
-export type Action1 = "brake";
-export type ActorId5 = string;
-export type DecelerationMps2 = number;
-export type TriggerTimeS1 = number;
-export type Events1 = (SpeedChangeEvent | BrakingEvent)[];
-export type FixedDeltaSeconds1 = number;
-export type Location = string | null;
-export type Map = string;
-export type Name1 = string;
-export type Occlusion = boolean;
-export type SchemaVersion2 = "1.0";
-export type Seed2 = number;
-export type Cloudiness = number;
-export type FogDensity = number;
-export type Precipitation = number;
-export type SunAltitudeDeg = number;
-export type Wetness = number;
+export type Seed4 = number;
+export type CreatedAt3 = string;
+export type Id6 = string;
+export type Revision1 = number;
 export type UpdatedAt = string;
 export type ExpectedRevision = number;
-export type AgentId2 = string | null;
-export type Mode2 = "carla" | "test";
-export type AllowMapReload = boolean;
-export type Camera = boolean;
-export type CameraHeight = number;
-export type CameraWidth = number;
-export type Lidar = boolean;
-export type MaxTicks = number;
-export type NoRenderingMode = boolean | null;
-export type SensorSettleS = number;
-export type SensorTimeoutS = number;
+export type AgentId4 = string | null;
+export type Mode5 = "carla" | "test";
 export type ScenarioId = string | null;
-export type CancelRequested = boolean;
-export type Error1 = string | null;
-export type FinishedAt = string | null;
+export type CancelRequested1 = boolean;
+export type Error2 = string | null;
+export type FinishedAt1 = string | null;
 export type Progress = number;
 export type QueuePosition = number | null;
-export type Revision1 = number;
-export type SimulationId2 = string;
-export type StartedAt = string | null;
-export type CreatedAt2 = string;
-export type CancelRequested1 = boolean;
+export type Revision2 = number;
+export type SimulationId4 = string;
+export type StartedAt1 = string | null;
+export type CreatedAt4 = string;
+export type CancelRequested2 = boolean;
 export type QueuePosition1 = number | null;
-export type Kind3 = "telemetry" | "recording" | "report" | "decisions";
+export type Kind7 = "telemetry" | "recording" | "report" | "decisions";
 export type MediaType = string;
 export type Path2 = string;
 export type Artifacts = ArtifactReference[];
@@ -501,27 +790,27 @@ export type Controller = "baseline" | "legacy_custom" | "sdk_agent";
  * @maxItems 200000
  */
 export type Interventions2 = ControlIntervention[];
-export type Mode3 = "scripted" | "authoritative";
+export type Mode6 = "scripted" | "authoritative";
 export type Navigation = "legacy_assisted" | "framework_route" | "agent_planner";
 export type MeasuredDurationS1 = number;
 export type Adapter = "carla" | "test";
 export type ClientVersion = string | null;
 export type FixedDeltaSeconds2 = number;
 export type MapName1 = string;
-export type Seed3 = number;
+export type Seed5 = number;
 export type SensorSamplesCount = number;
 export type ServerVersion = string | null;
 export type Agent1 = "baseline" | "custom";
-export type CreatedAt3 = string;
-export type Error2 = string | null;
-export type FinishedAt1 = string | null;
-export type Id5 = string;
-export type Mode4 = "carla" | "test";
+export type CreatedAt5 = string;
+export type Error3 = string | null;
+export type FinishedAt2 = string | null;
+export type Id7 = string;
+export type Mode7 = "carla" | "test";
 export type Progress1 = number;
-export type StartedAt1 = string | null;
+export type StartedAt2 = string | null;
 export type SimulationStatus1 = "queued" | "running" | "completed" | "failed" | "cancelled";
 export type TelemetryFrames1 = number;
-export type Revision2 = number;
+export type Revision3 = number;
 export type ScenarioId1 = string | null;
 export type UpdatedAt1 = string;
 export type Frames = TelemetryFrame[];
@@ -531,70 +820,13 @@ export type Total1 = number;
 export type Default = number;
 export type Description1 = string;
 export type Integer = boolean;
-export type Maximum = number;
-export type Minimum = number;
-export type Name2 = string;
-export type Unit2 = string;
-export type Parameters2 = ParameterInfo[];
-export type CreatedAt4 = string;
-export type Id6 = string;
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "FailureKind".
- */
-export type FailureKind = "collision" | "near_miss" | "hard_braking" | "traffic_violation";
-export type Reproduced1 = boolean | null;
-export type Severity1 = number;
-export type SimulationId3 = string;
-export type Summary = string;
-export type CancelRequested2 = boolean;
-export type CreatedAt5 = string;
-export type EngineVersion = string | null;
-export type Error3 = string | null;
-export type Mode5 = "carla" | "test";
-export type FinishedAt2 = string | null;
-export type Id7 = string;
-export type BestFailureId = string | null;
-export type BestSimulationId = string | null;
-export type Reproduced2 = boolean | null;
-export type Successes = number;
-export type Summary1 = string;
-export type TrialsUsed = number;
-export type Unknowns = number;
-export type Request = SearchRequest | ReproductionRequest | MinimizeRequest;
-export type Kind4 = "search";
-export type MinimumSeverity = number;
-export type Mode6 = "carla" | "test";
-export type Seed4 = number;
-export type Strategy = "random" | "optuna";
-export type Trials = number;
-export type FailureId = string;
-export type Kind5 = "reproduce";
-export type MinimumSeverity1 = number;
-export type Repeats = number;
-export type RequiredSuccesses = number | null;
-export type FailureId1 = string;
-export type Kind6 = "minimize";
-export type MaxTrials = number;
-export type MinimumSeverity2 = number;
-export type Repeats1 = number;
-export type Revision3 = number;
-export type StartedAt2 = string | null;
-export type OptimizationStatus = "queued" | "running" | "completed" | "failed" | "cancelled" | "interrupted";
-export type Request1 = SearchRequest | ReproductionRequest | MinimizeRequest;
+export type Maximum1 = number;
+export type Minimum1 = number;
+export type Name3 = string;
+export type Unit3 = string;
+export type Parameters3 = ParameterInfo[];
+export type Request1 = SearchRequest | ComparisonRequest | ReproductionRequest | MinimizeRequest;
 export type ExpectedRevision1 = number;
-export type Assessed = boolean;
-export type CandidateIndex = number;
-export type FailureId2 = string | null;
-export type Matches = boolean | null;
-export type Number = number;
-export type OperationId = string;
-export type Reason3 = string | null;
-export type RepeatIndex = number;
-export type Role = "search" | "reproduce" | "minimize_baseline" | "minimize_candidate";
-export type Score = number | null;
-export type SimulationId4 = string;
-export type Trials1 = OptimizationTrial[];
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -888,6 +1120,7 @@ export interface ApiContracts {
   analytics: AnalyticsSummary;
   behavior_analysis: BehaviorAnalysis;
   behavior_settings: BehaviorSettings;
+  comparison_report: ComparisonReport;
   decision_page: DecisionPage;
   queue_status: QueueStatus;
   registered_agent: RegisteredAgent;
@@ -1309,6 +1542,351 @@ export interface EvaluationCoverage {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ComparisonReport".
+ */
+export interface ComparisonReport {
+  evidence: OptimizationView;
+  groups: Groups1;
+  notes: Notes;
+  paired_comparisons: PairedComparisons;
+  schema_version: SchemaVersion3;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationView".
+ */
+export interface OptimizationView {
+  operation: OptimizationRecord;
+  trials: Trials1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationRecord".
+ */
+export interface OptimizationRecord {
+  agent_snapshot: AgentSnapshot | null;
+  cancel_requested: CancelRequested;
+  comparison_agents: ComparisonAgents;
+  created_at: CreatedAt;
+  engine_version: EngineVersion;
+  error: Error;
+  execution: ExecutionSpec;
+  finished_at: FinishedAt;
+  id: Id2;
+  outcome: OptimizationOutcome | null;
+  request: Request;
+  revision: Revision;
+  source_failure: FailureReport | null;
+  started_at: StartedAt;
+  status: OptimizationStatus;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ComparisonAgent".
+ */
+export interface ComparisonAgent {
+  agent_id: AgentId2;
+  snapshot: AgentSnapshot | null;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ExecutionSpec".
+ */
+export interface ExecutionSpec {
+  evaluation_settings: EvaluationSettings;
+  mode: Mode2;
+  options: SimulationOptions;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "SimulationOptions".
+ */
+export interface SimulationOptions {
+  allow_map_reload: AllowMapReload;
+  camera: Camera;
+  camera_height: CameraHeight;
+  camera_width: CameraWidth;
+  lidar: Lidar;
+  max_ticks: MaxTicks;
+  no_rendering_mode: NoRenderingMode;
+  sensor_settle_s: SensorSettleS;
+  sensor_timeout_s: SensorTimeoutS;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationOutcome".
+ */
+export interface OptimizationOutcome {
+  best_failure_id: BestFailureId;
+  best_scenario: Scenario | null;
+  best_simulation_id: BestSimulationId;
+  reproduced: Reproduced;
+  successes: Successes;
+  summary: Summary;
+  trials_used: TrialsUsed;
+  unknowns: Unknowns;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "Scenario".
+ */
+export interface Scenario {
+  actors: Actors1;
+  description: Description;
+  driving_task: DrivingTask | null;
+  duration_s: DurationS1;
+  event: Event;
+  events: Events1;
+  fixed_delta_seconds: FixedDeltaSeconds1;
+  location: Location;
+  map: Map;
+  name: Name1;
+  occlusion: Occlusion;
+  parameters: Parameters;
+  schema_version: SchemaVersion2;
+  seed: Seed1;
+  template: ScenarioTemplate | null;
+  weather: Weather;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ActorSpec".
+ */
+export interface ActorSpec {
+  blueprint: Blueprint;
+  id: Id3;
+  relative_spawn: RelativeSpawn | null;
+  spawn: Transform | null;
+  spawn_point_index: SpawnPointIndex;
+  speed_mps: SpeedMps;
+  type: ActorType;
+}
+/**
+ * Spawn in an anchor actor's local frame: x forward, y right, z up.
+ *
+ * The simulation adapter resolves this placement after spawning the anchor.
+ * These coordinates do not imply the position lies on a drivable road.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RelativeSpawn".
+ */
+export interface RelativeSpawn {
+  anchor_actor_id: AnchorActorId;
+  offset_m: Vector3;
+  yaw_offset_deg: YawOffsetDeg;
+}
+/**
+ * Set an actor's target speed at simulation time trigger_time_s.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "SpeedChangeEvent".
+ */
+export interface SpeedChangeEvent {
+  action: Action;
+  actor_id: ActorId3;
+  speed_mps: SpeedMps1;
+  trigger_time_s: TriggerTimeS;
+}
+/**
+ * Begin braking at a positive deceleration magnitude until stopped.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "BrakingEvent".
+ */
+export interface BrakingEvent {
+  action: Action1;
+  actor_id: ActorId4;
+  deceleration_mps2: DecelerationMps2;
+  trigger_time_s: TriggerTimeS1;
+}
+export interface Parameters {
+  [k: string]: boolean | number | string;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "Weather".
+ */
+export interface Weather {
+  cloudiness: Cloudiness;
+  fog_density: FogDensity;
+  precipitation: Precipitation;
+  sun_altitude_deg: SunAltitudeDeg;
+  wetness: Wetness;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "SearchRequest".
+ */
+export interface SearchRequest {
+  agent_id: AgentId3;
+  driving_task: DrivingTask | null;
+  evaluation_settings: EvaluationSettings;
+  failure_kind: FailureKind | null;
+  kind: Kind3;
+  minimum_severity: MinimumSeverity;
+  mode: Mode3;
+  options: SimulationOptions;
+  parameters: Parameters1;
+  ranges: Ranges;
+  seed: Seed2;
+  strategy: Strategy;
+  template: ScenarioTemplate;
+  trials: Trials;
+}
+export interface Parameters1 {
+  [k: string]: boolean | number | string;
+}
+export interface Ranges {
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  [k: string]: [unknown, unknown];
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ComparisonRequest".
+ */
+export interface ComparisonRequest {
+  agents: Agents;
+  evaluation_settings: EvaluationSettings;
+  failure_kind: FailureKind | null;
+  kind: Kind4;
+  minimum_severity: MinimumSeverity1;
+  mode: Mode4;
+  options: SimulationOptions;
+  repeats: Repeats;
+  scenario: Scenario;
+  seeds: Seeds;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ReproductionRequest".
+ */
+export interface ReproductionRequest {
+  failure_id: FailureId;
+  kind: Kind5;
+  minimum_severity: MinimumSeverity2;
+  repeats: Repeats1;
+  required_successes: RequiredSuccesses;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "MinimizeRequest".
+ */
+export interface MinimizeRequest {
+  failure_id: FailureId1;
+  kind: Kind6;
+  max_trials: MaxTrials;
+  minimum_severity: MinimumSeverity3;
+  repeats: Repeats2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "FailureReport".
+ */
+export interface FailureReport {
+  created_at: CreatedAt1;
+  id: Id4;
+  kind: FailureKind;
+  reproduced: Reproduced1;
+  scenario: Scenario;
+  severity: Severity1;
+  simulation_id: SimulationId1;
+  summary: Summary1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "OptimizationTrial".
+ */
+export interface OptimizationTrial {
+  agent_index: AgentIndex;
+  assessed: Assessed;
+  candidate_index: CandidateIndex;
+  failure_id: FailureId2;
+  matches: Matches;
+  number: Number;
+  operation_id: OperationId;
+  reason: Reason3;
+  repeat_index: RepeatIndex;
+  role: Role;
+  scenario: Scenario;
+  score: Score;
+  simulation_id: SimulationId2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ComparisonGroup".
+ */
+export interface ComparisonGroup {
+  agent_index: AgentIndex1;
+  assessed_runs: AssessedRuns;
+  completed_runs: CompletedRuns;
+  input_sources: InputSources;
+  matching_runs: MatchingRuns;
+  metrics: Metrics;
+  name: Name2;
+  negative_runs: NegativeRuns;
+  partial_coverage_results: PartialCoverageResults;
+  planned_runs: PlannedRuns;
+  registration_id: RegistrationId1;
+  simulation_ids: SimulationIds;
+  status_counts: StatusCounts1;
+  task_outcomes: TaskOutcomes;
+  unassessed_runs: UnassessedRuns;
+  unknown_runs: UnknownRuns;
+  version: Version1;
+}
+export interface InputSources {
+  [k: string]: number;
+}
+export interface Metrics {
+  [k: string]: ComparisonDistribution;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ComparisonDistribution".
+ */
+export interface ComparisonDistribution {
+  eligible_results: EligibleResults;
+  maximum: Maximum;
+  mean: Mean;
+  minimum: Minimum;
+  observed_results: ObservedResults;
+  sample_stddev: SampleStddev;
+  unavailable_results: UnavailableResults;
+  unit: Unit2;
+}
+export interface StatusCounts1 {
+  [k: string]: number;
+}
+export interface TaskOutcomes {
+  [k: string]: number;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PairedComparison".
+ */
+export interface PairedComparison {
+  compared_agent_index: ComparedAgentIndex;
+  difference: ComparisonDistribution;
+  pairs: Pairs;
+  reference_agent_index: ReferenceAgentIndex;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ComparisonPair".
+ */
+export interface ComparisonPair {
+  compared_simulation_id: ComparedSimulationId;
+  reason: Reason4;
+  reference_simulation_id: ReferenceSimulationId;
+  repeat_index: RepeatIndex1;
+  seed: Seed3;
+  severity_difference: SeverityDifference;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "DecisionPage".
  */
 export interface DecisionPage {
@@ -1320,7 +1898,7 @@ export interface DecisionPage {
   recording_artifact_index: RecordingArtifactIndex;
   records: Records;
   reset: AgentReset | null;
-  simulation_id: SimulationId1;
+  simulation_id: SimulationId3;
   telemetry: Telemetry;
   total: Total;
   transitions: Transitions;
@@ -1366,7 +1944,7 @@ export interface Header {
  * via the `definition` "TelemetryFrame".
  */
 export interface TelemetryFrame {
-  actors: Actors1;
+  actors: Actors2;
   collisions: Collisions;
   control: ControlInput;
   ego: ActorState;
@@ -1389,7 +1967,7 @@ export interface CollisionEvent {
  * via the `definition` "TrafficViolation".
  */
 export interface TrafficViolation {
-  actor_id: ActorId3;
+  actor_id: ActorId5;
   details: Details;
   event_id: EventId1;
   rule: TrafficRule;
@@ -1402,7 +1980,7 @@ export interface TrafficViolation {
 export interface QueueStatus {
   accepting: Accepting;
   active_id: ActiveId;
-  error: Error;
+  error: Error1;
   pending: Pending;
   started: Started;
   worker_alive: WorkerAlive;
@@ -1413,8 +1991,8 @@ export interface QueueStatus {
  */
 export interface RegisteredAgent {
   active: Active;
-  created_at: CreatedAt;
-  id: Id2;
+  created_at: CreatedAt2;
+  id: Id5;
   snapshot: AgentSnapshot;
 }
 /**
@@ -1422,24 +2000,24 @@ export interface RegisteredAgent {
  * via the `definition` "ReproductionUpdate".
  */
 export interface ReproductionUpdate {
-  reproduced: Reproduced;
+  reproduced: Reproduced2;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "ScenarioGenerate".
  */
 export interface ScenarioGenerate {
-  duration_s: DurationS1;
-  parameters: Parameters;
-  ranges: Ranges;
+  duration_s: DurationS2;
+  parameters: Parameters2;
+  ranges: Ranges1;
   sample: Sample;
-  seed: Seed1;
+  seed: Seed4;
   template: ScenarioTemplate;
 }
-export interface Parameters {
+export interface Parameters2 {
   [k: string]: boolean | number | string;
 }
-export interface Ranges {
+export interface Ranges1 {
   /**
    * @minItems 2
    * @maxItems 2
@@ -1451,98 +2029,11 @@ export interface Ranges {
  * via the `definition` "ScenarioRecord".
  */
 export interface ScenarioRecord {
-  created_at: CreatedAt1;
-  id: Id3;
-  revision: Revision;
+  created_at: CreatedAt3;
+  id: Id6;
+  revision: Revision1;
   scenario: Scenario;
   updated_at: UpdatedAt;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "Scenario".
- */
-export interface Scenario {
-  actors: Actors2;
-  description: Description;
-  driving_task: DrivingTask | null;
-  duration_s: DurationS2;
-  event: Event;
-  events: Events1;
-  fixed_delta_seconds: FixedDeltaSeconds1;
-  location: Location;
-  map: Map;
-  name: Name1;
-  occlusion: Occlusion;
-  parameters: Parameters1;
-  schema_version: SchemaVersion2;
-  seed: Seed2;
-  template: ScenarioTemplate | null;
-  weather: Weather;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "ActorSpec".
- */
-export interface ActorSpec {
-  blueprint: Blueprint;
-  id: Id4;
-  relative_spawn: RelativeSpawn | null;
-  spawn: Transform | null;
-  spawn_point_index: SpawnPointIndex;
-  speed_mps: SpeedMps;
-  type: ActorType;
-}
-/**
- * Spawn in an anchor actor's local frame: x forward, y right, z up.
- *
- * The simulation adapter resolves this placement after spawning the anchor.
- * These coordinates do not imply the position lies on a drivable road.
- *
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "RelativeSpawn".
- */
-export interface RelativeSpawn {
-  anchor_actor_id: AnchorActorId;
-  offset_m: Vector3;
-  yaw_offset_deg: YawOffsetDeg;
-}
-/**
- * Set an actor's target speed at simulation time trigger_time_s.
- *
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "SpeedChangeEvent".
- */
-export interface SpeedChangeEvent {
-  action: Action;
-  actor_id: ActorId4;
-  speed_mps: SpeedMps1;
-  trigger_time_s: TriggerTimeS;
-}
-/**
- * Begin braking at a positive deceleration magnitude until stopped.
- *
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "BrakingEvent".
- */
-export interface BrakingEvent {
-  action: Action1;
-  actor_id: ActorId5;
-  deceleration_mps2: DecelerationMps2;
-  trigger_time_s: TriggerTimeS1;
-}
-export interface Parameters1 {
-  [k: string]: boolean | number | string;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "Weather".
- */
-export interface Weather {
-  cloudiness: Cloudiness;
-  fog_density: FogDensity;
-  precipitation: Precipitation;
-  sun_altitude_deg: SunAltitudeDeg;
-  wetness: Wetness;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -1557,41 +2048,26 @@ export interface ScenarioUpdate {
  * via the `definition` "SimulationLaunch".
  */
 export interface SimulationLaunch {
-  agent_id: AgentId2;
+  agent_id: AgentId4;
   evaluation_settings: EvaluationSettings;
-  mode: Mode2;
+  mode: Mode5;
   options: SimulationOptions;
   scenario: Scenario | null;
   scenario_id: ScenarioId;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "SimulationOptions".
- */
-export interface SimulationOptions {
-  allow_map_reload: AllowMapReload;
-  camera: Camera;
-  camera_height: CameraHeight;
-  camera_width: CameraWidth;
-  lidar: Lidar;
-  max_ticks: MaxTicks;
-  no_rendering_mode: NoRenderingMode;
-  sensor_settle_s: SensorSettleS;
-  sensor_timeout_s: SensorTimeoutS;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "SimulationProgress".
  */
 export interface SimulationProgress {
-  cancel_requested: CancelRequested;
-  error: Error1;
-  finished_at: FinishedAt;
+  cancel_requested: CancelRequested1;
+  error: Error2;
+  finished_at: FinishedAt1;
   progress: Progress;
   queue_position: QueuePosition;
-  revision: Revision1;
-  simulation_id: SimulationId2;
-  started_at: StartedAt;
+  revision: Revision2;
+  simulation_id: SimulationId4;
+  started_at: StartedAt1;
   status: SimulationStatus;
 }
 /**
@@ -1599,10 +2075,10 @@ export interface SimulationProgress {
  * via the `definition` "SimulationRecord".
  */
 export interface SimulationRecord {
-  created_at: CreatedAt2;
+  created_at: CreatedAt4;
   job: JobInfo | null;
   result: SimulationResult | null;
-  revision: Revision2;
+  revision: Revision3;
   scenario_id: ScenarioId1;
   simulation: Simulation;
   updated_at: UpdatedAt1;
@@ -1613,7 +2089,7 @@ export interface SimulationRecord {
  */
 export interface JobInfo {
   agent_snapshot: AgentSnapshot | null;
-  cancel_requested: CancelRequested1;
+  cancel_requested: CancelRequested2;
   evaluation_settings: EvaluationSettings;
   options: SimulationOptions;
   queue_position: QueuePosition1;
@@ -1638,7 +2114,7 @@ export interface SimulationResult {
  * via the `definition` "ArtifactReference".
  */
 export interface ArtifactReference {
-  kind: Kind3;
+  kind: Kind7;
   media_type: MediaType;
   path: Path2;
 }
@@ -1651,7 +2127,7 @@ export interface ArtifactReference {
 export interface ControlAudit {
   controller: Controller;
   interventions: Interventions2;
-  mode: Mode3;
+  mode: Mode6;
   navigation: Navigation;
 }
 /**
@@ -1664,7 +2140,7 @@ export interface SimulationRuntime {
   fixed_delta_seconds: FixedDeltaSeconds2;
   map_name: MapName1;
   resolved_spawns: ResolvedSpawns;
-  seed: Seed3;
+  seed: Seed5;
   sensor_samples_count: SensorSamplesCount;
   server_version: ServerVersion;
 }
@@ -1678,14 +2154,14 @@ export interface ResolvedSpawns {
 export interface Simulation {
   agent: Agent1;
   agent_snapshot: AgentSnapshot | null;
-  created_at: CreatedAt3;
-  error: Error2;
-  finished_at: FinishedAt1;
-  id: Id5;
-  mode: Mode4;
+  created_at: CreatedAt5;
+  error: Error3;
+  finished_at: FinishedAt2;
+  id: Id7;
+  mode: Mode7;
   progress: Progress1;
   scenario: Scenario;
-  started_at: StartedAt1;
+  started_at: StartedAt2;
   status: SimulationStatus1;
 }
 /**
@@ -1703,7 +2179,7 @@ export interface TelemetryPage {
  * via the `definition` "TemplateInfo".
  */
 export interface TemplateInfo {
-  parameters: Parameters2;
+  parameters: Parameters3;
   scenario: Scenario;
   template: ScenarioTemplate;
 }
@@ -1715,24 +2191,10 @@ export interface ParameterInfo {
   default: Default;
   description: Description1;
   integer: Integer;
-  maximum: Maximum;
-  minimum: Minimum;
-  name: Name2;
-  unit: Unit2;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "FailureReport".
- */
-export interface FailureReport {
-  created_at: CreatedAt4;
-  id: Id6;
-  kind: FailureKind;
-  reproduced: Reproduced1;
-  scenario: Scenario;
-  severity: Severity1;
-  simulation_id: SimulationId3;
-  summary: Summary;
+  maximum: Maximum1;
+  minimum: Minimum1;
+  name: Name3;
+  unit: Unit3;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -1747,126 +2209,8 @@ export interface OptimizationContracts {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "OptimizationRecord".
- */
-export interface OptimizationRecord {
-  cancel_requested: CancelRequested2;
-  created_at: CreatedAt5;
-  engine_version: EngineVersion;
-  error: Error3;
-  execution: ExecutionSpec;
-  finished_at: FinishedAt2;
-  id: Id7;
-  outcome: OptimizationOutcome | null;
-  request: Request;
-  revision: Revision3;
-  source_failure: FailureReport | null;
-  started_at: StartedAt2;
-  status: OptimizationStatus;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "ExecutionSpec".
- */
-export interface ExecutionSpec {
-  evaluation_settings: EvaluationSettings;
-  mode: Mode5;
-  options: SimulationOptions;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "OptimizationOutcome".
- */
-export interface OptimizationOutcome {
-  best_failure_id: BestFailureId;
-  best_scenario: Scenario | null;
-  best_simulation_id: BestSimulationId;
-  reproduced: Reproduced2;
-  successes: Successes;
-  summary: Summary1;
-  trials_used: TrialsUsed;
-  unknowns: Unknowns;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "SearchRequest".
- */
-export interface SearchRequest {
-  evaluation_settings: EvaluationSettings;
-  failure_kind: FailureKind | null;
-  kind: Kind4;
-  minimum_severity: MinimumSeverity;
-  mode: Mode6;
-  options: SimulationOptions;
-  parameters: Parameters3;
-  ranges: Ranges1;
-  seed: Seed4;
-  strategy: Strategy;
-  template: ScenarioTemplate;
-  trials: Trials;
-}
-export interface Parameters3 {
-  [k: string]: boolean | number | string;
-}
-export interface Ranges1 {
-  /**
-   * @minItems 2
-   * @maxItems 2
-   */
-  [k: string]: [unknown, unknown];
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "ReproductionRequest".
- */
-export interface ReproductionRequest {
-  failure_id: FailureId;
-  kind: Kind5;
-  minimum_severity: MinimumSeverity1;
-  repeats: Repeats;
-  required_successes: RequiredSuccesses;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "MinimizeRequest".
- */
-export interface MinimizeRequest {
-  failure_id: FailureId1;
-  kind: Kind6;
-  max_trials: MaxTrials;
-  minimum_severity: MinimumSeverity2;
-  repeats: Repeats1;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationResume".
  */
 export interface OptimizationResume {
   expected_revision: ExpectedRevision1;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "OptimizationTrial".
- */
-export interface OptimizationTrial {
-  assessed: Assessed;
-  candidate_index: CandidateIndex;
-  failure_id: FailureId2;
-  matches: Matches;
-  number: Number;
-  operation_id: OperationId;
-  reason: Reason3;
-  repeat_index: RepeatIndex;
-  role: Role;
-  scenario: Scenario;
-  score: Score;
-  simulation_id: SimulationId4;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "OptimizationView".
- */
-export interface OptimizationView {
-  operation: OptimizationRecord;
-  trials: Trials1;
 }

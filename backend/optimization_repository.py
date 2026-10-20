@@ -48,15 +48,16 @@ class OptimizationRepository:
             raise PersistenceError("Stored optimization projections are inconsistent")
         return value
 
-    def create(self, request, *, execution, source_failure=None, id=None):
+    def create(self, request, *, execution, source_failure=None, id=None, agent_snapshot=None, comparison_agents=()):
         try:
             value = OptimizationRecord(id=uuid4() if id is None else id, request=request,
-                                       execution=execution, source_failure=source_failure)
+                                       execution=execution, source_failure=source_failure,
+                                       agent_snapshot=agent_snapshot, comparison_agents=list(comparison_agents))
             # A fresh validation also protects against mutated Pydantic inputs.
             value = OptimizationRecord.model_validate(value.model_dump(mode="python"))
         except (ValueError, TypeError) as error:
             raise PersistenceError(f"Invalid optimization operation: {error}") from error
-        if value.request.kind == "search":
+        if value.request.kind in {"search", "compare"}:
             requested = ExecutionSpec(mode=value.request.mode, options=value.request.options,
                                       evaluation_settings=value.request.evaluation_settings)
             if _canonical(requested) != _canonical(value.execution):
@@ -73,6 +74,17 @@ class OptimizationRepository:
                                              evaluation_settings=source_job.evaluation_settings)
             if _canonical(value.execution) != _canonical(source_execution):
                 raise PersistenceError("Optimization execution must match its source simulation settings")
+            if value.agent_snapshot != source_run.simulation.agent_snapshot:
+                raise PersistenceError("Optimization agent must match its source simulation snapshot")
+            if source_run.simulation.agent == "custom" and value.agent_snapshot is None:
+                raise PersistenceError("Legacy custom-agent sources have no reproducible registered snapshot")
+        from backend.agent_repository import AgentRepository
+        snapshots = [item.snapshot for item in value.comparison_agents] if value.request.kind == "compare" else [value.agent_snapshot]
+        for snapshot in snapshots:
+            if snapshot is not None:
+                registered = AgentRepository(self.session).get(snapshot.registration_id)
+                if not registered.active or registered.snapshot != snapshot:
+                    raise PersistenceError("Experiment requires an active matching agent registration")
         row = OptimizationOperationRecord(
             id=_id(value.id), payload=value.model_dump_json(), status=_status(value.status),
             revision=value.revision, cancel_requested=value.cancel_requested,
@@ -199,15 +211,26 @@ class OptimizationRepository:
         if value.number != len(existing):
             raise ConflictError("Optimization trial numbers must be consecutive")
         request = parent.request
-        budget = request.trials if request.kind == "search" else request.repeats if request.kind == "reproduce" else request.max_trials
+        budget = request.trial_budget if request.kind == "compare" else request.trials if request.kind == "search" else request.repeats if request.kind == "reproduce" else request.max_trials
         if len(existing) >= budget:
             raise ConflictError("Optimization trial budget has been exhausted")
-        roles = {"search": {"search"}, "reproduce": {"reproduce"},
+        roles = {"search": {"search"}, "compare": {"compare"}, "reproduce": {"reproduce"},
                  "minimize": {"minimize_baseline", "minimize_candidate"}}
         if value.role not in roles[request.kind]:
             raise PersistenceError("Optimization trial role must match its parent request")
         if request.kind == "search" and (value.repeat_index != 0 or value.candidate_index != value.number):
             raise PersistenceError("Search trials must enumerate one execution per candidate")
+        if request.kind == "compare":
+            agents = len(request.agents)
+            if (value.agent_index != value.number % agents
+                    or value.repeat_index != (value.number // agents) % request.repeats
+                    or value.candidate_index != value.number // (agents * request.repeats)):
+                raise PersistenceError("Comparison trials must preserve the seed/repeat/agent plan")
+            expected = request.scenario.model_copy(update={"seed": request.seeds[value.candidate_index]})
+            if _canonical(value.scenario) != _canonical(expected):
+                raise PersistenceError("Comparison trial must preserve its paired scenario and seed")
+        elif value.agent_index != 0:
+            raise PersistenceError("Single-agent experiments require agent index zero")
         if request.kind == "reproduce":
             if value.repeat_index != value.number or value.candidate_index != 0:
                 raise PersistenceError("Reproduction trials must enumerate the requested repetitions")
@@ -226,6 +249,10 @@ class OptimizationRepository:
         if _canonical(value.scenario) != _canonical(run.simulation.scenario):
             raise PersistenceError("Optimization trial scenario must match its simulation snapshot")
         job = JobRepository(self.session).get(value.simulation_id)
+        expected_agent = parent.comparison_agents[value.agent_index].snapshot if request.kind == "compare" else parent.agent_snapshot
+        if (run.simulation.agent_snapshot != expected_agent or job.agent_snapshot != expected_agent
+                or run.simulation.agent != ("baseline" if expected_agent is None else "custom")):
+            raise PersistenceError("Optimization child must preserve its frozen agent identity")
         if (run.simulation.mode != parent.execution.mode or _canonical(job.options) != _canonical(parent.execution.options)
                 or _canonical(job.evaluation_settings) != _canonical(parent.execution.evaluation_settings)):
             raise PersistenceError("Optimization trial execution must match its frozen parent settings")

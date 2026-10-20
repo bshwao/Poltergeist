@@ -98,7 +98,7 @@ class SimulationService:
             raise QueueUnavailableError(self._error or "Simulation worker is not accepting jobs")
 
     def submit(self, scenario: Scenario | Mapping | UUID, *, mode="carla", options=None, evaluation_settings=None,
-               agent_id=None, on_created=None):
+               agent_id=None, on_created=None, expected_agent_snapshot=None):
         options = SimulationOptions.model_validate({} if options is None else options.model_dump(mode="python"))
         settings = EvaluationSettings.model_validate({} if evaluation_settings is None else evaluation_settings.model_dump(mode="python"))
         with self._condition:
@@ -113,6 +113,8 @@ class SimulationService:
                     from backend.services.agent_registry_service import AgentRegistryService
                     snapshot = AgentRegistryService(self.persistence.database).resolve(agent_id, session=session)
                     self._validate_agent_launch(recipe, snapshot, options)
+                if expected_agent_snapshot is not None and (snapshot is None or snapshot != expected_agent_snapshot):
+                    raise ConflictError("Agent registration differs from the experiment's frozen snapshot")
                 simulation = Simulation(scenario=recipe, mode=mode,
                                         agent="baseline" if snapshot is None else "custom", agent_snapshot=snapshot)
                 stored = SimulationRepository(session).create(simulation, scenario_id=scenario_id)

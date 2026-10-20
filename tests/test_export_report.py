@@ -63,6 +63,14 @@ def test_api_prefix_and_opt_in_trace_are_preserved(download):
     assert requests[0][1]["timeout"] == 7.5
 
 
+def test_behavior_export_option_is_forwarded_for_every_format(download):
+    run, defaults, requests, responses = download
+    for format, content_type in [("json", "application/json"), ("csv", "text/csv"), ("html", "text/html")]:
+        responses.append(Response(b"behavior report", content_type=content_type))
+        run(format=format, include_behavior=True, output=defaults["output"].with_suffix("." + format))
+        assert requests[-1][0].full_url.endswith(f"?format={format}&include_behavior=true")
+
+
 def test_existing_output_is_preserved_before_making_a_request(download):
     run, defaults, requests, _ = download
     defaults["output"].write_bytes(b"keep me")

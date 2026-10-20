@@ -43,6 +43,9 @@ results can be interpreted in context.
   without running the simulator.
 - Repeatable experiment batches, failure reproduction, parameter search,
   scenario minimization, and report exports.
+- An Experiments page for registered agent/version comparisons, matched seeds,
+  repeated trials and source-aware search/reproduction/minimization, with
+  frozen settings, explicit unknowns and downloadable comparison evidence.
 - A Python agent SDK and external worker for trusted local packages, with
   command-line execution and a persistent registry for queued experiments.
 - An Agents page for registering local packages, inspecting their saved
@@ -58,9 +61,10 @@ results can be interpreted in context.
   explicit coverage and preserved historical safety scores. See the
   [analysis guide](docs/behavior-analysis.md). Finished runs include a dashboard
   behavior review with event markers and links to supporting decision/telemetry
-  frames. Behavior report exports are planned for Phase 8.2.2.
+  frames. JSON, CSV and printable HTML behavior reports preserve the same
+  measurements, qualified descriptions and separately labelled agent diagnostics.
 
-Autonomous agent integration is under active development. Registered agents can
+Registered agents can
 be launched through the dashboard or API. The included sensor pilot is a
 rule-based teaching example. PlanT is the trained reference model and uses
 structured state rather than camera-based perception.
@@ -71,9 +75,10 @@ The longer-term goal is a workspace where users can connect their own autonomous
 driving agents, test them against challenging scenarios, and compare their
 responses across versions and conditions.
 
-Planned work includes synchronized observation and action review, richer
-behavior analysis, and agent-aware comparisons and failure search. Reports
-should help explain observed behavior using recorded inputs,
+The current workflow includes synchronized observation/action review, measured
+behavior analysis and agent-aware comparisons and failure search. Future work
+can build on these recorded experiments and broader model/perception support.
+Reports help explain observed behavior using recorded inputs,
 controls, outcomes, and any diagnostics supplied by the agent. They should
 distinguish measured evidence from inferred explanations of a model's reasoning.
 
@@ -83,8 +88,10 @@ successful run does not establish real-world driving safety.
 
 ## Getting started
 
-Follow the [installation and setup guide](docs/setup.md) to prepare the backend
-and dashboard. Then use the [dashboard guide](docs/dashboard.md) to create and
+Follow the [first-run walkthrough](docs/first-run.md) for installation, diagnostics,
+an isolated end-to-end check and your first agent comparison. The
+[setup guide](docs/setup.md) covers detailed backend/dashboard configuration.
+Then use the [dashboard guide](docs/dashboard.md) to create and
 run your first scenario. Synthetic test mode lets you try the workflow before
 setting up CARLA.
 
@@ -101,6 +108,7 @@ Review its recorded behavior using the [decision timeline guide](docs/decision-t
 - [Scenario creation](docs/scenarios.md) and [simulation execution](docs/simulation.md)
 - [Driving goals and control ownership](docs/driving-tasks.md)
 - [Safety evaluation methodology](docs/methodology.md) and [report exports](docs/reports.md)
-- [Experiment batches](docs/experiments.md) and [failure search and reproduction](docs/optimization.md)
+- [Agent comparisons and repeated trials](docs/agent-comparisons.md), [experiment batches](docs/experiments.md), and [failure search and reproduction](docs/optimization.md)
 - [Architecture](docs/architecture.md), [API](docs/api.md), and [Docker setup](docs/docker.md)
 - [Autonomous driving roadmap](docs/autonomous-agents-plan.md)
+- [Hardware profiles](docs/hardware.md), [troubleshooting](docs/troubleshooting.md), and [Phase 10 validation](docs/phase10-validation.md)

@@ -16,4 +16,4 @@ class StarterAgent(BaselineSDKAgent):
     def step(self, observation: AgentObservation) -> AgentStepResult:
         # Replace this call with preprocessing -> model inference -> controls.
         # Only attach diagnostics that your own agent actually produces.
-        return super().step(observation)
+        return super().step(observation).model_copy(update={"protocol_version": observation.protocol_version})

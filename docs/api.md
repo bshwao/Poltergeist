@@ -201,8 +201,8 @@ Sensor inputs reference the existing raw recording instead of duplicating bytes.
 See [decision evidence](decision-timeline.md) for the format, reconstruction,
 coverage and compatibility rules. Agent diagnostics are reports from the agent,
 not inferred reasoning. Phase 8.1 provides [behavior analysis](behavior-analysis.md)
-through the read-only analysis endpoints. Dashboard presentation and behavior
-report exports remain Phase 8.2.
+through the read-only analysis endpoints. Phase 8.2 adds dashboard review and
+[behavior report exports](reports.md) using those same measurements and settings.
 
 Terminal results preserve metrics, unknown values, execution mode, scenario
 snapshot, runtime provenance when available, and storage-owned references.
@@ -245,18 +245,24 @@ can include partial positive lower bounds; they are not complete coverage rates.
 
 ## Optimization operations
 
-`POST /optimizations` accepts a discriminated `kind` of `search`, `reproduce`, or
-`minimize` and returns an operation record with HTTP 202. Search uses random or
+`POST /optimizations` accepts a discriminated `kind` of `search`, `compare`,
+`reproduce`, or `minimize` and returns an operation record with HTTP 202. Search uses random or
 optional Optuna sampling over bundled template parameters. Reproduction and
 minimization reference a saved failure and inherit its recorded recipe and
-execution settings. All child runs use the existing single simulation worker.
+execution settings and registered agent snapshot. Search supports `agent_id`
+and `driving_task`. Comparisons freeze a recipe, ordered registered-agent
+selections (`null` for baseline), distinct seeds and repetitions. All child runs
+use the existing single simulation worker.
 
 `GET /optimizations` lists records, `GET /optimizations/queue` returns controller
 status, and `GET /optimizations/{id}` returns the operation and complete trial
 journal. `POST /optimizations/{id}/cancel` persists cancellation.
 `POST /optimizations/{id}/resume` accepts a positive `expected_revision` and
 resumes an interrupted operation by replaying its journal without resetting its
-execution budget. Each route starts the controller lazily. See
+execution budget. These routes start the controller lazily. The read-only
+`GET /optimizations/{id}/comparison` route uses persistence directly and returns
+the `poltergeist-comparison-v1` summary; `?download=true` exports JSON. See
+[agent comparisons](agent-comparisons.md) and
 [search, reproduction, and minimization](optimization.md) for request examples,
 unknown-score policy, repetition thresholds, budgets, and restart semantics.
 
@@ -266,6 +272,11 @@ unknown-score policy, repetition thresholds, budgets, and restart semantics.
 run report. JSON can opt into the finalized trace with `include_telemetry=true`;
 CSV and HTML reject that option. The immutable record, failure observations,
 mode, nullable metrics, coverage, settings, and runtime provenance are retained.
+Add `include_behavior=true` for version 2 reports containing behavior analysis,
+bounded recorded diagnostics, qualified descriptions and frame evidence. The
+dashboard enables this option by default. `POST /reports/simulations/{id}` accepts
+a `BehaviorSettings` JSON body (the same as POST analysis) and always produces a
+version 2 report; format and optional JSON telemetry remain query parameters.
 The route uses persistence only and does not start a simulation worker. Unknown
 IDs return 404; runs without a terminal persisted result return 409. See
 [report schemas, formats, and CLI](reports.md). [Experiment batches](experiments.md)

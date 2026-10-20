@@ -1,8 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 
-type IconName = "overview" | "scenarios" | "agents" | "simulations" | "failures" | "arrow" | "refresh" | "activity" | "ghost";
+type IconName = "overview" | "scenarios" | "agents" | "experiments" | "simulations" | "failures" | "arrow" | "refresh" | "activity" | "ghost";
 
 const paths: Record<IconName, ReactNode> = {
+  experiments: <><path d="M5 20V10m7 10V4m7 16V7M3 20h18" /><path d="m3 6 4-3m10 0 4 2" /></>,
   agents: <><rect x="5" y="6" width="14" height="13" rx="3" /><path d="M12 3v3M3 11h2m14 0h2M9 11v2m6-2v2m-6 3h6M8 19v2m8-2v2" /></>,
   overview: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>,
   scenarios: <><path d="M6 3v18M18 3v18M12 3v3m0 5v2m0 5v3" /><path d="m3 8 3-3 3 3m6 8 3 3 3-3" /></>,

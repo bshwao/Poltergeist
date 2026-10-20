@@ -27,6 +27,8 @@ poltergeist-experiment = "scripts.run_experiment:main"
 poltergeist-report = "scripts.export_report:main"
 poltergeist-check-agent = "scripts.check_agent:main"
 poltergeist-reference-ai = "scripts.run_reference_ai:main"
+poltergeist-doctor = "scripts.doctor:main"
+poltergeist-validate = "scripts.validate_installation:main"
 
 [tool.setuptools.packages.find]
 include = ["backend*", "shared*", "simulator*", "scenarios*", "evaluation*", "optimization*", "scripts*"]

@@ -16,9 +16,9 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 | 7 | Persisted input/action/diagnostic/intervention timeline and synchronized review | A recorded action can be traced to its preceding observation | Implemented; see decision timeline guide |
 | 8.1 | Behavior measurement engine and analysis API | A finalized run produces reproducible response/route measurements with settings, coverage and supporting frame references | Implemented; see behavior analysis guide |
 | 8.2.1 | Dashboard behavior review and evidence navigation | Users can inspect measurements and open their supporting recorded frames | Implemented; see behavior review guide |
-| 8.2.2 | Behavior report exports and final review polish | Exported reports carry the same findings, identity, settings and evidence limits as the dashboard | Planned; depends on 8.2.1 |
-| 9 | Agent/version comparisons, repeated trials, agent-aware reproduction/search/minimization | Comparisons retain traceable experiment conditions and agent versions | Planned |
-| 10 | Integration/failure validation, installation, supported examples and hardware guidance | A new user can complete the supported workflow from documentation | Planned |
+| 8.2.2 | Behavior report exports and final review polish | Exported reports carry the same findings, identity, settings and evidence limits as the dashboard | Implemented; desktop/mobile and printed pages rechecked in Phase 10 |
+| 9 | Agent/version comparisons, repeated trials, agent-aware reproduction/search/minimization | Comparisons retain traceable experiment conditions and agent versions | Implemented; see [guide](agent-comparisons.md) and [validation](phase9-validation.md) |
+| 10 | Integration/failure validation, installation, supported examples and hardware guidance | A new user can complete the supported workflow from documentation | Implemented; see [first run](first-run.md) and [validation](phase10-validation.md) for tested scope |
 
 Public uploads and hosted execution need a separate isolated-worker design. A
 local Python process alone is not a security boundary for untrusted agents.
@@ -438,7 +438,7 @@ current agent code. Response/stop findings have configurable caps and total coun
 
 See [analysis definitions and API usage](behavior-analysis.md) and
 [Phase 8.1 validation](phase81-validation.md). Dashboard review is implemented in
-8.2.1; behavior report exports remain 8.2.2.
+8.2.1; behavior report exports are implemented in 8.2.2.
 
 ### Phase 8.2.1 handoff
 
@@ -457,4 +457,31 @@ labelled in the synchronized timeline. No model or simulator is invoked.
 
 See [dashboard behavior review](behavior-review.md) and
 [Phase 8.2.1 validation](phase821-validation.md). JSON/CSV/HTML behavior exports
-and the final report/review polish remain Phase 8.2.2.
+and the final report/review polish are implemented in Phase 8.2.2.
+
+### Phase 8.2.2 handoff
+
+Dashboard downloads include version 2 JSON/CSV/HTML behavior reports by default.
+They use the same validated analysis engine and effective default settings as
+the review panel. Read-only POST exports accept the same explicit settings as
+POST analysis. Measurements, bounded recorded agent diagnostics and qualified
+descriptions occupy separate report sections, each retaining native-frame
+evidence, immutable identity, input provenance and evidence limits.
+
+Behavior and optional telemetry share one validated artifact read. Diagnostics
+retain the earliest prefix up to 200 records or 1 MiB of compact UTF-8 record
+JSON, with exact counts, byte accounting and truncation flags. Reports never
+load current agent packages or invoke a model/simulator. Missing/corrupt required
+artifacts fail the enhanced export; metadata-only version 1 exports remain
+available through the existing route or dashboard checkbox.
+
+Downloads check the report schema, MIME type and completed transfer, support
+cancel/retry, and ignore stale run responses. Review tables support keyboard
+scrolling, evidence links provide a return-to-finding control, and reduced-motion
+preferences are respected. Offline HTML separates the three evidence categories
+and supplies responsive/print styles and an escaped complete snapshot.
+
+See [report formats and usage](reports.md) and
+[Phase 8.2.2 validation](phase822-validation.md). Phase 8 is implemented;
+cross-agent comparison/repeated trials remain Phase 9, and broader installation
+and hardware integration checks remain Phase 10.

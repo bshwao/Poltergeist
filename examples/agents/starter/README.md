@@ -1,5 +1,10 @@
 # Starter driving agent
 
+The maintained starter declares SDK 1.3 and version 0.2.0. It supports explicit
+framework driving tasks and preserves the input protocol in every response.
+After updating the package, create a new registration because executable
+fingerprints have changed. [First-run walkthrough](../../../docs/first-run.md).
+
 This editable package demonstrates the agent SDK and external worker. It wraps
 Poltergeist's deterministic, rule-based baseline. It is **not a trained driving
 AI**, a perception system, or a destination/path planner. It follows the supplied
@@ -39,7 +44,8 @@ prepared dependency environment. Use `--mode carla` with a compatible parent
 environment and running server for live execution. The worker is closed on
 completion, failure, and cancellation, and hung operations have deadlines. See
 the [SDK guide](../../../docs/agent-sdk.md#run-an-agent-in-a-separate-process)
-for installation, timing, and timeout settings. Dashboard selection comes later.
+for installation, timing, and timeout settings. Register the package in **Agents**
+and select it in **Scenarios** or **Experiments** for the dashboard workflow.
 
 ## Adapt it to your model
 
@@ -47,7 +53,7 @@ for installation, timing, and timeout settings. Dashboard selection comes later.
 2. Keep `entry_point` pointed at your Python module and class. The entry class must
    implement the SDK's `load`, `reset`, `step`, and `close` methods.
 3. Replace the reference `step` call in `agent.py` with preprocessing, inference,
-   and conversion to `AgentStepResult(frame=observation.frame, control=...)`.
+   and conversion to `AgentStepResult(protocol_version=observation.protocol_version, frame=observation.frame, control=...)`.
    Throttle and brake must be between 0 and 1; steer must be between -1 and 1.
    Optional diagnostics should reflect information your agent actually produces.
 4. Initialize weights in `load`, clear recurrent/episode state in `reset`, and

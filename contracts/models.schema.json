@@ -1560,6 +1560,9 @@
         "behavior_settings": {
           "$ref": "#/$defs/BehaviorSettings"
         },
+        "comparison_report": {
+          "$ref": "#/$defs/ComparisonReport"
+        },
         "decision_page": {
           "$ref": "#/$defs/DecisionPage"
         },
@@ -1598,6 +1601,7 @@
         }
       },
       "required": [
+        "comparison_report",
         "agent_registration",
         "registered_agent",
         "agent_readiness",
@@ -2565,6 +2569,464 @@
         "event_id"
       ],
       "title": "CollisionEvent",
+      "type": "object"
+    },
+    "ComparisonAgent": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Agent Id"
+        },
+        "snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "agent_id",
+        "snapshot"
+      ],
+      "title": "ComparisonAgent",
+      "type": "object"
+    },
+    "ComparisonDistribution": {
+      "additionalProperties": false,
+      "properties": {
+        "eligible_results": {
+          "minimum": 0,
+          "title": "Eligible Results",
+          "type": "integer"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Maximum"
+        },
+        "mean": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Minimum"
+        },
+        "observed_results": {
+          "minimum": 0,
+          "title": "Observed Results",
+          "type": "integer"
+        },
+        "sample_stddev": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sample Stddev"
+        },
+        "unavailable_results": {
+          "minimum": 0,
+          "title": "Unavailable Results",
+          "type": "integer"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "eligible_results",
+        "observed_results",
+        "unavailable_results",
+        "unit",
+        "mean",
+        "minimum",
+        "maximum",
+        "sample_stddev"
+      ],
+      "title": "ComparisonDistribution",
+      "type": "object"
+    },
+    "ComparisonGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_index": {
+          "minimum": 0,
+          "title": "Agent Index",
+          "type": "integer"
+        },
+        "assessed_runs": {
+          "minimum": 0,
+          "title": "Assessed Runs",
+          "type": "integer"
+        },
+        "completed_runs": {
+          "minimum": 0,
+          "title": "Completed Runs",
+          "type": "integer"
+        },
+        "input_sources": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Input Sources",
+          "type": "object"
+        },
+        "matching_runs": {
+          "minimum": 0,
+          "title": "Matching Runs",
+          "type": "integer"
+        },
+        "metrics": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ComparisonDistribution"
+          },
+          "title": "Metrics",
+          "type": "object"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "negative_runs": {
+          "minimum": 0,
+          "title": "Negative Runs",
+          "type": "integer"
+        },
+        "partial_coverage_results": {
+          "minimum": 0,
+          "title": "Partial Coverage Results",
+          "type": "integer"
+        },
+        "planned_runs": {
+          "minimum": 0,
+          "title": "Planned Runs",
+          "type": "integer"
+        },
+        "registration_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Registration Id"
+        },
+        "simulation_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Simulation Ids",
+          "type": "array"
+        },
+        "status_counts": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Status Counts",
+          "type": "object"
+        },
+        "task_outcomes": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Task Outcomes",
+          "type": "object"
+        },
+        "unassessed_runs": {
+          "minimum": 0,
+          "title": "Unassessed Runs",
+          "type": "integer"
+        },
+        "unknown_runs": {
+          "minimum": 0,
+          "title": "Unknown Runs",
+          "type": "integer"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version"
+        }
+      },
+      "required": [
+        "agent_index",
+        "registration_id",
+        "name",
+        "version",
+        "planned_runs",
+        "simulation_ids",
+        "status_counts",
+        "assessed_runs",
+        "matching_runs",
+        "negative_runs",
+        "unknown_runs",
+        "unassessed_runs",
+        "completed_runs",
+        "partial_coverage_results",
+        "input_sources",
+        "task_outcomes",
+        "metrics"
+      ],
+      "title": "ComparisonGroup",
+      "type": "object"
+    },
+    "ComparisonPair": {
+      "additionalProperties": false,
+      "properties": {
+        "compared_simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Compared Simulation Id"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "reference_simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reference Simulation Id"
+        },
+        "repeat_index": {
+          "minimum": 0,
+          "title": "Repeat Index",
+          "type": "integer"
+        },
+        "seed": {
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "severity_difference": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Severity Difference"
+        }
+      },
+      "required": [
+        "seed",
+        "repeat_index",
+        "reference_simulation_id",
+        "compared_simulation_id",
+        "severity_difference",
+        "reason"
+      ],
+      "title": "ComparisonPair",
+      "type": "object"
+    },
+    "ComparisonReport": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/OptimizationView"
+        },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/ComparisonGroup"
+          },
+          "title": "Groups",
+          "type": "array"
+        },
+        "notes": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "paired_comparisons": {
+          "items": {
+            "$ref": "#/$defs/PairedComparison"
+          },
+          "title": "Paired Comparisons",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "poltergeist-comparison-v1",
+          "default": "poltergeist-comparison-v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "evidence",
+        "groups",
+        "paired_comparisons",
+        "notes"
+      ],
+      "title": "ComparisonReport",
+      "type": "object"
+    },
+    "ComparisonRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "agents": {
+          "items": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Agents",
+          "type": "array"
+        },
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "failure_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FailureKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "compare",
+          "default": "compare",
+          "title": "Kind",
+          "type": "string"
+        },
+        "minimum_severity": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Minimum Severity",
+          "type": "number"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        },
+        "repeats": {
+          "default": 1,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Repeats",
+          "type": "integer"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "seeds": {
+          "items": {
+            "maximum": 2147483647,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Seeds",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "options",
+        "evaluation_settings",
+        "kind",
+        "scenario",
+        "agents",
+        "seeds",
+        "repeats",
+        "failure_kind",
+        "minimum_severity"
+      ],
+      "title": "ComparisonRequest",
       "type": "object"
     },
     "ControlAudit": {
@@ -3853,6 +4315,7 @@
         "request": {
           "discriminator": {
             "mapping": {
+              "compare": "#/$defs/ComparisonRequest",
               "minimize": "#/$defs/MinimizeRequest",
               "reproduce": "#/$defs/ReproductionRequest",
               "search": "#/$defs/SearchRequest"
@@ -3862,6 +4325,9 @@
           "oneOf": [
             {
               "$ref": "#/$defs/SearchRequest"
+            },
+            {
+              "$ref": "#/$defs/ComparisonRequest"
             },
             {
               "$ref": "#/$defs/ReproductionRequest"
@@ -3984,10 +4450,29 @@
     "OptimizationRecord": {
       "additionalProperties": false,
       "properties": {
+        "agent_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "cancel_requested": {
           "default": false,
           "title": "Cancel Requested",
           "type": "boolean"
+        },
+        "comparison_agents": {
+          "items": {
+            "$ref": "#/$defs/ComparisonAgent"
+          },
+          "maxItems": 8,
+          "title": "Comparison Agents",
+          "type": "array"
         },
         "created_at": {
           "format": "date-time",
@@ -4055,6 +4540,7 @@
         "request": {
           "discriminator": {
             "mapping": {
+              "compare": "#/$defs/ComparisonRequest",
               "minimize": "#/$defs/MinimizeRequest",
               "reproduce": "#/$defs/ReproductionRequest",
               "search": "#/$defs/SearchRequest"
@@ -4064,6 +4550,9 @@
           "oneOf": [
             {
               "$ref": "#/$defs/SearchRequest"
+            },
+            {
+              "$ref": "#/$defs/ComparisonRequest"
             },
             {
               "$ref": "#/$defs/ReproductionRequest"
@@ -4114,6 +4603,8 @@
         "request",
         "execution",
         "source_failure",
+        "agent_snapshot",
+        "comparison_agents",
         "status",
         "revision",
         "created_at",
@@ -4157,6 +4648,12 @@
     "OptimizationTrial": {
       "additionalProperties": false,
       "properties": {
+        "agent_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Agent Index",
+          "type": "integer"
+        },
         "assessed": {
           "default": false,
           "title": "Assessed",
@@ -4224,6 +4721,7 @@
         "role": {
           "enum": [
             "search",
+            "compare",
             "reproduce",
             "minimize_baseline",
             "minimize_candidate"
@@ -4259,6 +4757,7 @@
         "number",
         "simulation_id",
         "role",
+        "agent_index",
         "candidate_index",
         "repeat_index",
         "scenario",
@@ -4290,6 +4789,41 @@
         "trials"
       ],
       "title": "OptimizationView",
+      "type": "object"
+    },
+    "PairedComparison": {
+      "additionalProperties": false,
+      "properties": {
+        "compared_agent_index": {
+          "minimum": 0,
+          "title": "Compared Agent Index",
+          "type": "integer"
+        },
+        "difference": {
+          "$ref": "#/$defs/ComparisonDistribution"
+        },
+        "pairs": {
+          "items": {
+            "$ref": "#/$defs/ComparisonPair"
+          },
+          "maxItems": 200,
+          "title": "Pairs",
+          "type": "array"
+        },
+        "reference_agent_index": {
+          "const": 0,
+          "default": 0,
+          "title": "Reference Agent Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "reference_agent_index",
+        "compared_agent_index",
+        "difference",
+        "pairs"
+      ],
+      "title": "PairedComparison",
       "type": "object"
     },
     "ParameterInfo": {
@@ -5091,6 +5625,30 @@
     "SearchRequest": {
       "additionalProperties": false,
       "properties": {
+        "agent_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Id"
+        },
+        "driving_task": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrivingTask"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "evaluation_settings": {
           "$ref": "#/$defs/EvaluationSettings"
         },
@@ -5212,7 +5770,9 @@
         "parameters",
         "ranges",
         "minimum_severity",
-        "failure_kind"
+        "failure_kind",
+        "agent_id",
+        "driving_task"
       ],
       "title": "SearchRequest",
       "type": "object"

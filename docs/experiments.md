@@ -1,5 +1,10 @@
 # Run experiment batches
 
+This baseline-only CLI retains its existing sequential batch format. For
+registered agents, matched comparisons, repeated trials, agent-aware search,
+reproduction and minimization, use the dashboard's Experiments tab or the
+[`/optimizations` API](agent-comparisons.md).
+
 The experiment CLI submits inline scenario snapshots to the running Poltergeist
 API, then polls each run to its finalized result before submitting the next.
 It uses the same persisted queue and worker as the dashboard. It does not open

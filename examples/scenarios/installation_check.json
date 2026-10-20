@@ -1,0 +1,17 @@
+{
+  "name": "Short installation integration check",
+  "description": "Synthetic integration fixture. No CARLA coordinates or driving-safety conclusion.",
+  "map": "Town03",
+  "seed": 7,
+  "duration_s": 0.5,
+  "fixed_delta_seconds": 0.05,
+  "actors": [
+    {"id": "ego", "type": "ego_vehicle", "speed_mps": 2.0, "spawn": {}},
+    {"id": "lead", "type": "vehicle", "speed_mps": 0.0, "spawn": {"position": {"x": 35.0}}}
+  ],
+  "driving_task": {
+    "route_owner": "framework",
+    "route": [{}, {"position": {"x": 20.0}}],
+    "target_speed_mps": 3.0
+  }
+}

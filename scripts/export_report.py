@@ -72,6 +72,7 @@ def _http_error(error: HTTPError) -> ExportError:
 def download_report(
     simulation_id: UUID, *, api_url: str, format: str, output: Path,
     include_telemetry: bool = False, force: bool = False, timeout: float = 30.0,
+    include_behavior: bool = False,
 ) -> Path:
     """Stream to a sibling temporary file, then atomically publish once complete.
 
@@ -97,6 +98,8 @@ def download_report(
     query = {"format": format}
     if include_telemetry:
         query["include_telemetry"] = "true"
+    if include_behavior:
+        query["include_behavior"] = "true"
     url = f"{base_url}/reports/simulations/{simulation_id}?{urlencode(query)}"
     request = Request(url, headers={"Accept": {"json": "application/json", "csv": "text/csv", "html": "text/html"}[format]})
     temporary = None
@@ -154,6 +157,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--format", choices=("json", "csv", "html"), default="json")
     parser.add_argument("--output", type=Path, required=True, help="Destination file; its parent directory must exist")
     parser.add_argument("--include-telemetry", action="store_true", help="Include the finalized trace (JSON only)")
+    parser.add_argument("--include-behavior", action="store_true", help="Include measured behavior, bounded agent diagnostics and evidence references")
     parser.add_argument("--force", action="store_true", help="Atomically replace an existing output file")
     parser.add_argument("--timeout", type=_positive_number, default=30.0, help="HTTP socket timeout in seconds (default: %(default)s)")
     arguments = parser.parse_args(argv)

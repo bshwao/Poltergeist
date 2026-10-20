@@ -146,11 +146,11 @@ def test_starter_package_can_be_copied_loaded_and_exercised(tmp_path):
 
     with AgentSession(agent_class(), manifest) as session:
         session.load()
-        session.reset(reset_context())
-        initial = session.step(observation())
-        stopped = session.step(observation(frame=1, time_s=0.05, traffic_light_red=True))
-        session.reset(reset_context(seed=8))
-        restarted = session.step(observation())
+        session.reset(reset_context(protocol_version=manifest.protocol_version))
+        initial = session.step(observation(protocol_version=manifest.protocol_version))
+        stopped = session.step(observation(protocol_version=manifest.protocol_version, frame=1, time_s=0.05, traffic_light_red=True))
+        session.reset(reset_context(protocol_version=manifest.protocol_version, seed=8))
+        restarted = session.step(observation(protocol_version=manifest.protocol_version))
     assert initial.control.throttle == restarted.control.throttle == 1.0
     assert stopped.control == ControlInput(brake=1.0)
     assert initial.diagnostics is stopped.diagnostics is restarted.diagnostics is None

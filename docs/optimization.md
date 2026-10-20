@@ -4,10 +4,18 @@ Section 7 adds bounded experiments through `/optimizations`. One controller
 submits child runs through the existing single simulation worker; it never
 owns a second CARLA tick loop. Every child remains available through
 `/simulations/{id}` with its actual result, metrics, telemetry, and mode. The
-dashboard can inspect those child runs and their failure evidence. Operations
-are submitted through this API; dedicated search controls remain an optional
-dashboard extension. The [experiment CLI](experiments.md) supports sequential
+dashboard can inspect those child runs and their failure evidence. The
+Experiments tab provides search, comparison, reproduction and minimization
+controls. The [experiment CLI](experiments.md) supports sequential
 recipe batches through the same worker.
+
+Phase 9 adds registered `agent_id` selection and an optional `driving_task` to
+search. Tasks propagate to every sampled recipe. Reproduction and minimization
+inherit the source run's frozen registered agent and execution settings. They
+reject inactive or changed registrations and legacy custom runs without a
+snapshot. Existing baseline operations keep their original engine versions and
+can still resume. See [agent comparisons](agent-comparisons.md) for matched
+seeds, repeated trials, reports and the dashboard workflow.
 
 ## Run a search
 

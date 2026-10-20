@@ -3,8 +3,9 @@
 Phase 8.1 adds a backend measurement engine and read-only HTTP endpoints. It
 analyzes finalized saved evidence, without starting a simulation, loading an
 agent or importing a model. Phase 8.2.1 adds dashboard review and evidence
-navigation; see the [review guide](behavior-review.md). Behavior report exports
-are Phase 8.2.2; the existing run-report format remains unchanged.
+navigation; see the [review guide](behavior-review.md). Phase 8.2.2 adds
+[behavior report exports](reports.md) containing the same measurements and
+effective settings, plus separately labelled recorded diagnostics.
 
 Restart the backend after updating. No new dependencies or database migration
 are required. Existing saved runs can be analyzed without re-registering their

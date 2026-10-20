@@ -14,6 +14,7 @@ from .simulation import Simulation, SimulationResult, SimulationStatus
 from .telemetry import TelemetryFrame
 from .decision import DecisionPage
 from .behavior import BehaviorAnalysis, BehaviorSettings
+from .comparison import ComparisonReport
 
 
 def _normalize(value):
@@ -154,6 +155,7 @@ class AnalyticsSummary(ContractModel):
 
 
 class ApiContracts(ContractModel):
+    comparison_report: ComparisonReport
     agent_registration: AgentRegistration
     registered_agent: RegisteredAgent
     agent_readiness: AgentReadiness

@@ -11,6 +11,11 @@ build/
 dist/
 node_modules/
 frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+validation-evidence/
+validation-wheel/
+validation-tests.xml
 
 storage/database/*
 storage/recordings/*

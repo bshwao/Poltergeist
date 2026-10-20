@@ -474,6 +474,11 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .failure-report-form .form-section { font-size: 12px; }
 .report-downloads { margin-bottom: 24px; font-size: 12px; }
 .report-download-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.report-download-actions [aria-disabled="true"] { opacity: .55; cursor: wait; }
+.report-downloads .checkbox-field { display: flex; align-items: flex-start; gap: 10px; margin-block: 16px; line-height: 1.6; }
+.report-downloads .checkbox-field input { flex: 0 0 auto; margin-top: 3px; }
+.report-downloads [role="status"] { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.evidence-return { margin-bottom: 12px; }
 .agents-page { display: grid; gap: 22px; min-width: 0; }
 .agents-page > .page-heading, .agents-page > .notice { margin: 0; }
 .agents-page .notice:not(.error-notice) { border-color: #e5dff0; background: #faf9fe; color: #625a76; }
@@ -600,3 +605,22 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .evidence-destination { min-width: 0; scroll-margin-top: 24px; border-radius: 10px; }
 .evidence-destination:focus-visible { outline: 2px solid #7053dc; outline-offset: 4px; }
 @media (max-width: 600px) { .behavior-measures { grid-template-columns: 1fr; }.behavior-event-detail { padding: 12px; }.behavior-settings { grid-template-columns: 1fr; } }
+/* Experiment plans keep the same spacing as the recorded evidence workflow. */
+.experiments-page { display: grid; gap: 24px; font-size: 12px; }
+.experiments-page > .page-heading { margin-bottom: 0; }
+.experiment-form, .experiments-page .panel-body { padding: 24px; display: grid; gap: 20px; }
+.experiment-form label { display: grid; gap: 8px; font-weight: 500; min-width: 0; }
+.experiment-form input:not([type="checkbox"]), .experiment-form select, .experiment-form textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--border, #deddea); border-radius: 6px; background: white; padding: 11px 12px; color: inherit; font: inherit; }
+.experiment-form textarea { font-family: monospace; resize: vertical; }
+.experiment-form .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.experiment-form fieldset { border: 1px solid var(--border, #deddea); border-radius: 8px; padding: 16px; min-width: 0; }
+.experiment-form .experiment-agent { display: flex; align-items: flex-start; gap: 10px; margin-top: 12px; overflow-wrap: anywhere; }
+.experiments-page .button-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.experiment-history { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.experiment-history li { display: grid; gap: 6px; overflow-wrap: anywhere; }
+.experiment-history span { color: var(--muted, #666b80); font-size: 12px; }
+.experiment-group { margin-block: 24px; }
+.experiments-page pre { max-height: 420px; overflow: auto; }
+.experiments-page details { margin-block: 12px; }
+.experiments-page .table-scroll:focus-visible { outline: 2px solid #7353e5; outline-offset: 3px; }
+@media (max-width: 640px) { .experiment-form .form-grid { grid-template-columns: 1fr; } .experiment-form, .experiments-page .panel-body { padding: 16px; } }

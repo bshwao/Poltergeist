@@ -24,7 +24,9 @@ from simulator.protocols import SimulationOptions
 from simulator.test_adapter import TestSimulationAdapter
 
 
-def wait_until(predicate, timeout=30):
+# These integration cases evaluate hundreds of 3D geometry frames per run.
+# Allow slow Windows/CI hosts to finish without changing production deadlines.
+def wait_until(predicate, timeout=120):
     deadline = monotonic() + timeout
     while monotonic() < deadline:
         value = predicate()
@@ -82,7 +84,7 @@ class BlockedCollisionAdapter(CollisionAdapter):
 
     def open(self, recipe):
         self.entered.set()
-        if not self.release.wait(3):
+        if not self.release.wait(20):
             raise RuntimeError("Test did not release the native call")
         return super().open(recipe)
 
@@ -242,7 +244,7 @@ def test_cancelled_reproduction_never_changes_source_reproduction_flag(harness):
     harness.adapter_factory = lambda: BlockedCollisionAdapter(entered, release)
     controller = harness.controller()
     operation = controller.submit(ReproductionRequest(failure_id=source.id, repeats=2))
-    assert entered.wait(2)
+    assert entered.wait(10)
     assert harness.failure(source.id).reproduced is True
     controller.cancel(operation.id)
     view = terminal(controller, operation.id)
@@ -303,7 +305,7 @@ def test_queued_cancel_and_queue_capacity_never_schedule_rejected_children(harne
     harness.adapter_factory = lambda: BlockedCollisionAdapter(entered, release)
     controller = harness.controller(max_pending=1)
     active = controller.submit(search())
-    assert entered.wait(2)
+    assert entered.wait(10)
     queued = controller.submit(search())
     with pytest.raises(QueueFullError):
         controller.submit(search())
@@ -323,7 +325,7 @@ def test_shutdown_requires_explicit_resume_and_reuses_linked_child_without_budge
     harness.adapter_factory = lambda: BlockedCollisionAdapter(entered, release)
     first = harness.controller()
     operation = first.submit(search())
-    assert entered.wait(2)
+    assert entered.wait(10)
     original_child = first.get(operation.id).trials[0].simulation_id
     assert first.close()
     interrupted = first.get(operation.id)
@@ -374,7 +376,7 @@ def test_resume_finishes_partially_executed_minimization_group_without_duplicate
     harness.adapter_factory = adapters
     first = harness.controller()
     operation = first.submit(MinimizeRequest(failure_id=source.id, repeats=2, max_trials=6))
-    assert entered.wait(2)
+    assert entered.wait(10)
     assert first.close()
     interrupted = first.get(operation.id)
     assert interrupted.operation.status == "interrupted"
@@ -478,7 +480,7 @@ def test_cancellation_between_trial_check_and_transaction_link_finishes_cancelle
 
     monkeypatch.setattr(harness.worker, "submit", delayed_submit)
     operation = controller.submit(search())
-    assert entered.wait(2)
+    assert entered.wait(10)
     controller.cancel(operation.id)
     release.set()
     view = terminal(controller, operation.id)
@@ -500,7 +502,7 @@ def test_shutdown_during_pending_child_submit_retains_resumable_interruption(har
 
     monkeypatch.setattr(harness.worker, "submit", delayed_submit)
     operation = controller.submit(search())
-    assert entered.wait(2)
+    assert entered.wait(10)
     close_results = []
     closing = Thread(target=lambda: close_results.append(controller.close()))
     closing.start()

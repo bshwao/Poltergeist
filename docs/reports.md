@@ -5,6 +5,12 @@ command below. Completed, failed, and cancelled runs can all have reports once
 their terminal result has been persisted. Exporting reads stored evidence; it
 does not launch a run or perform a reproduction.
 
+The dashboard enables **Include behavior analysis and recorded agent diagnostics**
+by default. These enhanced version 2 reports include the same default analysis
+and effective thresholds shown in the behavior review panel. Download state,
+errors, cancellation and retry appear in the panel; browser requests time out
+after 60 seconds. Larger recordings can use the CLI with a longer timeout.
+
 ## Command line
 
 From the repository root, with the API running:
@@ -13,6 +19,7 @@ From the repository root, with the API running:
 python -m scripts.export_report --simulation-id <RUN_UUID> --api-url http://127.0.0.1:8000 --format json --output report.json
 python -m scripts.export_report --simulation-id <RUN_UUID> --format csv --output report.csv
 python -m scripts.export_report --simulation-id <RUN_UUID> --format html --output report.html
+python -m scripts.export_report --simulation-id <RUN_UUID> --format html --include-behavior --output behavior-report.html
 ```
 
 Replace `<RUN_UUID>` with the run ID shown in the dashboard. An installed package
@@ -41,6 +48,11 @@ omitted by default. `--include-telemetry` is rejected for CSV and HTML. The flag
 includes recorded telemetry frames, not raw camera or LiDAR bytes. Raw captures
 remain separate owned artifacts available from the run detail page.
 
+Add `--include-behavior` for enhanced JSON, CSV or HTML. It can be combined with
+`--include-telemetry` for JSON. The command-line and GET API options are opt-in so
+existing metadata-only exports retain their version 1 shape and can be used when
+trace artifacts are missing. The dashboard checkbox controls the same flag.
+
 Use `--timeout 60` to increase the default 30-second HTTP socket timeout. Success
 returns exit code `0` and prints the final file path. A download or file error
 returns `1`; invalid command arguments return `2`; interruption returns `130`.
@@ -57,9 +69,11 @@ metadata remains `null`; it is not filled with current defaults. Historical
 queue position is unavailable and remains `null`.
 
 - **JSON** is the complete machine-readable snapshot. Its `schema` is
-  `poltergeist-run-report-v1`. Top-level keys are `schema`, `generated_at`,
+  `poltergeist-run-report-v1` for metadata-only exports. Top-level keys are `schema`, `generated_at`,
   `record`, `failures`, `interpretation`, `telemetry_included`, and `telemetry`.
   `telemetry` is `null` when omitted and an array, possibly empty, when included.
+  Enhanced exports use `poltergeist-run-report-v2` and add `behavior_analysis`,
+  `agent_reported_diagnostics` and `qualified_interpretations`.
 - **CSV** is a flattened, lossless snapshot with columns `section`,
   `json_pointer`, `value_json`, and `unit`. Each row identifies a value with a
   JSON Pointer, for example `/record/result/metrics/min_ttc_s`. Decode
@@ -69,10 +83,36 @@ queue position is unavailable and remains `null`.
   byte-order mark supports common spreadsheet imports. Explicit metric units
   include meters, seconds, meters per second squared, and episode counts;
   settings also retain their unit-bearing field names.
-- **HTML** is a self-contained printable report with a metric table,
-  interpretation notes, and the complete escaped JSON snapshot. It contains no
+- **HTML** is a self-contained printable report with metric tables,
+  interpretation notes, and an expandable complete escaped JSON snapshot. Version
+  2 adds readable behavior, diagnostics and qualified-description sections. It contains no
   scripts or remote assets. Open the downloaded file in a browser to inspect
   it or use the browser's print dialog. It is not a generated PDF.
+
+Enhanced exports preserve response statuses, actual zero versus unknown values,
+thresholds/units, original safety metrics, task outcomes, route measurements,
+evidence spans, input provenance and immutable agent snapshots. Braking/route
+measurements are copied from the same analysis engine as the dashboard. Reports
+with explicit settings retain those settings; they do not alter historical safety
+scores. Response/event/stop caps and coverage remain part of the analysis.
+
+Recorded diagnostics are agent-supplied statements, not verified internal reasoning.
+Their export retains an earliest prefix of diagnostic-bearing inputs, bounded by
+**200 records** or **1 MiB of compact UTF-8 JSON record objects**, whichever is
+reached first. Counts of total decisions, unresolved inputs, diagnostic-bearing
+decisions, retained records, retained bytes and truncation are explicit. A first
+oversized record can leave an empty retained prefix with a nonzero omitted count.
+Pretty-printing and the report envelope add bytes beyond that accounting. Each
+retained record carries its native input frame/time, control authority,
+interventions and exact diagnostics. Observations and raw sensor bundles are not
+copied by the diagnostics collector. The original timeline retains later records.
+
+Qualified interpretations describe measured threshold onsets and windows; they
+do not infer intent, perception time or causality. Script assistance stays
+explicit. Missing legacy diagnostics or incomplete runs do not gain invented
+agent statements. HTML separates these categories and preserves the complete
+enhanced snapshot in an expandable appendix. Expand the appendix before printing
+if you also want its full JSON on paper; the readable findings print directly.
 
 Test-mode reports are labeled **Synthetic test execution**. They are not CARLA
 or real-driving evidence. CARLA mode is identified independently. A report
@@ -100,6 +140,8 @@ GET /reports/simulations/{simulation_id}?format=json
 GET /reports/simulations/{simulation_id}?format=csv
 GET /reports/simulations/{simulation_id}?format=html
 GET /reports/simulations/{simulation_id}?format=json&include_telemetry=true
+GET /reports/simulations/{simulation_id}?format=html&include_behavior=true
+POST /reports/simulations/{simulation_id}?format=json
 ```
 
 `format` defaults to `json`; `include_telemetry` defaults to `false`. Successful
@@ -109,9 +151,36 @@ HTML content type. They are sent with `Cache-Control: no-store`. HTML also uses
 a restrictive content security policy. Response filenames come from the run
 UUID, never scenario names or user-supplied file paths.
 
+`include_behavior` defaults to `false` on GET. POST always includes behavior and
+requires a settings JSON body; `{}` uses the same defaults as GET analysis. Pass
+the same settings object to POST analysis and POST report to obtain identical
+`behavior_analysis` values. For example:
+
+```powershell
+$runId = "YOUR_FINISHED_RUN_UUID"
+$settings = @{ response_window_s = 2.0; brake_threshold = 0.2 } | ConvertTo-Json
+Invoke-WebRequest "http://127.0.0.1:8000/reports/simulations/${runId}?format=html" `
+  -Method Post -ContentType "application/json" -Body $settings -OutFile behavior-report.html
+```
+
+The `X-Poltergeist-Report-Schema` response header identifies version 1 or 2. The
+backend exposes it through CORS; reverse proxies must forward it. The dashboard
+checks schema, content type and the completed transfer before saving a file, and
+ignores obsolete requests after a run changes. Compressed responses are checked
+using the browser's decoded body rather than comparing compressed byte lengths.
+
 The endpoint returns `404` for a missing run, `409` for a run without finalized
 output, and `422` for invalid IDs or report options. Persistence failures return
 `503`. Including telemetry reads and validates the finalized artifact, so an
 unavailable or invalid required artifact also fails the export. A report without
-telemetry can still export the persisted result metadata and artifact
+behavior or telemetry can still export the persisted result metadata and artifact
 references; it does not certify that every referenced artifact is accessible.
+
+Enhanced exports validate telemetry, the complete decision checksum and raw
+sensor references before returning new measurements or diagnostics. Corrupt
+evidence is not silently downgraded into an enhanced report. They never import
+current agent code, check current model weights or start a simulator/worker.
+Behavior plus optional JSON telemetry share one validated artifact read. Large
+recordings can incur additional disk I/O and memory proportional to saved
+telemetry/compact controls. The diagnostics byte cap is not a cap on the entire
+report or analysis workload.

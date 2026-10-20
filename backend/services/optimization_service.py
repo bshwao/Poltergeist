@@ -13,13 +13,14 @@ from backend.optimization_repository import OptimizationRepository
 from backend.persistence_errors import ConflictError, PersistenceError
 from backend.repositories import FailureRepository, SimulationRepository
 from backend.services.simulation_service import QueueFullError, QueueUnavailableError
+from backend.services.agent_registry_service import AgentRegistryService
 from optimization.failure_minimizer import FailureMinimizer
 from optimization.objective_function import assess_result
 from optimization.reproduction import summarize_reproduction
 from optimization.search_manager import SearchManager
 from shared.models import FailureReport
 from shared.models.optimization import (
-    ExecutionSpec, OptimizationOutcome, OptimizationRequest, OptimizationStatus,
+    ComparisonAgent, ExecutionSpec, OptimizationOutcome, OptimizationRequest, OptimizationStatus,
     OptimizationTrial, OptimizationView,
 )
 
@@ -27,6 +28,15 @@ _REQUEST = TypeAdapter(OptimizationRequest)
 _OWNERS = set()
 _OWNERS_LOCK = Lock()
 _FAILURE_POLICY_VERSION = "failure-policy-v1"
+
+
+def _engine_version(record):
+    if record.request.kind == "compare":
+        return "comparison-v1"
+    if record.request.kind == "search":
+        version = SearchManager(record.request).version
+        return version + ("/agent-v1" if record.agent_snapshot is not None or record.request.driving_task is not None else "")
+    return _FAILURE_POLICY_VERSION + ("/agent-v1" if record.agent_snapshot is not None else "")
 
 
 class _Stop(Exception):
@@ -102,32 +112,51 @@ class OptimizationService:
 
     def _prepare(self, request):
         request = _REQUEST.validate_python(request.model_dump(mode="python") if hasattr(request, "model_dump") else request)
-        if request.kind == "search":
-            SearchManager(request)  # Validate domain/dependency before saving work.
+        snapshot, agents = None, []
+        if request.kind in {"search", "compare"}:
             execution = ExecutionSpec(mode=request.mode, options=request.options, evaluation_settings=request.evaluation_settings)
             source = None
+            if request.kind == "search":
+                candidate = SearchManager(request).suggest()  # Validate domain/dependency before saving work.
+                snapshot = self._freeze_agent(request.agent_id, candidate, request.options)
+            else:
+                agents = [ComparisonAgent(agent_id=agent_id, snapshot=self._freeze_agent(agent_id, request.scenario, request.options))
+                          for agent_id in request.agents]
         else:
             with self.persistence.database.session(write=False) as session:
                 source = FailureRepository(session).get(request.failure_id)
                 run = SimulationRepository(session).get(source.simulation_id)
                 job = JobRepository(session).get(source.simulation_id, required=False)
-            if run.simulation.agent != "baseline":
-                raise ConflictError("Custom-agent reproduction and minimization require agent-aware optimization (Phase 9)")
+            snapshot = run.simulation.agent_snapshot
+            if run.simulation.agent != "baseline" and snapshot is None:
+                raise ConflictError("Legacy custom-agent reproduction requires a frozen registered snapshot; record a new agent-aware run")
             if job is None:
                 raise PersistenceError("Reproduction and minimization require recorded execution settings")
             execution = ExecutionSpec(mode=run.simulation.mode, options=job.options, evaluation_settings=job.evaluation_settings)
+            if job.agent_snapshot != snapshot:
+                raise ConflictError("Source job and simulation agent identity differ")
+            if snapshot is not None and self._freeze_agent(snapshot.registration_id, source.scenario, job.options) != snapshot:
+                raise ConflictError("Current registration differs from the source agent snapshot")
         if execution.mode == "test" and (execution.options.camera or execution.options.lidar):
             raise ValueError("Camera and LiDAR capture require CARLA mode")
-        return request, execution, source
+        return request, execution, source, snapshot, agents
+
+    def _freeze_agent(self, agent_id, scenario, options):
+        if agent_id is None:
+            return None
+        snapshot = AgentRegistryService(self.persistence.database).resolve(agent_id)
+        self.worker._validate_agent_launch(scenario, snapshot, options)
+        return snapshot
 
     def submit(self, request):
-        request, execution, source = self._prepare(request)
+        request, execution, source, snapshot, agents = self._prepare(request)
         with self._condition:
             self._available()
             if len(self._pending) >= self._max_pending:
                 raise QueueFullError("Optimization waiting queue is full")
             with self.persistence.database.session() as session:
-                record = OptimizationRepository(session).create(request, execution=execution, source_failure=source)
+                record = OptimizationRepository(session).create(request, execution=execution, source_failure=source,
+                                                              agent_snapshot=snapshot, comparison_agents=agents)
             self._pending.append(record.id)
             self._condition.notify()
             return record
@@ -149,7 +178,7 @@ class OptimizationService:
             with self.persistence.database.session() as session:
                 repository = OptimizationRepository(session)
                 record = repository.get(operation_id)
-                version = SearchManager(record.request).version if record.request.kind == "search" else _FAILURE_POLICY_VERSION
+                version = _engine_version(record)
                 if record.engine_version is not None and version != record.engine_version:
                     raise ConflictError("Optimization engine version changed; recorded history cannot be resumed")
                 record = repository.resume(operation_id, expected_revision=expected_revision)
@@ -269,7 +298,7 @@ class OptimizationService:
     def _execute(self, operation_id):
         record = self.get(operation_id).operation
         manager = SearchManager(record.request) if record.request.kind == "search" else None
-        version = manager.version if manager is not None else _FAILURE_POLICY_VERSION
+        version = _engine_version(record)
         if record.engine_version is not None and record.engine_version != version:
             raise ConflictError("Optimization engine version changed; replay is unsafe")
         with self.persistence.database.session() as session:
@@ -289,6 +318,13 @@ class OptimizationService:
                 if score is not None and (best is None or score > best.score):
                     best = trial
             outcome = self._outcome(best, summary="Search budget completed; unknown objectives were excluded")
+        elif record.request.kind == "compare":
+            for seed_index, seed in enumerate(record.request.seeds):
+                scenario = record.request.scenario.model_copy(update={"seed": seed})
+                for repeat in range(record.request.repeats):
+                    for agent_index in range(len(record.comparison_agents)):
+                        self._trial(record, scenario, "compare", seed_index, repeat, agent_index)
+            outcome = self._outcome(summary="Matched scenario/seed repetitions completed; inspect per-agent coverage and outcomes")
         elif record.request.kind == "reproduce":
             results = [self._trial(record, record.source_failure.scenario, "reproduce", 0, repeat)
                        for repeat in range(record.request.repeats)]
@@ -334,25 +370,27 @@ class OptimizationService:
             candidate_index += 1
         return self._outcome(best, reproduced=True, summary="Minimization execution budget exhausted; result is a local reduction")
 
-    def _trial(self, record, scenario, role, candidate_index, repeat_index):
+    def _trial(self, record, scenario, role, candidate_index, repeat_index, agent_index=0):
         self._check()
         number = self._cursor
         if number < len(self._history):
             trial = self._history[number]
-            if (trial.role != role or trial.candidate_index != candidate_index or trial.repeat_index != repeat_index
+            if (trial.role != role or trial.candidate_index != candidate_index or trial.repeat_index != repeat_index or trial.agent_index != agent_index
                     or _key(trial.scenario) != _key(scenario)):
                 raise ConflictError("Recorded optimization history does not match deterministic replay")
         else:
             def link(session, stored):
                 OptimizationRepository(session).add_trial(OptimizationTrial(
                     operation_id=record.id, number=number, simulation_id=stored.simulation.id, role=role,
-                    candidate_index=candidate_index, repeat_index=repeat_index, scenario=scenario,
+                    candidate_index=candidate_index, repeat_index=repeat_index, scenario=scenario, agent_index=agent_index,
                 ))
             while True:
                 self._check()
                 try:
+                    snapshot = record.comparison_agents[agent_index].snapshot if record.request.kind == "compare" else record.agent_snapshot
                     self.worker.submit(scenario, mode=record.execution.mode, options=record.execution.options,
-                                       evaluation_settings=record.execution.evaluation_settings, on_created=link)
+                                       evaluation_settings=record.execution.evaluation_settings, on_created=link,
+                                       agent_id=None if snapshot is None else snapshot.registration_id, expected_agent_snapshot=snapshot)
                     break
                 except QueueFullError:
                     self._cancel.wait(0.05)
@@ -369,7 +407,7 @@ class OptimizationService:
                 if not worker_status["worker_alive"] or worker_status["error"] is not None:
                     raise QueueUnavailableError(worker_status["error"] or "Simulation worker stopped before persisting its result")
                 self._cancel.wait(0.05)
-            kind = record.request.failure_kind if record.request.kind == "search" else record.source_failure.kind
+            kind = record.request.failure_kind if record.request.kind in {"search", "compare"} else record.source_failure.kind
             assessment = assess_result(child.result, kind=kind, minimum_severity=record.request.minimum_severity)
             with self.persistence.database.session() as session:
                 failure_id = None

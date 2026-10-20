@@ -73,6 +73,9 @@ class SearchManager:
         if self.exhausted:
             raise SearchProtocolError("Search trial budget exhausted")
         scenario = self._sampler.suggest(self._completed)
+        if self._request.driving_task is not None:
+            from scenarios import validate_scenario
+            scenario = validate_scenario(scenario.model_dump(mode="python") | {"driving_task": self._request.driving_task})
         self._pending = True
         return scenario
 

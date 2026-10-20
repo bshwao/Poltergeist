@@ -156,7 +156,10 @@ test("detail fetches fresh report plus actual parent and renders zero, unknown, 
   assert.match(text(detail), /Fresh report/); assert.match(text(detail), /Synthetic test/); assert.match(text(detail), /Zero observed events does not establish absence/);
   assert.match(text(detail), /Observed collisions0/); assert.match(text(detail), /Minimum TTC \(s\)Unknown/); assert.match(text(detail), /Collision frames3 \/ 5/);
   assert.match(text(detail), /"seed": 1/); assert.match(text(detail), /"max_ticks": 200/); assert.match(text(detail), /Runtime provenance is unavailable/);
-  assert.equal(detail.findByType("a").props.href, `#simulations/${report.simulation_id}`);
+  const links = detail.findAllByType("a").map(a => a.props.href);
+  assert.ok(links.includes(`#simulations/${report.simulation_id}`));
+  assert.ok(links.includes(`#experiments/reproduce/${report.id}`));
+  assert.ok(links.includes(`#experiments/minimize/${report.id}`));
 });
 
 test("switching reports aborts the prior detail and cannot start its parent request after hide", async t => {

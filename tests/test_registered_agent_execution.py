@@ -481,7 +481,7 @@ def test_registration_control_mode_explicitly_preserves_legacy_scripted_interven
 
 
 @pytest.mark.parametrize("kind", ["reproduce", "minimize"])
-def test_custom_agent_failure_optimization_rejects_silent_baseline_replacement(settings, package, kind):
+def test_custom_agent_failure_optimization_preserves_registered_identity(settings, package, kind):
     directory, _ = package()
 
     class CollisionAdapter(TestSimulationAdapter):
@@ -502,11 +502,23 @@ def test_custom_agent_failure_optimization_rejects_silent_baseline_replacement(s
             "summary": "Observed fixture contact from the registered agent run",
         })
         assert failure.status_code == 201, failure.text
-        response = client.post("/optimizations", json={"kind": kind, "failure_id": failure.json()["id"]})
-        assert response.status_code == 409, response.text
-        assert "agent" in response.json()["detail"].lower()
-        assert client.get("/optimizations").json() == []
-        assert len(client.get("/simulations").json()) == 1
+        response = client.post("/optimizations", json={"kind": kind, "failure_id": failure.json()["id"],
+            "repeats": 1, **({"max_trials": 1} if kind == "minimize" else {})})
+        assert response.status_code == 202, response.text
+        identifier = response.json()["id"]
+        assert response.json()["agent_snapshot"] == registration["snapshot"]
+
+        def done():
+            view = client.get(f"/optimizations/{identifier}").json()
+            return view if view["operation"]["status"] not in {"queued", "running"} else None
+
+        view = wait_until(done, timeout=60)
+        assert view["operation"]["status"] == "completed", view
+        assert len(view["trials"]) == 1
+        child = client.get(f'/simulations/{view["trials"][0]["simulation_id"]}').json()
+        assert child["simulation"]["agent"] == "custom"
+        assert child["simulation"]["agent_snapshot"] == registration["snapshot"]
+        assert len(client.get("/simulations").json()) == 2
 
 
 @pytest.mark.parametrize("spoof", ["unregistered", "other_registration", "control_mode"])

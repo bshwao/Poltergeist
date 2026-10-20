@@ -46,6 +46,7 @@ def create_app(settings: Settings | None = None, *, runner_factory=None) -> Fast
         allow_origins=settings.cors_origins,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Poltergeist-Report-Schema"],
     )
 
     def handler(code, message=None):

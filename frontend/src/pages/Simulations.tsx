@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { MetricsChart } from "../components/MetricsChart";
 import { SafetyMetrics } from "../components/SafetyMetrics";
 import { SimulationViewer } from "../components/SimulationViewer";
@@ -62,13 +62,22 @@ export function Simulations({ active, selectedId }: { active: boolean; selectedI
 
 export function RunDetail({ id, active }: { id: string; active: boolean }) {
   const [focus, setFocus] = useState<(EvidenceFocus & { source: "decisions" | "telemetry" }) | null>(null);
+  const findingButton = useRef<HTMLElement | null>(null);
+  const showElement = (element: HTMLElement | null) => {
+    const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    element?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+    element?.focus({ preventScroll: true });
+  };
   const inspect = (source: "decisions" | "telemetry", frame: number) => {
     setFocus(current => ({ source, frame, token: (current?.token ?? 0) + 1 }));
     if (typeof document !== "undefined") {
+      findingButton.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       const element = document.getElementById(`evidence-${id}-${source}`);
-      element?.scrollIntoView({ behavior: "smooth", block: "start" });
-      element?.focus({ preventScroll: true });
+      showElement(element);
     }
+  };
+  const returnToFinding = () => {
+    if (typeof document !== "undefined") showElement(findingButton.current?.isConnected ? findingButton.current : document.getElementById(`behavior-${id}`));
   };
   const state = useSimulation(id, active);
   const { record, progress } = state;
@@ -103,11 +112,11 @@ export function RunDetail({ id, active }: { id: string; active: boolean }) {
     </div>
     {record?.result && <>
       <SafetyMetrics result={record.result} />
-      <BehaviorReview key={id} simulationId={id} active={active} inspect={inspect} />
-      <div id={`evidence-${id}-decisions`} tabIndex={-1} className="evidence-destination"><DecisionTimeline key={id} simulationId={id} active={active} focus={focus?.source === "decisions" ? focus : undefined} /></div>
-      <div id={`evidence-${id}-telemetry`} tabIndex={-1} className="evidence-destination"><MetricsChart simulationId={id} active={active} focus={focus?.source === "telemetry" ? focus : undefined} maxSampleGapS={record.result.metrics.evaluation_settings?.max_sample_gap_s ?? (record.result.runtime?.fixed_delta_seconds ?? record.result.simulation.scenario.fixed_delta_seconds) * 1.5} /></div>
+      <div id={`behavior-${id}`} tabIndex={-1} className="evidence-destination"><BehaviorReview key={id} simulationId={id} active={active} inspect={inspect} /></div>
+      <div id={`evidence-${id}-decisions`} tabIndex={-1} className="evidence-destination">{focus?.source === "decisions" && <button type="button" className="button secondary small evidence-return" onClick={returnToFinding}>Return to behavior finding</button>}<DecisionTimeline key={id} simulationId={id} active={active} focus={focus?.source === "decisions" ? focus : undefined} /></div>
+      <div id={`evidence-${id}-telemetry`} tabIndex={-1} className="evidence-destination">{focus?.source === "telemetry" && <button type="button" className="button secondary small evidence-return" onClick={returnToFinding}>Return to behavior finding</button>}<MetricsChart simulationId={id} active={active} focus={focus?.source === "telemetry" ? focus : undefined} maxSampleGapS={record.result.metrics.evaluation_settings?.max_sample_gap_s ?? (record.result.runtime?.fixed_delta_seconds ?? record.result.simulation.scenario.fixed_delta_seconds) * 1.5} /></div>
       <SimulationViewer result={record.result} active={active} />
-      <ReportDownloads simulationId={id} />
+      <ReportDownloads simulationId={id} active={active} />
       <FailureReportForm result={record.result} active={active} />
       <div className="result-links"><a className="button secondary" href="#failures">Browse failure reports</a><span className="field-hint">Reports retain their parent run, mode, settings, and reproduction observations.</span></div>
     </>}

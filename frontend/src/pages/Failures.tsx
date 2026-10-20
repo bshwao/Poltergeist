@@ -65,7 +65,7 @@ function EvidenceFacts({ evidence }: { evidence: Evidence }) {
   return <>
     <p className="mode-label"><strong>{modeLabel(run.simulation.mode)}</strong>{run.simulation.mode === "test" ? " · Synthetic observations; real driving behavior is unverified." : " · Recorded CARLA execution."}</p>
     <dl className="detail-facts"><div><dt>Report ID</dt><dd><code>{report.id}</code></dd></div><div><dt>Parent run</dt><dd><a href={`#simulations/${report.simulation_id}`}>{report.simulation_id}</a></dd></div><div><dt>Kind</dt><dd>{failureKindLabel(report.kind)}</dd></div><div><dt>Reported severity</dt><dd>{observation(report.severity)} / 100</dd></div><div><dt>Reproduction</dt><dd>{reproductionLabel(report.reproduced)}</dd></div><div><dt>Recipe seed</dt><dd>{report.scenario.seed}</dd></div><div><dt>Map</dt><dd>{report.scenario.map}</dd></div><div><dt>Run status</dt><dd>{run.simulation.status}</dd></div><div><dt>Measured duration</dt><dd>{observation(result?.measured_duration_s)} s</dd></div><div><dt>Telemetry frames</dt><dd>{observation(result?.telemetry_frames)}</dd></div></dl>
-    <p>{report.summary}</p>
+    <p>{report.summary}</p><div className="button-row"><a className="button secondary" href={`#experiments/reproduce/${report.id}`}>Run reproduction trials</a><a className="button secondary" href={`#experiments/minimize/${report.id}`}>Minimize this failure</a></div>
     <AgentIdentity simulation={run.simulation} detailed inputs={result?.agent_inputs} />
     <p className="muted">Reproduction records can be confirmed, not reproduced, or unknown. Opening a report does not rerun its scenario.</p>
     {result ? <>

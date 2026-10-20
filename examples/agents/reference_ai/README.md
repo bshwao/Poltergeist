@@ -63,7 +63,8 @@ an over-budget model real-time. This release's tracker is used at **20 Hz**
 The synthetic `--mode test` adapter does not provide a measured map raster and
 is intentionally rejected by this checkpoint. A hand-authored synthetic raster
 is used only in the explicit neural inference fixture/tests, never substituted
-for missing live map context. Dashboard model selection is a later phase.
+  for missing live map context. Register the package and its prepared worker
+  environment in the dashboard's Agents page, then select it for an experiment.
 
 The maintained pilot validation command and report are documented in
 [the launch guide](../../../docs/reference-ai-pilot.md) and

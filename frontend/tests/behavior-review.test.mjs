@@ -16,7 +16,11 @@ const { api, createApiClient, ApiError } = await loaded.moduleAt("services/api.t
 const fixture = JSON.parse(await readFile(new URL("fixtures/behavior-review.json", import.meta.url), "utf8"));
 const ID = fixture.analysis.simulation_id, OTHER = "00000000-0000-4000-8000-000000000002";
 const originalFetch = globalThis.fetch;
-afterEach(() => { globalThis.fetch = originalFetch; });
+const browserGlobals = Object.fromEntries(["document", "window", "HTMLElement"].map(key => [key, globalThis[key]]));
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+  for (const [key, value] of Object.entries(browserGlobals)) { if (value === undefined) delete globalThis[key]; else globalThis[key] = value; }
+});
 after(() => loaded.cleanup());
 const clone = () => structuredClone(fixture.analysis);
 const text = node => typeof node === "string" || typeof node === "number" ? String(node) : (node?.children ?? []).map(text).join("");
@@ -224,4 +228,26 @@ test("run detail wires analysis links to both real evidence components", async t
   const view = await mount(t, RunDetail, { id: ID });
   await click(view, "Inspect telemetry frame 123"); assert.match(text(view.root), /Opened supporting telemetry at native frame 123/);
   await click(view, "Inspect decision frame 103"); assert.match(text(view.root), /Opened supporting decision input at native frame 103/);
+});
+
+test("keyboard evidence return restores the finding and respects reduced motion", async t => {
+  class Element {
+    isConnected = true;
+    scrollIntoView(options) { this.scroll = options; }
+    focus(options) { this.focused = options; }
+  }
+  const source = new Element(), destination = new Element(), review = new Element();
+  globalThis.HTMLElement = Element;
+  globalThis.document = { activeElement: source, getElementById(id) { return id.startsWith("behavior-") ? review : destination; } };
+  globalThis.window = { matchMedia: () => ({ matches: true }) };
+  const simulation = { id: ID, status: "completed", mode: "test", agent: "custom", progress: 1,
+    scenario: { name: "Synthetic review", seed: 0, map: "Town03", duration_s: 1.2, fixed_delta_seconds: .05 } };
+  api.getSimulation = async () => ({ simulation, revision: 1, job: null, result: { simulation, metrics: fixture.analysis.stored_safety_metrics,
+    measured_duration_s: 1.15, telemetry_frames: 24, artifacts: [], runtime: null } });
+  api.getBehaviorAnalysis = async () => clone(); api.getDecisions = async (id, query) => decisions(query); api.getTelemetry = async (id, query) => telemetry(query);
+  const view = await mount(t, RunDetail, { id: ID });
+  await click(view, "Inspect telemetry frame 123");
+  assert.equal(destination.scroll.behavior, "auto"); assert.deepEqual(destination.focused, { preventScroll: true });
+  await click(view, "Return to behavior finding"); assert.deepEqual(source.focused, { preventScroll: true });
+  source.isConnected = false; await click(view, "Return to behavior finding"); assert.deepEqual(review.focused, { preventScroll: true });
 });
