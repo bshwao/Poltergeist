@@ -242,6 +242,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     && isUuid(value.id) && integer(value.revision, 1) && isScenario(value.scenario)
     && isTimestamp(value.created_at) && isTimestamp(value.updated_at);
   const isOptions = (value: unknown) => isObject(value)
+    && (value.carla_quality === undefined || value.carla_quality === null || value.carla_quality === "Low" || value.carla_quality === "Epic")
     && ["allow_map_reload", "camera", "lidar"].every(key => typeof value[key] === "boolean")
     && ["camera_height", "camera_width", "max_ticks"].every(key => integer(value[key], 1))
     && (value.camera_height as number) <= 4096 && (value.camera_width as number) <= 4096

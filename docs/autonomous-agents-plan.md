@@ -22,6 +22,9 @@ ten implementation sections in [implementation-plan.md](implementation-plan.md).
 
 Public uploads and hosted execution need a separate isolated-worker design. A
 local Python process alone is not a security boundary for untrusted agents.
+The subsequent [distribution and scalability roadmap](scalability-plan.md) plans
+an installable local companion, a hosted dashboard/backend and secure device
+pairing. Its S1–S10 identifiers are separate from the phases above.
 
 Phase 2.5 comes before user-facing model registration/import workflows. Keep the
 existing trusted-package worker as the internal integration mechanism. Prove one

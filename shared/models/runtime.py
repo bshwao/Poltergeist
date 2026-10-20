@@ -1,5 +1,7 @@
 """Serializable execution options used by the runner and queued API jobs."""
 
+from typing import Literal
+
 from pydantic import Field, StrictBool
 
 from .base import ContractModel, NonNegativeInt, PositiveFloat
@@ -9,6 +11,8 @@ class SimulationOptions(ContractModel):
     allow_map_reload: StrictBool = False
     # None preserves the server setting; explicit values are scoped/restored.
     no_rendering_mode: StrictBool | None = None
+    # Startup preference only; a running CARLA instance keeps its quality.
+    carla_quality: Literal["Low", "Epic"] | None = None
     sensor_timeout_s: PositiveFloat = 2.0
     sensor_settle_s: PositiveFloat = 0.02
     max_ticks: NonNegativeInt = Field(default=100_000, gt=0, strict=True)

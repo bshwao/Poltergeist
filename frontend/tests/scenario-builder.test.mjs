@@ -138,6 +138,36 @@ test("parameters use expanded metadata bounds without displaying the old templat
   assert.equal(field("parameter-ego_speed_mps").props.value, "12");
 });
 
+test("map selector is included in generation, validation, saved recipes and restored form state", async () => {
+  await mount();
+  assert.equal(field("scenario-map").props.value, "Town10HD_Opt");
+  const calls = [];
+  api.generateScenario = async input => { calls.push(input); return { ...structuredClone(templateRecipe), map: input.map }; };
+  await edit("scenario-map", "Town02"); await generate();
+  assert.equal(calls[0].map, "Town02");
+  assert.equal(JSON.parse(jsonDraft()).map, "Town02");
+  await click("Validate JSON");
+  assert.equal(field("scenario-map").props.value, "Town02");
+  await edit("scenario-map", "Town03");
+  assert.equal(button("Save new recipe").props.disabled, true);
+  await generate(); await click("Validate JSON");
+  let saved;
+  api.createScenario = async recipe => { saved = recipe; return { ...source, scenario: recipe }; };
+  await click("Save new recipe");
+  assert.equal(saved.map, "Town03");
+});
+
+test("loading saved and custom maps preserves their recorded selection", async () => {
+  await mount(); await openAndLoad();
+  assert.equal(field("scenario-map").props.value, "Town03");
+  const recipe = { ...JSON.parse(jsonDraft()), template: null, parameters: {}, map: "MyCustomTown" };
+  await edit("scenario-json", JSON.stringify(recipe)); await click("Validate JSON");
+  assert.equal(field("scenario-map").props.value, "MyCustomTown");
+  await edit("scenario-map", "Town10HD_Opt");
+  assert.equal(JSON.parse(jsonDraft()).map, "Town10HD_Opt");
+  assert.equal(button("Update saved recipe").props.disabled, true);
+});
+
 test("values outside the expanded parameter bounds are still rejected before generation", async () => {
   await mount();
   let calls = 0;
@@ -192,7 +222,7 @@ test("duration controls keep presets and an edited duration in the generated rec
   };
   await edit("scenario-duration", "75.5");
   await generate();
-  assert.deepEqual(calls, [{ template: "intersection", seed: 0, parameters: { ego_speed_mps: 12 }, sample: false, ranges: {}, duration_s: 75.5 }]);
+  assert.deepEqual(calls, [{ template: "intersection", seed: 0, parameters: { ego_speed_mps: 12 }, sample: false, ranges: {}, duration_s: 75.5, map: "Town10HD_Opt" }]);
   assert.equal(JSON.parse(jsonDraft()).duration_s, 75.5);
   assert.equal(field("scenario-duration").props.value, "75.5");
   assert.equal(button("Save new recipe").props.disabled, true, "Generation still requires validation");

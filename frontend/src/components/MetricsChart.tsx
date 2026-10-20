@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState } from "react";
+import type { KeyboardEvent, PointerEvent } from "react";
 import { api, ApiError } from "../services/api";
 import type { TelemetryPage } from "../types/generated";
 import { measurement, seriesSegments, telemetryPoints } from "./visual-data";
@@ -11,6 +12,11 @@ const PAGE_SIZE = 200;
 function SeriesChart({ points, metric, label, unit, maxSampleGapS }: { points: TelemetryPoint[]; metric: "speed" | "deceleration"; label: string; unit: string; maxSampleGapS?: number }) {
   const title = useId();
   const description = useId();
+  const tooltip = useId();
+  const [inspected, setInspected] = useState<TelemetryPoint | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number; width: number } | null>(null);
+  // A point belongs to one loaded page; never reuse it after paging or changing runs.
+  const point = inspected && points.includes(inspected) ? inspected : null;
   const segments = seriesSegments(points, metric, maxSampleGapS);
   const values = points.flatMap(point => point[metric] === null ? [] : [point[metric]!]);
   if (!values.length) return <div className="chart-empty"><h3>{label}</h3><p className="muted">No directly measured {label.toLowerCase()} is available on this page.</p></div>;
@@ -21,18 +27,79 @@ function SeriesChart({ points, metric, label, unit, maxSampleGapS }: { points: T
   const peak = Math.max(...values, 1);
   const x = (time: number) => left + (time - earliest) / duration * (width - left - right);
   const y = (value: number) => height - bottom - value / peak * (height - top - bottom);
+  const color = metric === "speed" ? "#7053dc" : "#29847b";
+  function showPoint(sample: TelemetryPoint, svg: SVGSVGElement, pointer?: { x: number; y: number }) {
+    setInspected(sample);
+    const matrix = svg?.getScreenCTM(), bounds = svg?.getBoundingClientRect?.();
+    if (!matrix || !bounds) { setTooltipPosition(null); return; }
+    const anchor = svg.createSVGPoint(); anchor.x = x(sample.time); anchor.y = sample[metric] === null ? top : y(sample[metric]!);
+    const screen = anchor.matrixTransform(matrix);
+    const ax = screen.x - bounds.left, ay = screen.y - bounds.top;
+    // Leave room beside the marker even in narrow, letterboxed mobile plots.
+    const boxWidth = Math.min(190, Math.max(1, bounds.width / 2 - 16)), boxHeight = 76, gap = 16;
+    const candidates = [[ax + gap, ay - boxHeight / 2], [ax - boxWidth - gap, ay - boxHeight / 2],
+      [ax - boxWidth / 2, ay - boxHeight - gap], [ax - boxWidth / 2, ay + gap]].map(([left, top]) => ({
+        left: Math.max(0, Math.min(left, bounds.width - boxWidth)), top: Math.max(0, Math.min(top, bounds.height - boxHeight)),
+      }));
+    const proximity = (box: { left: number; top: number }, px: number, py: number) => Math.max(0, 12 - Math.hypot(
+      Math.max(box.left - px, 0, px - box.left - boxWidth), Math.max(box.top - py, 0, py - box.top - boxHeight)));
+    const score = (box: { left: number; top: number }) => 4 * proximity(box, ax, ay)
+      + (pointer ? proximity(box, pointer.x - bounds.left, pointer.y - bounds.top) : 0);
+    setTooltipPosition({ ...candidates.reduce((best, candidate) => score(candidate) < score(best) ? candidate : best), width: boxWidth });
+  }
+  function inspectPointer(event: PointerEvent<SVGSVGElement>) {
+    const matrix = event.currentTarget.getScreenCTM();
+    if (!matrix) return;
+    // SVG transforms include responsive scaling and any viewBox letterboxing.
+    const cursor = event.currentTarget.createSVGPoint();
+    cursor.x = event.clientX; cursor.y = event.clientY;
+    const local = cursor.matrixTransform(matrix.inverse());
+    if (local.x < left || local.x > width - right || local.y < top || local.y > height - bottom) {
+      setInspected(null); return;
+    }
+    const time = earliest + (local.x - left) / (width - left - right) * duration;
+    // Snap to a real frame, including unknown measurements, rather than interpolate.
+    showPoint(points.reduce((nearest, candidate) => Math.abs(candidate.time - time) < Math.abs(nearest.time - time) ? candidate : nearest),
+      event.currentTarget, { x: event.clientX, y: event.clientY });
+  }
+  function inspectKey(event: KeyboardEvent<SVGSVGElement>) {
+    const index = point ? points.indexOf(point) : 0;
+    let next: number;
+    switch (event.key) {
+      case "ArrowLeft": next = Math.max(0, index - 1); break;
+      case "ArrowRight": next = Math.min(points.length - 1, index + 1); break;
+      case "Home": next = 0; break;
+      case "End": next = points.length - 1; break;
+      case "Escape": event.preventDefault(); setInspected(null); return;
+      default: return;
+    }
+    event.preventDefault(); showPoint(points[next], event.currentTarget);
+  }
   return <div className="chart-series"><h3>{label} <span className="muted">({unit})</span></h3>
-    <svg className="chart-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${title} ${description}`}>
-      <title id={title}>{label} over simulation time</title><desc id={description}>Only the current telemetry page is shown. Missing measurements, skipped frames, and time gaps above the supplied threshold break the line. The frame inspector provides exact values.</desc>
+    <div className="chart-plot">
+    <svg className="chart-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${title} ${description}`} aria-describedby={point ? tooltip : undefined} tabIndex={0}
+      onPointerMove={inspectPointer} onPointerUp={inspectPointer} onPointerLeave={() => setInspected(null)} onPointerCancel={() => setInspected(null)}
+      onFocus={event => showPoint(points[0], event.currentTarget)} onBlur={() => setInspected(null)} onKeyDown={inspectKey}>
+      <title id={title}>{label} over simulation time</title><desc id={description}>Only the current telemetry page is shown. Missing measurements, skipped frames, and time gaps above the supplied threshold break the line. Hover or use Left and Right Arrow keys to inspect recorded coordinates; Home and End select the endpoints, and Escape hides the tooltip.</desc>
       {[0, 0.5, 1].map(ratio => <g key={ratio}><line x1={left} x2={width - right} y1={y(peak * ratio)} y2={y(peak * ratio)} stroke="#e5e7ee" /><text x={left - 8} y={y(peak * ratio) + 4} textAnchor="end" fill="#687085" fontSize="11">{measurement(peak * ratio, 1)}</text></g>)}
       <line x1={left} x2={left} y1={top} y2={height - bottom} stroke="#bec1d0" />
       {segments.map((segment, index) => segment.length > 1
-        ? <polyline key={index} points={segment.map(point => `${x(point.time)},${y(point.value)}`).join(" ")} stroke={metric === "speed" ? "#7053dc" : "#29847b"} strokeWidth="2" fill="none" />
-        : <circle key={index} cx={x(segment[0].time)} cy={y(segment[0].value)} r="3" fill={metric === "speed" ? "#7053dc" : "#29847b"} />)}
+        ? <polyline key={index} points={segment.map(point => `${x(point.time)},${y(point.value)}`).join(" ")} stroke={color} strokeWidth="2" fill="none" />
+        : <circle key={index} cx={x(segment[0].time)} cy={y(segment[0].value)} r="3" fill={color} />)}
+      {point && <g className="chart-inspection" aria-hidden="true">
+        <line x1={x(point.time)} x2={x(point.time)} y1={top} y2={height - bottom} stroke={color} strokeDasharray="4 4" opacity="0.6" />
+        {point[metric] !== null && <circle cx={x(point.time)} cy={y(point[metric]!)} r="4" fill="white" stroke={color} strokeWidth="2" />}
+      </g>}
       <text x={left} y={height - 20} fill="#687085" fontSize="11">{measurement(earliest, 2)}</text>
       <text x={width - right} y={height - 20} textAnchor="end" fill="#687085" fontSize="11">{measurement(latest, 2)}</text>
       <text x={width / 2} y={height - 3} textAnchor="middle" fill="#687085" fontSize="11">Simulation time (s)</text>
     </svg>
+    {point && <div id={tooltip} className="chart-tooltip" role="tooltip" style={tooltipPosition ?? { left: `clamp(0px, ${x(point.time) / width * 100}%, calc(100% - 190px))` }}>
+      <strong>Frame {point.frame}</strong>
+      <span>x: {measurement(point.time, 3)} s</span>
+      <span>y: {measurement(point[metric], 3)}{point[metric] === null ? "" : ` ${unit}`}</span>
+    </div>}
+    </div>
   </div>;
 }
 
@@ -84,7 +151,7 @@ export function MetricsChart({ simulationId, active = true, maxSampleGapS, focus
   const point = points[selected];
   return <section className="panel metrics-chart" aria-label="Telemetry charts" aria-busy={loading}>
     <div className="panel-header"><div><p className="eyebrow">FINALIZED TELEMETRY</p><h2>Measured motion</h2>
-      <p>Pages of up to {PAGE_SIZE} frames. Charts show this page, not a downsampled full run.</p></div></div>
+      <p>Pages of up to {PAGE_SIZE} frames. Charts show this page, not a downsampled full run. Hover over a graph to see a point’s coordinates.</p></div></div>
     <div className="form-section">
       {loading && <p role="status">Loading telemetry page…</p>}
       {error && <div role="alert"><p>{error}</p><button className="button secondary small" disabled={!active} onClick={() => setRetry(value => value + 1)}>Retry telemetry</button></div>}

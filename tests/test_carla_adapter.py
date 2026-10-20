@@ -111,6 +111,19 @@ def test_wrong_carla_version_fails_before_world_mutations(setup_adapter):
     assert log == []
 
 
+@pytest.mark.parametrize("quality", [None, "Low", "Epic"])
+def test_local_launcher_waits_before_versions_world_changes_and_actor_spawns(setup_adapter, monkeypatch, quality):
+    adapter, scenario, log, _, client, module = setup_adapter
+    adapter.client = None
+    adapter.options.carla_quality = quality
+    monkeypatch.setattr(module, "connect", lambda _: client)
+    adapter.launcher = NS(ensure_running=lambda supplied, map_name, **kw: log.append(("ready", supplied is client, map_name, callable(kw["cancellation"]), kw["quality"])) or supplied)
+    output = SimulationRunner(adapter).run(scenario)
+    assert output.result.simulation.status == "completed"
+    assert log[0] == ("ready", True, scenario.map, True, quality)
+    assert log[1] == "world-open"
+
+
 def test_partial_sensor_setup_failure_still_restores_world(setup_adapter, monkeypatch):
     adapter, scenario, log, _, _, module = setup_adapter
     class FailingSensors:

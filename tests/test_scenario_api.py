@@ -37,6 +37,19 @@ def test_pure_scenario_routes_do_not_initialize_database_or_storage(api):
     assert not settings.storage_dir.exists()
 
 
+@pytest.mark.parametrize("template", list(ScenarioTemplate))
+@pytest.mark.parametrize("sample", [False, True])
+def test_selected_map_is_generated_validated_and_saved_without_carla(api, template, sample):
+    client, settings = api
+    response = client.post("/scenarios/generate", json={"template": template.value, "map": "Town10HD_Opt", "sample": sample})
+    assert response.status_code == 200, response.text
+    recipe = response.json()
+    assert recipe["map"] == "Town10HD_Opt"
+    assert client.post("/scenarios/validate", json=recipe).json() == recipe
+    assert not settings.storage_dir.exists()
+    assert client.post("/scenarios", json=recipe).json()["scenario"]["map"] == "Town10HD_Opt"
+
+
 def test_template_metadata_has_reproducible_scenarios_and_parameter_bounds(api):
     client, _ = api
     response = client.get("/scenarios/templates")

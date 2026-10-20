@@ -118,6 +118,29 @@ test("choosing test mode clears CARLA captures and disables their controls", asy
   assert.equal(sent.options.lidar, false);
 });
 
+test("graphics selector submits Low and Epic and keeps the choice while switching modes or recipes", async t => {
+  const view = setup(t);
+  const quality = () => field(view.root, "CARLA graphics quality");
+  assert.equal(quality().props.value, "inherit");
+  assert.equal(quality().props.disabled, true);
+  choose(view, "carla");
+  assert.equal(quality().props.disabled, false);
+  assert.match(text(view.root), /close CARLA before launching to apply a new choice/);
+  const choices = [];
+  api.launchSimulation = async input => { choices.push(input.options.carla_quality); return accepted(); };
+  for (const value of ["Low", "Epic"]) {
+    act(() => quality().props.onChange({ target: { value } }));
+    await submit(view);
+  }
+  assert.deepEqual(choices, ["Low", "Epic"]);
+  choose(view, "test");
+  assert.equal(quality().props.disabled, true);
+  assert.equal(quality().props.value, "Epic");
+  choose(view, "carla");
+  act(() => view.update(React.createElement(LaunchPanel, { scenario: { ...recipe, name: "Next recipe" }, disabledReason: null })));
+  assert.equal(quality().props.value, "Epic");
+});
+
 test("dirty invalid numeric and cross-field settings show inline and prevent POST", async t => {
   const view = setup(t);
   choose(view, "test");

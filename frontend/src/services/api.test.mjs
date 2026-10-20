@@ -478,6 +478,14 @@ test("launch can reference a saved recipe and preserves an already running statu
   assert.deepEqual(await api.launchSimulation(input), running);
 });
 
+test("launch receipts preserve valid graphics preferences while older jobs may omit them", async () => {
+  for (const carla_quality of [null, "Low", "Epic"]) {
+    const received = { ...acceptedRun, job: { ...acceptedRun.job, options: { ...executionOptions, carla_quality } } };
+    globalThis.fetch = async () => jsonResponse(received, 202);
+    assert.equal((await api.launchSimulation(launch)).job.options.carla_quality, carla_quality);
+  }
+});
+
 test("launch only reports acceptance for HTTP 202 and delete only succeeds for HTTP 204", async () => {
   for (const status of [200, 201]) {
     globalThis.fetch = async () => jsonResponse(acceptedRun, status);
@@ -499,6 +507,8 @@ test("malformed accepted runs, progress, execution options, and evaluation setti
       { options: { ...executionOptions, max_ticks: "10" } },
       { options: { ...executionOptions, camera: "false" } },
       { options: { ...executionOptions, sensor_timeout_s: -1 } },
+      { options: { ...executionOptions, carla_quality: "Medium" } },
+      { options: { ...executionOptions, carla_quality: true } },
       { evaluation_settings: {} }, { evaluation_settings: { ...evaluationSettings, ttc_weight: "45" } },
       { evaluation_settings: { ...evaluationSettings, method_version: "future" } },
     ].map(fields => ({ ...acceptedRun, job: { ...acceptedRun.job, ...fields } })),

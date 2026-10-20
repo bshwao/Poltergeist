@@ -19,11 +19,12 @@ from .world_manager import WorldManager
 class CarlaSimulationAdapter:
     mode = "carla"
 
-    def __init__(self, *, client=None, carla_module=None, connection_settings=None, options=None, evaluation_settings=None):
+    def __init__(self, *, client=None, carla_module=None, connection_settings=None, options=None, evaluation_settings=None, launcher=None):
         self.options = SimulationOptions() if options is None else SimulationOptions.model_validate(options.model_dump())
         self.client = client
         self.carla = carla_module
         self.connection_settings: CarlaConnectionSettings | None = connection_settings
+        self.launcher = launcher
         self.evaluation_settings = EvaluationSettings() if evaluation_settings is None else EvaluationSettings.model_validate(evaluation_settings.model_dump())
         self.world = None
         self.world_manager = None
@@ -72,6 +73,9 @@ class CarlaSimulationAdapter:
             self.carla = carla
         if self.client is None:
             self.client = connect(self.connection_settings)
+            if self.launcher is not None:
+                self.client = self.launcher.ensure_running(self.client, scenario.map, quality=self.options.carla_quality, cancellation=self._cancellation,
+                    reconnect=lambda: connect(self.connection_settings))
         self._versions = {
             "server_version": self.client.get_server_version(),
             "client_version": self.client.get_client_version(),

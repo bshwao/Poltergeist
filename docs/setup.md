@@ -74,6 +74,10 @@ Configuration does not create directories or connect to external services.
 | `CARLA_HOST` | `localhost` | Simulator hostname |
 | `CARLA_PORT` | `2000` | Simulator RPC port |
 | `CARLA_TIMEOUT` | `10` | Connection timeout, seconds |
+| `CARLA_AUTO_START` | `true` | API live runs start a local loopback CARLA server when closed; reuse existing listeners |
+| `CARLA_EXECUTABLE` | auto-discover | Full local `CarlaUE4.exe` or `CarlaUE4.sh` path; server configuration, never accepted from browser requests |
+| `CARLA_STARTUP_TIMEOUT_S` | `120` | Readiness deadline, 1–600 seconds; cancellation remains available |
+| `CARLA_QUALITY` | `Low` | Default startup graphics quality: `Low` or `Epic`; dashboard/API `options.carla_quality` can override it for a new instance |
 | `DATABASE_URL` | `sqlite:///./storage/database/poltergeist.db` | Local SQLite database; initialized by persistence features or the explicit CLI |
 | `STORAGE_DIR` | `storage` | Root for telemetry, recordings, and reports |
 | `API_HOST` | `0.0.0.0` | Address used by `python -m backend` |
@@ -295,9 +299,12 @@ CARLA directory with:
 
 Keep camera/LiDAR capture off when unnecessary. This is an observed workaround
 for that installation, not a requirement that every CARLA system use Epic quality.
-Only run one CARLA server on the default ports 2000 and 2001. To change a recipe
-to another loaded map, edit its `map` in the dashboard JSON and validate it again;
-the adapter does not silently substitute maps.
+Only run one CARLA server on the default ports 2000 and 2001. Choose the map in
+the Scenarios tab before generation, then validate the recipe. Dashboard launch
+settings allow switching to that selected map by default. Saved/custom recipes
+retain their map; their explicit coordinates and routes must match it. See the
+[automatic local startup guide](first-run.md#4-add-carla) for installation discovery
+and the distinction between the browser's computer and the backend's computer.
 
 The default Docker Compose stack starts the core API and a built dashboard with
 a same-origin nginx proxy. A named volume retains the SQLite database and owned

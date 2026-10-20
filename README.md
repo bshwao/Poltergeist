@@ -111,4 +111,5 @@ Review its recorded behavior using the [decision timeline guide](docs/decision-t
 - [Agent comparisons and repeated trials](docs/agent-comparisons.md), [experiment batches](docs/experiments.md), and [failure search and reproduction](docs/optimization.md)
 - [Architecture](docs/architecture.md), [API](docs/api.md), and [Docker setup](docs/docker.md)
 - [Autonomous driving roadmap](docs/autonomous-agents-plan.md)
+- [Distribution and scalability roadmap: hosted services and companion app](docs/scalability-plan.md)
 - [Hardware profiles](docs/hardware.md), [troubleshooting](docs/troubleshooting.md), and [Phase 10 validation](docs/phase10-validation.md)

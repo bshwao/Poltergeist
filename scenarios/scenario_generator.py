@@ -29,6 +29,7 @@ def build_scenario(
     seed: int = 0,
     name: str | None = None,
     duration_s: float | None = None,
+    map_name: str | None = None,
 ) -> Scenario:
     """Use template defaults for unspecified parameters; fixed values are exact.
 
@@ -49,6 +50,8 @@ def build_scenario(
         scenario = apply_template_parameters(base, {} if parameters is None else parameters)
         payload = scenario.model_dump(mode="python")
         payload["seed"] = seed
+        if map_name is not None:
+            payload["map"] = map_name
         if name is not None:
             payload["name"] = name
         return Scenario.model_validate(payload)
@@ -63,6 +66,7 @@ def generate_scenario(
     parameters: Mapping[str, object] | None = None,
     ranges: Mapping[str, tuple[float, float]] | None = None,
     duration_s: float | None = None,
+    map_name: str | None = None,
 ) -> Scenario:
     """Sample unset parameters from declared bounds using a local seeded RNG.
 
@@ -75,7 +79,7 @@ def generate_scenario(
         seed = _SEED_ADAPTER.validate_python(seed)
         values = sample_parameters(template, random.Random(seed), parameters=parameters, ranges=ranges)
         return build_scenario(
-            template, parameters=values, seed=seed, name=f"{template.value}-{seed}", duration_s=duration_s,
+            template, parameters=values, seed=seed, name=f"{template.value}-{seed}", duration_s=duration_s, map_name=map_name,
         )
     except (ValueError, TypeError) as error:
         raise ScenarioGenerationError(f"Cannot generate scenario: {error}") from error
@@ -89,6 +93,7 @@ def generate_scenarios(
     parameters: Mapping[str, object] | None = None,
     ranges: Mapping[str, tuple[float, float]] | None = None,
     duration_s: float | None = None,
+    map_name: str | None = None,
 ) -> list[Scenario]:
     """Generate a batch with consecutive seeds, wrapping at 2**31.
 
@@ -102,12 +107,12 @@ def generate_scenarios(
         count = _COUNT_ADAPTER.validate_python(count)
         # Validate even a zero-length request, without touching global RNG state.
         values = sample_parameters(template, random.Random(seed), parameters=parameters, ranges=ranges)
-        if duration_s is not None:
-            build_scenario(template, seed=seed, parameters=values, duration_s=duration_s)
+        if duration_s is not None or map_name is not None:
+            build_scenario(template, seed=seed, parameters=values, duration_s=duration_s, map_name=map_name)
         return [
             generate_scenario(
                 template, seed=(seed + index) % (2**31), parameters=parameters,
-                ranges=ranges, duration_s=duration_s,
+                ranges=ranges, duration_s=duration_s, map_name=map_name,
             )
             for index in range(count)
         ]

@@ -102,11 +102,43 @@ Use a Python 3.12 backend with the matching CARLA 0.9.16 client and server:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-simulation.txt
-.\.venv\Scripts\python.exe -m scripts.doctor --frontend --carla --hardware
+.\.venv\Scripts\python.exe -m scripts.doctor --frontend --hardware
 ```
 
 Installing the Python client does not install the simulator executable. Extract
-CARLA into its own local directory and start one server. For the tested Windows
+CARLA into its own local directory. On the **Scenarios** page, choose the
+**CARLA map** before generating and validating the recipe. New drafts default
+to **Town10HD_Opt**. The launch panel enables map switching by default; the
+existing checks still refuse to destroy other vehicles, walkers or sensors.
+
+For local backends, clicking **Launch simulation** starts CARLA when needed,
+using a 640×360 window and no sound. Under **Execution settings**, choose
+**CARLA graphics quality**: **Low**, **Epic**, or **Use configured default**
+(`CARLA_QUALITY`, initially Low). A running instance is reused and keeps its
+current quality. Close CARLA before launching to apply a different choice.
+The backend waits for readiness before spawning actors; cancellation stops the
+run while leaving the game open. Startup can take a minute or two.
+
+Common local installation folders are discovered automatically. For a different
+location, set the following in the backend's root `.env` and restart the backend:
+
+```dotenv
+CARLA_EXECUTABLE=C:/path/to/CARLA_0.9.16/CarlaUE4.exe
+CARLA_AUTO_START=true
+CARLA_STARTUP_TIMEOUT_S=120
+CARLA_QUALITY=Low
+```
+
+On Linux, use the full `CarlaUE4.sh` path. `CARLA_AUTO_START=false` preserves
+manual startup. Automatic startup opens the game on the computer running the
+backend, not a remote dashboard visitor's computer. Remote CARLA hosts and
+Docker-hosted backends require their simulator to be started separately.
+Health checks, recipe generation, synthetic runs and installation diagnostics
+never start CARLA. Direct simulator CLI calls also retain manual startup.
+Once the game is running, add `--carla` to the doctor command for a read-only
+connection check.
+
+For the tested Windows
 installation, Low quality on Town10HD_Opt works; Town03 Low quality has had native
 shader crashes. See [setup](setup.md#carla-and-docker) and
 [hardware profiles](hardware.md) before changing quality or maps.

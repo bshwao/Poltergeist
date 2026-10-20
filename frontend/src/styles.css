@@ -428,7 +428,13 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .chart-grid > div { min-width: 0; }
 .chart-series h3, .chart-empty h3 { font-size: 12px; }
 .chart-series h3 span { font-weight: 400; }
-.chart-svg { display: block; width: 100%; height: auto; min-height: 160px; }
+.chart-plot { position: relative; }
+.scenario-map-panel { margin: 24px 0; }
+.scenario-map-panel .field { max-width: 360px; }
+.chart-svg { display: block; width: 100%; height: auto; min-height: 160px; cursor: crosshair; }
+.chart-inspection, .chart-tooltip { pointer-events: none; }
+.chart-tooltip { position: absolute; top: 8px; z-index: 1; width: 190px; max-width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--line); border-radius: 7px; background: #fff; box-shadow: 0 4px 16px #27213d18; color: #252238; font-size: 11px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.chart-tooltip strong, .chart-tooltip span { display: block; }
 .chart-empty { border: 1px dashed #e0dced; border-radius: 7px; padding: 18px; }
 .chart-controls, .capture-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .capture-controls .field { max-width: 150px; }

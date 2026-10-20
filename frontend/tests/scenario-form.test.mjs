@@ -49,7 +49,7 @@ test("defaults are editable strings sourced from current metadata", () => {
 
 test("generation uses fixed parameters and the exact seed without extra form keys", () => {
   assert.deepEqual(makeGenerateRequest(template, "2147483647", { speed: "13.5", obsolete: "3" }), {
-    request: { template: "sudden_braking", seed: 2147483647, parameters: { speed: 13.5 }, sample: false, ranges: {}, duration_s: null },
+    request: { template: "sudden_braking", seed: 2147483647, parameters: { speed: 13.5 }, sample: false, ranges: {}, duration_s: null, map: null },
   });
   assert.equal(makeGenerateRequest(template, "0", { speed: "12" }).request.seed, 0);
 });
@@ -85,7 +85,7 @@ test("generation collects field errors and does not fill missing values with def
 test("an explicit duration is sent at the top level without changing parameter values", () => {
   for (const [raw, duration] of [["60", 60], [" 120.5 ", 120.5], ["3e2", 300]]) {
     assert.deepEqual(makeGenerateRequest(template, "7", { speed: "13.5" }, raw), {
-      request: { template: "sudden_braking", seed: 7, parameters: { speed: 13.5 }, sample: false, ranges: {}, duration_s: duration },
+      request: { template: "sudden_braking", seed: 7, parameters: { speed: 13.5 }, sample: false, ranges: {}, duration_s: duration, map: null },
     });
   }
 });

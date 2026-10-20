@@ -68,3 +68,90 @@ test("all workspace pages fit a phone viewport and retain keyboard navigation", 
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
 });
+
+test("telemetry hover coordinates match recorded frames on desktop and mobile", async ({ page, request }, testInfo) => {
+  const operations = await (await request.get(`${API}/optimizations?limit=10`)).json();
+  const comparison = operations.find((o: { request: { kind: string; agents?: unknown[] } }) => o.request.kind === "compare" && (o.request.agents?.length ?? 0) > 1);
+  const evidence = await (await request.get(`${API}/optimizations/${comparison.id}`)).json();
+  const run = evidence.trials.find((t: { agent_index: number }) => t.agent_index === 0).simulation_id;
+  const telemetry = await (await request.get(`${API}/simulations/${run}/telemetry?limit=200`)).json();
+  const frames = telemetry.frames;
+  const sample = frames[1];
+  const velocity = sample.ego.velocity_mps, acceleration = sample.ego.acceleration_mps2;
+  const speed = Math.hypot(velocity.x, velocity.y, velocity.z);
+  const deceleration = Math.max(0, -(acceleration.x * velocity.x + acceleration.y * velocity.y + acceleration.z * velocity.z) / speed);
+  await page.goto(`/#simulations/${run}`);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [name, expected] of [["Ego speed", `${speed.toFixed(3)} m/s`], ["Longitudinal deceleration", `${deceleration.toFixed(3)} m/s²`]]) {
+      const chart = page.getByRole("img", { name: new RegExp(`^${name} over simulation time`) });
+      await chart.scrollIntoViewIfNeeded();
+      const localX = 52 + (sample.time_s - frames[0].time_s) / (frames[frames.length - 1].time_s - frames[0].time_s) * 570;
+      const cursor = await chart.evaluate((element, x) => {
+        const svg = element as SVGSVGElement;
+        const point = svg.createSVGPoint(); point.x = x; point.y = 100;
+        const screen = point.matrixTransform(svg.getScreenCTM()!);
+        return { x: screen.x, y: screen.y };
+      }, localX);
+      await page.mouse.move(cursor.x, cursor.y);
+      const tooltip = chart.locator("..").getByRole("tooltip");
+      await expect(tooltip).toContainText(`Frame ${sample.frame}`);
+      await expect(tooltip).toContainText(`x: ${sample.time_s.toFixed(3)} s`);
+      await expect(tooltip).toContainText(`y: ${expected}`);
+      const box = (await tooltip.boundingBox())!, plot = (await chart.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(plot.x - 1);
+      expect(box.x + box.width).toBeLessThanOrEqual(plot.x + plot.width + 1);
+      const marker = (await chart.locator(".chart-inspection circle").boundingBox())!;
+      const covers = (x: number, y: number) => x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height;
+      expect(covers(marker.x + marker.width / 2, marker.y + marker.height / 2)).toBeFalsy();
+      expect(covers(cursor.x, cursor.y)).toBeFalsy();
+      // At the right edge, the tooltip flips left instead of covering the endpoint.
+      const edge = await chart.evaluate(element => {
+        const svg = element as SVGSVGElement;
+        const point = svg.createSVGPoint(); point.x = 621.99; point.y = 100;
+        const screen = point.matrixTransform(svg.getScreenCTM()!);
+        return { x: screen.x, y: screen.y };
+      });
+      await page.mouse.move(edge.x, edge.y);
+      await expect(tooltip).toContainText(`Frame ${frames[frames.length - 1].frame}`);
+      const flipped = (await tooltip.boundingBox())!;
+      expect(flipped.x + flipped.width).toBeLessThan(edge.x);
+    }
+    await page.getByRole("img", { name: /^Longitudinal deceleration over simulation time/ }).locator("..").screenshot({ path: testInfo.outputPath(`telemetry-hover-${width}.png`) });
+  }
+  const chart = page.getByRole("img", { name: /^Ego speed over simulation time/ });
+  await page.mouse.move(0, 0);
+  await chart.focus();
+  const tooltip = chart.locator("..").getByRole("tooltip");
+  await expect(tooltip).toContainText(`Frame ${frames[0].frame}`);
+  await page.keyboard.press("ArrowRight");
+  await expect(tooltip).toContainText(`Frame ${sample.frame}`);
+  await page.keyboard.press("Escape");
+  await expect(tooltip).toHaveCount(0);
+});
+
+test("scenario map selection survives generation and validation into the launch recipe", async ({ page }, testInfo) => {
+  await page.goto("/#scenarios");
+  await page.getByLabel("CARLA map", { exact: true }).selectOption("Town02");
+  await page.getByRole("button", { name: /^Generate recipe/ }).click();
+  await expect(page.getByLabel("Full recipe JSON")).toHaveValue(/"map": "Town02"/);
+  await page.getByRole("button", { name: "Validate JSON", exact: true }).click();
+  await expect(page.getByText("The current JSON passed recipe validation.", { exact: true })).toBeVisible();
+  await page.getByText("Execution settings", { exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "Allow map reload if the CARLA map differs" })).toBeChecked();
+  await page.getByRole("button", { name: /^CARLA/ }).click();
+  const quality = page.getByLabel("CARLA graphics quality", { exact: true });
+  await expect(quality).toHaveValue("inherit");
+  await quality.selectOption("Low");
+  await expect(quality).toHaveValue("Low");
+  await quality.selectOption("Epic");
+  await expect(page.getByText(/close CARLA before launching to apply a new choice/)).toBeVisible();
+  await page.getByRole("button", { name: /^Synthetic test/ }).click();
+  await expect(quality).toBeDisabled();
+  await page.getByRole("button", { name: /^CARLA/ }).click();
+  await expect(quality).toBeEnabled();
+  await expect(quality).toHaveValue("Epic");
+  await expect(page.getByRole("button", { name: /Launch simulation/ })).toBeEnabled();
+  await page.getByLabel("CARLA map", { exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("map-selection.png"), fullPage: true });
+});

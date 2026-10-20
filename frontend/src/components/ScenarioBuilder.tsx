@@ -9,6 +9,8 @@ import { LaunchPanel } from "./LaunchPanel";
 
 type RequestFailure = { message: string; issues: { path: string; message: string }[] };
 type RecipeStatus = "empty" | "generated" | "edited" | "validated";
+const DEFAULT_MAP = "Town10HD_Opt";
+const MAP_CHOICES = [DEFAULT_MAP, "Town03", "Town01", "Town02", "Town04", "Town05", "Town06", "Town07", "Town10HD"];
 
 function describeFailure(error: unknown): RequestFailure {
   if (error instanceof ApiError) return { message: error.message, issues: error.issues };
@@ -31,6 +33,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
   const [selectedId, setSelectedId] = useState<string | null>(templates[0]?.template ?? null);
   const selected = templates.find((template) => template.template === selectedId);
   const [seed, setSeed] = useState("0");
+  const [mapName, setMapName] = useState(DEFAULT_MAP);
   const [duration, setDuration] = useState(String(templates[0]?.scenario.duration_s ?? 30));
   const [values, setValues] = useState<Record<string, string>>(() => parameterDefaults(templates[0]?.parameters ?? []));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -119,6 +122,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
     const binding = bindScenarioForm(result, templates);
     setSelectedId(binding.selectedId);
     setSeed(binding.seed);
+    setMapName(binding.map);
     setDuration(binding.duration);
     setValues(binding.values);
     setFieldErrors({});
@@ -134,7 +138,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
   }
 
   const parsedDraft = parseRecipeJson(editor);
-  const hasFormDraft = seed !== "0" || selected && (duration !== String(selected.scenario.duration_s)
+  const hasFormDraft = seed !== "0" || mapName !== DEFAULT_MAP || selected && (duration !== String(selected.scenario.duration_s)
     || selected.parameters.some((parameter) => values[parameter.name] !== String(parameter.default)));
   const dirty = formChanged || (savedRecord ? Boolean(parsedDraft.error) || !sameRecipe(parsedDraft.recipe, savedRecord.scenario) : Boolean(editor.trim()) || Boolean(hasFormDraft));
   const ready = recipe !== null && recipeStatus === "validated" && !formChanged && busy === null && !editorError;
@@ -193,7 +197,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
     event.preventDefault();
     if (!selected) return;
     invalidate();
-    const result = makeGenerateRequest(selected, seed, values, duration);
+    const result = makeGenerateRequest(selected, seed, values, duration, mapName);
     if (result.errors) {
       setFieldErrors(result.errors);
       requestAnimationFrame(() => firstInvalid.current?.focus());
@@ -253,7 +257,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
     }
   }
 
-  const summary = recipe ?? selected?.scenario;
+  const summary = recipe ?? (selected ? { ...selected.scenario, map: mapName } : undefined);
   if (!summary) return <section className="panel"><p className="muted">Choose a template to begin.</p></section>;
   function changeDuration(value: string) {
     setDuration(value);
@@ -300,6 +304,18 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="panel scenario-map-panel" aria-labelledby="scenario-map-heading">
+        <div className="panel-header"><h2 id="scenario-map-heading">Simulation map</h2></div>
+        <div className="form-section"><div className="field"><label htmlFor="scenario-map" className="field-label">CARLA map</label>
+          <select id="scenario-map" value={mapName} onChange={event => {
+            const value = event.target.value; setMapName(value);
+            if (selected) { editForm(); return; }
+            invalidate(); setRecipeStatus("edited"); setFormChanged(false);
+            if (parsedDraft.recipe) setEditor(JSON.stringify({ ...parsedDraft.recipe, map: value }, null, 2));
+          }}>{Array.from(new Set([mapName, ...MAP_CHOICES])).map(name => <option key={name} value={name}>{name}{name === DEFAULT_MAP ? " (recommended)" : ""}</option>)}</select>
+        </div><p className="field-hint">Generate your recipe on this map, then validate it before launching. CARLA must include the selected map. Custom coordinates and driving routes must match it.</p></div>
       </section>
 
       <div className="builder-grid">

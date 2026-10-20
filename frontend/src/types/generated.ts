@@ -398,6 +398,7 @@ export type AllowMapReload = boolean;
 export type Camera = boolean;
 export type CameraHeight = number;
 export type CameraWidth = number;
+export type CarlaQuality = ("Low" | "Epic") | null;
 export type Lidar = boolean;
 export type MaxTicks = number;
 export type NoRenderingMode = boolean | null;
@@ -760,6 +761,7 @@ export type CreatedAt2 = string;
 export type Id5 = string;
 export type Reproduced2 = boolean | null;
 export type DurationS2 = number | null;
+export type Map1 = string | null;
 export type Sample = boolean;
 export type Seed4 = number;
 export type CreatedAt3 = string;
@@ -1606,6 +1608,7 @@ export interface SimulationOptions {
   camera: Camera;
   camera_height: CameraHeight;
   camera_width: CameraWidth;
+  carla_quality: CarlaQuality;
   lidar: Lidar;
   max_ticks: MaxTicks;
   no_rendering_mode: NoRenderingMode;
@@ -2008,6 +2011,7 @@ export interface ReproductionUpdate {
  */
 export interface ScenarioGenerate {
   duration_s: DurationS2;
+  map: Map1;
   parameters: Parameters2;
   ranges: Ranges1;
   sample: Sample;

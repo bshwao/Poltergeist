@@ -23,6 +23,8 @@ def test_defaults_are_valid_and_paths_are_anchored():
     assert settings.carla_host == "localhost"
     assert settings.carla_port == 2000
     assert settings.carla_timeout == 10.0
+    assert settings.carla_auto_start and settings.carla_quality == "Low"
+    assert settings.carla_startup_timeout_s == 120 and settings.carla_executable is None
     assert settings.api_host == "0.0.0.0"
     assert settings.api_port == 8000
     assert settings.simulation_queue_size == 100
@@ -99,6 +101,9 @@ def test_paths_and_default_env_file_do_not_follow_working_directory(tmp_path, mo
         {"carla_timeout": 0},
         {"carla_timeout": float("nan")},
         {"carla_timeout": float("inf")},
+        {"carla_startup_timeout_s": 0},
+        {"carla_startup_timeout_s": 601},
+        {"carla_quality": "Ultra"},
         {"carla_host": " "},
         {"api_host": "http://localhost"},
         {"database_url": "not-a-database-url"},
@@ -122,6 +127,11 @@ def test_memory_database_and_external_urls_are_preserved():
     )
     external = "postgresql+psycopg://user:password@database:5432/poltergeist"
     assert Settings(_env_file=None, database_url=external).database_url == external
+
+
+def test_carla_executable_configuration_is_inert_and_anchored():
+    assert Settings(_env_file=None, carla_executable="  ").carla_executable is None
+    assert Settings(_env_file=None, carla_executable="local/CarlaUE4.exe").carla_executable == (REPO_ROOT / "local/CarlaUE4.exe").resolve()
 
 
 def test_settings_are_cached_until_explicitly_cleared(monkeypatch):

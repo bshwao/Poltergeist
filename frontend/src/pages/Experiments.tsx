@@ -106,7 +106,7 @@ export function Experiments({ active = true, selectedId, sourceFailureId, initia
     const token = ++recipeGeneration.current;
     setBusy(true); setError(null);
     try {
-      const scenario = await api.generateScenario({ template: draft.template as TemplateInfo["template"], seed: 0, parameters: {}, duration_s: 5, ranges: {}, sample: false });
+      const scenario = await api.generateScenario({ template: draft.template as TemplateInfo["template"], seed: 0, parameters: {}, duration_s: 5, ranges: {}, sample: false, map: null });
       if (mounted.current && token === recipeGeneration.current) field("recipe", JSON.stringify(scenario, null, 2));
     } catch (e) { if (mounted.current && token === recipeGeneration.current) setError(message(e)); }
     finally { if (mounted.current) setBusy(false); }

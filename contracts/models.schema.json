@@ -5486,6 +5486,19 @@
           "default": null,
           "title": "Duration S"
         },
+        "map": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Map"
+        },
         "parameters": {
           "additionalProperties": {
             "anyOf": [
@@ -5547,6 +5560,7 @@
       },
       "required": [
         "template",
+        "map",
         "seed",
         "duration_s",
         "parameters",
@@ -5985,6 +5999,22 @@
           "title": "Camera Width",
           "type": "integer"
         },
+        "carla_quality": {
+          "anyOf": [
+            {
+              "enum": [
+                "Low",
+                "Epic"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Carla Quality"
+        },
         "lidar": {
           "default": false,
           "title": "Lidar",
@@ -6025,6 +6055,7 @@
       "required": [
         "allow_map_reload",
         "no_rendering_mode",
+        "carla_quality",
         "sensor_timeout_s",
         "sensor_settle_s",
         "max_ticks",

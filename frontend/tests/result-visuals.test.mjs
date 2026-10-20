@@ -28,6 +28,67 @@ function result(mode = "test", artifacts = []) { return {
 }; }
 function frame(index, time, speed) { return { frame: index, time_s: time, ego: { velocity_mps: speed === null ? null : { x: speed, y: 0, z: 0 }, acceleration_mps2: null }, control: { throttle: 0.5, brake: 0, steer: 0 }, collisions: null, traffic_violations: [] }; }
 function page(offset = 0, total = 201) { return { offset, total, limit: 200, frames: Array.from({ length: Math.min(200, total - offset) }, (_, index) => frame(offset + index + 1, (offset + index) / 20, index === 1 ? null : 4)) }; }
+function pointerAt(x, y = 80) {
+  return { clientX: x, clientY: y, currentTarget: {
+    getScreenCTM: () => ({ inverse: () => ({}) }),
+    createSVGPoint: () => ({ x: 0, y: 0, matrixTransform() { return { x: this.x, y: this.y }; } }),
+  } };
+}
+
+test("hovering each chart shows the nearest recorded x/y coordinates and units without more requests", async t => {
+  const frames = [frame(11, 0, 4), frame(12, .05, 3), frame(13, .1, 0)];
+  frames.forEach(f => { f.ego.acceleration_mps2 = { x: -2, y: 0, z: 0 }; });
+  let requests = 0;
+  api.getTelemetry = async () => { requests++; return { offset: 0, limit: 200, total: 3, frames }; };
+  const view = setup(t, MetricsChart, { simulationId: ID }); await act(async () => {});
+  const charts = view.root.findAllByType("svg");
+  assert.equal(charts.length, 2);
+  for (const [index, expected] of [[0, "3.000 m/s"], [1, "2.000 m/s²"]]) {
+    act(() => charts[index].props.onPointerMove(pointerAt(340)));
+    assert.match(text(view.root.findByProps({ role: "tooltip" })), new RegExp(`Frame 12x: 0.050 sy: ${expected.replaceAll(".", "\\.")}`));
+    assert.equal(view.root.findByProps({ className: "chart-inspection" }).findAllByType("circle").length, 1);
+    act(() => charts[index].props.onPointerLeave());
+    assert.equal(view.root.findAllByProps({ role: "tooltip" }).length, 0);
+  }
+  assert.equal(requests, 1);
+});
+
+test("hovering missing samples preserves unknowns and leaving the plot clears the tooltip", async t => {
+  api.getTelemetry = async () => ({ offset: 0, limit: 200, total: 3, frames: [frame(11, 0, 4), frame(12, .05, null), frame(13, .1, 0)] });
+  const view = setup(t, MetricsChart, { simulationId: ID }); await act(async () => {});
+  const chart = view.root.findByType("svg");
+  act(() => chart.props.onPointerMove(pointerAt(337)));
+  assert.equal(text(view.root.findByProps({ role: "tooltip" })), "Frame 12x: 0.050 sy: Unknown");
+  assert.equal(view.root.findByProps({ className: "chart-inspection" }).findAllByType("circle").length, 0);
+  act(() => chart.props.onPointerMove(pointerAt(51)));
+  assert.equal(view.root.findAllByProps({ role: "tooltip" }).length, 0);
+});
+
+test("keyboard chart inspection supports samples, endpoints and dismissal", async t => {
+  api.getTelemetry = async () => ({ offset: 0, limit: 200, total: 3, frames: [frame(11, 0, 4), frame(12, .05, 3), frame(13, .1, 0)] });
+  const view = setup(t, MetricsChart, { simulationId: ID }); await act(async () => {});
+  const chart = view.root.findByType("svg");
+  assert.equal(chart.props.tabIndex, 0);
+  act(() => chart.props.onFocus({ currentTarget: null }));
+  for (const [key, expected] of [["ArrowRight", "Frame 12"], ["End", "Frame 13"], ["Home", "Frame 11"], ["ArrowLeft", "Frame 11"]]) {
+    let prevented = false;
+    act(() => chart.props.onKeyDown({ key, preventDefault() { prevented = true; } }));
+    assert.ok(prevented); assert.ok(text(view.root.findByProps({ role: "tooltip" })).startsWith(expected));
+  }
+  act(() => chart.props.onKeyDown({ key: "Escape", preventDefault() {} }));
+  assert.equal(view.root.findAllByProps({ role: "tooltip" }).length, 0);
+  act(() => chart.props.onFocus({ currentTarget: null })); act(() => chart.props.onBlur());
+  assert.equal(view.root.findAllByProps({ role: "tooltip" }).length, 0);
+});
+
+test("chart hover handles a single sample and clears coordinates on another page", async t => {
+  api.getTelemetry = async (_id, { offset }) => ({ offset, limit: 200, total: 201, frames: [frame(offset + 1, 12.3 + offset, 7)] });
+  const view = setup(t, MetricsChart, { simulationId: ID }); await act(async () => {});
+  act(() => view.root.findByType("svg").props.onPointerMove(pointerAt(622)));
+  assert.equal(text(view.root.findByProps({ role: "tooltip" })), "Frame 1x: 12.300 sy: 7.000 m/s");
+  await click(view, "Next frames");
+  assert.equal(view.root.findAllByProps({ role: "tooltip" }).length, 0);
+});
 
 test("safety cards preserve zero and unknown, mode, coverage, and provenance", t => {
   const view = setup(t, SafetyMetrics, { result: result() });

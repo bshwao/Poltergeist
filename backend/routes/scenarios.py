@@ -69,11 +69,12 @@ def generate(request: ScenarioGenerate) -> Scenario:
         return generate_scenario(
             request.template, seed=request.seed, parameters=request.parameters, ranges=request.ranges,
             duration_s=request.duration_s,
+            map_name=request.map,
         )
     if request.ranges:
         raise ValueError("ranges require sample=true")
     return build_scenario(
-        request.template, seed=request.seed, parameters=request.parameters, duration_s=request.duration_s,
+        request.template, seed=request.seed, parameters=request.parameters, duration_s=request.duration_s, map_name=request.map,
     )
 
 

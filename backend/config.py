@@ -6,6 +6,7 @@ directories or connect to CARLA or the database.
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator
@@ -34,6 +35,10 @@ class Settings(BaseSettings):
     carla_host: str = "localhost"
     carla_port: int = Field(default=2000, ge=1, le=65535)
     carla_timeout: float = Field(default=10.0, gt=0, allow_inf_nan=False)
+    carla_auto_start: bool = True
+    carla_executable: Path | None = None
+    carla_startup_timeout_s: float = Field(default=120.0, ge=1, le=600, allow_inf_nan=False)
+    carla_quality: Literal["Low", "Epic"] = "Low"
     database_url: str = "sqlite:///./storage/database/poltergeist.db"
     api_host: str = "0.0.0.0"
     api_port: int = Field(default=8000, ge=1, le=65535)
@@ -47,6 +52,14 @@ class Settings(BaseSettings):
     simulation_queue_size: int = Field(default=100, ge=1, le=1000)
     simulation_progress_interval_s: float = Field(default=0.25, gt=0, le=60, allow_inf_nan=False)
     simulation_shutdown_timeout_s: float = Field(default=15.0, gt=0, le=60, allow_inf_nan=False)
+
+    @field_validator("carla_executable", mode="before")
+    @classmethod
+    def resolve_carla_executable(cls, value):
+        if value is None or isinstance(value, str) and not value.strip():
+            return None
+        path = Path(value).expanduser()
+        return (path if path.is_absolute() else REPO_ROOT / path).resolve()
 
     @field_validator("carla_host", "api_host")
     @classmethod

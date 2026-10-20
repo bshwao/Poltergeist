@@ -87,6 +87,20 @@ def test_inline_recipe_normalizes_ids_before_event_references(client):
     assert wait_for(client, response.json()["simulation"]["id"])["status"] == "completed"
 
 
+@pytest.mark.parametrize("quality", [None, "Low", "Epic"])
+def test_graphics_startup_preference_is_preserved_in_the_queued_job(client, quality):
+    # Synthetic execution verifies persistence without opening a native window.
+    response = client.post("/simulations", json={
+        "scenario": scene(), "mode": "test", "options": {"carla_quality": quality},
+    })
+    assert response.status_code == 202, response.text
+    record = response.json()
+    assert record["job"]["options"]["carla_quality"] == quality
+    simulation_id = record["simulation"]["id"]
+    assert wait_for(client, simulation_id)["status"] == "completed"
+    assert client.get(f"/simulations/{simulation_id}").json()["job"]["options"]["carla_quality"] == quality
+
+
 def test_service_unavailable_acknowledgement_can_follow_a_durable_launch(client, monkeypatch):
     worker = client.app.state.runtime.worker()
     def fail_receipt(_):
@@ -124,6 +138,8 @@ def test_generated_duration_survives_save_and_controls_experiment_runtime(client
     {"scenario": scene(), "mode": "test", "options": {"camera": True}},
     {"scenario": scene(), "options": {"allow_map_reload": "true"}},
     {"scenario": scene(), "options": {"max_ticks": True}},
+    {"scenario": scene(), "options": {"carla_quality": "Medium"}},
+    {"scenario": scene(), "options": {"carla_quality": True}},
     {"scenario": scene(), "evaluation_settings": {"ttc_warning_s": -1}},
 ])
 def test_invalid_launch_contract_is_rejected(client, change):

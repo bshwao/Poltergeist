@@ -19,8 +19,19 @@ test("launch defaults exactly follow every backend runtime and evaluation contra
     assert.deepEqual(Object.keys(defaults).sort(), Object.keys(properties).sort());
     for (const [key, property] of Object.entries(properties)) assert.equal(defaults[key], property.default, `${definition}.${key}`);
   }
-  assert.deepEqual(build().request.options, DEFAULT_OPTIONS);
+  assert.deepEqual(build().request.options, { ...DEFAULT_OPTIONS, allow_map_reload: true });
   assert.deepEqual(build().request.evaluation_settings, DEFAULT_EVALUATION);
+});
+
+test("dashboard map switching is enabled by default and can be explicitly disabled", () => {
+  assert.equal(build({}, {}, "carla").request.options.allow_map_reload, true);
+  assert.equal(build({ allow_map_reload: false }, {}, "carla").request.options.allow_map_reload, false);
+});
+
+test("graphics choices preserve the configured default or an explicit Low/Epic startup preference", () => {
+  assert.equal(build({}, {}, "carla").request.options.carla_quality, null);
+  for (const quality of ["Low", "Epic"]) assert.equal(build({ quality }, {}, "carla").request.options.carla_quality, quality);
+  assert.match(build({ quality: "Medium" }, {}, "carla").errors["options.carla_quality"], /Choose Low, Epic/);
 });
 
 test("mode selection and a validated recipe are explicit launch requirements", () => {

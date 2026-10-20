@@ -39,7 +39,10 @@ preserves an already-loaded workspace and its draft.
    intersection, pedestrian crossing, occluded pedestrian, and sudden braking.
    Their recipes, parameter descriptions, bounds, defaults, units, and integer
    requirements come from `/scenarios/templates`.
-2. Enter a seed from 0 to 2,147,483,647, choose **Experiment duration**, and set
+2. Choose **CARLA map** under **Simulation map**. New drafts recommend
+   **Town10HD_Opt**; CARLA must include the selected map. Saved recipes retain
+   their map, and custom coordinates and driving routes must match it.
+   Enter a seed from 0 to 2,147,483,647, choose **Experiment duration**, and set
    parameter values for the experiment. Manual values can exceed the normal
    template sampling ranges; for example, ego speed can be 40 m/s. Field errors
    explain the remaining physical or practical constraints. Duration accepts custom seconds
@@ -58,10 +61,10 @@ preserves an already-loaded workspace and its draft.
    JSON, including deterministic actor identifiers where needed. Validation
    errors show field paths and actionable reasons.
 
-Changing parameters or duration marks the previously generated recipe as stale; regenerate
+Changing parameters, map or duration marks the previously generated recipe as stale; regenerate
 to apply those changes to JSON. Regeneration preserves the current recipe name.
 Validating JSON instead keeps that recipe and synchronizes the template form's
-parameters, duration, and seed to the normalized result. Custom recipes provide
+parameters, map, duration, and seed to the normalized result. Custom recipes provide
 the same duration control alongside their JSON editor without displaying an
 unrelated template form. Their duration edits update the JSON and require validation
 again. A validated badge applies to the current normalized JSON, not to later
@@ -135,13 +138,23 @@ separate from unsaved page edits; saving is always an explicit action.
    conflicting ego events. Add a `driving_task` through **Full recipe JSON**
    when the selected agent requires one, then validate the recipe again.
 3. Choose **CARLA** or **Synthetic test** explicitly. No mode is preselected.
-   CARLA uses the configured server and requested map. Synthetic test exercises
+   CARLA uses the configured server and requested map. A local backend starts a
+   closed CARLA installation in Low graphics and reuses a running instance.
+   The game opens on the backend computer; see [automatic startup](first-run.md#4-add-carla)
+   to configure its executable path. Synthetic test exercises
    the pipeline with approximate telemetry and cannot certify real map placement
    or driving safety. Test mode disables optional CARLA camera/LiDAR capture and
    clears those capture selections. Sensor agents receive labelled deterministic
    fixtures in test mode; those fixtures do not demonstrate perception in CARLA.
 4. Expand **Execution settings** to adjust map reload permission, sensor timing,
    maximum ticks, camera dimensions, and optional CARLA camera/LiDAR capture.
+   Map reload is enabled by default to use your selected map. Existing checks
+   still refuse reloads that would destroy unmanaged vehicles, walkers or sensors.
+   **CARLA graphics quality** chooses **Low**, **Epic**, or **Use configured default**
+   (the backend's `CARLA_QUALITY`). This preference is saved with the queued run
+   and applies when automatic startup opens CARLA. A running instance keeps its
+   current quality; close its window before launching to apply a different choice.
+   Synthetic test mode disables this selector and retains the choice for CARLA.
    Timing values must be positive; tick counts/dimensions must be whole numbers.
    Camera dimensions remain validated even when capture is disabled. Rendering
    must be set to **Enabled for this run** under **CARLA rendering** for live RGB
@@ -236,7 +249,12 @@ presented as a downsampled whole run. Ego speed uses the measured velocity
 magnitude. Longitudinal deceleration projects measured acceleration against
 velocity; rest or missing vectors stay unknown. Aggregate braking evaluation may
 also use adjacent velocities and its recorded stopped-speed policy, so its
-summary can differ from this direct-observation chart. Missing measurements and
+summary can differ from this direct-observation chart. Hover over a chart to
+inspect its nearest recorded frame, x (simulation time) and y (measurement).
+The tooltip moves away from the point and cursor and flips near chart edges.
+Keyboard users can focus the chart, use Left/Right Arrow, Home or End to inspect
+frames, and Escape to dismiss. Missing measurements remain **Unknown**.
+Missing measurements and
 skipped frames break chart lines. The frame slider shows exact time, speed,
 deceleration, controls, and event counts. Aggregate TTC/clearance cards use the
 backend evaluator rather than an approximate chart-side geometry calculation.

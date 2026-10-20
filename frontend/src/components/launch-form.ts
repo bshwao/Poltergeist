@@ -4,6 +4,7 @@ export type RunMode = "carla" | "test";
 export const DEFAULT_OPTIONS: SimulationOptions = {
   allow_map_reload: false, sensor_timeout_s: 2, sensor_settle_s: 0.02,
   no_rendering_mode: null,
+  carla_quality: null,
   max_ticks: 100_000, camera: false, lidar: false, camera_width: 640, camera_height: 360,
 };
 export const DEFAULT_EVALUATION: EvaluationSettings = {
@@ -44,11 +45,11 @@ export const EVALUATION_FIELDS: NumericField<EvaluationNumberKey>[] = [
   { key: "traffic_rule_weight", label: "Traffic-rule weight (%)", minimum: 0 },
 ];
 
-export type OptionDraft = Record<OptionNumberKey, string> & Pick<SimulationOptions, "allow_map_reload" | "camera" | "lidar"> & { rendering: "inherit" | "enabled" | "disabled" };
+export type OptionDraft = Record<OptionNumberKey, string> & Pick<SimulationOptions, "allow_map_reload" | "camera" | "lidar"> & { rendering: "inherit" | "enabled" | "disabled"; quality: "inherit" | "Low" | "Epic" };
 export type EvaluationDraft = Record<EvaluationNumberKey, string>;
 export function defaultOptionDraft(): OptionDraft {
   return { ...Object.fromEntries(OPTION_FIELDS.map(field => [field.key, String(DEFAULT_OPTIONS[field.key])])),
-    allow_map_reload: false, camera: false, lidar: false, rendering: "inherit" } as OptionDraft;
+    allow_map_reload: true, camera: false, lidar: false, rendering: "inherit", quality: "inherit" } as OptionDraft;
 }
 export function defaultEvaluationDraft(): EvaluationDraft {
   return Object.fromEntries(EVALUATION_FIELDS.map(field => [field.key, String(DEFAULT_EVALUATION[field.key])])) as EvaluationDraft;
@@ -108,6 +109,7 @@ export function makeLaunchRequest(scenario: Scenario | null, mode: RunMode | nul
   }
   if (mode === "test" && (options.camera || options.lidar)) errors.capture = "Camera and LiDAR capture require CARLA mode.";
   if (!["inherit", "enabled", "disabled"].includes(options.rendering)) errors["options.rendering"] = "Choose a CARLA rendering option.";
+  if (!["inherit", "Low", "Epic"].includes(options.quality)) errors["options.carla_quality"] = "Choose Low, Epic or the configured graphics default.";
   if (mode === "carla" && options.camera && options.rendering === "disabled") errors["options.rendering"] = "Camera recording requires rendering. Enable rendering or turn off camera recording.";
   if (evaluationValues.ttc_horizon_s < evaluationValues.ttc_warning_s) errors["evaluation_settings.ttc_horizon_s"] = "The horizon must cover the warning time.";
   if (evaluationValues.braking_full_severity_mps2 <= evaluationValues.hard_braking_threshold_mps2) errors["evaluation_settings.braking_full_severity_mps2"] = "Full severity must exceed the hard braking threshold.";
@@ -119,6 +121,7 @@ export function makeLaunchRequest(scenario: Scenario | null, mode: RunMode | nul
   return { request: JSON.parse(JSON.stringify({
     scenario, scenario_id: null, agent_id: selection?.id ?? null, mode,
     options: { ...optionValues, allow_map_reload: options.allow_map_reload, no_rendering_mode: options.rendering === "enabled" ? false : options.rendering === "disabled" ? true : null,
+      carla_quality: options.quality === "inherit" ? null : options.quality,
       camera: options.camera, lidar: options.lidar },
     evaluation_settings: { method_version: "1.0", ...evaluationValues },
   })) as SimulationLaunch };

@@ -37,6 +37,7 @@ export function makeGenerateRequest(
   seed: string,
   values: Record<string, string>,
   duration?: string,
+  map?: string,
 ): { request: ScenarioGenerate; errors?: never } | { request?: never; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
   const seedValue = readNumericField(seed, { minimum: 0, maximum: 2 ** 31 - 1, integer: true });
@@ -60,7 +61,7 @@ export function makeGenerateRequest(
   }
   if (Object.keys(errors).length) return { errors };
   return { request: { template: template.template, seed: seedValue.value!, parameters, sample: false, ranges: {},
-    duration_s: durationValue ?? null } };
+    duration_s: durationValue ?? null, map: map ?? null } };
 }
 
 export function parseRecipeJson(text: string): { recipe: Record<string, unknown>; error?: never } | { recipe?: never; error: string } {

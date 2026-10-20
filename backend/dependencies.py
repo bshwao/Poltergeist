@@ -21,16 +21,22 @@ class ApiRuntime:
         self._worker = None
         self._optimizer = None
         self._registry = None
+        self._carla_launcher = None
         self._lock = RLock()
         self._closed = False
 
     def _new_runner(self, *, options, evaluation_settings):
         from simulator import SimulationRunner
         from simulator.carla_client import CarlaConnectionSettings
+        from simulator.carla_launcher import LocalCarlaLauncher
+
+        if self._carla_launcher is None:
+            self._carla_launcher = LocalCarlaLauncher(self.settings)
 
         return SimulationRunner(
             options=options, evaluation_settings=evaluation_settings,
             connection_settings=CarlaConnectionSettings.from_settings(self.settings),
+            carla_launcher=self._carla_launcher,
         )
 
     def persistence(self) -> PersistenceService:

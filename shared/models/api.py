@@ -60,6 +60,7 @@ class TemplateInfo(ContractModel):
 
 class ScenarioGenerate(ContractModel):
     template: ScenarioTemplate
+    map: NonEmptyString | None = None
     seed: Seed = 0
     duration_s: PositiveFloat | None = None
     parameters: dict[NonEmptyString, Scalar] = Field(default_factory=dict)
