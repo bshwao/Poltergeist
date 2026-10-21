@@ -78,6 +78,23 @@ npm run dev
 ```
 
 Open `http://localhost:5173`. `/health` checks API liveness, not CARLA readiness.
+On **Overview**, **Setup readiness** automatically checks local prerequisites for
+synthetic mode and shows separate CARLA requirements. **Ready** means ready to
+try under the reported static checks; it does not mean an experiment was run.
+Storage permissions are estimates until a real run opens the database. Missing
+CARLA dependencies do not block synthetic mode. **Refresh setup** repeats static
+inspection; it does not start CARLA or run an agent.
+
+After you separately start CARLA, **Check CARLA connection** performs an explicit
+read-only probe and verifies reported client/server versions when a supported
+client is installed. An executable file or a folder named `CARLA_0.9.16` is not
+version verification. **Not running** means no listener accepted the connection;
+timeouts and access errors remain **Unknown**. **Not checked** is displayed until
+the relevant check is requested. Follow each check's next step and refresh after
+configuration changes. Failed refreshes retain a clearly labeled prior snapshot.
+Neither action installs packages, opens/migrates the database, launches models,
+starts the simulator, or changes its world. Execution is tested only by a run.
+
 The acceptance command's isolated runs do not appear in your ordinary dashboard
 history. Create your own run in this workspace:
 

@@ -88,6 +88,14 @@ initial packaging work.
 All phases below are **planned** and proceed in order. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
+Preparatory work: the current local Overview has a versioned setup-readiness
+report and read-only diagnostics shared with the doctor CLI. It separates
+synthetic prerequisites, CARLA client/launcher presence, explicit RPC/version
+checks, and untested execution. This is a small precursor to S1 capabilities and
+S3 diagnostics; it does not complete S1 packaging, define the hosted runner
+boundary, or provide a companion/installer. All S1–S10 completion gates remain
+planned.
+
 ### S1 — Prove packaging and define the split
 
 - Define versioned boundaries between the hosted coordinator and local runner,

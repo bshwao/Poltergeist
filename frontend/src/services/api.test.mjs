@@ -1,6 +1,7 @@
 import test, { after, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { loadComponents } from "../../scripts/load-components.mjs";
+import { readinessFixture } from "../../tests/readiness-fixture.mjs";
 
 async function loadApiModule() {
   const loaded = await loadComponents("services/api.ts");
@@ -39,6 +40,45 @@ const recipe = {
 const health = { status: "ok", service: "poltergeist" };
 const jsonResponse = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "Content-Type": "application/json" },
+});
+
+test("readiness uses separate static GET and explicit read-only probe POST, forwarding cancellation", async () => {
+  const calls = []; const controller = new AbortController();
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    return jsonResponse({ ...readinessFixture(), carla_connection_requested: options.method === "POST" });
+  };
+  await api.getReadiness({ signal: controller.signal });
+  await api.checkCarlaConnection({ signal: controller.signal });
+  assert.equal(calls[0].url, `${API_BASE_URL}/readiness`); assert.equal(calls[0].options.method, "GET");
+  assert.equal(calls[1].url, `${API_BASE_URL}/readiness/carla-check`); assert.equal(calls[1].options.method, "POST");
+  assert.equal(calls[1].options.body, "{}");
+  assert.ok(calls.every(call => call.options.signal === controller.signal));
+});
+
+test("incompatible or dishonest readiness payloads are rejected before display", async () => {
+  const invalid = [];
+  invalid.push({ ...readinessFixture(), schema_version: "v2" });
+  invalid.push({ ...readinessFixture(), checked_at: "yesterday" });
+  invalid.push({ ...readinessFixture(), checked_at: "2026-10-20T12:00:00" });
+  for (const change of [
+    r => { r.carla.status = "ready"; },
+    r => { r.carla.checks[2].status = "ready"; },
+    r => { r.synthetic.checks[4].status = "ready"; },
+    r => { r.synthetic.checks[0].status = "maybe"; },
+    r => { r.synthetic.checks[0].status = ["ready"]; },
+    r => { r.synthetic.status = ["ready"]; },
+    r => { r.synthetic.checks[0].status = "missing"; },
+    r => { r.carla_connection_requested = true; },
+    r => { r.synthetic.checks[1] = r.synthetic.checks[0]; },
+    r => { delete r.carla.checks[0].next_step; },
+  ]) { const report = readinessFixture(); change(report); invalid.push(report); }
+  for (const report of invalid) {
+    globalThis.fetch = async () => jsonResponse(report);
+    await assert.rejects(api.getReadiness(), ApiError);
+  }
+  globalThis.fetch = async () => jsonResponse(readinessFixture());
+  await assert.rejects(api.checkCarlaConnection(), ApiError);
 });
 
 test("health uses the configured default URL and forwards an AbortSignal without a content-type header", async () => {

@@ -17,6 +17,55 @@ also start the single worker and perform restart recovery. Optimization routes
 start its experiment controller and recover interrupted operations. CORS uses the configured
 `CORS_ORIGINS`.
 
+## Local setup readiness
+
+`GET /readiness` returns a typed `poltergeist-readiness-v1` snapshot with scope
+`local_core`, an aware `checked_at` timestamp, and separate `synthetic` and
+`carla` capabilities. Each includes a status, summary and identified checks with
+details and nullable next steps. Responses use `Cache-Control: no-store`.
+
+The automatic snapshot shares installation diagnostics with `scripts.doctor`
+and executable discovery with the CARLA launcher. It reads runtime/package
+metadata, validates configuration without opening SQLite, estimates storage
+permissions without writing a probe file, and inspects bounded known simulator
+locations. It does not inspect Node/Git or gate runtime capabilities on developer
+tools. A packaged runtime and its supported distribution remain future work.
+
+`POST /readiness/carla-check` explicitly requests a fresh snapshot plus a
+read-only connection check of the configured endpoint. It never starts CARLA.
+Network resolution, TCP connection, optional native import and RPC share a
+subprocess deadline of 12 seconds (2-second socket/RPC timeouts plus bounded
+startup allowance). Without supported client metadata, only listener presence is
+checked. Map downloads and Python bytecode writes are disabled for this probe;
+it reads world settings without ticks, actors, map loads or setting changes.
+The endpoint uses configured settings only and accepts no host/executable overrides.
+
+Status semantics:
+
+| Status | Meaning |
+| --- | --- |
+| `ready` | That check's prerequisites passed; a workflow is ready to **attempt**, not proven to execute |
+| `missing` | Required package metadata or local executable was not found |
+| `unsupported` | Runtime/client version or the responding client/server pair is incompatible |
+| `not_running` | An explicit connection was refused at the configured endpoint; no process-existence claim |
+| `not_checked` | No observation was requested/performed, including experiment execution |
+| `unknown` | Permission estimate, listener identity, native import or network/RPC result is inconclusive |
+| `error` | Static configuration is invalid or the executable has an unsupported launcher extension |
+
+Executable presence never verifies a CARLA version. Client metadata does not
+prove native import works. Only a successful explicit RPC check establishes
+reported client/server compatibility. A verified separately started server does
+not require discoverable local launcher files; remote hosts are not searched
+locally. All experiment execution remains `not_checked`, even after RPC succeeds.
+No custom worker/model, sensor pipeline, database migration, driving safety or
+throughput is certified. Failure to fetch the report leaves readiness unknown;
+HTTP 200 represents a valid report, even when prerequisites are missing.
+
+These endpoints do not initialize persistence, queues, agents or models, and
+do not install dependencies or write application data. `/health` remains process
+liveness only. Concurrent explicit probes are independent bounded reads, not a
+lease on the simulator or permission to share a synchronous tick owner.
+
 ## Generate, save, launch, and read a test run
 
 Start the API in one terminal. In a second PowerShell terminal:

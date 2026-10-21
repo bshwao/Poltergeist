@@ -829,6 +829,21 @@ export type Unit3 = string;
 export type Parameters3 = ParameterInfo[];
 export type Request1 = SearchRequest | ComparisonRequest | ReproductionRequest | MinimizeRequest;
 export type ExpectedRevision1 = number;
+export type Detail = string;
+export type Id8 = string;
+export type Label = string;
+export type NextStep = string | null;
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ReadinessStatus".
+ */
+export type ReadinessStatus = "ready" | "missing" | "unsupported" | "not_running" | "not_checked" | "unknown" | "error";
+export type Checks = ReadinessCheck[];
+export type Summary2 = string;
+export type CarlaConnectionRequested = boolean;
+export type CheckedAt1 = string;
+export type SchemaVersion4 = "poltergeist-readiness-v1";
+export type Scope = "local_core";
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -841,6 +856,7 @@ export interface PoltergeistContracts {
   failure: FailureReport;
   metrics: SafetyMetrics;
   optimization: OptimizationContracts;
+  readiness: ReadinessReport;
   result: SimulationResult;
   scenario: Scenario;
   simulation: Simulation;
@@ -2217,4 +2233,36 @@ export interface OptimizationContracts {
  */
 export interface OptimizationResume {
   expected_revision: ExpectedRevision1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ReadinessReport".
+ */
+export interface ReadinessReport {
+  carla: WorkflowReadiness;
+  carla_connection_requested: CarlaConnectionRequested;
+  checked_at: CheckedAt1;
+  schema_version: SchemaVersion4;
+  scope: Scope;
+  synthetic: WorkflowReadiness;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "WorkflowReadiness".
+ */
+export interface WorkflowReadiness {
+  checks: Checks;
+  status: ReadinessStatus;
+  summary: Summary2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ReadinessCheck".
+ */
+export interface ReadinessCheck {
+  detail: Detail;
+  id: Id8;
+  label: Label;
+  next_step: NextStep;
+  status: ReadinessStatus;
 }

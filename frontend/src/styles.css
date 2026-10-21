@@ -389,6 +389,23 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .status-completed { color: #38725d; background: #eef7f2; }
 .status-failed { color: #a14454; background: #fceff1; }
 .status-cancelled { color: #8b6d36; background: #fbf4e5; }
+.readiness-actions, .readiness-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.readiness-actions { justify-content: flex-start; }
+.readiness-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-block: 20px; }
+.readiness-workflow { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+.readiness-title h3, .readiness-title h4 { margin: 0; }
+.readiness-title h3 { font-size: 14px; }
+.readiness-title h4 { font-size: 12px; }
+.readiness-summary, .readiness-checks p { font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.readiness-checks { padding: 0; margin: 18px 0 0; list-style: none; }
+.readiness-checks li { padding-block: 16px; border-top: 1px solid var(--line); }
+.readiness-checks li:last-child { padding-bottom: 0; }
+.readiness-checks p { margin: 8px 0 0; color: var(--muted); }
+.readiness-checks .readiness-next { color: #55516a; }
+.readiness-ready { color: #38725d; background: #eef7f2; }
+.readiness-missing, .readiness-error, .readiness-unsupported { color: #a14454; background: #fceff1; }
+.readiness-not_running, .readiness-unknown { color: #8b6d36; background: #fbf4e5; }
+@media (max-width: 800px) { .readiness-grid { grid-template-columns: 1fr; } }
 .mode-test { color: #8a6738; background: #faf3e6; }
 .mode-carla { color: #326c80; background: #edf5f9; }
 .pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 18px 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }

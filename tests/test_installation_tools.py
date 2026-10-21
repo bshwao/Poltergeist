@@ -7,7 +7,8 @@ import sys
 
 import pytest
 
-from scripts import doctor, validate_installation
+from backend import diagnostics as doctor
+from scripts import validate_installation
 
 
 def test_doctor_default_never_contacts_carla_or_imports_agent_code(monkeypatch):

@@ -4,6 +4,7 @@ from .models import AgentContracts, FailureReport, SafetyMetrics, Scenario, Simu
 from .models.base import ContractModel
 from .models.api import ApiContracts
 from .models.optimization import OptimizationContracts
+from .models.readiness import ReadinessReport
 
 
 class PoltergeistContracts(ContractModel):
@@ -16,3 +17,4 @@ class PoltergeistContracts(ContractModel):
     api: ApiContracts
     optimization: OptimizationContracts
     agent: AgentContracts
+    readiness: ReadinessReport

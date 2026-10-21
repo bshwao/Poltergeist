@@ -4,6 +4,8 @@ import type { DecisionPage } from "../types/generated";
 import type { BehaviorAnalysis } from "../types/generated";
 import { isBehaviorAnalysis } from "./behavior-contract";
 import { experimentContracts } from "./experiment-contract";
+import { isReadinessReport } from "./readiness-contract";
+import type { ReadinessReport } from "../types/generated";
 import type { ComparisonReport, OptimizationRecord, OptimizationView } from "../types/generated";
 
 export interface ApiIssue {
@@ -757,6 +759,8 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     getComparison: (id: string, options: RequestOptions = {}) => request<ComparisonReport>(`/optimizations/${checkedId(id)}/comparison`, options, v => experiments.comparison(v, id)),
     comparisonExportUrl: (id: string) => `${base}/optimizations/${checkedId(id)}/comparison?download=true`,
     health: (options: RequestOptions = {}) => request<HealthStatus>("/health", options, isHealth),
+    getReadiness: (options: RequestOptions = {}) => request<ReadinessReport>("/readiness", options, value => isReadinessReport(value) && !value.carla_connection_requested),
+    checkCarlaConnection: (options: RequestOptions = {}) => request<ReadinessReport>("/readiness/carla-check", options, value => isReadinessReport(value) && value.carla_connection_requested, "POST", {}),
     registerAgent: (input: AgentRegistration, options: RequestOptions = {}) => request<RegisteredAgent>("/agents", options, isRegisteredAgent, "POST", input, 201),
     listAgents: (filters: AgentFilters = {}, options: RequestOptions = {}) => request<RegisteredAgent[]>(`/agents${agentFilterQuery(filters)}`, options, value => Array.isArray(value) && value.every(isRegisteredAgent)),
     getAgent: (id: string, options: RequestOptions = {}) => request<RegisteredAgent>(`/agents/${checkedId(id)}`, options, value => isRegisteredAgent(value) && isObject(value) && sameId(value.id, id)),
@@ -810,6 +814,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
 
 export const api = createApiClient();
 export const {
+  getReadiness, checkCarlaConnection,
   registerAgent, listAgents, getAgent, getAgentReadiness, deactivateAgent,
   health, listTemplates, generateScenario, validateScenario, listScenarios, getScenario,
   createScenario, updateScenario, deleteScenario, getSimulationQueue, launchSimulation,

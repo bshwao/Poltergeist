@@ -8,6 +8,15 @@ import paths. Do not hand-edit the generated files.
 
 ## Validation and wire format
 
+The local capability snapshot is `ReadinessReport`, version
+`poltergeist-readiness-v1`, with fixed scope `local_core`. Its synthetic and CARLA
+workflows preserve `ready`, `missing`, `unsupported`, `not_running`,
+`not_checked`, `unknown` and `error` as distinct statuses. Each identified check
+includes a readable detail and optional next step. `ready` is scoped to checked
+prerequisites; experiment execution remains explicitly `not_checked`.
+See [API readiness semantics](api.md#local-setup-readiness). This is a current
+local-core report, not a hosted-device protocol or packaged-companion guarantee.
+
 - Scenario `schema_version` is `"1.0"`. Unknown fields are rejected, including in
   nested objects. All physical numbers must be finite; booleans and numeric
   strings are rejected for physical values, counts, scores, and seeds.

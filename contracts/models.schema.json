@@ -4927,6 +4927,106 @@
       "title": "QueueStatus",
       "type": "object"
     },
+    "ReadinessCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "next_step": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Step"
+        },
+        "status": {
+          "$ref": "#/$defs/ReadinessStatus"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "status",
+        "detail",
+        "next_step"
+      ],
+      "title": "ReadinessCheck",
+      "type": "object"
+    },
+    "ReadinessReport": {
+      "additionalProperties": false,
+      "properties": {
+        "carla": {
+          "$ref": "#/$defs/WorkflowReadiness"
+        },
+        "carla_connection_requested": {
+          "title": "Carla Connection Requested",
+          "type": "boolean"
+        },
+        "checked_at": {
+          "format": "date-time",
+          "title": "Checked At",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "poltergeist-readiness-v1",
+          "default": "poltergeist-readiness-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "const": "local_core",
+          "default": "local_core",
+          "title": "Scope",
+          "type": "string"
+        },
+        "synthetic": {
+          "$ref": "#/$defs/WorkflowReadiness"
+        }
+      },
+      "required": [
+        "schema_version",
+        "scope",
+        "checked_at",
+        "carla_connection_requested",
+        "synthetic",
+        "carla"
+      ],
+      "title": "ReadinessReport",
+      "type": "object"
+    },
+    "ReadinessStatus": {
+      "enum": [
+        "ready",
+        "missing",
+        "unsupported",
+        "not_running",
+        "not_checked",
+        "unknown",
+        "error"
+      ],
+      "title": "ReadinessStatus",
+      "type": "string"
+    },
     "RegisteredAgent": {
       "additionalProperties": false,
       "properties": {
@@ -6790,6 +6890,33 @@
       ],
       "title": "Weather",
       "type": "object"
+    },
+    "WorkflowReadiness": {
+      "additionalProperties": false,
+      "properties": {
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/ReadinessCheck"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/ReadinessStatus"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "summary",
+        "checks"
+      ],
+      "title": "WorkflowReadiness",
+      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -6809,6 +6936,9 @@
     },
     "optimization": {
       "$ref": "#/$defs/OptimizationContracts"
+    },
+    "readiness": {
+      "$ref": "#/$defs/ReadinessReport"
     },
     "result": {
       "$ref": "#/$defs/SimulationResult"
@@ -6832,7 +6962,8 @@
     "failure",
     "api",
     "optimization",
-    "agent"
+    "agent",
+    "readiness"
   ],
   "title": "PoltergeistContracts",
   "type": "object"
