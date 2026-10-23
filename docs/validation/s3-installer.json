@@ -1,0 +1,150 @@
+{
+  "branch": "codex/s3-installer-onboarding",
+  "checked_on": "2026-10-23",
+  "final_build_comparison": {
+    "final_build": "E",
+    "live_tested_build": "D",
+    "only_changed_bundle_file": "DISTRIBUTION-NOTICES.md",
+    "reason": "Clarify portable archive versus separate S3 installer capabilities.",
+    "same_project_wheel": true,
+    "same_runtime_and_application_file_hashes": true
+  },
+  "final_install": {
+    "build": "E",
+    "coverage": [
+      "same wheel/runtime; notice-only manifest change receives a new version directory",
+      "final installed bundle/native check",
+      "all profile file bytes preserved through upgrade",
+      "installed E reopens the completed D CARLA result/export",
+      "normal uninstall preserves results and removes validation registration/shortcuts",
+      "recovery and raw evidence retained"
+    ],
+    "passed": true
+  },
+  "installed_live": {
+    "actual_ui_run_and_export_callbacks": true,
+    "client_version": "0.9.16",
+    "configuration_auto_start": false,
+    "durable_reopen_verified": true,
+    "duration_s": 2.0000000298023224,
+    "exit_code": 0,
+    "explicit_setup_start_callback": true,
+    "first_attempt": {
+      "application_checks_passed": true,
+      "limitation": "PowerShell Process.ExitCode returned null; the supervisor correctly retained a failed receipt.",
+      "native_cleanup_verified": true,
+      "supervisor_passed": false,
+      "world_restored": true
+    },
+    "installed_build": "private-c1ee74775645b9e5",
+    "map": "Town10HD_Opt",
+    "mode": "carla",
+    "native_cleanup_verified": true,
+    "run_status": "completed",
+    "scope": "Two-second installed baseline integration check, not the full S0 benchmark or external machine gate.",
+    "server_version": "0.9.16",
+    "startup_graphics": "Low",
+    "status": "passed",
+    "telemetry_frames": 41,
+    "world_restored": true
+  },
+  "limits": {
+    "external_clean_machine_verified": false,
+    "external_tester_workflow_verified": false,
+    "hardware_input_automation_verified": false,
+    "hosted_pairing_available": false,
+    "latest_first_run_visual_inspection_verified": false,
+    "native_platform_matrix_verified": false,
+    "redistribution_release_review_complete": false,
+    "signed_update_and_rollback_verified": false
+  },
+  "native_clean_repair": {
+    "build": "D",
+    "coverage": [
+      "upgrade to full-manifest runtime identity",
+      "damaged and unexpected files fail integrity before repair",
+      "clean exact runtime restored",
+      "old damaged and unexpected files retained in recovery",
+      "all profile file bytes preserved",
+      "installed private native check passes"
+    ],
+    "passed": true
+  },
+  "native_lifecycle": {
+    "build": "B",
+    "coverage": [
+      "per-user install and private native imports/Tcl",
+      "actual synthetic UI run/export",
+      "durable finalized result after reopening",
+      "repair refused while app mutex held",
+      "damaged known file restored",
+      "ordinary uninstall preserves data",
+      "reinstall",
+      "explicit inactive owned-profile removal",
+      "validation uninstall registration removed"
+    ],
+    "passed": true
+  },
+  "native_shortcuts": {
+    "build": "C",
+    "coverage": [
+      "Start menu launch/repair/uninstall targets",
+      "explicit desktop/login-startup opt-in",
+      "repair with options disabled removes optional shortcuts"
+    ],
+    "passed": true
+  },
+  "open_gates": [
+    "S1 independent no-developer-tools machine",
+    "S3 external installation/workflow tester and visual onboarding review",
+    "S4 authenticated hosted coordinator/pairing implementation",
+    "S10 native support/licensing/signing/update/rollback/external beta"
+  ],
+  "packaged_sources": {
+    "baseline_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d",
+    "comparison": "Source bytes with CRLF/LF normalization",
+    "matching_firstparty_python_files": 155
+  },
+  "portable_archive": {
+    "bytes": 47907718,
+    "sha256": "4fd2e07b75ae637f785151123dbf29bc710cddd9e3f5e41fafec752065948461"
+  },
+  "private_installer": {
+    "build_id": "private-91db9cf069f2d2bd",
+    "bundle_manifest_sha256": "91db9cf069f2d2bd2fbdbb73934d38eafd305dc4685be53c722f6f3511eba8e4",
+    "bytes": 32898194,
+    "compiler_version": "7.1.0",
+    "installer_sha256": "a0dfe605ef5242ea41acc57da7d2c59616c128961de3c55d11854ca6f3da6a20",
+    "max_install_folder_characters": 111,
+    "validation_only": false
+  },
+  "release_signed": false,
+  "schema_version": "poltergeist-s3-private-validation-v1",
+  "scope": "Private Windows x64 installer and desktop prototype on the development laptop.",
+  "tests": {
+    "final_focused_python312": {
+      "passed": 45,
+      "skipped": 1
+    },
+    "final_profile_removal_python314": {
+      "passed": 7,
+      "skipped": 1
+    },
+    "focused_python314_before_additional_database_lease_case": {
+      "passed": 28,
+      "skipped": 1
+    },
+    "full_regression_before_final_build_tool_and_test_additions": {
+      "optional_skips": 35,
+      "passed": 2730
+    },
+    "prior_failure_retained": "The first full S3 run hit a native Tcl lifetime failure; GUI cases were isolated into separate app processes before the passing full run.",
+    "skip_reason": "Existing symlink fixture cannot be created under this machine's Windows permissions."
+  },
+  "validation_installer": {
+    "build_id": "private-91db9cf069f2d2bd",
+    "bytes": 32898237,
+    "installer_sha256": "5b0737148e0695d7ff33b192f3247f75287af8fb0cc49a3ea835c89fd9999781",
+    "validation_only": true
+  }
+}

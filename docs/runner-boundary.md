@@ -21,7 +21,7 @@ model ran. The report fixes local concurrency at one and remote execution at fal
 | Capability negotiation | Protocol and implementation versions, initial Windows x64 target, SDK versions, local features, prerequisite statuses, one execution slot |
 | Execute request | Client-generated request UUID, validated `Scenario`, explicit `test`/`carla` mode, optional locally approved registration UUID, typed execution/evaluation options |
 | Cancel request | Separate request UUID and owned simulation UUID; cancellation remains cooperative, not immediate termination |
-| Progress and result | Reuse `SimulationProgress` and `SimulationResult`, including recorded agent identity, mode, measurement coverage and provenance |
+| Progress and result | Retain complete `SimulationProgress`/`SimulationResult` locally; define an explicit authorized hosted projection with approved identity, mode and measurement coverage |
 | Evidence access | Existing owned result/report/artifact identities and indexed downloads; future transport must authorize each access and bound bytes |
 
 Requests deliberately contain no package, interpreter, model, storage or shell
@@ -29,6 +29,12 @@ paths. Registering/trusting arbitrary code, installing dependencies, selecting
 models and changing machine configuration remain device-local actions. The
 readiness API's detailed local file paths are not part of capability negotiation.
 No model weights or inference environments are implied by `approved_sdk_agents`.
+
+Raw results contain agent snapshots with local package/interpreter/model paths
+and arbitrary configuration. Readiness and errors can also contain local paths.
+These local contracts must not be serialized wholesale to a hosted connection.
+The [S4 design](hosted-pairing-design.md) specifies a separate public projection;
+that projection and authenticated dispatch are not implemented yet.
 
 The future hosted coordinator owns accounts, authorization, device pairing,
 request ownership/correlation and relay flow control. The local runner retains

@@ -1,9 +1,11 @@
 # Private desktop companion
 
-Status: S2 private Windows x64 prototype, built on the S1 portable runtime.
-The companion executes local work and preserves it across restarts. Hosted
-pairing, an installer, managed model downloads and public release are later
-milestones. The S1 independent-machine and redistribution gates remain open.
+Status: private Windows x64 prototype, with S2 desktop execution and S3 installer
+and onboarding under validation. The companion executes local work and preserves
+it across restarts. See the [installer/setup guide](installer-onboarding.md) and
+[current progress](progress-notes.md). Hosted pairing, managed model downloads
+and public release remain later milestones. The S1 independent-machine and
+redistribution gates remain open.
 
 ## Open the application
 
@@ -20,11 +22,11 @@ runtime\pythonw.exe -I -B -m scripts.companion
 Use a short extraction path. A CLI relocation under the deeply nested Codex
 AppData virtualization directory failed to load SQLAlchemy's native extension
 with `The filename or extension is too long`; this is a recorded native path
-limit. The desktop relocation with spaces passed. Installer path selection and
-broader native validation remain S3/S10 work.
+limit. The desktop relocation with spaces passed. The private S3 installer now
+bounds its install path; broader native validation remains open.
 
 The archive retains its original `Poltergeist-S1-windows-x64` folder name for
-compatibility with the S1 verifier. Its new manifest identifies S1/S2 and includes
+compatibility with the S1 verifier. Its new manifest identifies S1–S3 and includes
 the companion, real GUI interpreter and Tcl/Tk resources. The original S1
 validation archive and its recorded checksum are unchanged.
 
@@ -50,7 +52,9 @@ use one active companion per CARLA server until S6 adds that ownership boundary.
 
 ## Run and review
 
-The window starts its local runtime. **Run recipe** executes the selected
+On first run, complete **Setup** or explicitly choose **Use synthetic for now**,
+then start the local runtime. Later launches start it automatically after the
+installed file check. **Run recipe** executes the selected
 scenario through the existing `SimulationService`, `SimulationRunner`, agent
 workers, evaluator and persistence implementation. There is no internal HTTP
 server. Each profile has one active worker and a bounded durable waiting queue.
@@ -104,7 +108,8 @@ with no other tick owner. The existing launcher reuses a listener; it starts the
 configured installation only for a live run when automatic startup is enabled.
 An existing server keeps its graphics settings. Map reload is not enabled by the
 desktop, so start the intended map beforehand or let a new server start with the
-recipe's map. Setup detection/wizard/repair and hardware guidance expand in S3.
+recipe's map. The [S3 setup flow](installer-onboarding.md) adds bounded discovery,
+hardware/disk observations and explicit startup/current-map/available-map checks.
 
 ## Bring existing evidence deliberately
 
@@ -130,8 +135,10 @@ final startup/path/cleanup refinements were covered by the focused reruns.
 `tests/test_companion.py` exercises real SQLite/artifacts/synthetic execution,
 restart, exports, static diagnostics, trusted SDK execution, cross-process
 instance exclusion and a native-call shutdown timeout that retains ownership.
-`tests/test_companion_ui.py` invokes real Tk controls and checks background
-responsiveness, execution/export/restart and settings/diagnostic callbacks.
+`tests/test_companion_ui.py` invokes each real Tk case in its own application
+process and checks background responsiveness, execution/export/restart and
+settings/diagnostic/onboarding callbacks. This avoids retaining closed Tcl
+interpreters in the unrelated API test process.
 Machines without a Tk/display skip only the GUI checks.
 
 The packaged check uses a new profile and invokes the actual application's Tk

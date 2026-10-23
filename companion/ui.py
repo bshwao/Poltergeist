@@ -67,6 +67,11 @@ class CompanionWindow:
             tabs.add(frame, text=label)
         self._build_execution(execution)
         self._build_settings(settings)
+        from .setup_ui import SetupPanel
+        self.setup = SetupPanel(self, tabs)
+        tabs.insert(0, self.setup.frame, text="Setup")
+        if not controller.config.setup_completed:
+            tabs.select(self.setup.frame)
         self._build_diagnostics(diagnostics)
         self._build_archives(archives)
         self.message = tk.StringVar(value="Results and logs stay in your companion profile.")
@@ -78,11 +83,16 @@ class CompanionWindow:
             if startup_check:
                 self.runtime_text.set("Local runtime: checking installed files…")
             self._run(self._start_runtime, self._apply_snapshot)
+        elif not controller.config.setup_completed:
+            root.after(100, self.setup.scan)
 
-    def _start_runtime(self):
+    def _check_files(self):
         if not self._files_checked:
             self._startup_check()
             self._files_checked = True
+
+    def _start_runtime(self):
+        self._check_files()
         if self._close_requested.is_set():
             return self.controller.snapshot()
         return self.controller.start()
@@ -296,8 +306,21 @@ class CompanionWindow:
             # The only submitted action is already done. Join its idle thread
             # before Tcl objects can be destroyed/finalized on another thread.
             self._executor.shutdown(wait=True)
+            self.setup.close()
+            # Python's cyclic GC can run on any worker thread. Release our Tk
+            # variables here, on the GUI thread, before a closed window's cycles
+            # can be collected later while another window/worker is running.
+            self._release_variables(self.setup)
+            self._release_variables(self)
             self.root.destroy()
         self._run(close, closed)
+
+    @staticmethod
+    def _release_variables(owner):
+        for name in list(vars(owner)):
+            value = getattr(owner, name)
+            if isinstance(value, tk.Variable):
+                setattr(owner, name, None)
 
     def _describe_recipe(self):
         recipe = self._recipe
@@ -361,7 +384,8 @@ class CompanionWindow:
     def _save_settings(self):
         try:
             config = CompanionConfig(carla_executable=self.executable.get().strip() or None,
-                carla_port=int(self.port.get()), carla_quality=self.quality.get(), carla_auto_start=self.auto_start.get())
+                carla_port=int(self.port.get()), carla_quality=self.quality.get(), carla_auto_start=self.auto_start.get(),
+                setup_completed=self.controller.config.setup_completed)
         except (ValueError, TypeError) as error:
             messagebox.showerror("Invalid settings", str(error), parent=self.root)
             return

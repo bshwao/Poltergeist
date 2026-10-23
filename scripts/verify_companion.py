@@ -37,13 +37,16 @@ def verify(profile, *, visible=False):
               "hardware_input_verified": False, "external_clean_machine_verified": False,
               "python": sys.executable, "bundle": str(bundle), "profile": str(profile), "runs": []}
     evidence = profile / "companion-validation.json"
-    root = controller = window = None
+    host = root = controller = window = None
     errors = []
     try:
         def stage(name):
             report["stage"] = name
             evidence.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         stage("checking imports")
+        host = tk.Tk()
+        host.withdraw()
+        host.report_callback_exception = lambda kind, error, trace: errors.append(f"{kind.__name__}: {error}")
         report["modules"] = {name: importlib.import_module(name).__file__ for name in ("companion", "backend", "simulator", "scenarios", "tkinter", "_tkinter")}
         if any(not Path(path).resolve().is_relative_to(bundle) for path in report["modules"].values()):
             raise RuntimeError("Desktop module imported outside the bundle")
@@ -61,10 +64,9 @@ def verify(profile, *, visible=False):
             nonlocal root, controller, window
             controller = CompanionController(profile, bundle=bundle)
             controller.open()
-            root = tk.Tk()
+            root = tk.Toplevel(host)
             if not visible:
                 root.withdraw()
-            root.report_callback_exception = lambda kind, error, trace: errors.append(f"{kind.__name__}: {error}")
             # Surface an error as a failed check instead of waiting in a modal.
             from companion import ui
             ui.messagebox.showerror = lambda title, message, **kwargs: errors.append(f"{title}: {message}")
@@ -137,6 +139,8 @@ def verify(profile, *, visible=False):
             except Exception as error:
                 report["profile_released"] = report["passed"] = False
                 report["cleanup_error"] = f"{type(error).__name__}: {error}"
+        if host is not None:
+            host.destroy()
         evidence.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     if not report["passed"]:
         raise RuntimeError(f"Companion check did not pass; inspect {evidence}")

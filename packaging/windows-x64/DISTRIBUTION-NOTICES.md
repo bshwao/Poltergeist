@@ -1,4 +1,4 @@
-# Private S1/S2 distribution inventory
+# Private S1/S3 distribution inventory
 
 This is an unsigned private prototype. The repository currently has no top-level
 project license; no new distribution license is granted by this build. The owner
@@ -34,4 +34,6 @@ The prototype targets Windows 10/11 x64 only. This laptop is the initial evidenc
 machine, not a supported OS/hardware matrix. Linux, macOS, Windows ARM64, other
 Python ABIs and clean-machine native loading remain unvalidated. A suitable GPU,
 driver and a separately installed matching CARLA server are required for live tests.
-No signing, installer, update mechanism, hosted transport or security pairing is provided.
+The portable archive contains no installer. The separate private S3 installer
+adds per-user setup, repair and uninstall. Signing, updates, hosted transport
+and secure pairing remain unimplemented.

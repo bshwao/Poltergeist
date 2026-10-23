@@ -1,4 +1,4 @@
-POLTERGEIST S1/S2 PRIVATE WINDOWS X64 PROTOTYPE
+POLTERGEIST S1/S3 PRIVATE WINDOWS X64 PROTOTYPE
 
 This archive includes the private desktop companion and packaging checks.
 No installer, dashboard, cloud pairing, trained model or CARLA server is bundled.
@@ -12,7 +12,12 @@ runtime from a Command Prompt instead:
 
   runtime\pythonw.exe -I -B -m scripts.companion
 
-The companion starts its local queue, stores results across restarts, imports
+On first run the companion shows Setup. Detect or browse for CARLA, inspect local
+hardware/disk facts, and explicitly check the running client/server versions and
+maps. Choose Use synthetic for now if CARLA is not installed. Save the choices,
+then Start local runtime; later launches reopen the saved local queue. Hardware
+inspection does not establish simulator/model performance. The companion stores
+results across restarts, imports
 scenario JSON, exports HTML/JSON reports, and provides CARLA settings/diagnostics.
 Synthetic test uses synthetic physics. Select CARLA explicitly for a live run.
 Use an idle asynchronous world with no other tick owner. Automatic CARLA startup

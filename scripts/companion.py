@@ -21,6 +21,8 @@ def main(argv=None):
             from scripts.portable import bundle_root, verify_bundle
             bundle = bundle_root()
             configure_gui_environment(bundle)
+            from companion.install_guard import mark_installation_in_use
+            mark_installation_in_use()
         profile = profile_path(args.data_dir, bundle=bundle)
         from companion.controller import CompanionController
         controller = CompanionController(profile, bundle=bundle)
@@ -37,6 +39,7 @@ def main(argv=None):
         root = tk.Tk()
         root.report_callback_exception = lambda kind, error, trace: logger.error("Desktop callback failed", exc_info=(kind, error, trace))
         window = CompanionWindow(root, controller, logger,
+            autostart=controller.config.setup_completed,
             startup_check=(lambda: verify_bundle(bundle)) if bundle is not None else None)
         logger.info("Companion opened with real interpreter %s", sys.executable)
         root.mainloop()

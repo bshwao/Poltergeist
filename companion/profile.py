@@ -22,6 +22,7 @@ class CompanionConfig(BaseModel):
     carla_port: int = Field(default=2000, ge=1, le=65535)
     carla_auto_start: bool = False
     carla_quality: Literal["Low", "Epic"] = "Low"
+    setup_completed: bool = False
 
     @field_validator("carla_executable")
     @classmethod
@@ -62,6 +63,14 @@ def load_config(profile):
     return CompanionConfig.model_validate_json(path.read_bytes())
 
 
+def validate_windows_carla_root(path):
+    path = Path(path)
+    if (path.name.lower() != "carlaue4.exe"
+            or not (path.parent / "Engine" / "Content" / "Internationalization").is_dir()
+            or not (path.parent / "CarlaUE4" / "Binaries" / "Win64" / "CarlaUE4-Win64-Shipping.exe").is_file()):
+        raise ValueError("Select CarlaUE4.exe in the complete CARLA folder containing Engine and CarlaUE4. The shipping executable alone is incomplete.")
+
+
 def validate_installation(config):
     """Reject the known incomplete Windows shipping-executable copy at save time."""
     if config.carla_auto_start and config.carla_executable is None:
@@ -71,10 +80,8 @@ def validate_installation(config):
     path = Path(config.carla_executable)
     if not path.is_file():
         raise ValueError("The selected CARLA executable does not exist")
-    if os.name == "nt" and (path.name.lower() != "carlaue4.exe"
-            or not (path.parent / "Engine" / "Content" / "Internationalization").is_dir()
-            or not (path.parent / "CarlaUE4" / "Binaries" / "Win64" / "CarlaUE4-Win64-Shipping.exe").is_file()):
-        raise ValueError("Select CarlaUE4.exe in the complete CARLA folder containing Engine and CarlaUE4. The shipping executable alone is incomplete.")
+    if os.name == "nt":
+        validate_windows_carla_root(path)
 
 
 def save_config(profile, config):

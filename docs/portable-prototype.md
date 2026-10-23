@@ -4,12 +4,14 @@ Status: partial S1. A private runtime/build and typed [runner boundary](runner-b
 are implemented. Same-laptop relocation is useful evidence, not the completion
 gate on an independent computer without developer tools. A private
 [S2 desktop companion](companion.md) now uses the same packaged runtime;
-S3–S10 remain planned. The earlier S1 validation archive remains an accurate
+S3 installer/onboarding is under validation; S4–S10 implementation remains
+planned. The earlier S1 validation archive remains an accurate
 record of its original command-line-only source snapshot.
 See [the recorded local checks and remaining gates](s1-validation.md).
 
 The current build packages core command-line workflows and the private desktop
-window, without a dashboard, installer, tray integration or hosted service.
+window, without a dashboard, tray integration or hosted service. The separate
+[S3 installer](installer-onboarding.md) packages this runtime.
 Build machines use Python/developer tools; users run
 `Poltergeist.cmd` through a real private interpreter without Git, Node, pip, system
 Python or a repository. CARLA and trained models are not included.

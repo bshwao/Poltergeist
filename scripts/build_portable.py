@@ -275,6 +275,9 @@ def build(output, cache, *, offline=False):
                 runtime / "DLLs" / "_tkinter.pyd", runtime / "tcl" / "tcl8.6" / "init.tcl",
                 runtime / "tcl" / "tk8.6" / "tk.tcl", site / "companion" / "ui.py",
                 site / "scripts" / "companion.py", site / "scripts" / "portable.py", site / "backend" / "main.py",
+                site / "scripts" / "install_check.py", site / "scripts" / "remove_owned_profile.py",
+                site / "companion" / "setup_ui.py", site / "companion" / "onboarding.py",
+                site / "companion" / "install_guard.py",
                 site / "shared" / "models" / "runner.py", site / "simulator" / "agents" / "worker.py",
                 site / "simulator" / "agents" / "reference_ai" / "LICENSE.plant2",
                 *[site / "scenarios" / "templates" / (name + ".yaml")
@@ -297,7 +300,7 @@ def build(output, cache, *, offline=False):
         shutil.copy2(files[entry["filename"]], bundle / "notices" / entry["filename"])
     write_json(bundle / "notices" / "python-packages.json", dependency_notices(site))
     write_json(bundle / "notices" / "native-imports.json", native_inventory(bundle))
-    manifest = {"schema_version": "poltergeist-portable-v1", "prototype": "S1-S2-private-windows-x64",
+    manifest = {"schema_version": "poltergeist-portable-v1", "prototype": "S1-S3-private-windows-x64",
         "source_date_epoch": inputs["source_date_epoch"], "inputs_sha256": sha256(INPUTS),
         "project_wheel": {"filename": project_wheel.name, "sha256": sha256(project_wheel)},
         "runtime": inputs["runtime"], "remote_execution_enabled": False,

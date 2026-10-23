@@ -1,7 +1,10 @@
 # Distribution and scalability: S0–S10
 
 Status: S0 implemented and locally validated; S1 private prototype partial;
-S2 private desktop prototype; S3–S10 planned. This roadmap records the proposed hosted dashboard/backend and
+S2 private desktop prototype; **S3 installer and onboarding in progress**;
+S4 design reviewed, S4–S10 implementation pending. See the dated
+[progress notes](progress-notes.md) for current work and validation.
+This roadmap records the proposed hosted dashboard/backend and
 local companion architecture; it does not indicate that those services or the
 production companion have been released. It is separate from the completed
 [autonomous driving integration roadmap](autonomous-agents-plan.md).
@@ -88,7 +91,8 @@ initial packaging work.
 
 Phases proceed in order. S0 adds collision-stress calibration; S1 has a private command-line packaging prototype;
 its independent clean-machine completion gate remains open. S2 has a private
-desktop prototype; S3 onward remain **planned**. Earlier phases may build
+desktop prototype; S3 has an installer/onboarding implementation under validation.
+S4 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -169,6 +173,15 @@ open; this is not a supported public desktop release.
 an experiment and preserves its results after restarting the application.
 
 ### S3 — Installer and first-run setup
+
+**Status: private prototype locally validated; external gate open.** A pinned per-user Windows installer,
+native dependency checks, first-run CARLA discovery/configuration, explicit
+startup and version/map checks, opt-in login startup, offline repair and
+data-preserving uninstall are implemented. Same-laptop installer tests cover
+synthetic and short live CARLA execution, persistence, clean repair, shortcuts and
+ownership-aware profile removal.
+The [installer guide](installer-onboarding.md) records the build and validation
+scope. The external tester gate below remains open.
 
 - Build an installer with shortcuts, repair and uninstall support; make optional
   login startup a user choice.
