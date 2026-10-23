@@ -13,6 +13,7 @@ from sqlalchemy.engine import URL
 
 from backend.config import Settings
 from backend.worker_lock import WorkerLease
+from shared.origins import service_origin
 
 
 class CompanionConfig(BaseModel):
@@ -23,6 +24,12 @@ class CompanionConfig(BaseModel):
     carla_auto_start: bool = False
     carla_quality: Literal["Low", "Epic"] = "Low"
     setup_completed: bool = False
+    coordinator_origin: str | None = None
+
+    @field_validator("coordinator_origin")
+    @classmethod
+    def coordinator(cls, value):
+        return None if value is None else service_origin(value)
 
     @field_validator("carla_executable")
     @classmethod

@@ -73,7 +73,8 @@ class SetupPanel:
     def _config(self):
         return CompanionConfig(carla_executable=self.app.executable.get().strip() or None,
             carla_port=int(self.app.port.get()), carla_quality=self.app.quality.get(),
-            carla_auto_start=self.app.auto_start.get(), setup_completed=True)
+            carla_auto_start=self.app.auto_start.get(), setup_completed=True,
+            coordinator_origin=self.app.controller.config.coordinator_origin)
 
     def scan(self):
         def inspect():

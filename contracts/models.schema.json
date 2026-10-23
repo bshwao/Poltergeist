@@ -1,5 +1,52 @@
 {
   "$defs": {
+    "AccountIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "format": "uuid",
+          "title": "Account Id",
+          "type": "string"
+        },
+        "username": {
+          "maxLength": 32,
+          "minLength": 3,
+          "title": "Username",
+          "type": "string"
+        }
+      },
+      "required": [
+        "account_id",
+        "username"
+      ],
+      "title": "AccountIdentity",
+      "type": "object"
+    },
+    "AccountInput": {
+      "additionalProperties": false,
+      "properties": {
+        "password": {
+          "format": "password",
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Password",
+          "type": "string",
+          "writeOnly": true
+        },
+        "username": {
+          "maxLength": 32,
+          "minLength": 3,
+          "title": "Username",
+          "type": "string"
+        }
+      },
+      "required": [
+        "username",
+        "password"
+      ],
+      "title": "AccountInput",
+      "type": "object"
+    },
     "ActorSpec": {
       "additionalProperties": false,
       "properties": {
@@ -1623,6 +1670,27 @@
       "title": "ApiContracts",
       "type": "object"
     },
+    "ApprovedAgent": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "format": "uuid",
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "package_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Package Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent_id",
+        "package_digest"
+      ],
+      "title": "ApprovedAgent",
+      "type": "object"
+    },
     "ArtifactReference": {
       "additionalProperties": false,
       "properties": {
@@ -2535,6 +2603,32 @@
       "title": "BrakingEvent",
       "type": "object"
     },
+    "BrowserSession": {
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "$ref": "#/$defs/AccountIdentity"
+        },
+        "csrf_token": {
+          "maxLength": 43,
+          "minLength": 43,
+          "title": "Csrf Token",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "account",
+        "csrf_token",
+        "expires_at"
+      ],
+      "title": "BrowserSession",
+      "type": "object"
+    },
     "CollisionEvent": {
       "additionalProperties": false,
       "properties": {
@@ -3175,6 +3269,63 @@
       "title": "ControlIntervention",
       "type": "object"
     },
+    "CoordinationContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "account_input": {
+          "$ref": "#/$defs/AccountInput"
+        },
+        "approve": {
+          "$ref": "#/$defs/PairingApproveInput"
+        },
+        "claim": {
+          "$ref": "#/$defs/PairingClaimInput"
+        },
+        "create": {
+          "$ref": "#/$defs/PairingCreateInput"
+        },
+        "created": {
+          "$ref": "#/$defs/PairingCreated"
+        },
+        "credential_status": {
+          "$ref": "#/$defs/DeviceCredentialStatus"
+        },
+        "deny": {
+          "$ref": "#/$defs/PairingDenyInput"
+        },
+        "device": {
+          "$ref": "#/$defs/DeviceView"
+        },
+        "empty": {
+          "$ref": "#/$defs/EmptyInput"
+        },
+        "password_change": {
+          "$ref": "#/$defs/PasswordChangeInput"
+        },
+        "session": {
+          "$ref": "#/$defs/BrowserSession"
+        },
+        "status": {
+          "$ref": "#/$defs/PairingStatus"
+        }
+      },
+      "required": [
+        "empty",
+        "account_input",
+        "password_change",
+        "session",
+        "create",
+        "created",
+        "claim",
+        "status",
+        "approve",
+        "deny",
+        "device",
+        "credential_status"
+      ],
+      "title": "CoordinationContracts",
+      "type": "object"
+    },
     "DecisionPage": {
       "additionalProperties": false,
       "properties": {
@@ -3478,6 +3629,181 @@
       "title": "DecisionSensor",
       "type": "object"
     },
+    "DeviceCredentialStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "title": "Owner Id",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": "poltergeist-coordinator-v1",
+          "default": "poltergeist-coordinator-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "remote_execution_enabled": {
+          "default": false,
+          "title": "Remote Execution Enabled",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "owner_id",
+        "ownership_generation",
+        "remote_execution_enabled"
+      ],
+      "title": "DeviceCredentialStatus",
+      "type": "object"
+    },
+    "DevicePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "allow_graphics_change": {
+          "const": false,
+          "default": false,
+          "title": "Allow Graphics Change",
+          "type": "boolean"
+        },
+        "allow_map_reload": {
+          "const": false,
+          "default": false,
+          "title": "Allow Map Reload",
+          "type": "boolean"
+        },
+        "allow_raw_capture": {
+          "const": false,
+          "default": false,
+          "title": "Allow Raw Capture",
+          "type": "boolean"
+        },
+        "approved_agents": {
+          "items": {
+            "$ref": "#/$defs/ApprovedAgent"
+          },
+          "maxItems": 100,
+          "title": "Approved Agents",
+          "type": "array"
+        },
+        "max_duration_s": {
+          "default": 120.0,
+          "exclusiveMinimum": 0,
+          "maximum": 120,
+          "title": "Max Duration S",
+          "type": "number"
+        },
+        "max_ticks": {
+          "default": 10000,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Ticks",
+          "type": "integer"
+        },
+        "max_waiting_runs": {
+          "default": 10,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Max Waiting Runs",
+          "type": "integer"
+        },
+        "scopes": {
+          "items": {
+            "$ref": "#/$defs/PermissionScope"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "scopes",
+        "max_duration_s",
+        "max_ticks",
+        "max_waiting_runs",
+        "allow_map_reload",
+        "allow_raw_capture",
+        "allow_graphics_change",
+        "approved_agents"
+      ],
+      "title": "DevicePolicy",
+      "type": "object"
+    },
+    "DeviceView": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "display_name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/$defs/AccountIdentity"
+        },
+        "ownership_generation": {
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "policy": {
+          "$ref": "#/$defs/DevicePolicy"
+        },
+        "policy_revision": {
+          "minimum": 1,
+          "title": "Policy Revision",
+          "type": "integer"
+        },
+        "revoked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revoked At"
+        }
+      },
+      "required": [
+        "device_id",
+        "display_name",
+        "owner",
+        "ownership_generation",
+        "policy_revision",
+        "policy",
+        "created_at",
+        "revoked_at"
+      ],
+      "title": "DeviceView",
+      "type": "object"
+    },
     "DrivingOutcome": {
       "additionalProperties": false,
       "description": "Navigation measurements separate from execution and safety outcomes.",
@@ -3743,6 +4069,12 @@
         "stop_on_completion"
       ],
       "title": "DrivingTask",
+      "type": "object"
+    },
+    "EmptyInput": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "EmptyInput",
       "type": "object"
     },
     "EvaluationCoverage": {
@@ -4826,6 +5158,213 @@
       "title": "PairedComparison",
       "type": "object"
     },
+    "PairingApproveInput": {
+      "additionalProperties": false,
+      "properties": {
+        "credential": {
+          "pattern": "^pd_[A-Za-z0-9_-]{43}$",
+          "title": "Credential",
+          "type": "string",
+          "writeOnly": true
+        },
+        "expected_account_id": {
+          "format": "uuid",
+          "title": "Expected Account Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "policy": {
+          "$ref": "#/$defs/DevicePolicy"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "expected_account_id",
+        "expected_revision",
+        "credential",
+        "policy"
+      ],
+      "title": "PairingApproveInput",
+      "type": "object"
+    },
+    "PairingClaimInput": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "pattern": "^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{10}$",
+          "title": "Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "PairingClaimInput",
+      "type": "object"
+    },
+    "PairingCreateInput": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "private_secret": {
+          "pattern": "^pa_[A-Za-z0-9_-]{43}$",
+          "title": "Private Secret",
+          "type": "string",
+          "writeOnly": true
+        },
+        "requested_scopes": {
+          "items": {
+            "$ref": "#/$defs/PermissionScope"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Requested Scopes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "private_secret",
+        "display_name",
+        "requested_scopes"
+      ],
+      "title": "PairingCreateInput",
+      "type": "object"
+    },
+    "PairingCreated": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "format": "uuid",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "code": {
+          "pattern": "^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{10}$",
+          "title": "Code",
+          "type": "string"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "poll_interval_s": {
+          "const": 3,
+          "default": 3,
+          "title": "Poll Interval S",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "device_id",
+        "code",
+        "expires_at",
+        "poll_interval_s"
+      ],
+      "title": "PairingCreated",
+      "type": "object"
+    },
+    "PairingDenyInput": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "expected_revision"
+      ],
+      "title": "PairingDenyInput",
+      "type": "object"
+    },
+    "PairingStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "format": "uuid",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "claimed_account": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AccountIdentity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "requested_scopes": {
+          "items": {
+            "$ref": "#/$defs/PermissionScope"
+          },
+          "title": "Requested Scopes",
+          "type": "array"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "claimed",
+            "approved",
+            "denied",
+            "expired",
+            "cancelled"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "device_id",
+        "state",
+        "revision",
+        "expires_at",
+        "claimed_account",
+        "requested_scopes"
+      ],
+      "title": "PairingStatus",
+      "type": "object"
+    },
     "ParameterInfo": {
       "additionalProperties": false,
       "properties": {
@@ -4871,6 +5410,44 @@
       ],
       "title": "ParameterInfo",
       "type": "object"
+    },
+    "PasswordChangeInput": {
+      "additionalProperties": false,
+      "properties": {
+        "new_password": {
+          "format": "password",
+          "maxLength": 128,
+          "minLength": 15,
+          "title": "New Password",
+          "type": "string",
+          "writeOnly": true
+        },
+        "old_password": {
+          "format": "password",
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Old Password",
+          "type": "string",
+          "writeOnly": true
+        }
+      },
+      "required": [
+        "old_password",
+        "new_password"
+      ],
+      "title": "PasswordChangeInput",
+      "type": "object"
+    },
+    "PermissionScope": {
+      "enum": [
+        "status:read",
+        "run:execute:test",
+        "run:execute:carla",
+        "run:cancel",
+        "result:read"
+      ],
+      "title": "PermissionScope",
+      "type": "string"
     },
     "QueueStatus": {
       "additionalProperties": false,
@@ -7139,6 +7716,9 @@
     "api": {
       "$ref": "#/$defs/ApiContracts"
     },
+    "coordination": {
+      "$ref": "#/$defs/CoordinationContracts"
+    },
     "failure": {
       "$ref": "#/$defs/FailureReport"
     },
@@ -7178,7 +7758,8 @@
     "optimization",
     "agent",
     "readiness",
-    "runner"
+    "runner",
+    "coordination"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

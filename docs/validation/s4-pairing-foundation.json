@@ -1,0 +1,94 @@
+{
+  "schema_version": "poltergeist-s4-pairing-foundation-v1",
+  "checked_on": "2026-10-23",
+  "branch": "codex/s4-hosted-pairing",
+  "source_base_commit": "7cda315179f9829a133ae8d80655d988acb5a816",
+  "scope": "Account, owner-scoped locally approved pairing, Windows protected enrollment and private desktop/TLS foundation. S4 remains in progress.",
+  "foundation_checks_passed": true,
+  "s4_complete": false,
+  "remote_execution_enabled": false,
+  "public_deployment_verified": false,
+  "baseline_controller_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d",
+  "tests": {
+    "python_312_full": {
+      "passed": 2802,
+      "skipped": 35,
+      "seconds": 545.29,
+      "scope": "Existing full suite plus account/pairing/desktop tests collected at run start.",
+      "optional_skips": ["Windows symlink privileges", "Docker CLI", "optional optimization/model/sensor dependencies and weight checks"]
+    },
+    "coordinator_verifier_added_after_full_collection": {
+      "python_312_passed": 5,
+      "python_314_passed": 5
+    },
+    "python_314_focused": {
+      "account_pairing_credential_controller_passed": 81,
+      "native_desktop_application_cases_passed": 10
+    },
+    "dashboard": {
+      "tests_passed": 329,
+      "generated_contracts_current": true,
+      "typecheck_passed": true,
+      "production_build_passed": true
+    },
+    "pip_check_312_and_314": true
+  },
+  "packaged_companion": {
+    "prototype": "S1-S4-pairing-foundation-private-windows-x64",
+    "archive": "Poltergeist-S1-windows-x64.zip",
+    "archive_bytes": 47921126,
+    "archive_sha256": "1c9f8d7abd315947f1523e8854fd4ee7043d200e1b475c9e47cee8796f071ea0",
+    "manifest_sha256": "b98a7a61641f789bb12f8ccc40669340369e7361791266647b4b45e15851c0ef",
+    "project_wheel_sha256": "25b24a1a42f82ba727030cce3b0a938b0adea3dd14b38f0ad3053ba7d298f6e6",
+    "matching_normalized_first_party_python_sources": 160,
+    "coordinator_argon2_and_hosted_verifier_excluded": true,
+    "python_version": "3.12.15",
+    "independent_native_app_processes": 2,
+    "native_app_exit_codes": [0, 0],
+    "hidden_connection_callbacks": ["save bound HTTPS origin", "create pairing code", "review claiming account and permissions", "approve locally", "close and reopen", "resume protected enrollment", "revoke pairing"],
+    "current_user_dpapi_verified": true,
+    "no_plaintext_credentials_in_blob_or_public_projection": true,
+    "all_6071_manifest_files_valid_before_and_after_both_opens": true,
+    "same_machine_only": true,
+    "visual_or_hardware_input_verified": false,
+    "existing_s3_installer_changed": false
+  },
+  "transport": {
+    "real_loopback_https": true,
+    "fixture_ca_trusted_only_by_test_clients": true,
+    "untrusted_certificate_denied": true,
+    "wrong_hostname_denied": true,
+    "credential_bearing_redirect_denied_in_source_transport_check": true,
+    "two_independent_browser_accounts": true,
+    "second_account_device_read_and_revoke_denied": true,
+    "revoked_device_credential_denied_401": true,
+    "owned_fixture_processes_exited": true,
+    "packaged_fixture_private_key_removed": true,
+    "carla_or_existing_installed_app_touched": false
+  },
+  "isolated_wheel": {
+    "non_editable_install_outside_checkout": true,
+    "core_doctor_and_synthetic_sensor_workflow_passed_before_coordinator_install": true,
+    "coordinator_extra_installed_from_exact_lock": true,
+    "native_argon2_two_owner_pairing_and_durable_revoke_passed": true,
+    "all_recorded_coordinator_native_module_paths_inside_fresh_environment": true,
+    "no_local_execution_runtime_imported_by_coordinator_verifier": true
+  },
+  "earlier_attempts_retained": [
+    "Sandbox socket restrictions prevented an initial in-process HTTP test; scoped network-enabled rerun passed.",
+    "An oversized parametrized test name exceeded the Windows environment limit; compact case IDs fixed the harness and all credential cases passed.",
+    "First portable build could not write pip's default sandbox TEMP; a fresh build with workspace TEMP/TMP passed.",
+    "First isolated core wheel check could not start its sandboxed local API; a fresh loopback-enabled run passed.",
+    "First packaged TLS driver could not initialize Git OpenSSL's sandbox native object; a fresh scoped native run passed."
+  ],
+  "remaining_gates": [
+    "Authenticated bounded outbound WebSocket relay, liveness and generation fencing",
+    "Owner-scoped command admission, cancellation and result reads through real transport",
+    "Atomic local command receipts and duplicate/conflicting request handling",
+    "Explicit public result projection with path/secret sentinel audit",
+    "Two-account two-companion execution and revoke/restart acceptance",
+    "Never-committed or expired pending-approval abandonment and wider S6 fault recovery",
+    "Total elapsed network deadlines, public hosting and actual S5 website integration",
+    "Independent-machine validation, visual/hardware interaction, signing and external beta"
+  ]
+}

@@ -6,6 +6,7 @@ from .models.api import ApiContracts
 from .models.optimization import OptimizationContracts
 from .models.readiness import ReadinessReport
 from .models.runner import RunnerContracts
+from .models.coordination import CoordinationContracts
 
 
 class PoltergeistContracts(ContractModel):
@@ -20,3 +21,4 @@ class PoltergeistContracts(ContractModel):
     agent: AgentContracts
     readiness: ReadinessReport
     runner: RunnerContracts
+    coordination: CoordinationContracts

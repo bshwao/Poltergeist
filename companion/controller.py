@@ -22,6 +22,8 @@ from simulator.protocols import SimulationOptions
 
 from .profile import (instance_lease, load_config, local_settings,
                       profile_path, save_config)
+from .credential_store import WindowsCredentialStore
+from .pairing_client import PairingClient
 
 MAX_IMPORT_BYTES = 10 * 1024 * 1024
 
@@ -39,7 +41,8 @@ def read_json(path):
 
 
 class CompanionController:
-    def __init__(self, profile, *, bundle=None, runtime_factory=ApiRuntime):
+    def __init__(self, profile, *, bundle=None, runtime_factory=ApiRuntime,
+                 pairing_factory=PairingClient, credential_store_factory=WindowsCredentialStore):
         self.profile = profile_path(profile, bundle=bundle)
         self._factory = runtime_factory
         self._lease = instance_lease(self.profile)
@@ -47,6 +50,9 @@ class CompanionController:
         self._runtime = None
         self._worker = None
         self._stopping = False
+        self._pairing_factory = pairing_factory
+        self._credential_store_factory = credential_store_factory
+        self._pairing_display = None
         self.config = load_config(self.profile)
 
     def open(self):
@@ -61,6 +67,7 @@ class CompanionController:
                 self._lease.release()
                 raise
             self._owned = True
+            self._pairing_display = None
 
     def _require_open(self):
         if not self._owned:
@@ -106,8 +113,69 @@ class CompanionController:
         self._require_open()
         if self._runtime is not None:
             raise ConflictError("Stop the local runtime before saving settings")
+        self._check_origin_change(config.coordinator_origin)
         save_config(self.profile, config)
         self.config = load_config(self.profile)
+
+    def _check_origin_change(self, origin):
+        if origin != self.config.coordinator_origin and self._credential_store_factory(self.profile).load() is not None:
+            raise ConflictError("Revoke the saved pairing or discard its unapproved code before changing the coordinator")
+
+    def configure_pairing(self, origin):
+        self._require_open()
+        config = self.config.model_copy(update={"coordinator_origin": origin})
+        config = type(config).model_validate(config.model_dump())
+        self._check_origin_change(config.coordinator_origin)
+        save_config(self.profile, config)
+        self.config = load_config(self.profile)
+        self._pairing_display = None
+        return self.pairing_status()
+
+    def _pairing(self):
+        self._require_open()
+        if self.config.coordinator_origin is None:
+            raise ConflictError("Save an HTTPS coordinator address first")
+        return self._pairing_factory(self.config.coordinator_origin, self._credential_store_factory(self.profile))
+
+    def pairing_status(self, *, refresh=False):
+        self._require_open()
+        if self.config.coordinator_origin is None:
+            return {"state": "unconfigured"}
+        client = self._pairing()
+        saved = client.saved_status()
+        if refresh and saved["state"] == "attempt":
+            self._pairing_display = client.poll()
+        elif refresh and saved["state"] in ("pending_approval", "paired"):
+            client.resume()
+            saved = client.saved_status()
+        if saved["state"] == "attempt" and self._pairing_display is not None:
+            saved["claim"] = self._pairing_display.model_dump(mode="json")
+        return saved
+
+    def begin_pairing(self, display_name, scopes):
+        self._pairing().begin(display_name, scopes)
+        self._pairing_display = None
+        return self.pairing_status()
+
+    def approve_pairing(self, displayed_status, policy):
+        self._pairing().approve(displayed_status, policy)
+        self._pairing_display = None
+        return self.pairing_status()
+
+    def deny_pairing(self, displayed_status):
+        self._pairing().deny(displayed_status)
+        self._pairing_display = None
+        return self.pairing_status()
+
+    def discard_pairing_attempt(self):
+        self._pairing().forget_unapproved_attempt()
+        self._pairing_display = None
+        return self.pairing_status()
+
+    def revoke_pairing(self):
+        self._pairing().revoke()
+        self._pairing_display = None
+        return self.pairing_status()
 
     def _running(self):
         self._require_open()
@@ -151,8 +219,13 @@ class CompanionController:
             if not self._stopping:
                 agents = [{"id": str(agent.id), "name": agent.snapshot.manifest.name}
                           for agent in self._runtime.registry().list(active=True, limit=100)]
-        return {"queue": status, "runs": runs, "agents": agents,
-                "hosted": "Unavailable — pairing is not implemented in this private prototype"}
+        try:
+            pairing = self.pairing_status()
+        except Exception:
+            # A damaged credential must not hide local runs or stop local work.
+            pairing = {"state": "error", "message": "Saved pairing could not be read. Use Connection to review it."}
+        return {"queue": status, "runs": runs, "agents": agents, "pairing": pairing,
+                "hosted": "Unavailable — remote execution is not enabled in this private prototype"}
 
     def export(self, simulation_id, *, format="json"):
         runtime = self._running()
@@ -169,7 +242,8 @@ class CompanionController:
         self._require_open()
         report = collect_readiness(local_settings(self.profile, self.config), connection_requested=check_carla)
         return {"schema_version": "poltergeist-companion-diagnostics-v1", "profile": str(self.profile),
-                "python": sys.executable, "hosted_pairing_available": False,
+                "python": sys.executable, "hosted_pairing_available": self.config.coordinator_origin is not None,
+                "remote_execution_enabled": False,
                 "runtime": self.snapshot()["queue"], "readiness": report.model_dump(mode="json")}
 
     def import_report(self, path):

@@ -158,4 +158,7 @@ returned `SendInput sent 0 of 1 events; GetLastError=87` twice. That limitation 
 separate from the tested Tk callbacks. Independent no-developer-tools testing,
 broader Windows/display/hardware coverage, signing, release licensing and safe
 updates are still required. Website connection status explicitly remains
-unavailable; the S1 runner DTOs are not an authenticated hosted dispatcher.
+unavailable in the delivered S3 installer. Current source and S4 private builds
+add a [Connection pairing preview](coordinator.md), while remote execution and
+the hosted dashboard remain disabled. The S1 runner DTOs are not an authenticated
+hosted dispatcher.

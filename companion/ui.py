@@ -51,7 +51,7 @@ class CompanionWindow:
         ttk.Label(outer, text="Private local prototype · Windows x64", foreground="#555555").pack(anchor="w", pady=(2, 10))
         self.runtime_text = tk.StringVar(value="Local runtime: starting…" if autostart else "Local runtime: stopped")
         ttk.Label(outer, textvariable=self.runtime_text, font=("Segoe UI", 11, "bold")).pack(anchor="w")
-        ttk.Label(outer, text="Website connection: unavailable — hosted pairing is not implemented.", wraplength=790).pack(anchor="w", pady=(4, 8))
+        ttk.Label(outer, text="Account pairing preview · Remote execution is still in development.", wraplength=790).pack(anchor="w", pady=(4, 8))
         toolbar = ttk.Frame(outer)
         toolbar.pack(fill="x", pady=(0, 10))
         self.start_button = self._button(toolbar, "Start local runtime", lambda: self._run(self._start_runtime, self._apply_snapshot))
@@ -67,6 +67,9 @@ class CompanionWindow:
             tabs.add(frame, text=label)
         self._build_execution(execution)
         self._build_settings(settings)
+        from .pairing_ui import PairingPanel
+        self.pairing = PairingPanel(self, tabs)
+        tabs.add(self.pairing.frame, text="Connection")
         from .setup_ui import SetupPanel
         self.setup = SetupPanel(self, tabs)
         tabs.insert(0, self.setup.frame, text="Setup")
@@ -250,6 +253,7 @@ class CompanionWindow:
 
     def _apply_snapshot(self, snapshot):
         self._last_snapshot = snapshot
+        self.pairing.show(snapshot.get("pairing", {"state": "unconfigured"}))
         queue = snapshot["queue"]
         active = " · one active run" if queue["active_id"] else ""
         self.runtime_text.set(f"Local runtime: {queue['state']}{active} · {queue['pending']} waiting")
@@ -307,10 +311,12 @@ class CompanionWindow:
             # before Tcl objects can be destroyed/finalized on another thread.
             self._executor.shutdown(wait=True)
             self.setup.close()
+            self.pairing.close()
             # Python's cyclic GC can run on any worker thread. Release our Tk
             # variables here, on the GUI thread, before a closed window's cycles
             # can be collected later while another window/worker is running.
             self._release_variables(self.setup)
+            self._release_variables(self.pairing)
             self._release_variables(self)
             self.root.destroy()
         self._run(close, closed)
@@ -385,7 +391,8 @@ class CompanionWindow:
         try:
             config = CompanionConfig(carla_executable=self.executable.get().strip() or None,
                 carla_port=int(self.port.get()), carla_quality=self.quality.get(), carla_auto_start=self.auto_start.get(),
-                setup_completed=self.controller.config.setup_completed)
+                setup_completed=self.controller.config.setup_completed,
+                coordinator_origin=self.controller.config.coordinator_origin)
         except (ValueError, TypeError) as error:
             messagebox.showerror("Invalid settings", str(error), parent=self.root)
             return

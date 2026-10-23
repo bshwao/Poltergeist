@@ -1,0 +1,6 @@
+# Coordinator-only password hashing. Keep these out of the companion runtime.
+-r requirements-core.lock
+argon2-cffi==25.1.0
+argon2-cffi-bindings==25.1.0
+cffi==2.1.1
+pycparser==3.12

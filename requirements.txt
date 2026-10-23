@@ -1,3 +1,4 @@
 # Core application and tests. CARLA is optional; see requirements-simulation.txt.
 -r requirements.lock
--e .[dev]
+-r requirements-coordinator.lock
+-e .[dev,coordinator]

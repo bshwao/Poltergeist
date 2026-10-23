@@ -827,8 +827,83 @@ export type Minimum1 = number;
 export type Name3 = string;
 export type Unit3 = string;
 export type Parameters3 = ParameterInfo[];
-export type Request1 = SearchRequest | ComparisonRequest | ReproductionRequest | MinimizeRequest;
+export type Password = string;
+export type Username = string;
+export type Credential = string;
+export type ExpectedAccountId = string;
 export type ExpectedRevision1 = number;
+export type AllowGraphicsChange = false;
+export type AllowMapReload1 = false;
+export type AllowRawCapture = false;
+export type AgentId5 = string;
+export type PackageDigest = string;
+/**
+ * @maxItems 100
+ */
+export type ApprovedAgents = ApprovedAgent[];
+export type MaxDurationS = number;
+export type MaxTicks1 = number;
+export type MaxWaitingRuns = number;
+/**
+ * @minItems 1
+ * @maxItems 5
+ */
+export type Scopes =
+  | [PermissionScope]
+  | [PermissionScope, PermissionScope]
+  | [PermissionScope, PermissionScope, PermissionScope]
+  | [PermissionScope, PermissionScope, PermissionScope, PermissionScope]
+  | [PermissionScope, PermissionScope, PermissionScope, PermissionScope, PermissionScope];
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PermissionScope".
+ */
+export type PermissionScope = "status:read" | "run:execute:test" | "run:execute:carla" | "run:cancel" | "result:read";
+export type RequestId = string;
+export type Code = string;
+export type DisplayName = string;
+export type PrivateSecret = string;
+/**
+ * @minItems 1
+ * @maxItems 5
+ */
+export type RequestedScopes =
+  | [PermissionScope]
+  | [PermissionScope, PermissionScope]
+  | [PermissionScope, PermissionScope, PermissionScope]
+  | [PermissionScope, PermissionScope, PermissionScope, PermissionScope]
+  | [PermissionScope, PermissionScope, PermissionScope, PermissionScope, PermissionScope];
+export type AttemptId = string;
+export type Code1 = string;
+export type DeviceId = string;
+export type ExpiresAt = string;
+export type PollIntervalS = 3;
+export type DeviceId1 = string;
+export type OwnerId = string;
+export type OwnershipGeneration = number;
+export type ProtocolVersion4 = "poltergeist-coordinator-v1";
+export type RemoteExecutionEnabled = boolean;
+export type ExpectedRevision2 = number;
+export type CreatedAt6 = string;
+export type DeviceId2 = string;
+export type DisplayName1 = string;
+export type AccountId = string;
+export type Username1 = string;
+export type OwnershipGeneration1 = number;
+export type PolicyRevision = number;
+export type RevokedAt = string | null;
+export type NewPassword = string;
+export type OldPassword = string;
+export type CsrfToken = string;
+export type ExpiresAt1 = string;
+export type AttemptId1 = string;
+export type DeviceId3 = string;
+export type ExpiresAt2 = string;
+export type RequestedScopes1 = PermissionScope[];
+export type Revision4 = number;
+export type State = "pending" | "claimed" | "approved" | "denied" | "expired" | "cancelled";
+export type Request1 = SearchRequest | ComparisonRequest | ReproductionRequest | MinimizeRequest;
+export type ExpectedRevision3 = number;
 export type Detail = string;
 export type Id8 = string;
 export type Label = string;
@@ -844,8 +919,8 @@ export type CarlaConnectionRequested = boolean;
 export type CheckedAt1 = string;
 export type SchemaVersion4 = "poltergeist-readiness-v1";
 export type Scope = "local_core";
-export type ProtocolVersion4 = "poltergeist-runner-v1";
-export type RequestId = string;
+export type ProtocolVersion5 = "poltergeist-runner-v1";
+export type RequestId1 = string;
 export type SimulationId5 = string;
 export type CheckedAt2 = string;
 export type ExecutionModes = ("test" | "carla")[];
@@ -853,13 +928,13 @@ export type ImplementationVersion = string;
 export type LocalFeatures = ("baseline" | "approved_sdk_agents" | "synthetic_sensor_fixtures" | "behavior_reports")[];
 export type MaxConcurrentRuns = 1;
 export type Platform = "windows-x86_64";
-export type ProtocolVersion5 = "poltergeist-runner-v1";
-export type RemoteExecutionEnabled = false;
-export type SdkProtocols = ("1.0" | "1.1" | "1.2" | "1.3")[];
-export type AgentId5 = string | null;
-export type Mode8 = "test" | "carla";
 export type ProtocolVersion6 = "poltergeist-runner-v1";
-export type RequestId1 = string;
+export type RemoteExecutionEnabled1 = false;
+export type SdkProtocols = ("1.0" | "1.1" | "1.2" | "1.3")[];
+export type AgentId6 = string | null;
+export type Mode8 = "test" | "carla";
+export type ProtocolVersion7 = "poltergeist-runner-v1";
+export type RequestId2 = string;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -869,6 +944,7 @@ export type OptimizationStatus1 = "queued" | "running" | "completed" | "failed" 
 export interface PoltergeistContracts {
   agent: AgentContracts;
   api: ApiContracts;
+  coordination: CoordinationContracts;
   failure: FailureReport;
   metrics: SafetyMetrics;
   optimization: OptimizationContracts;
@@ -2235,6 +2311,167 @@ export interface ParameterInfo {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CoordinationContracts".
+ */
+export interface CoordinationContracts {
+  account_input: AccountInput;
+  approve: PairingApproveInput;
+  claim: PairingClaimInput;
+  create: PairingCreateInput;
+  created: PairingCreated;
+  credential_status: DeviceCredentialStatus;
+  deny: PairingDenyInput;
+  device: DeviceView;
+  empty: EmptyInput;
+  password_change: PasswordChangeInput;
+  session: BrowserSession;
+  status: PairingStatus;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AccountInput".
+ */
+export interface AccountInput {
+  password: Password;
+  username: Username;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PairingApproveInput".
+ */
+export interface PairingApproveInput {
+  credential: Credential;
+  expected_account_id: ExpectedAccountId;
+  expected_revision: ExpectedRevision1;
+  policy: DevicePolicy;
+  request_id: RequestId;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DevicePolicy".
+ */
+export interface DevicePolicy {
+  allow_graphics_change: AllowGraphicsChange;
+  allow_map_reload: AllowMapReload1;
+  allow_raw_capture: AllowRawCapture;
+  approved_agents: ApprovedAgents;
+  max_duration_s: MaxDurationS;
+  max_ticks: MaxTicks1;
+  max_waiting_runs: MaxWaitingRuns;
+  scopes: Scopes;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ApprovedAgent".
+ */
+export interface ApprovedAgent {
+  agent_id: AgentId5;
+  package_digest: PackageDigest;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PairingClaimInput".
+ */
+export interface PairingClaimInput {
+  code: Code;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PairingCreateInput".
+ */
+export interface PairingCreateInput {
+  display_name: DisplayName;
+  private_secret: PrivateSecret;
+  requested_scopes: RequestedScopes;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PairingCreated".
+ */
+export interface PairingCreated {
+  attempt_id: AttemptId;
+  code: Code1;
+  device_id: DeviceId;
+  expires_at: ExpiresAt;
+  poll_interval_s: PollIntervalS;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DeviceCredentialStatus".
+ */
+export interface DeviceCredentialStatus {
+  device_id: DeviceId1;
+  owner_id: OwnerId;
+  ownership_generation: OwnershipGeneration;
+  protocol_version: ProtocolVersion4;
+  remote_execution_enabled: RemoteExecutionEnabled;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PairingDenyInput".
+ */
+export interface PairingDenyInput {
+  expected_revision: ExpectedRevision2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DeviceView".
+ */
+export interface DeviceView {
+  created_at: CreatedAt6;
+  device_id: DeviceId2;
+  display_name: DisplayName1;
+  owner: AccountIdentity;
+  ownership_generation: OwnershipGeneration1;
+  policy: DevicePolicy;
+  policy_revision: PolicyRevision;
+  revoked_at: RevokedAt;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AccountIdentity".
+ */
+export interface AccountIdentity {
+  account_id: AccountId;
+  username: Username1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EmptyInput".
+ */
+export interface EmptyInput {}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PasswordChangeInput".
+ */
+export interface PasswordChangeInput {
+  new_password: NewPassword;
+  old_password: OldPassword;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "BrowserSession".
+ */
+export interface BrowserSession {
+  account: AccountIdentity;
+  csrf_token: CsrfToken;
+  expires_at: ExpiresAt1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PairingStatus".
+ */
+export interface PairingStatus {
+  attempt_id: AttemptId1;
+  claimed_account: AccountIdentity | null;
+  device_id: DeviceId3;
+  expires_at: ExpiresAt2;
+  requested_scopes: RequestedScopes1;
+  revision: Revision4;
+  state: State;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationContracts".
  */
 export interface OptimizationContracts {
@@ -2249,7 +2486,7 @@ export interface OptimizationContracts {
  * via the `definition` "OptimizationResume".
  */
 export interface OptimizationResume {
-  expected_revision: ExpectedRevision1;
+  expected_revision: ExpectedRevision3;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -2299,8 +2536,8 @@ export interface RunnerContracts {
  * via the `definition` "RunnerCancelRequest".
  */
 export interface RunnerCancelRequest {
-  protocol_version: ProtocolVersion4;
-  request_id: RequestId;
+  protocol_version: ProtocolVersion5;
+  request_id: RequestId1;
   simulation_id: SimulationId5;
 }
 /**
@@ -2315,8 +2552,8 @@ export interface RunnerCapabilities {
   local_features: LocalFeatures;
   max_concurrent_runs: MaxConcurrentRuns;
   platform: Platform;
-  protocol_version: ProtocolVersion5;
-  remote_execution_enabled: RemoteExecutionEnabled;
+  protocol_version: ProtocolVersion6;
+  remote_execution_enabled: RemoteExecutionEnabled1;
   sdk_protocols: SdkProtocols;
   synthetic_status: ReadinessStatus;
 }
@@ -2325,11 +2562,11 @@ export interface RunnerCapabilities {
  * via the `definition` "RunnerExecuteRequest".
  */
 export interface RunnerExecuteRequest {
-  agent_id: AgentId5;
+  agent_id: AgentId6;
   evaluation_settings: EvaluationSettings;
   mode: Mode8;
   options: SimulationOptions;
-  protocol_version: ProtocolVersion6;
-  request_id: RequestId1;
+  protocol_version: ProtocolVersion7;
+  request_id: RequestId2;
   scenario: Scenario;
 }

@@ -16,6 +16,12 @@ from .agent import (
     AgentStepResult,
 )
 from .evaluation import EvaluationCoverage, EvaluationSettings
+from .coordination import (
+    AccountIdentity, AccountInput, ApprovedAgent, BrowserSession, CoordinationContracts,
+    DeviceCredentialStatus, DevicePolicy, DeviceView, EmptyInput, PairingApproveInput,
+    PairingClaimInput, PairingCreateInput, PairingCreated, PairingDenyInput, PairingStatus,
+    PasswordChangeInput, PermissionScope,
+)
 from .runtime import SimulationOptions
 from .readiness import ReadinessCheck, ReadinessReport, ReadinessStatus, WorkflowReadiness
 from .registry import (
@@ -54,6 +60,10 @@ from .telemetry import (
 )
 
 __all__ = [
+    "AccountIdentity", "AccountInput", "ApprovedAgent", "BrowserSession", "CoordinationContracts",
+    "DeviceCredentialStatus", "DevicePolicy", "DeviceView", "EmptyInput", "PairingApproveInput",
+    "PairingClaimInput", "PairingCreateInput", "PairingCreated", "PairingDenyInput", "PairingStatus",
+    "PasswordChangeInput", "PermissionScope",
     "ReadinessCheck", "ReadinessReport", "ReadinessStatus", "WorkflowReadiness",
     "AgentExecutionOptions", "AgentExternalFileFingerprint", "AgentFileFingerprint",
     "AgentReadiness", "AgentRegistration", "AgentSnapshot", "RegisteredAgent",

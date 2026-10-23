@@ -1,7 +1,7 @@
-POLTERGEIST S1/S3 PRIVATE WINDOWS X64 PROTOTYPE
+POLTERGEIST S1-S4 PAIRING FOUNDATION PRIVATE WINDOWS X64 PROTOTYPE
 
 This archive includes the private desktop companion and packaging checks.
-No installer, dashboard, cloud pairing, trained model or CARLA server is bundled.
+No installer, hosted dashboard/service, trained model or CARLA server is bundled.
 Use only in a private evaluation authorized by the project owner.
 
 Extract the entire folder to a local directory. Do not run from inside the ZIP.
@@ -31,8 +31,13 @@ Desktop data is separate from the CLI prototype:
   %LOCALAPPDATA%\Poltergeist\CompanionPrototype
 No development database is moved. Use Imported reports to archive an existing
 dashboard JSON export, or Import scenario for an existing recipe. Raw recordings,
-queued jobs and local code trust are not migrated by report import. Hosted pairing
-and the full website connection are not implemented; no local HTTP server opens.
+queued jobs and local code trust are not migrated by report import. The Connection
+tab previews account pairing with a separately operated HTTPS coordinator. Review
+the saved server, claiming account and permissions before approving. Credentials
+are protected for this Windows user/profile; Refresh / resume reconciles saved
+approval and Revoke pairing removes remote access. No public coordinator address
+is supplied. Hosted dashboard integration and remote execution remain disabled.
+The companion does not open a local HTTP server.
 
 For the original command-line packaging checks, open Command Prompt and run:
 

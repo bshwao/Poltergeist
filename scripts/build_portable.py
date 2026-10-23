@@ -259,6 +259,9 @@ def build(output, cache, *, offline=False):
                    cwd=output, env=environment, check=True)
     for path in [runtime / "Scripts", site / "bin", runtime / "Lib" / "ensurepip"]:
         remove_owned(path, output)
+    # The hosted service has separate dependencies and never runs on the device.
+    remove_owned(site / "coordinator", output)
+    remove_owned(site / "scripts" / "verify_coordinator.py", output)
     # Windows treats Scripts and scripts as the same directory. Keep our scripts
     # Python package; prune only generated pip entry-point executables there.
     for path in list((site / "scripts").glob("*.exe")):
@@ -300,7 +303,7 @@ def build(output, cache, *, offline=False):
         shutil.copy2(files[entry["filename"]], bundle / "notices" / entry["filename"])
     write_json(bundle / "notices" / "python-packages.json", dependency_notices(site))
     write_json(bundle / "notices" / "native-imports.json", native_inventory(bundle))
-    manifest = {"schema_version": "poltergeist-portable-v1", "prototype": "S1-S3-private-windows-x64",
+    manifest = {"schema_version": "poltergeist-portable-v1", "prototype": "S1-S4-pairing-foundation-private-windows-x64",
         "source_date_epoch": inputs["source_date_epoch"], "inputs_sha256": sha256(INPUTS),
         "project_wheel": {"filename": project_wheel.name, "sha256": sha256(project_wheel)},
         "runtime": inputs["runtime"], "remote_execution_enabled": False,

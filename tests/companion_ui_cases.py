@@ -92,10 +92,76 @@ def test_closed_window_releases_tk_variables_on_gui_thread(window):
     import weakref
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None)
-    references = [weakref.ref(desktop.executable), weakref.ref(desktop.message), weakref.ref(desktop.setup.map_name)]
+    references = [weakref.ref(desktop.executable), weakref.ref(desktop.message), weakref.ref(desktop.setup.map_name),
+        weakref.ref(desktop.pairing.origin), *[weakref.ref(value) for value in desktop.pairing.permissions.values()]]
     desktop.request_close()
     pump_until(root, lambda: desktop._destroyed)
     assert all(reference() is None for reference in references)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Native Windows protected enrollment")
+def test_pairing_controls_review_real_account_preserve_origin_and_revoke(window):
+    from fastapi.testclient import TestClient
+    from companion.pairing_client import PairingClient, PairingClientError
+    from coordinator.app import COOKIE, create_app
+    from coordinator.settings import CoordinatorSettings
+    from shared.models.coordination import PermissionScope
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    origin = "https://coordinator.test"
+    with TestClient(create_app(CoordinatorSettings(controller.profile.parent / "coordinator.db", origin)), base_url=origin) as api:
+        class Transport:
+            def request(self, method, path, *, body=None, authorization=None):
+                response = api.request(method, path, json=body,
+                    headers={"Authorization": authorization} if authorization else {})
+                if response.status_code >= 400:
+                    raise PairingClientError(f"Test coordinator returned HTTP {response.status_code}")
+                return response.json()
+        controller._pairing_factory = lambda address, store: PairingClient(address, store, _transport=Transport())
+        headers = {"Origin": origin, "X-Poltergeist-Client": "browser"}
+        credentials = {"username": "alice", "password": "a private test account passphrase"}
+        assert api.post("/v1/auth/register", json=credentials, headers=headers).status_code == 201
+        login = api.post("/v1/auth/login", json=credentials, headers=headers)
+        headers.update({"Cookie": f"{COOKIE}={login.cookies[COOKIE]}", "X-CSRF-Token": login.json()["csrf_token"]})
+        api.cookies.clear()
+        panel = desktop.pairing
+        panel.origin.set(origin)
+        panel.save_origin()
+        pump_until(root, lambda: desktop._future is None)
+        assert panel._displayed["state"] == "unpaired"
+        panel.permissions[PermissionScope.EXECUTE_TEST].set(True)
+        panel.begin_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        code = panel.code.get()
+        assert len(code) == 10
+        assert api.post("/v1/pairing/claim", json={"code": code}, headers=headers).status_code == 200
+        assert api.get("/v1/devices", headers=headers).json() == []
+        panel.refresh_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        assert "alice" in panel.account.get() and origin in panel.saved_origin.get()
+        # The editable input may change; consent still displays the bound server.
+        panel.origin.set("https://another.test")
+        assert origin in panel.saved_origin.get()
+        panel.permissions[PermissionScope.RESULT].set(False)
+        panel.approve_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        assert panel._displayed["state"] == "paired" and not panel.code.get()
+        devices = api.get("/v1/devices", headers=headers).json()
+        assert len(devices) == 1 and set(devices[0]["policy"]["scopes"]) == {"status:read", "run:execute:test"}
+        assert "Run synthetic experiments" in panel.approved_permissions.get()
+        assert "Read experiment results" not in panel.approved_permissions.get()
+        assert controller.config.coordinator_origin == origin
+        desktop.stop_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        desktop.port.set("2100")
+        desktop._save_settings()
+        pump_until(root, lambda: desktop._future is None)
+        assert controller.config.coordinator_origin == origin
+        assert desktop.setup._config().coordinator_origin == origin
+        panel.revoke_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        assert panel._displayed["state"] == "unpaired"
+        assert api.get("/v1/devices", headers=headers).json()[0]["revoked_at"] is not None
 
 
 def test_imported_recipe_and_settings_apply_through_desktop_callbacks(window):

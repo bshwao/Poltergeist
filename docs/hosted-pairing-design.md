@@ -337,3 +337,38 @@ Do not mark S4 complete from DTOs, in-process authentication mocks or a green
 happy-path test alone. The decisive evidence is that an owner can approve and
 control a paired companion, revoke it, and demonstrate that another authenticated
 account cannot read its data or submit work, across real transport and restart.
+
+## Next implementation boundary after the pairing foundation
+
+`SimulationService.submit(on_created=...)` already creates the simulation/job,
+calls its hook in the same database session, commits, then enqueues the pending
+ID. A local remote-command repository should insert its receipt in that supplied
+session, without opening or committing a second transaction. Add migration 5 and
+the exact ORM/schema verification changes while preserving migrations 1–4. Scope
+the unique request key to coordinator origin, device and ownership generation;
+record owner/request/operation, canonical payload digest, simulation foreign key,
+acceptance time and receipt revision. Deleting a referenced simulation must be
+restricted. Coordinator account IDs have no cross-database foreign keys.
+
+Look up a duplicate receipt before submission and reread after a competing
+conflict/full-queue outcome: queue checks occur before the hook. An identical
+request returns the original run; different content conflicts. A losing unique
+insert must roll back its new simulation/job. Admission rechecks the protected
+local owner/policy, baseline-only agent, exact runner tick calculation, duration,
+capture/map/graphics restrictions and remote waiting count. Define the idle-slot
+case explicitly for a zero waiting allowance.
+
+Cancellation owns a separate worker transaction. Add an optional receipt hook
+inside that transaction rather than nesting SQLite writers. Resolve the target
+through an execution receipt under the same approved binding, never an arbitrary
+local UUID. Persist cancellation before signalling and distinguish its request
+from a terminal outcome. Follow the worker's condition-lock-before-database order.
+
+Construct explicit hosted summary DTOs from scoped, validated detached repository
+records. Select lifecycle fields, scenario digest/name, baseline identity,
+individual metrics/coverage/settings and allowed runtime provenance. Preserve
+nulls and label evidence availability. Do not serialize local simulation/progress
+records, snapshots, queue errors, artifact paths or arbitrary exception strings.
+Use a separate receipt/projection revision because cancellation flags and queue
+position do not necessarily advance the existing simulation revision. Telemetry
+and raw artifact loading are unnecessary for a summary response.

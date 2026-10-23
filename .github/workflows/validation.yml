@@ -23,7 +23,12 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-          cache-dependency-path: requirements.lock
+          cache-dependency-path: |
+            requirements.lock
+            requirements-core.lock
+            requirements-coordinator.lock
+            requirements.txt
+            pyproject.toml
       - run: python -m pip install -r requirements.txt
       - run: python -m pip check
       - run: python -m pytest -q --junitxml=validation-tests.xml
@@ -33,7 +38,7 @@ jobs:
         run: python -m scripts.validate_installation --mode test --sensors --duration .15 --seeds 7 --output validation-evidence
       - name: Build wheel
         run: python -m pip wheel --no-deps . --wheel-dir validation-wheel
-      - name: Test non-editable wheel outside the checkout
+      - name: Test non-editable core and coordinator wheel workflows outside the checkout
         shell: python
         run: |
           import os, pathlib, subprocess, tempfile, venv
@@ -45,6 +50,12 @@ jobs:
           subprocess.run([str(python), '-m', 'pip', 'install', '-r', str(root / 'requirements-core.lock'), str(wheel)], check=True)
           subprocess.run([str(python), '-I', '-m', 'scripts.doctor'], cwd=target, check=True)
           subprocess.run([str(python), '-I', '-m', 'scripts.validate_installation', '--mode', 'test', '--sensors', '--duration', '.15', '--seeds', '7', '--examples-dir', str(root / 'examples'), '--output', str(target / 'evidence')], cwd=target, check=True)
+          subprocess.run([str(python), '-m', 'pip', 'install', '-r', str(root / 'requirements-coordinator.lock'), str(wheel) + '[coordinator]'], check=True)
+          subprocess.run([str(python), '-m', 'pip', 'check'], check=True)
+          subprocess.run([str(python), '-I', '-m', 'scripts.verify_coordinator', '--output', str(target / 'coordinator-evidence')], cwd=target, check=True)
+          receipt = root / 'validation-evidence' / 'coordinator-wheel.json'
+          with receipt.open('xb') as output:
+              output.write((target / 'coordinator-evidence' / 'coordinator-verification.json').read_bytes())
       - uses: actions/upload-artifact@v7
         if: always()
         with:
