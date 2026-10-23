@@ -37,7 +37,10 @@ def client(settings):
 
 
 def wait_for(client, simulation_id, predicate=lambda item: item["status"] in ("completed", "failed", "cancelled")):
-    deadline = monotonic() + 5
+    # These functional tests include real SQLite/artifact I/O. Shared CI disks
+    # need scheduling margin; simulation time is asserted separately below.
+    deadline = monotonic() + 30
+    item = None
     while monotonic() < deadline:
         response = client.get(f"/simulations/{simulation_id}/progress")
         assert response.status_code == 200, response.text
@@ -45,7 +48,7 @@ def wait_for(client, simulation_id, predicate=lambda item: item["status"] in ("c
         if predicate(item):
             return item
         Event().wait(0.01)
-    raise AssertionError("API worker did not reach the expected state")
+    raise AssertionError(f"API worker did not reach the expected state within 30s; last progress: {item!r}")
 
 
 def test_launch_from_saved_recipe_persists_results_and_downloadable_telemetry(client):
