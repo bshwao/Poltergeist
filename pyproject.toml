@@ -29,9 +29,10 @@ poltergeist-check-agent = "scripts.check_agent:main"
 poltergeist-reference-ai = "scripts.run_reference_ai:main"
 poltergeist-doctor = "scripts.doctor:main"
 poltergeist-validate = "scripts.validate_installation:main"
+poltergeist-companion = "scripts.companion:main"
 
 [tool.setuptools.packages.find]
-include = ["backend*", "shared*", "simulator*", "scenarios*", "evaluation*", "optimization*", "scripts*"]
+include = ["backend*", "shared*", "simulator*", "scenarios*", "evaluation*", "optimization*", "scripts*", "companion*"]
 
 [tool.setuptools.package-data]
 scenarios = ["templates/*.yaml"]

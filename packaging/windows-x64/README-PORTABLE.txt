@@ -1,11 +1,35 @@
-POLTERGEIST S1 PRIVATE WINDOWS X64 PROTOTYPE
+POLTERGEIST S1/S2 PRIVATE WINDOWS X64 PROTOTYPE
 
-This archive is a command-line packaging proof, not the S2 companion or an
-installer. No dashboard, cloud pairing, trained model, or CARLA server is bundled.
+This archive includes the private desktop companion and packaging checks.
+No installer, dashboard, cloud pairing, trained model or CARLA server is bundled.
 Use only in a private evaluation authorized by the project owner.
 
 Extract the entire folder to a local directory. Do not run from inside the ZIP.
-Open a Windows Command Prompt in the extracted folder and run:
+Double-click "Poltergeist Companion.vbs" to open the desktop window without
+a console. Keep the entire extracted directory together. If Windows Script Host
+is disabled by your computer's policy, do not bypass it; launch the private
+runtime from a Command Prompt instead:
+
+  runtime\pythonw.exe -I -B -m scripts.companion
+
+The companion starts its local queue, stores results across restarts, imports
+scenario JSON, exports HTML/JSON reports, and provides CARLA settings/diagnostics.
+Synthetic test uses synthetic physics. Select CARLA explicitly for a live run.
+Use an idle asynchronous world with no other tick owner. Automatic CARLA startup
+is off until you select the complete CARLA folder and enable it in Settings.
+Default graphics are Low. Stop the runtime before saving settings. Closing the
+window stops/cancels its worker; CARLA itself remains open. If a native call is
+still returning, keep the window open and retry Stop/Close. Waiting jobs remain
+saved and resume when the local runtime starts again.
+
+Desktop data is separate from the CLI prototype:
+  %LOCALAPPDATA%\Poltergeist\CompanionPrototype
+No development database is moved. Use Imported reports to archive an existing
+dashboard JSON export, or Import scenario for an existing recipe. Raw recordings,
+queued jobs and local code trust are not migrated by report import. Hosted pairing
+and the full website connection are not implemented; no local HTTP server opens.
+
+For the original command-line packaging checks, open Command Prompt and run:
 
   Poltergeist.cmd verify
   Poltergeist.cmd doctor
@@ -14,7 +38,7 @@ Open a Windows Command Prompt in the extracted folder and run:
   Poltergeist.cmd validate --sensors
 
 No Git, Node, pip, system Python or developer checkout is needed to run these.
-The real private interpreter is runtime\python.exe. Keep the entire folder intact.
+The real private interpreters are runtime\python.exe and runtime\pythonw.exe.
 Windows 10/11 x64, suitable graphics drivers and the native Microsoft Visual C++
 runtime may be required by native dependencies. See DISTRIBUTION-NOTICES.md.
 

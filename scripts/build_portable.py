@@ -271,7 +271,10 @@ def build(output, cache, *, offline=False):
         remove_owned(path, output)
     normalize_records(site, bundle)
     validate_dependencies(site)
-    required = [runtime / "python.exe", site / "scripts" / "portable.py", site / "backend" / "main.py",
+    required = [runtime / "python.exe", runtime / "pythonw.exe",
+                runtime / "DLLs" / "_tkinter.pyd", runtime / "tcl" / "tcl8.6" / "init.tcl",
+                runtime / "tcl" / "tk8.6" / "tk.tcl", site / "companion" / "ui.py",
+                site / "scripts" / "companion.py", site / "scripts" / "portable.py", site / "backend" / "main.py",
                 site / "shared" / "models" / "runner.py", site / "simulator" / "agents" / "worker.py",
                 site / "simulator" / "agents" / "reference_ai" / "LICENSE.plant2",
                 *[site / "scenarios" / "templates" / (name + ".yaml")
@@ -287,14 +290,14 @@ def build(output, cache, *, offline=False):
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".env", ".venv"))
     (bundle / "examples" / "scenarios").mkdir(parents=True)
     shutil.copy2(ROOT / "examples" / "scenarios" / "installation_check.json", bundle / "examples" / "scenarios")
-    for filename in ("Poltergeist.cmd", "README-PORTABLE.txt", "DISTRIBUTION-NOTICES.md"):
+    for filename in ("Poltergeist.cmd", "Poltergeist Companion.vbs", "README-PORTABLE.txt", "DISTRIBUTION-NOTICES.md"):
         shutil.copy2(ROOT / "packaging" / "windows-x64" / filename, bundle / filename)
     shutil.copy2(INPUTS, bundle / "notices" / "inputs.json")
     for entry in inputs["notices"]:
         shutil.copy2(files[entry["filename"]], bundle / "notices" / entry["filename"])
     write_json(bundle / "notices" / "python-packages.json", dependency_notices(site))
     write_json(bundle / "notices" / "native-imports.json", native_inventory(bundle))
-    manifest = {"schema_version": "poltergeist-portable-v1", "prototype": "S1-private-windows-x64",
+    manifest = {"schema_version": "poltergeist-portable-v1", "prototype": "S1-S2-private-windows-x64",
         "source_date_epoch": inputs["source_date_epoch"], "inputs_sha256": sha256(INPUTS),
         "project_wheel": {"filename": project_wheel.name, "sha256": sha256(project_wheel)},
         "runtime": inputs["runtime"], "remote_execution_enabled": False,

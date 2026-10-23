@@ -1,9 +1,9 @@
 # Distribution and scalability: S0–S10
 
 Status: S0 implemented and locally validated; S1 private prototype partial;
-S2–S10 planned. This roadmap records the proposed hosted dashboard/backend and
+S2 private desktop prototype; S3–S10 planned. This roadmap records the proposed hosted dashboard/backend and
 local companion architecture; it does not indicate that those services or the
-companion have been implemented. It is separate from the completed
+production companion have been released. It is separate from the completed
 [autonomous driving integration roadmap](autonomous-agents-plan.md).
 
 Use the identifiers **S0–S10** when requesting implementation, for example
@@ -87,8 +87,8 @@ initial packaging work.
 ## Phases and completion gates
 
 Phases proceed in order. S0 adds collision-stress calibration; S1 has a private command-line packaging prototype;
-its independent clean-machine completion gate remains open. Later phases are
-**planned**. Earlier phases may build
+its independent clean-machine completion gate remains open. S2 has a private
+desktop prototype; S3 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -127,7 +127,8 @@ model or establish general road safety.
 pinned private runtime/client, resources/examples, reproducible build/integrity
 tooling, isolated writable profiles, a real SDK interpreter probe and the typed
 [coordinator/runner v1 boundary](runner-boundary.md). This does not implement a
-hosted dispatcher, public transport, installer or companion UI. Same-machine
+hosted dispatcher, public transport or installer. The separate S2 prototype adds
+a companion UI; same-machine
 relocation and native checks do not close the separate no-developer-tools machine
 gate. Redistribution decisions and the native support matrix also remain open.
 The [local validation record](s1-validation.md) records identical offline builds,
@@ -147,6 +148,13 @@ development laptop. These results do not satisfy the independent-machine gate.
 experiment, a short CARLA baseline experiment and an SDK worker smoke check.
 
 ### S2 — Build Poltergeist Companion
+
+**Status: private prototype.** The [desktop guide](companion.md) describes the
+native window, existing durable queue/agent/evaluation/storage reuse, isolated
+profile, instance lock, configuration, diagnostics and explicit JSON import/export
+path. Hosted connection status remains unavailable until S4/S5. The independent
+S1 machine gate, supported native platform matrix and distribution terms remain
+open; this is not a supported public desktop release.
 
 - Create the desktop launcher/tray application and reuse the existing local
   execution engine, CARLA launcher, queue, agent support, evaluation and storage.

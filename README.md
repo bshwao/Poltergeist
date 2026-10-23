@@ -41,6 +41,10 @@ results can be interpreted in context.
   then inspecting run history, safety metrics, telemetry, and recordings.
 - CARLA execution and a synthetic test mode for exercising application workflows
   without running the simulator.
+- A private [Windows companion prototype](docs/companion.md) with its own runtime,
+  local configuration/diagnostics, durable execution and report import/export.
+  Installer, hosted pairing and independent clean-machine release validation
+  remain open.
 - Repeatable experiment batches, failure reproduction, parameter search,
   scenario minimization, and report exports.
 - An Experiments page for registered agent/version comparisons, matched seeds,

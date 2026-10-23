@@ -1,4 +1,4 @@
-# Private S1 distribution inventory
+# Private S1/S2 distribution inventory
 
 This is an unsigned private prototype. The repository currently has no top-level
 project license; no new distribution license is granted by this build. The owner

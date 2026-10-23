@@ -1,0 +1,134 @@
+{
+  "schema_version": "poltergeist-s2-local-validation-v1",
+  "checked_at": "2026-10-23T03:02:52.187271+00:00",
+  "scope": "Private Windows x64 same-computer prototype; no independent-machine or public-release claim",
+  "archive": {
+    "filename": "Poltergeist-S1-windows-x64.zip",
+    "sha256": "bbbdb5cf09e810d77d3cd5871e8892024927859876665c5baca309e08903c707",
+    "bytes": 47892405,
+    "project_wheel_sha256": "ee9d01e55258b1ed75929f5b4b1bdc650fc50fc747f9f0f815ca51216f75c104",
+    "matching_project_python_files": 148
+  },
+  "desktop": {
+    "passed": true,
+    "profile_released": true,
+    "stage": "complete",
+    "runs": [
+      {
+        "id": "f43db98e-a4f9-48e6-8510-4aab42d959d2",
+        "name": "Companion synthetic installation check",
+        "mode": "test",
+        "status": "completed",
+        "progress": 1.0,
+        "error": null,
+        "has_result": true
+      },
+      {
+        "id": "6a5a94b5-131c-4ab0-8f37-b14d5fe21b39",
+        "name": "Companion synthetic installation check",
+        "mode": "test",
+        "status": "completed",
+        "progress": 1.0,
+        "error": null,
+        "has_result": true
+      }
+    ],
+    "callbacks_verified": true,
+    "hardware_input_verified": false,
+    "external_clean_machine_verified": false,
+    "tk_libraries": {
+      "tcl_library": "runtime/tcl/tcl8.6",
+      "tk_library": "runtime/tcl/tk8.6"
+    },
+    "private_imports": {
+      "companion": "runtime/Lib/site-packages/companion/__init__.py",
+      "backend": "runtime/Lib/site-packages/backend/__init__.py",
+      "simulator": "runtime/Lib/site-packages/simulator/__init__.py",
+      "scenarios": "runtime/Lib/site-packages/scenarios/__init__.py",
+      "tkinter": "runtime/Lib/tkinter/__init__.py",
+      "_tkinter": "runtime/DLLs/_tkinter.pyd"
+    },
+    "profile_name_preserves_literal_percent20": true,
+    "ambient_python_tcl_paths_invalidated": true,
+    "path_contains_spaces": true,
+    "path_tools": [
+      "Windows/System32 only"
+    ]
+  },
+  "cli": {
+    "commands": [
+      {
+        "name": "doctor",
+        "exit_code": 0
+      },
+      {
+        "name": "worker-smoke",
+        "exit_code": 0
+      },
+      {
+        "name": "synthetic",
+        "exit_code": 0
+      },
+      {
+        "name": "integrity",
+        "exit_code": 0
+      }
+    ],
+    "passed": true
+  },
+  "tests": {
+    "initial_full_suite": {
+      "passed": 2705,
+      "skipped": 35,
+      "seconds": 495.99,
+      "scope": "Initial integration snapshot; final startup/path/cleanup changes covered by the focused reruns below"
+    },
+    "final_focused_python312": {
+      "passed": 39,
+      "skipped": 0
+    },
+    "final_focused_python314": {
+      "passed": 39,
+      "skipped": 0
+    },
+    "shared_schema_current": true
+  },
+  "source_sha256": {
+    "companion/__init__.py": "49c32a0e1e675ed05f0b2025b0e4d33a31b69765023e23e1f525f1b6354935ea",
+    "companion/profile.py": "869368251c8c5db529dea8632fbb0d5367969b39ba3639655b0d0dc93a5a145e",
+    "companion/controller.py": "4b693e03d14a35eba84b671102335a25a6ba5511abc4aab22236f3a6b1301349",
+    "companion/ui.py": "979df5ef4711b128ca855add897bb84b62bb21696c9bfa70e490e8b0c5c25423",
+    "scripts/companion.py": "e1b0f8798d7b53580c0152d89ac96a1298ad89f807e12d5797d726c028bbeba8",
+    "scripts/verify_companion.py": "748c1677bceb95fcaf21ebfda978ed25d1ef67ab06037f5c7a62b589ad8deda4",
+    "scripts/build_portable.py": "59c74baba5afeb083a937577360ccdea8f8367316a8dc1307f6395a3a56148eb",
+    "pyproject.toml": "39f8b6c69d4b0a73c5cec86cc24693fbb373ec574eca014880d09888689a8938",
+    "tests/test_companion.py": "80e69ca78e31a4db17d80746b1948cc6eae12d02e74f3067985945c292ff6b58",
+    "tests/test_companion_ui.py": "91f12eed36d62d8095b6f9443991abe6e966f667fe0295777c23e27a49a36e3a"
+  },
+  "observed_limits": [
+    {
+      "kind": "native_install_path_length",
+      "archive_sha256": "9e47a67b1710f1e0930e1fa69a9462fc3d77f99739cef318509a5417046378d8",
+      "stage": "CLI doctor after deeply nested AppData relocation",
+      "error": "DLL load failed while importing _collections_cy: The filename or extension is too long.",
+      "resolution": "Short Documents relocation passed; final archive CLI checks passed there. Broader path/platform support remains open."
+    },
+    {
+      "kind": "Windows_hardware_input",
+      "error": "SendInput sent 0 of 1 events; GetLastError=87",
+      "attempts": 2,
+      "scope": "Window visually inspected; real Tk callbacks were tested separately."
+    },
+    {
+      "kind": "Tk_initialization_during_concurrent_local_target_tests",
+      "detail": "One Tk script-read initialization error occurred on each interpreter during an earlier concurrent test run; files were present. The Windows fixture now fails on such errors, and the idle actions thread joins before Tcl destruction. Final sequential runs passed all 39 checks on both versions. Root cause was not established."
+    }
+  ],
+  "remaining_gates": [
+    "Independent computer without developer tools",
+    "Broader Windows/GPU/display/native/path support matrix",
+    "Project distribution terms and complete native notices",
+    "Hosted pairing/transport and remote execution",
+    "Installer/signing/update/external beta"
+  ]
+}

@@ -1,8 +1,13 @@
 # Coordinator and local runner boundary v1
 
 Status: S1 typed prototype boundary. There is no hosted transport, pairing,
-authentication, companion daemon or new remote execution endpoint. The existing
+authentication, companion relay daemon or new remote execution endpoint. The existing
 local API still combines coordination/execution/storage. Do not expose it publicly.
+
+The [private S2 desktop](companion.md) now calls those local services directly
+without opening HTTP. It uses a separate per-user profile and implements no
+hosted transport or pairing. The typed requests below remain proposed boundary
+contracts; the desktop does not turn them into an unauthenticated dispatcher.
 
 `shared/models/runner.py` exports `poltergeist-runner-v1` through the shared JSON
 Schema and generated TypeScript types. `Poltergeist.cmd capabilities` emits the
