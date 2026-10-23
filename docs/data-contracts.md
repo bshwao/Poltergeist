@@ -17,6 +17,12 @@ prerequisites; experiment execution remains explicitly `not_checked`.
 See [API readiness semantics](api.md#local-setup-readiness). This is a current
 local-core report, not a hosted-device protocol or packaged-companion guarantee.
 
+`RunnerContracts` defines the proposed `poltergeist-runner-v1` capabilities,
+explicit-mode execute request and cancel request alongside existing progress and
+result models. It accepts local registration IDs rather than executable/package
+paths. No dispatcher, transport, idempotency or remote authorization is implemented;
+see [the runner boundary](runner-boundary.md).
+
 - Scenario `schema_version` is `"1.0"`. Unknown fields are rejected, including in
   nested objects. All physical numbers must be finite; booleans and numeric
   strings are rejected for physical values, counts, scores, and seeds.

@@ -112,7 +112,7 @@ def validate(args, directory):
         raise ValueError("Supported examples not found; pass --examples-dir /absolute/path/to/checkout/examples")
     settings = Settings(_env_file=None, database_url=f"sqlite:///{(directory / 'database' / 'runs.db').as_posix()}",
         storage_dir=directory / "artifacts", api_host="127.0.0.1", carla_host=args.carla_host,
-        carla_port=args.carla_port, carla_timeout=30., simulation_shutdown_timeout_s=5.)
+        carla_port=args.carla_port, carla_timeout=30., carla_auto_start=False, simulation_shutdown_timeout_s=5.)
     source = load_scenario(examples / "scenarios" / "installation_check.json") if args.mode == "test" else live_recipe(args.carla_host, args.carla_port, args.duration or 2.)
     if args.mode == "test" and args.duration is not None:
         source = validate_scenario(source.model_dump(mode="python") | {"duration_s": args.duration})

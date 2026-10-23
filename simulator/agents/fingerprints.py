@@ -150,7 +150,11 @@ def build_agent_snapshot(request: AgentRegistration, registration_id: UUID) -> A
 
     # Do not resolve a venv interpreter symlink: its lexical path chooses the
     # environment even when its bytes come from a shared system executable.
-    executable = Path(os.path.abspath(os.path.expanduser(request.python_executable or sys.executable)))
+    from .interpreter import worker_interpreter
+    try:
+        executable = worker_interpreter(request.python_executable)
+    except ValueError as error:
+        raise AgentFingerprintError(str(error)) from error
     if not executable.is_file():
         raise AgentFingerprintError(f"Agent Python executable is unavailable: {executable}")
     python_sha256, python_size_bytes = _hash_file(executable)

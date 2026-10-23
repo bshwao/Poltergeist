@@ -844,6 +844,22 @@ export type CarlaConnectionRequested = boolean;
 export type CheckedAt1 = string;
 export type SchemaVersion4 = "poltergeist-readiness-v1";
 export type Scope = "local_core";
+export type ProtocolVersion4 = "poltergeist-runner-v1";
+export type RequestId = string;
+export type SimulationId5 = string;
+export type CheckedAt2 = string;
+export type ExecutionModes = ("test" | "carla")[];
+export type ImplementationVersion = string;
+export type LocalFeatures = ("baseline" | "approved_sdk_agents" | "synthetic_sensor_fixtures" | "behavior_reports")[];
+export type MaxConcurrentRuns = 1;
+export type Platform = "windows-x86_64";
+export type ProtocolVersion5 = "poltergeist-runner-v1";
+export type RemoteExecutionEnabled = false;
+export type SdkProtocols = ("1.0" | "1.1" | "1.2" | "1.3")[];
+export type AgentId5 = string | null;
+export type Mode8 = "test" | "carla";
+export type ProtocolVersion6 = "poltergeist-runner-v1";
+export type RequestId1 = string;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -858,6 +874,7 @@ export interface PoltergeistContracts {
   optimization: OptimizationContracts;
   readiness: ReadinessReport;
   result: SimulationResult;
+  runner: RunnerContracts;
   scenario: Scenario;
   simulation: Simulation;
   telemetry: TelemetryFrame;
@@ -2265,4 +2282,54 @@ export interface ReadinessCheck {
   label: Label;
   next_step: NextStep;
   status: ReadinessStatus;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RunnerContracts".
+ */
+export interface RunnerContracts {
+  cancel: RunnerCancelRequest;
+  capabilities: RunnerCapabilities;
+  execute: RunnerExecuteRequest;
+  progress: SimulationProgress;
+  result: SimulationResult;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RunnerCancelRequest".
+ */
+export interface RunnerCancelRequest {
+  protocol_version: ProtocolVersion4;
+  request_id: RequestId;
+  simulation_id: SimulationId5;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RunnerCapabilities".
+ */
+export interface RunnerCapabilities {
+  carla_status: ReadinessStatus;
+  checked_at: CheckedAt2;
+  execution_modes: ExecutionModes;
+  implementation_version: ImplementationVersion;
+  local_features: LocalFeatures;
+  max_concurrent_runs: MaxConcurrentRuns;
+  platform: Platform;
+  protocol_version: ProtocolVersion5;
+  remote_execution_enabled: RemoteExecutionEnabled;
+  sdk_protocols: SdkProtocols;
+  synthetic_status: ReadinessStatus;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RunnerExecuteRequest".
+ */
+export interface RunnerExecuteRequest {
+  agent_id: AgentId5;
+  evaluation_settings: EvaluationSettings;
+  mode: Mode8;
+  options: SimulationOptions;
+  protocol_version: ProtocolVersion6;
+  request_id: RequestId1;
+  scenario: Scenario;
 }

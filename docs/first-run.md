@@ -6,6 +6,10 @@ are optional. Start with the synthetic workflow; add the simulator afterward.
 Use a local folder outside a cloud-sync directory for active databases and
 recordings. These commands create new environments only on a new checkout.
 
+For the private S1 command-line distribution prototype, see
+[portable build and external tester instructions](portable-prototype.md).
+That prototype does not bundle the dashboard or replace this development workflow.
+
 ## 1. Install
 
 In Windows PowerShell, from the repository root:

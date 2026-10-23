@@ -1,6 +1,6 @@
 # Distribution and scalability: ten phases
 
-Status: planned. This roadmap records the proposed hosted dashboard/backend and
+Status: S1 private prototype in progress; S2–S10 planned. This roadmap records the proposed hosted dashboard/backend and
 local companion architecture; it does not indicate that those services or the
 companion have been implemented. It is separate from the completed
 [autonomous driving integration roadmap](autonomous-agents-plan.md).
@@ -85,7 +85,9 @@ initial packaging work.
 
 ## Phases and completion gates
 
-All phases below are **planned** and proceed in order. Earlier phases may build
+Phases proceed in order. S1 has a private command-line packaging prototype;
+its independent clean-machine completion gate remains open. Later phases are
+**planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -93,10 +95,20 @@ report and read-only diagnostics shared with the doctor CLI. It separates
 synthetic prerequisites, CARLA client/launcher presence, explicit RPC/version
 checks, and untested execution. This is a small precursor to S1 capabilities and
 S3 diagnostics; it does not complete S1 packaging, define the hosted runner
-boundary, or provide a companion/installer. All S1–S10 completion gates remain
-planned.
+boundary, or provide a companion/installer. See the S1 status below.
 
 ### S1 — Prove packaging and define the split
+
+**Status: partial.** The [portable prototype](portable-prototype.md) includes a
+pinned private runtime/client, resources/examples, reproducible build/integrity
+tooling, isolated writable profiles, a real SDK interpreter probe and the typed
+[coordinator/runner v1 boundary](runner-boundary.md). This does not implement a
+hosted dispatcher, public transport, installer or companion UI. Same-machine
+relocation and native checks do not close the separate no-developer-tools machine
+gate. Redistribution decisions and the native support matrix also remain open.
+The [local validation record](s1-validation.md) records identical offline builds,
+relocated synthetic/SDK checks and a short packaged CARLA comparison on the
+development laptop. These results do not satisfy the independent-machine gate.
 
 - Define versioned boundaries between the hosted coordinator and local runner,
   including device capabilities and existing features that remain local.

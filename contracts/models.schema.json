@@ -5242,6 +5242,217 @@
       "title": "RouteBehavior",
       "type": "object"
     },
+    "RunnerCancelRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "protocol_version": {
+          "const": "poltergeist-runner-v1",
+          "default": "poltergeist-runner-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "request_id",
+        "simulation_id"
+      ],
+      "title": "RunnerCancelRequest",
+      "type": "object"
+    },
+    "RunnerCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "carla_status": {
+          "$ref": "#/$defs/ReadinessStatus"
+        },
+        "checked_at": {
+          "format": "date-time",
+          "title": "Checked At",
+          "type": "string"
+        },
+        "execution_modes": {
+          "items": {
+            "enum": [
+              "test",
+              "carla"
+            ],
+            "type": "string"
+          },
+          "title": "Execution Modes",
+          "type": "array"
+        },
+        "implementation_version": {
+          "minLength": 1,
+          "title": "Implementation Version",
+          "type": "string"
+        },
+        "local_features": {
+          "items": {
+            "enum": [
+              "baseline",
+              "approved_sdk_agents",
+              "synthetic_sensor_fixtures",
+              "behavior_reports"
+            ],
+            "type": "string"
+          },
+          "title": "Local Features",
+          "type": "array"
+        },
+        "max_concurrent_runs": {
+          "const": 1,
+          "default": 1,
+          "title": "Max Concurrent Runs",
+          "type": "integer"
+        },
+        "platform": {
+          "const": "windows-x86_64",
+          "default": "windows-x86_64",
+          "title": "Platform",
+          "type": "string"
+        },
+        "protocol_version": {
+          "const": "poltergeist-runner-v1",
+          "default": "poltergeist-runner-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "remote_execution_enabled": {
+          "const": false,
+          "default": false,
+          "title": "Remote Execution Enabled",
+          "type": "boolean"
+        },
+        "sdk_protocols": {
+          "items": {
+            "enum": [
+              "1.0",
+              "1.1",
+              "1.2",
+              "1.3"
+            ],
+            "type": "string"
+          },
+          "title": "Sdk Protocols",
+          "type": "array"
+        },
+        "synthetic_status": {
+          "$ref": "#/$defs/ReadinessStatus"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "checked_at",
+        "implementation_version",
+        "platform",
+        "execution_modes",
+        "synthetic_status",
+        "carla_status",
+        "max_concurrent_runs",
+        "sdk_protocols",
+        "local_features",
+        "remote_execution_enabled"
+      ],
+      "title": "RunnerCapabilities",
+      "type": "object"
+    },
+    "RunnerContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "cancel": {
+          "$ref": "#/$defs/RunnerCancelRequest"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/RunnerCapabilities"
+        },
+        "execute": {
+          "$ref": "#/$defs/RunnerExecuteRequest"
+        },
+        "progress": {
+          "$ref": "#/$defs/SimulationProgress"
+        },
+        "result": {
+          "$ref": "#/$defs/SimulationResult"
+        }
+      },
+      "required": [
+        "capabilities",
+        "execute",
+        "cancel",
+        "progress",
+        "result"
+      ],
+      "title": "RunnerContracts",
+      "type": "object"
+    },
+    "RunnerExecuteRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Id"
+        },
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "mode": {
+          "enum": [
+            "test",
+            "carla"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        },
+        "protocol_version": {
+          "const": "poltergeist-runner-v1",
+          "default": "poltergeist-runner-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "request_id",
+        "scenario",
+        "mode",
+        "agent_id",
+        "options",
+        "evaluation_settings"
+      ],
+      "title": "RunnerExecuteRequest",
+      "type": "object"
+    },
     "SafetyMetrics": {
       "additionalProperties": false,
       "description": "Null minima mean unavailable/no relevant interaction; never encode infinity.\n\nSeverity is an observed collision score (100), or a score from a completely\nobserved trace. Otherwise it is null. Settings preserve scoring provenance.",
@@ -6943,6 +7154,9 @@
     "result": {
       "$ref": "#/$defs/SimulationResult"
     },
+    "runner": {
+      "$ref": "#/$defs/RunnerContracts"
+    },
     "scenario": {
       "$ref": "#/$defs/Scenario"
     },
@@ -6963,7 +7177,8 @@
     "api",
     "optimization",
     "agent",
-    "readiness"
+    "readiness",
+    "runner"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

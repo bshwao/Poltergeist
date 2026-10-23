@@ -21,6 +21,7 @@ from shared.models import AgentManifest
 from simulator.errors import SimulationCancelled
 
 from .package import inspect_agent_package
+from .interpreter import worker_interpreter
 from .process_group import AgentProcessGroup
 from .process_protocol import DEFAULT_MAX_MESSAGE_BYTES, decode_response, encode_request
 from .sdk import AgentLifecycleError, AgentProtocolError, AgentSDKError, AgentSession, AutonomousAgent
@@ -155,7 +156,10 @@ class ProcessAgent(AutonomousAgent):
             raise TypeError("options must be AgentProcessOptions")
         # Preserve virtual-environment symlinks on POSIX rather than resolving
         # bin/python to the base interpreter and losing the selected environment.
-        self.python_executable = Path(os.path.abspath(os.path.expanduser(str(python_executable or sys.executable))))
+        try:
+            self.python_executable = worker_interpreter(python_executable)
+        except ValueError as error:
+            raise AgentProcessError(str(error)) from error
         if not self.python_executable.is_file():
             raise AgentProcessError(f"Agent Python executable is unavailable: {self.python_executable}")
         if self.snapshot is not None and (
