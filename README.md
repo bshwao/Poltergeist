@@ -106,6 +106,7 @@ Review its recorded behavior using the [decision timeline guide](docs/decision-t
 ## Learn more
 
 - [Scenario creation](docs/scenarios.md) and [simulation execution](docs/simulation.md)
+- [Collision stress presets and unchanged-baseline benchmark](docs/collision-stress.md)
 - [Driving goals and control ownership](docs/driving-tasks.md)
 - [Safety evaluation methodology](docs/methodology.md) and [report exports](docs/reports.md)
 - [Agent comparisons and repeated trials](docs/agent-comparisons.md), [experiment batches](docs/experiments.md), and [failure search and reproduction](docs/optimization.md)

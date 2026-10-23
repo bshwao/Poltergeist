@@ -16,6 +16,7 @@ from scenarios import (
     load_template,
     validate_scenario,
 )
+from scenarios.stress_presets import STRESS_PRESETS
 from shared.models import Scenario, ScenarioTemplate
 from shared.models.api import (
     ParameterInfo, ScenarioGenerate, ScenarioInput, ScenarioRecord, ScenarioUpdate, TemplateInfo,
@@ -54,6 +55,12 @@ def templates() -> list[TemplateInfo]:
 @router.get("/templates/{template}", response_model=TemplateInfo)
 def template_details(template: ScenarioTemplate) -> TemplateInfo:
     return _template(template)
+
+
+@router.get("/stress-presets", response_model=list[Scenario])
+def stress_presets(seed: Annotated[int, Query(ge=0, le=2**31 - 1)] = 7) -> list[Scenario]:
+    """Read fixed stress recipes without saving, probing CARLA or running jobs."""
+    return [preset.scenario(seed=seed) for preset in STRESS_PRESETS]
 
 
 @router.post("/validate", response_model=Scenario)

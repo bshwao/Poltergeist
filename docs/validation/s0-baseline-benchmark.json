@@ -1,0 +1,5000 @@
+{
+  "schema_version": "poltergeist-stress-validation-v1",
+  "catalog_version": "collision-stress-v1",
+  "verified_trials": 96,
+  "calibration_trials": 36,
+  "heldout_benchmark_trials": 60,
+  "baseline_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d",
+  "baseline_defaults": {
+    "target_speed_mps": null,
+    "emergency_ttc_s": 1.5,
+    "minimum_clearance_m": 2.0
+  },
+  "execution_script_sha256": "5c70f5137933147c47fb7d2c1077ba10cbb11b29410722c4d6375e60f98c89f4",
+  "final_analysis_script_sha256": "793d04a976026f7a2f8186043fbfb1075ab951225a599356bbcf2b2331bc2a05",
+  "analysis_note": "Final analysis adds an absent-target coverage guard. Every target was present in every recorded frame; all original/full/target metrics and classifications were recomputed unchanged.",
+  "all_recipes_matched": true,
+  "all_metrics_recomputed": true,
+  "all_world_states_restored": true,
+  "signal_cleanup_verified": true,
+  "presets": [
+    {
+      "preset": "intersection-low",
+      "family": "intersection",
+      "intended_stress": "low",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": 4.037198230484804,
+        "median_target_clearance_m": 6.5577060593751115,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 5
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.43448246478317476
+        ],
+        "median_target_ttc_s": 4.03719823047891,
+        "median_target_clearance_m": 6.555992210048725,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "family": "intersection",
+      "intended_stress": "medium",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "critical_avoidance": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": 0.6811389918229145,
+        "median_target_clearance_m": 1.182492925503338,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "critical_avoidance": 5
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.43448246478317476
+        ],
+        "median_target_ttc_s": 0.6811389918436221,
+        "median_target_clearance_m": 1.1824988233615814,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "family": "intersection",
+      "intended_stress": "high",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 3,
+        "any_contact_runs": 3,
+        "observed_counts": {
+          "collision": 3
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.4385029682449546,
+          1.0
+        ],
+        "median_target_ttc_s": 0.0,
+        "median_target_clearance_m": 0.0,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 5,
+        "any_contact_runs": 5,
+        "observed_counts": {
+          "collision": 5
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.5655175352168251,
+          1.0
+        ],
+        "median_target_ttc_s": 0.0,
+        "median_target_clearance_m": 0.0,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "family": "pedestrian_crossing",
+      "intended_stress": "low",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": null,
+        "median_target_clearance_m": 1.8213194456621922,
+        "distinct_resolved_layouts": 3
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 5
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.43448246478317476
+        ],
+        "median_target_ttc_s": null,
+        "median_target_clearance_m": 1.8210308302562273,
+        "distinct_resolved_layouts": 5
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "family": "pedestrian_crossing",
+      "intended_stress": "medium",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "critical_avoidance": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": 0.3638702731447018,
+        "median_target_clearance_m": 1.2710117562575323,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "critical_avoidance": 5
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.43448246478317476
+        ],
+        "median_target_ttc_s": 0.36386702328023657,
+        "median_target_clearance_m": 1.270999562701847,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "family": "pedestrian_crossing",
+      "intended_stress": "high",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 3,
+        "any_contact_runs": 3,
+        "observed_counts": {
+          "collision": 3
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.4385029682449546,
+          1.0
+        ],
+        "median_target_ttc_s": 0.0,
+        "median_target_clearance_m": 0.0,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 5,
+        "any_contact_runs": 5,
+        "observed_counts": {
+          "collision": 5
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.5655175352168251,
+          1.0
+        ],
+        "median_target_ttc_s": 0.0,
+        "median_target_clearance_m": 0.0,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "family": "sudden_braking",
+      "intended_stress": "low",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": null,
+        "median_target_clearance_m": 29.880270895203257,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 5
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.43448246478317476
+        ],
+        "median_target_ttc_s": null,
+        "median_target_clearance_m": 29.880270895203257,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "family": "sudden_braking",
+      "intended_stress": "medium",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "critical_avoidance": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": 0.10119520876373218,
+        "median_target_clearance_m": 0.14707697837875805,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 1,
+        "any_contact_runs": 1,
+        "observed_counts": {
+          "critical_avoidance": 4,
+          "collision": 1
+        },
+        "target_contact_rate": 0.2,
+        "wilson_95": [
+          0.03622410863243014,
+          0.6244653702374747
+        ],
+        "median_target_ttc_s": 0.10130316524039878,
+        "median_target_clearance_m": 0.14735421405850538,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "family": "sudden_braking",
+      "intended_stress": "high",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 3,
+        "any_contact_runs": 3,
+        "observed_counts": {
+          "collision": 3
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.4385029682449546,
+          1.0
+        ],
+        "median_target_ttc_s": 0.004486462298574136,
+        "median_target_clearance_m": 0.03260630209143074,
+        "distinct_resolved_layouts": 1
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 5,
+        "any_contact_runs": 5,
+        "observed_counts": {
+          "collision": 5
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.5655175352168251,
+          1.0
+        ],
+        "median_target_ttc_s": 0.004486462298574136,
+        "median_target_clearance_m": 0.03260630209143074,
+        "distinct_resolved_layouts": 1
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "family": "occluded_pedestrian",
+      "intended_stress": "low",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": 6.431351428154846,
+        "median_target_clearance_m": 5.086633289117797,
+        "distinct_resolved_layouts": 3
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "clear": 5
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.43448246478317476
+        ],
+        "median_target_ttc_s": 6.431368374236123,
+        "median_target_clearance_m": 5.086532589627287,
+        "distinct_resolved_layouts": 5
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "family": "occluded_pedestrian",
+      "intended_stress": "medium",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 0,
+        "any_contact_runs": 1,
+        "observed_counts": {
+          "critical_avoidance": 3
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ],
+        "median_target_ttc_s": 1.3756238433723218,
+        "median_target_clearance_m": 4.290390028943306,
+        "distinct_resolved_layouts": 2
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 0,
+        "any_contact_runs": 0,
+        "observed_counts": {
+          "critical_avoidance": 5
+        },
+        "target_contact_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.43448246478317476
+        ],
+        "median_target_ttc_s": 0.7110328832976094,
+        "median_target_clearance_m": 1.471121553604818,
+        "distinct_resolved_layouts": 5
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "family": "occluded_pedestrian",
+      "intended_stress": "high",
+      "calibration": {
+        "completed": 3,
+        "target_contact_runs": 3,
+        "any_contact_runs": 3,
+        "observed_counts": {
+          "collision": 3
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.4385029682449546,
+          1.0
+        ],
+        "median_target_ttc_s": 0.011224081783789717,
+        "median_target_clearance_m": 0.15620646168236418,
+        "distinct_resolved_layouts": 3
+      },
+      "benchmark": {
+        "completed": 5,
+        "target_contact_runs": 5,
+        "any_contact_runs": 5,
+        "observed_counts": {
+          "collision": 5
+        },
+        "target_contact_rate": 1.0,
+        "wilson_95": [
+          0.5655175352168251,
+          1.0
+        ],
+        "median_target_ttc_s": 0.0,
+        "median_target_clearance_m": 0.0,
+        "distinct_resolved_layouts": 5
+      }
+    }
+  ],
+  "trials": [
+    {
+      "preset": "intersection-low",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "5a34ddb5-c382-4675-8e3d-c62099417c44",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.5577060593751115,
+      "min_ttc_s": 4.037198237053566,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "e8dde263d05e6d2788af424c8b2ad8f681e3d7a2a2ad7d8286e9d78f51319d43",
+      "telemetry_sha256": "c198be33f9d5ca701e5c96eb561656ca48b6feea84892a918b60772adc601ec1",
+      "normalized_recipe_sha256": "5691ac247cfaf09008a2ab348f06e1d6730e561d4e9581dac62c987d1aac8296",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-low",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "73047105-e7b8-4c3b-990c-e8be4d0d16d1",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.5555674540055175,
+      "min_ttc_s": 4.03719823047891,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "1b2416991edcba8467fcbdc10f2b26058450ca6ded5ee4ffbb13fe651e9b9526",
+      "telemetry_sha256": "cbb174d85c136e3906e9caaaaa798ad1b724ca1044b2181105c28ee198b5a935",
+      "normalized_recipe_sha256": "6e593eeb76368daf033d249f86f99737da44aad24419f46fb8d835a8e3ecbd15",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-low",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "49b5ed3b-00cb-4bc7-8948-ae25a8d1c656",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.5611165886097975,
+      "min_ttc_s": 4.037198230484804,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "52a69bdb7a8e23a0e3d8158ea1d261ca0f259ab91763364a9a98bc8c7f2d25f1",
+      "telemetry_sha256": "8ce0e85d656f20a8558eee06a178e0b8176b99a50ebb16041b7f5d9aed8df78e",
+      "normalized_recipe_sha256": "4ccd2603f053116d4d698eee6408d8c1a52c23dc7cbc95e520e9d2169866e591",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-low",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "64c6f667-6cc1-4274-853d-3ae885a6696c",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.11174365515616,
+      "min_ttc_s": 4.037196993476228,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "8ddad747e54a417ef2e8edeb18c874f6165b10ab3f9449efe7e6256ad33e7478",
+      "telemetry_sha256": "bb6482d790709cd5da58b2c3616706ee57e691cba7cb7d297bf74c586af702b2",
+      "normalized_recipe_sha256": "a48d43b36a6b3dea683936e104ef8b0f4e34ffcbbb45d9a09cf63ae363532d97",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-low",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "48b324c9-dd16-446a-aec3-c68df48a1e39",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.555992210048725,
+      "min_ttc_s": 4.037198230789277,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "961c9ff791c58cf815513ef51278269c242ea23514f1e79772969b33947c39b5",
+      "telemetry_sha256": "9fad86828269034c7b6be45680610ef6c0254a2d6d23243ce3c6cc6be0b470de",
+      "normalized_recipe_sha256": "527bb8b50f707878b4d3989eb202ea010ceaf9fcc245a079f33a2ee59b4b6718",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-low",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "d8684d0d-9d4e-49d0-86df-75fcd304ce73",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.561114362160904,
+      "min_ttc_s": 4.03719823047891,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "962b4d8942da04320e1a339515215a3da4aba035d769a3f555bd647279db51e7",
+      "telemetry_sha256": "44d001d65da93126250a665e3cb4fb18303969a5ebb9139cad2c0f740b7ab25c",
+      "normalized_recipe_sha256": "bbd611e38dba827e9d7fb43be9ef9458559576c95d9d0651953fe12a7639aa6f",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-low",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "6891aecd-467a-493a-ae76-aa75d9ab9ae4",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.560521667973168,
+      "min_ttc_s": 4.03719823047891,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "28bfa9de3700f32ef224fab910bcbac061fa589b39ca572fde93028dd8087f4a",
+      "telemetry_sha256": "c902bd84510b184c1cf1d3e49238ee098746f9994bc730fe81c2fcf8a5169e0a",
+      "normalized_recipe_sha256": "60686aa33f334136aa2b529d258fd6f04f0c01acd9d598dcc24184e773b28231",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-low",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "5bfc8fb3-2c43-4cfc-8336-06bf20adf43b",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 6.555866681659731,
+      "min_ttc_s": 4.03719823047891,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "9ff94800b3ce75d5e269e0275bf3a0e80d074d806088edd713fef77565a899b5",
+      "telemetry_sha256": "12ca1fdbae7dd9a3bde525e19dfe125b721853a0b1337a4c2c7281e5c3da7016",
+      "normalized_recipe_sha256": "7cad179f42d50ec6ce9dc201cb21d365b3a1266a8535d841c59480541f4becb1",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74858856201172,
+            "y": 20.567947387695312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "ed854394-0ac9-41fa-a06e-b3c7ece82106",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.182492925503338,
+      "min_ttc_s": 0.6811389918229145,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "267a04cdf088dc49896d9d5225e95011a445005522636d304699917175c72235",
+      "telemetry_sha256": "05207500f6c592488415a4ea2045b96a9a3e6446bf81eefc915d73fefc4c6ef5",
+      "normalized_recipe_sha256": "10df6f94b7701e552b3c89f07377aef1cdc6f2c42f20117a06f585fe75b46ed9",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "371b4b64-84de-4545-aad4-68482c565c36",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.182492925503338,
+      "min_ttc_s": 0.6811389918436221,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "2b13cf35ce3568c62661d126ef43b7d5b6ab1d6436e7fdb95a9eddc9415bba6d",
+      "telemetry_sha256": "661f01d2ab342ca0cd891394d2c9e44513d7f5536cfc9ee3f52fd7ba291902e2",
+      "normalized_recipe_sha256": "94c3d27510a8a94c9769ecce9568cf2505060673e432b4ed364d2fd236719819",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "e1746de5-f1c9-43fa-98af-10dfbfe90cc2",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.6136673640914259,
+      "min_ttc_s": 0.653830350517009,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "73be765566fd1d1b60a31876eee930eada735341f7e7a314554408057316fafc",
+      "telemetry_sha256": "0490fea19d92a36d7f9c2f1ed2c2d0a0ad93de8d33effda0c31b7b6a07b1a569",
+      "normalized_recipe_sha256": "be3a75be7c647140bcd5a8a9cf899bf8073c51c8486662c12fd3c4f8045f7698",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "134fb958-2735-4372-a87b-d35b6731b193",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.1886995206585294,
+      "min_ttc_s": 0.6857323971078753,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "42ae2c6b3867dbee25636117880e31d22793ac20967a55c0c7828962000dae1a",
+      "telemetry_sha256": "cdc906bdb4a2506b8581894d983c64241085d889c76cfb3e855a29e447f67d8c",
+      "normalized_recipe_sha256": "eba7654fbbb8ef489c0e977a8c9d4cf9b4609e39de828d44c134af4acabfad4e",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "fdd185fd-6a34-4253-9b09-8081ebb9dd08",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.1824976134376222,
+      "min_ttc_s": 0.6811388931637778,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "1ab03ecf54242c7d78bd1ea450ad7108989b747331ad568ad202daa967522a02",
+      "telemetry_sha256": "030103cfd56a96cc17ed4d9a1fd7675e8a0ff8ed5914dc36cfd457b840e4511e",
+      "normalized_recipe_sha256": "c0954318ff568cbfed9f885f323f07c016b99952fe49750cc0883e7843a6a02a",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "b068bdb8-c7e8-47ee-a98b-d4a2f5a6166f",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.8932160816513424,
+      "min_ttc_s": 0.6811389918436221,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "f83a3108f95f30b30414a49f4a8fa3ad1114e7de1967aeba10de9e2593af3ce6",
+      "telemetry_sha256": "4e9cc38c1b0326c02a027b3d86d1602ec068895c7107d00a66510f5024bb87ac",
+      "normalized_recipe_sha256": "0abf6306c37b6a7c4713182575e063322306d11a76351ce27676c74966a04778",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "0359015f-8851-4759-b7a5-aae9c75ee386",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.182492925503338,
+      "min_ttc_s": 0.6811389918436221,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "48359c786146d2377f22fa2f60d63034c49699e189fd080a3ed3e0acdf2a2dad",
+      "telemetry_sha256": "41a44387ed32b6443aa6afddaa20b65a3c246a6b1b9f799e678b9ae81e7fff90",
+      "normalized_recipe_sha256": "dfac0aeb08cb3dd0510b194dc6e1f3d6c3ea2c58cef2dadd75c3d7d0d06a3ba6",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-medium",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "b4023c63-5edb-4e42-9d53-d2aeb9343326",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.1824988233615814,
+      "min_ttc_s": 0.6811389918436221,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "95a31932497c2c487ef4efff1849023771b00d04f7b0e774a619c38ea7d528ba",
+      "telemetry_sha256": "1139b047e81d2da6b0cd0940987403aa52457d4f04285f95c6b84529c053e74d",
+      "normalized_recipe_sha256": "40ba4536574146c85f849f894b70720ca04b3a6cf4f522bfdae10d6af20817be",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.74296188354492,
+            "y": 22.56793785095215,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -19.75992774963379,
+            "y": 16.62908935546875,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "a03fd37c-6530-4ace-88eb-3f807efe840e",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "f4c18687c67c9c12d9132de5042239bba58f7ac07cea7f3f589d9e761f72d261",
+      "telemetry_sha256": "2726c40e7bca4ea0b42a1cf3d11812be1f647dec3c6904904559fd405328b354",
+      "normalized_recipe_sha256": "04f5a6acd1630ca32e11a198be3ba276a166f9f07223306c17fe4f5f36897300",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "acdb9948-adfe-41f7-9dc6-ac8f73d5d838",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "aed502796227d27754d85693ae8a3138c384c9fc3d3dedca83c0e4175c4ae50d",
+      "telemetry_sha256": "76be419cd1ba11cf56e92014ee72ad7f4328ff1bd1e2229d00da020cb51b49ed",
+      "normalized_recipe_sha256": "b2659e3a4018fa21820faa29d280d7fa078105d461dd786ef66637a641e6ecc9",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "8e4224fc-9584-49f6-a7a0-7cf92ce1ad02",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "67cfd3261f9b68f2a0818c55fa713f22229deb24fd5d0f9f985b5a8f661d7eca",
+      "telemetry_sha256": "e0db95a41897e3bc85a8a947d3c1dfd271877b9d0a2d65f92c4277b3bcbbb162",
+      "normalized_recipe_sha256": "1ca1d8b7ac31fe7795d5feb1d3a9ac64fd86c4c5346c07c20ae4d303eee6f845",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "9dad3d90-a870-43b1-b133-6ae5350b3e32",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "a8e4b1544fb53acdc66930e52d9b8d6f445a83e07d6905b182595c555f40afee",
+      "telemetry_sha256": "17258c51c8102009dfee4b2c0c6f83675b21b44f1e62b4e4d1db78fa3e33334d",
+      "normalized_recipe_sha256": "98c01d9e2267a5073187ca4a534907bbfa49e01a53bf462cc24ce6a9112a7af8",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "cb5dc788-1526-4874-84f4-ffb91e897886",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "5d9ba8d884628139f5fb9446eeb6f49285116f3daebc9653b15402dd6c75dbda",
+      "telemetry_sha256": "40e24955d320fc0d168e4d554a134df3a5be6e78cd04a3689a8916268e3c6b88",
+      "normalized_recipe_sha256": "26437658fc312f2bba6a6d7b01d4688e902bb1cd47505bf8caa8d0097472b17e",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "35c4a382-6bd9-425b-a259-e1e664a5652e",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "6c0b7cb994f7ed8429c093a8ef9d5fabcca218a0ab242bdf588a37c90196dd62",
+      "telemetry_sha256": "84b1cdd27ba1575db3d32d573809a689063a00e23e8c89b13f5910ab7b5ae6a1",
+      "normalized_recipe_sha256": "f68b5b0dee28bd171238cc13aa5cc9dfcebea1db869f547aa674afe1cbcbac26",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "58533d9f-31ba-4e48-be42-d1724b38e019",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "2571201c33ac9a7814a8be186e43a1edd5da0d1bc8e6ad0035afcb62c7dc1a93",
+      "telemetry_sha256": "3ba248dcd64fc8acb59d19af5f5c7ecc905403538a00d5cd231ae7154d8bf3a8",
+      "normalized_recipe_sha256": "9e04a58352591d366362d14ed3b4d33e6e5a66483a7961de7b0451399d002773",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "intersection-high",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "a6a369ac-e55c-47f8-85f3-53e57a14a572",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 2,
+      "other_contact_ids": [
+        "world:0"
+      ],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "b5ab92f24cffdef55615731bee9cfd0703d1f4da37cf33b1ce860bdce107a149",
+      "telemetry_sha256": "16e448d29bfd78534cab77df3e14f281988b34a486b95c9ead937f269d20007a",
+      "normalized_recipe_sha256": "df2462cd860a964cb216027bc162369d4b1290a52eca17a411a6f1c55eb45432",
+      "resolved_spawns": {
+        "crossing": {
+          "position": {
+            "x": -41.749996185302734,
+            "y": 20.067949295043945,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.1612319946289,
+            "roll_deg": 0.0
+          }
+        },
+        "ego": {
+          "position": {
+            "x": -11.75995922088623,
+            "y": 16.651317596435547,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.15919494628906,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "921dd0ea-853f-49f2-a964-f4f54682b303",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.9395475629780095,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "4229b8928b96da891edc5d049553a0934f2f8d30c7dd09c7e72eae1e76c10792",
+      "telemetry_sha256": "3be01b6c633bf78223270950fd0d91941e87038f027631bd532e249087a123fb",
+      "normalized_recipe_sha256": "738d75716329517dd64c37e9d835ac3e45ead721394f70b5aa41d084d4ead849",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -0.19075477123260498,
+            "y": 137.2099609375,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 0.3521270751953125,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 39.790052605205695,
+            "y": 140.4557338081946,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": -89.64787292480469,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "7faf11ad-3e08-4af8-9454-4bfaab0ceb0c",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.8213194456621922,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "d929c93633a59c31a2d165521b951aaa560b9d47351d7d53c2f6b5511ff46022",
+      "telemetry_sha256": "9b2b4c67aead975cf932e59ab0bb84ef56b9efb20aa89725bdf7e9ae8105665b",
+      "normalized_recipe_sha256": "997b46b55ee7c97b7f21daff04f5e14d878899a9c56ea53ef07a98241507869f",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -110.17086791992188,
+            "y": -6.286602973937988,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 90.6422348022461,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -113.6190345414092,
+            "y": 33.67725753715954,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 0.6422348022460928,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "3b498256-2f7f-4a53-b9b4-d57cfac2190c",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.3752963263032232,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "2cc19f4a0e5bbc5626479a51147b0c3c6fc91103c75634b47f99e9bd08dbed41",
+      "telemetry_sha256": "44a6b9ebc1dc6fe622f0620d6d505ff89f7a67c497647d950c7e285627ffd74f",
+      "normalized_recipe_sha256": "11dbd29c04cfb2d509ccee17535082c406053e51b83dfb92d30dd9fdbe9bf7e1",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 7.7860870361328125,
+            "y": 137.30043029785156,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 1.0912076234817505,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 47.72170084495241,
+            "y": 141.06164681818348,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -88.90879237651825,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "6d12982a-e7e0-43d5-bfc9-ff1627897577",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 2.091688215745681,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "e1b2d29e5ca4ee8c436f7ce361b27a6f57ae5f8521a0f9a259cdfe9be10a532a",
+      "telemetry_sha256": "4d8ee567c317a134d96d5558c6e49db0964056a18649f201612576906168fe3c",
+      "normalized_recipe_sha256": "503cb210c9707f77acd0fd9a51443358492fc167364fb532c1f2f6324c599747",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 23.811246871948242,
+            "y": -64.40670013427734,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 179.97657775878906,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -16.189976171428874,
+            "y": -67.39034807496938,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 89.97657775878905,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "705b2702-4cb8-48e9-aae8-0dd98f77c3a7",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.8210308302562273,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "e18ad04ea2fa1536bdb4c5da5fd1f619556815721f44cebd4f4e5c38e62e224e",
+      "telemetry_sha256": "ea521bbdd233680cb5015ced9fdc3b6e42a1b6e6f2069db85f2e794d7291622f",
+      "normalized_recipe_sha256": "5c33263f0256ddb5d837c5e9e202ca85db8f88e431d67c08baf44d0ba27fa2f8",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -18.16890525817871,
+            "y": 133.59939575195312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -179.6478729248047,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -58.14971263461701,
+            "y": 130.35362288125853,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 90.35212707519531,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "41fd5e2e-1ba1-4e93-9617-dc0c4a1761be",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.7631787781339463,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "783a999f8885c0b26261a3f6974dc74a2acc2eb0d020f3c32d90007fd4866409",
+      "telemetry_sha256": "ac3efdb6c3bf69e4a6013bde4308cd3661e3c4d86544c24d48b832eccb9a9b92",
+      "normalized_recipe_sha256": "a1f577a6b54094ce4ed59ed49c5f4d02d4589460bb414c048e433319a2704222",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -25.800437927246094,
+            "y": -61.26321792602539,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.5967352390289307,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 14.166148230892915,
+            "y": -57.84678837691258,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.40326476097107,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "75fca467-ae8e-4437-9dad-9ddcf0caa317",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.8365913084587748,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "d1d3dd93a807ff4ec875a311fb7dff9bd12b3b89de5ded567a23a62f42bacd84",
+      "telemetry_sha256": "9324f1228889fee9852b4c5adcd84e0432697322a8ecc9025ec0c262bbb8cee5",
+      "normalized_recipe_sha256": "04e71e2f6cf7ad8792c9d6791be613ee9eedaee1662e743c6f6359c5b9e114a2",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 53.36925506591797,
+            "y": 134.15017700195312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.32044982910156,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 13.386659302266956,
+            "y": 130.9265089048196,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 90.32044982910158,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "88c54f95-3fff-4dac-8fff-df56a515c887",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.6049509496344134,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "911ad2b2adaedea7c3af613b983bbb837a78f10e3db3137c32e2e8abc7cdb928",
+      "telemetry_sha256": "d08d2e81d1e8dde4b14e5152b82c58e5cddd1b788a12858ba5da8a9124f2eed8",
+      "normalized_recipe_sha256": "7268815ccdaeab245839039c6c45101679ace06602ba73d12ba53252db9e4fb8",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -48.85201644897461,
+            "y": -14.804238319396973,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 450.1412048339844,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -51.950586809537995,
+            "y": 25.18824674618301,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 0.1412048339843929,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "2841d1d4-d61a-4b15-8b25-8ba6daa8be21",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.2710117562575323,
+      "min_ttc_s": 0.3638702731447018,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate4-pedestrian-medium",
+      "result_sha256": "893b1ef6f3565eebd56835fe9129935f020106d41f22c515a5ecbfdb2348e7e8",
+      "telemetry_sha256": "c542afae0199ce5533607e61a3d0be78c780732326214666ed57541662808d07",
+      "normalized_recipe_sha256": "d3084268c334d5fc286bd1a1a873d17e5afa735f5127edd792109a3cfbf30da9",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "c5210e00-cccc-4974-9299-5204db9d675a",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.2709991190338816,
+      "min_ttc_s": 0.36386702328023657,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate4-pedestrian-medium",
+      "result_sha256": "41bf9c3662e66a902a71d127c478b9a5a5bbf169d7903dd99d1d750480adba3f",
+      "telemetry_sha256": "bca73bc80a27cd6490afbe2dce3590ba32e385b59c2d6cfe4e228a2a7e51bbc8",
+      "normalized_recipe_sha256": "1a434708320650e50466fae58e75d0855d8a670901fae8912c0201e1d0bdec36",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "138b6114-8bb9-4ef0-9fc0-857dedb37092",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.271192944973965,
+      "min_ttc_s": 0.36390211520217847,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate4-pedestrian-medium",
+      "result_sha256": "ed29ac589a75f297d406fbd405751ca4c367358de7a3304e62431fe6e3e220ff",
+      "telemetry_sha256": "01278f25023d4044991b39449f054b7a19021a467d9ca0137b9aeaa5775bf3af",
+      "normalized_recipe_sha256": "84307db1e5f7884d0205e6a59720ad047d28a9c5fe222d5ef55b6fb0c3ac78bb",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "9a59e4b5-114f-430a-820e-cdc3dde60063",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.3306772567046747,
+      "min_ttc_s": 0.36511732011986753,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "04592992c0d9d2f10975def3a655a213dc545b7ae39484a867bbb152db8d45b6",
+      "telemetry_sha256": "e40fa0d9218abdd2083f4c37a8f70a2037faf2f0affb3f7fe87a2742e8603f70",
+      "normalized_recipe_sha256": "a6f40a41605907cb4f708389d235371b5b4c47ac2d8b0f433a598c96d7582a33",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "107f57b5-37da-40da-8657-952225be6980",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.2709020875231247,
+      "min_ttc_s": 0.36385333057934327,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "90faae461db90562cb1cfb5eea36ee87e323070338c9977fd1ac2f2b9eb226d3",
+      "telemetry_sha256": "7d989a0a584cfc03d8b1dfbb4640828100ccf9f6952e9c1838d41c2f25e2eb5f",
+      "normalized_recipe_sha256": "937f4fd83a1c371542d3ea9353214daaa066b8bfdd117b9e7b2bcdf82d4a17b7",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "ea7d2862-ea68-4c96-88f1-3e20c4c6c08a",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.270999562701847,
+      "min_ttc_s": 0.36386702328023657,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "0f583d981d4c4e47168d99d29b8f33ee68d362aa3e0a69230ba9ce0ad6e5d7f2",
+      "telemetry_sha256": "9d43da9902685b75a0d314e3699fc9596dc0f720dd91be024a53968d4ceb2127",
+      "normalized_recipe_sha256": "04e621b871a017fcb7c3b556ad9a525c872d848cf0f1936432686ffd8fb0efae",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "86bc5405-faa9-4ec4-a8dd-41e10b9927c4",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.2709764629218678,
+      "min_ttc_s": 0.3638645250275246,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "e1995b9773d1afd2ad4e638a112ffbe2ea0342b639dd4f77b65fa2baa8a59dae",
+      "telemetry_sha256": "42acf263b797c4a6b73c59a63e5aa55432f37066414fc630a205e5ef3f51b274",
+      "normalized_recipe_sha256": "12a9cf03c4a0280b3375e1866d8cc897a92a302cc4edb5d3da171035a22aa0be",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "b403c882-831f-4a76-81c9-e19b4e5ea9ce",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.270999562701847,
+      "min_ttc_s": 0.36386702328023657,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "23f2da46975ff569b4e834a6039258e35eb9bae0484dd8d663affb30ae6be3df",
+      "telemetry_sha256": "cda2eecbd16f80d0673540d43f68535ea4e0f811f08b135de304e0f96ce3ffc1",
+      "normalized_recipe_sha256": "097d9bff1a69c79741a93f32701bd47102a1415b54e7998d5c08690d5c3fea38",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -42.65048602847044,
+            "y": 26.532130047707916,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "0485980b-6647-4b71-8be0-d1bf514f8c78",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "958264ed0b692cab4a4b33f9f30b8e2904d423e6f7e0a6f0646909e7f4b842cd",
+      "telemetry_sha256": "96ce41b85e80a605aeda8c1309d99008e1cc053fba7c9b917a524c73cd01e1ab",
+      "normalized_recipe_sha256": "9953cd9faab557bd17c7e716f12bd8e48e8e40c90913388f7eb565d8e35b08fa",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "c58aa307-d12d-47e1-b455-f835824918e7",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "4d80e46e3c4e237ebdda6840e9d7fd06608d5690f6dbc6e346a386bb16390434",
+      "telemetry_sha256": "869478965536841015692684bb7316982c7e4b076c832077a886e31056fd9f5c",
+      "normalized_recipe_sha256": "079e5f299cf59595daada69f2ddd7377bb86822ca484d75ddf33a44aecb7ff51",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "09e9ad7b-a0ca-4ed2-af04-76e09cea15bd",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "5a089021d73d140fabcc1aad6ae4ca6600d28cc72246745f5bfb6f70cf9ef225",
+      "telemetry_sha256": "c84697644dcebbdd3894623079a7b46adda86930209c09c44ed8bdc1fe407307",
+      "normalized_recipe_sha256": "f174e0ce14173c7478fdc20e425b0abe75627d3e2a85366b58d19d4167ea47b3",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "95baa50f-c30e-41b8-b861-d3dc939adbd8",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "467613687b7e991c25851c5a950448e4c8a5e07f9b431af344d0e62e66cbb33b",
+      "telemetry_sha256": "ab75105f48f0a2f1dc8100290caf4c616bc10d8f4b550d884ba893e01328d203",
+      "normalized_recipe_sha256": "eed77c7b8e23c81f18c2032fbc274cd22d769bc42b6f5ec05fa384f6156c02ba",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "d8009d49-a710-4778-b334-3dbe4bfe2bae",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "a6c9a897cba3121bf5a642a42f2cde8bafde545280e83719baf36f10700d1f99",
+      "telemetry_sha256": "ac0c6bff1ffb705e51d5b63980ca733e02c1ae307e80d35f89cb64822acf5f03",
+      "normalized_recipe_sha256": "539b504d034e74430882fdf4dccf81fbae692746f53b7a0c1ce685725731c698",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "2ab1909a-8353-43dd-b3c2-db1c5a867801",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "d11efdb8ed76efbc200b63819b8fb12b535709fbdc91054bcf0de166fc94bcfe",
+      "telemetry_sha256": "cff3a308a3f543cbba338a44bfd68ed05d34dd1fab2659171a81bbaa770115d7",
+      "normalized_recipe_sha256": "f0e5cc3f593be3d8acfcfec0b64aefd64c8be662a3061812598d698bb8826fd4",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "322c3130-ec64-4de2-8623-30a064f95f42",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "96ff2ff9634a0e14f16e3ec3fdbe0b92a2fb30b0a2d4cde6ca0e136eb960c488",
+      "telemetry_sha256": "b43fc8250bb9c9053eb450ac6e1f2840f561cd0e2187efc1e0e69ccae8d225d3",
+      "normalized_recipe_sha256": "d7787bd951653994a55fdd73d45a2efe161ca4b0c192aff08c5cc8543fdd0e33",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "55c317c6-c997-4291-8cc4-63faa168429e",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "8942a4a38d184589eca86d0fb81e36f384268afd5dee40151204604f539d66c4",
+      "telemetry_sha256": "86de03571513a6e3fd433a71cee341b2e15eea8cf5a05ed769b5941b4326c7c5",
+      "normalized_recipe_sha256": "6ab0d1dfb8b6700f4f93a080afd001f0b271a374936cecd91053461431e11d9e",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -54.65043970715914,
+            "y": 26.498787742364325,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080201387405,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "c1ecf7b5-801f-4c4d-8a6a-6922f1ba711f",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.88032076956082,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "406dbc7badce6f95f920cd1d3f811b2f5b0d9b0e427be52ca60479a565f16445",
+      "telemetry_sha256": "75ce40a7a87fbf3d34b7bc5c0024686612994561c5aaed1cb0f0df74b44427de",
+      "normalized_recipe_sha256": "daa7b12a296d9c5aef814e5074eee0bcfdbe26263106641f596228e0e5c380b3",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "c8958285-88cc-4e5c-87c7-06922c8bf380",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.880270895203257,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "5c88e1f4a54b09dbbee2a8ef52ad263469008ae7d9e1223a1b59d8b878de85e5",
+      "telemetry_sha256": "7081e840aa54246b77ddfeccf37ac406a67479c365f6f186b0f0fd09d9c30313",
+      "normalized_recipe_sha256": "d06fba05b48d68b58c19acc9ffcca4a3fd1976103828f9a5e4f31583e60d649a",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "596528d3-c219-4964-891d-60db69ec8c3b",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.880270895203257,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "8a0089d6361fd39218d6460acb66584e3e348ea2d5d2e09f930b2e720971febb",
+      "telemetry_sha256": "91f51b8745d8fa20dfeb1419cb1920a1afae5c20cccf2f21ab2b57df195aa9b4",
+      "normalized_recipe_sha256": "312642f1b4d1f3b948cd9f598d415458389334bd8d25e1cfa9fc19ecd58e0f7a",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "22f2efd4-cf9d-4353-940e-9a1b3f5b2272",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.880270895203257,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "33b5ecde30808dacc469edfae59a20c6ab96d4f539b087071496a575f58e17e3",
+      "telemetry_sha256": "d6caf3cec7ade144842c4d7f7184783c78c0816f321ffa209333095fb8793c6a",
+      "normalized_recipe_sha256": "a4d76cd32e6ba897157137b122cbfe9b4c516bb2bc46b6455607c590f18b933c",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "4a2b33bf-c5c6-4ebc-8ee8-98dac73cd873",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.880270895203257,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "dff86e472d2614e7a6304280e0f446b9a0df38d0ab59129c7b5ef9ae425cd4be",
+      "telemetry_sha256": "f34d06a517cee54f16175108a80f758b33c7927f4c95679ec125a8ced7b621d0",
+      "normalized_recipe_sha256": "dbd433717201b86bfe0f289ae491ab154b3f2cd2ec48ccd970173b5a305941d0",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "222333f7-6d1b-45b1-ba4c-1052eab72004",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.874988557542103,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "9af619b15b5fc9416b09b754a1bf7d7ee5d7488a327af4561135dab17718bbec",
+      "telemetry_sha256": "c40a5dbf368e624039779088290228393afab8967a1c163613d8eb7520bac63a",
+      "normalized_recipe_sha256": "4e6cf5d7ef053e824ee55bda2d03df9ba4a5efef413c7720e1e612d33dcdba51",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "1221c2f9-0e99-49d8-9817-7394c684c125",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.881488538494402,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "b436dca735b5fb6c24d3e721c6795243bfef3b65b2f98f967ce4bead86b8decd",
+      "telemetry_sha256": "4d92bcaed352fc169e759bb66ab36cce76efb6f804dbc38682101768f6ae575a",
+      "normalized_recipe_sha256": "e7a352a50714d141467d58795ab2ca001967b99ce0d9f59702cfc27cd720b35f",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-low",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "842932d6-8933-4a7b-a31b-f3ab110b2012",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 29.880266512161132,
+      "min_ttc_s": null,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "bb772ea534401887aacf01251da8fc572865dfdcf14d960a34116c4496767291",
+      "telemetry_sha256": "b1907edcc31f2350b67cee70e49e8402d1954be4aea32aab963cfa95a3b4944e",
+      "normalized_recipe_sha256": "711c77207f161397ac5929531f5cf6288d5d61914744370b15cffccfa4f90880",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -29.64497915900042,
+            "y": 24.568258598715357,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "030093e3-543b-4317-a487-ef1f349722b3",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.13972427755993852,
+      "min_ttc_s": 0.09833877765335797,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "c1e2a2cacb48bb55abbf88e1d06508712d2d3510c9c46f03c4b742f6237ddfd0",
+      "telemetry_sha256": "6f8f85449e7581cd5988e4f64a6b55a0a0b33d3abbdaff591d92d7daef66adc8",
+      "normalized_recipe_sha256": "29fe3c2f61b748d2a16c4a589658a1ae4d138a8093921966cdb1abdcb08cd9c6",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "dbdeafd4-c066-4b01-9404-20dbd0214bb3",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.14707697837875805,
+      "min_ttc_s": 0.10119520876373218,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "4df824b4bed7528da6f2f45c5ad7933b0ff0aa9278b7254ee3061505c5ee7f73",
+      "telemetry_sha256": "677dc6648c5119d48d641a1c0a75d551be127b10f21fdf0d23973098bccafe3d",
+      "normalized_recipe_sha256": "7eed8bbd9ce9b97981551a8ce1b9ad66ea25ae034801806ac3cace4b444cc6cd",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "ba605b52-4221-429e-a053-8a3e7fa26c26",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.14735803605444445,
+      "min_ttc_s": 0.10130474883889978,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "932c0836a627731185e293166e062e02926106d2b65be5c36b4a12638e50cc60",
+      "telemetry_sha256": "c01b0c98614e9a98b851a1cc07db569d59857bc94e8aa22fa7e3029a05a6adda",
+      "normalized_recipe_sha256": "0f0571b5e5e91976db2f374404c82fc62c173b8aacdaf1c45f20d3e6e80c2840",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "994e273f-d6bc-4c3f-b5e5-71f4cce4770f",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.3024328282932599,
+      "min_ttc_s": 0.14616940285340607,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "47b18337731a32950cc58a557fe86e04582990f6ff877b237ea4cce4c2db66f7",
+      "telemetry_sha256": "4bc250084d2eaaf9c534be979def435c3b3719793dde3e298609b0068b275a6f",
+      "normalized_recipe_sha256": "10e00be2ec0e229aab3f7bf67e506691a89e3eee0004e7429bfcb7b3e8f25168",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "e093d4d2-631a-4403-aefa-a535211060ca",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.14735421405850538,
+      "min_ttc_s": 0.10130316524039878,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "150959f7a2b8b5bbb46e443b9723253bf68d0dae4db4e0b0dda01ee9321c1676",
+      "telemetry_sha256": "18c1a95d668f425d6ce34271e5a0551afa33c879b9d47f65d816c0a0c4c70570",
+      "normalized_recipe_sha256": "56abdd7a8cd527af13e85f6eff75961da40120159831dff189c4f457a5c31151",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "1886aa7d-c7bd-4b13-aaa9-16e1d47206c0",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "39e8cd3662f5a8452c85b683a3682201653ac84c47c3237159c9924527452180",
+      "telemetry_sha256": "627c5f6936b29b6d5407ca9480e2960447bb1fcbcf7cf7a1568c9623d3a0253f",
+      "normalized_recipe_sha256": "0646440cc1982b44f159f214584822d1eaa6bf2207160025af658739d6249b62",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "d31f2bef-fb05-47d5-bc23-f15d1743619d",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.14678565200555946,
+      "min_ttc_s": 0.10108298517553993,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "79893d97fb29e3557aaedaf3ed5f291de027f0b02da62340266799ed02b2435b",
+      "telemetry_sha256": "b305c6e1511b1cefe8d6a179085d017bed9688fc6d69a6b16746752248c83736",
+      "normalized_recipe_sha256": "084d664434ab59d1b47fc0f09aeaf8fb93e42bdf3ab753c185f0d97a96d402fb",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "e7937a70-f97e-4327-bffd-9ccfb09cc06d",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.14735696989957064,
+      "min_ttc_s": 0.10130416629477057,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "662addebb64d41209e378fefbde28f3f0507d02aca5b61e0dcef15af7ff35bb0",
+      "telemetry_sha256": "f5b53add6ce931fcbfd8508bcd97a784328b9acd445665de6e3cdad51119604b",
+      "normalized_recipe_sha256": "6b5203f40e4a539d1db102511d39e06d5f457a36734d113bfcc4e4a1dd03dab3",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -50.64489809670563,
+            "y": 24.509909564364072,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "9f35cc63-03f3-4034-b573-c480afe3ab52",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.03260630209143074,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "5750f9a3978c5a0f9ae86a63e2990ea6438731eeea0004b987bc4a9a0baa0abf",
+      "telemetry_sha256": "a85402c76ee251f559427aceb35fe331864cee722d1a646961e0c8d1629bcba3",
+      "normalized_recipe_sha256": "c8f5ca4a523f305978d0acf14070358059a7b5ad30ea3175a5b6c05f8275d8a9",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "6e9ff7b4-137e-40ec-ae17-1f9940eee16a",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0326063164381372,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "f171cf5b769872543a265d782ce12b3e6cd2d379ceebc358e3d554928cbdf100",
+      "telemetry_sha256": "af8e86f9a2dbde392848ece02ec4c0c8767a7198a5c6f9c08a4d1936d8fd76c3",
+      "normalized_recipe_sha256": "aa19b70c71e5c23c3a87d319374998d612544de02975576e25e08f5867e562c7",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "6ef3015f-12f8-40b4-9a89-b3a8ec06aefa",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.03260630209143074,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "b1eab10dafc2ed53496112cc19ffa33d5becc7fc9057791a5390a4ff62bb093e",
+      "telemetry_sha256": "eafc6d8b2aebc0229bdb7c3ba3c96f383096ae00869980a0862fe9b200975dc2",
+      "normalized_recipe_sha256": "df5b37a3ff3363a81644f90f4d5b7cc0c88c6475cfff394c3e6a64965429e838",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "e8285c57-577d-4f64-8217-36f203b09bc4",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.03260630209143074,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "457b1dac36db3306b7ffd8dcd4948f4fbfe848c3d62b01915b159167ef535a6f",
+      "telemetry_sha256": "e87279084ebf5548e4e00adcb3cb5dd9a3a8721186e90f8972e42087f48776ea",
+      "normalized_recipe_sha256": "5e43e3bc8387887c06e7cf63cbcea491569a5e0e50787cd029852d5e2d9263e5",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "7eb27dcf-5b31-4378-a4a1-95c94db52a5e",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.03260630209143074,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "8e219929af0df694ff05a81e14e8053359f120dd16e8ec4016d6628691e17a31",
+      "telemetry_sha256": "b8ca0a6d4bc1746b821d2d5d3fd1353e2ab88d38b71060025ff1a9c1bc9a4a66",
+      "normalized_recipe_sha256": "af59826291266ff591730fdb53d96f12022b6a104287635b7a621fbe09e318f7",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "4dbd262a-bf52-4151-a06d-fbb25730593d",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.03260630209143074,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "a093c37b92e478b6abae187c9e4041379be459c21401422b7669a61589d3b50b",
+      "telemetry_sha256": "09f2c83a233bd51928265d69575cbc9d88b65dd4b0efd86984d9d5c46e70a797",
+      "normalized_recipe_sha256": "50f4ddd4537bcc32b637e04c7c84396578bc97ff4e9aa941478cb2f5c7e94127",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "0b745f63-e167-476a-a453-bf48eef6ac07",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.03260630209143074,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "06ae4ee559ea599d69e36f4fe8c49b78e0adce5b683001413795250a1b4304e8",
+      "telemetry_sha256": "c79e262156c2cae62e1996486cf621e2a9c3ba324341c4494f6544371a4acb08",
+      "normalized_recipe_sha256": "4f0a416db4e890a608a14eb2935372396b10c1731e5cf2523c224c9ca056f65b",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "sudden_braking-high",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "d3e14426-e6f3-4601-95e9-808b3a798563",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.03260630209143074,
+      "min_ttc_s": 0.004486462298574136,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "410b7568fb31d9be91bb9cec553437c649bd0dde379f5bd61ea44a13aed6eda4",
+      "telemetry_sha256": "9431cbec91e6166c935ab09cc68756ea1779224de28c5786a0b9900da7af6a79",
+      "normalized_recipe_sha256": "5c886ce49c01bf678dd32b35ba69ad03cbcd7d1571b498ca7ad216a25f1833e1",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -64.64484405517578,
+            "y": 24.471010208129883,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": 0.0
+          }
+        },
+        "lead": {
+          "position": {
+            "x": -59.144865285776795,
+            "y": 24.48629209807903,
+            "z": 0.5999999642372131
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919798612594604,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "f29687f1-991a-43e0-ada2-04c7747aa90d",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 5.1161177048985556,
+      "min_ttc_s": 6.4313417045430805,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "46128859b0a444c53f67937a66a07af237e510c5ceac79530d31be4d2fad4383",
+      "telemetry_sha256": "296aba5932583c735a527630c51933aae291e836cad8ac0260ce7cc72d29871d",
+      "normalized_recipe_sha256": "a667a6f42cf2cd651b15cc31c626e441c604e39908958731c66f45fdbf1f8224",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -0.19075477123260498,
+            "y": 137.2099609375,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 0.3521270751953125,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 35.7864407032184,
+            "y": 141.03113952442075,
+            "z": 0.4999999999999912
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": 0.3521270751953125,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 39.7839068670463,
+            "y": 141.4557149229675,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": -89.64787292480469,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "aafaa767-84cf-46db-853b-62a75930e7d6",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 5.086633289117797,
+      "min_ttc_s": 6.431351428154846,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "eda024da9a2620c78ea1d668c3972036ae95f5a91c8c89a672da9b36624606e8",
+      "telemetry_sha256": "e83e168459473bc09ccdc6fc7da1943340f1f98765edb40f25d38cd295e37b63",
+      "normalized_recipe_sha256": "8b8fab6c21ac66c7d7067ddb5f4abd3ed3bb57624112755a3f2f566c915167aa",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -110.17086791992188,
+            "y": -6.286602973937988,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 90.6422348022461,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -114.17416133996745,
+            "y": 29.67078349661935,
+            "z": 0.4999999999999912
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": 90.6422348022461,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -114.61897171997252,
+            "y": 33.6660486600146,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 0.6422348022460928,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "2387f520-4006-4d03-8e3d-030e5505903a",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 4.375674251189674,
+      "min_ttc_s": 6.431361852707998,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "e924c4e638adb60408dda44250e55443371c2d84022cc8182aaffb35497d5883",
+      "telemetry_sha256": "704da9d253e312091890721e02685db85ccb74a3d163f449ed8fdf8b1fd50797",
+      "normalized_recipe_sha256": "11f0c0a7d125ccc5c11e2646fe36c0516023814a3c5f54294ec0366fa693da3a",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 7.7860870361328125,
+            "y": 137.30043029785156,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 1.0912076234817505,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 43.71099985098894,
+            "y": 141.58536194782982,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 1.0912076234817505,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 47.7026568304174,
+            "y": 142.0614654644941,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -88.90879237651825,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "a05d1f31-5a5b-4349-95b4-eef43fcedc62",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 5.129096121068488,
+      "min_ttc_s": 6.431354303785524,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "07581ca9150a5d91223b58c8d1a7aae461dfd2db163d17995f50c9d68b9920ee",
+      "telemetry_sha256": "5ebece3b02d97654e4bd54e411aa83501db2aaad55df6303a0e0886fb148edec",
+      "normalized_recipe_sha256": "84ab29c3974e5afc308ff7f15ceb9fb5b966b8d41cbbc1ec6e48498c37696f37",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 23.811246871948242,
+            "y": -64.40670013427734,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 179.97657775878906,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -12.190221782785514,
+            "y": -67.99198320569909,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 179.97657775878906,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -16.190384966644814,
+            "y": -68.39034799141261,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 89.97657775878905,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "51fac77b-5830-4c5f-8d0a-e3ec5177769c",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 5.074479191091388,
+      "min_ttc_s": 6.431412799188296,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "eea4dfbb86db21f5c2c616cfc6e3d311cd1bf503be1eb128e8a3cb1453097bce",
+      "telemetry_sha256": "4cfb4017f7acb07d43449c1ab2a74438c75ee856396275a7163560c473698087",
+      "normalized_recipe_sha256": "cdbd9e034adc4091d7e70ae30f34a12d5fe27119b79e661c0307283651090fcf",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -18.16890525817871,
+            "y": 133.59939575195312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -179.6478729248047,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -54.14610073262972,
+            "y": 129.77821716503237,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -179.6478729248047,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -58.143566896457614,
+            "y": 129.35364176648562,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 90.35212707519531,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "e8478b78-de6f-4fd4-9cfe-d2027246f168",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 5.08653611293245,
+      "min_ttc_s": 6.43133941900445,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "b3225175c50194c11d311bc511b5bcbedb403465fb3e83a2044917bb81cacd22",
+      "telemetry_sha256": "9793a4d7a1aef76666aebd1c2622f25c3e87bc8d35bc11c0a2371346a08a9497",
+      "normalized_recipe_sha256": "5d982b507e8dcdbc854d1fca5750fa9e3e22067ed5a2b0b5578f0c6c691c21ea",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -25.800437927246094,
+            "y": -61.26321792602539,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.5967352390289307,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 10.160116289323213,
+            "y": -57.28848014383405,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.5967352390289307,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 14.155733424497583,
+            "y": -56.846842612479456,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.40326476097107,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "4ab8df10-3d05-4dc1-93e3-965a166213a4",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 5.086532589627287,
+      "min_ttc_s": 6.431368374236123,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "f9e6d5a61aa9e26fdae3745570318993bc620e366b8a6e8856e88e6ca4106480",
+      "telemetry_sha256": "c7e8997216cc86c62f089056d5f115c9b3ebb945bbe17e7e1b738c37ef0070f8",
+      "normalized_recipe_sha256": "9be221586c2c0796fdb18b05922ee97a1b1f9a6548c82d31effbc2699b85230c",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 53.36925506591797,
+            "y": 134.15017700195312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.32044982910156,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 17.389952466534453,
+            "y": 130.3488897907581,
+            "z": 0.4999999999999912
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": -179.67955017089844,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 13.392252177714063,
+            "y": 129.92652454506978,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 90.32044982910158,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "ddfdca18-2ea8-494f-8637-7ee50f554ac6",
+      "observed": "clear",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 4.681915916757216,
+      "min_ttc_s": 6.431961529679243,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "f13c3e2b10785c659556669b0796f1b87d568088af0021ba081cc2ad4e1a87fb",
+      "telemetry_sha256": "d713412b7c7ed1c0b783ea2dcef9e21b8c3f26fa408a4427582bef1f6c01b7d4",
+      "normalized_recipe_sha256": "026426e5fc50b1643d182ea1d4cb4dcfe54085f222d4b3e4d3a5e308257375ec",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -48.85201644897461,
+            "y": -14.804238319396973,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 450.1412048339844,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -52.54072704031472,
+            "y": 21.18678020152482,
+            "z": 0.4999999999999912
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": 90.14120483398439,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -52.950583772685846,
+            "y": 25.185782259405016,
+            "z": 0.49999999999999023
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 0.1412048339843929,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "3418474e-cfe2-49d4-8461-02b39574c18c",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [
+        "occluder"
+      ],
+      "min_clearance_m": 4.290390028943306,
+      "min_ttc_s": 1.3756238433723218,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "5975d4ba6f42e7ec119bce065c1205a04bedcd414ffae57794751841829f1dff",
+      "telemetry_sha256": "cf2a2250908795023a1656bcedd08fe273019a428e083644e9b2db3b1ad9412d",
+      "normalized_recipe_sha256": "f0987b3514a619a36e049e139808f66b56eeb249aea9a822a3db92b53e9c7efe",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 57.81410217285156,
+            "y": -57.420589447021484,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 359.9765625,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 78.81553213123455,
+            "y": -53.929180032023936,
+            "z": 0.49999999999999484
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": -0.02343750000003007,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 81.81573641100354,
+            "y": -53.43040725845286,
+            "z": 0.4999999999999941
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": -90.02343750000003,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "e0825963-64c4-466b-98c4-8bd42d527931",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 4.491320218848665,
+      "min_ttc_s": 1.3756238433723218,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "f8b9bb15272b993471469fca0f34ced126bcb4d606154653c4579bdff861677e",
+      "telemetry_sha256": "e2275471d30a935b51fb1a96224a310772f172a63555c74b5df2a2af484b0982",
+      "normalized_recipe_sha256": "2c2aabe1aaf2f95967e6f374413c14cf21d661f6228594abd954a481602c726c",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 57.81410217285156,
+            "y": -57.420589447021484,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 359.9765625,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 78.81553213123455,
+            "y": -53.929180032023936,
+            "z": 0.49999999999999484
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": -0.02343750000003007,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 81.81573641100354,
+            "y": -53.43040725845286,
+            "z": 0.4999999999999941
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": -90.02343750000003,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "8876827b-308d-457c-b286-a214ae5eafbe",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.16654859463495006,
+      "min_ttc_s": 0.3892163530339152,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "77dacf5afbed861209681ccbc19dbf29c5a658fcbc6ee72affccff74229c2fdb",
+      "telemetry_sha256": "8d39d8d7d23f02827a1b245bd0b3a49a37bc85077ade0a41660a0a13499c5326",
+      "normalized_recipe_sha256": "802247eb5d738a7cea61d7e1c6e53e78978879e3859d5b7084f013af1b72f4ae",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 7.7860870361328125,
+            "y": 137.30043029785156,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 1.0912076234817505,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 28.715624557783222,
+            "y": 141.19971986517373,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 1.0912076234817505,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 31.705558489447565,
+            "y": 141.75676123193406,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -88.90879237651825,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "fe37bb36-d359-4e86-aecb-daf0a96822f6",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.471182985821006,
+      "min_ttc_s": 0.7109660370094657,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "fec823692f8b7a820aed6830d54819b4f5d45eb8fb6484baed2f81679fbab6a8",
+      "telemetry_sha256": "434d92bdccd1d06a3c0f17b7d413bbf006f97dbbacf11a6e33ba1eb8e8001cb5",
+      "normalized_recipe_sha256": "69176e1c16ae4c424bb6c44e7f811e9b94907a9de653a4627f431cf22dbc2430",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 23.811246871948242,
+            "y": -64.40670013427734,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 179.97657775878906,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 2.809817843384568,
+            "y": -67.89811514229389,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 179.97657775878906,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -0.1903863035530975,
+            "y": -68.39688871486767,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 89.97657775878905,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "590de08c-7cfb-4f66-913d-1387b416558c",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.4711265439907726,
+      "min_ttc_s": 0.7110361198458678,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "5f7279519595e4c9df97b0f9e47bb425f9864b5d446be56142658bf64b996dc2",
+      "telemetry_sha256": "ad70986211e8533d7df873d8b541774abe1500462bb4e3b06ad9f950be384cc8",
+      "normalized_recipe_sha256": "6f786aeacf6b0e5aa8ca9078b0bf183e4713656c1a2ccee1813454a266bcb1f4",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 15.273807525634766,
+            "y": 28.22647476196289,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919755399227142,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 36.26400165111896,
+            "y": 31.784810127620403,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.15919755399227142,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 39.26260081190241,
+            "y": 32.29314375128576,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.84080244600773,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "12d9f007-ddbe-4d1f-baab-cd16ab1504c2",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.471092464138211,
+      "min_ttc_s": 0.7110345663564331,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "5c5de17ccc74d5533dd488dfea5754dad3d9793ec2c3ba972840bfcafc9aa401",
+      "telemetry_sha256": "762fb87022d0c778ee5e198535e0aa0067e2b77ae03dec356b18a5992d940838",
+      "normalized_recipe_sha256": "192248bc374097d87e274e938d4a454c02d051a5acda1bb6cc413dabb826d6e0",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -25.800437927246094,
+            "y": -61.26321792602539,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.5967352390289307,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -4.838028696534135,
+            "y": -57.5446968162074,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.5967352390289307,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -1.843398806432429,
+            "y": -57.01347951480483,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.40326476097107,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "0578c9ef-4a38-4694-b587-bfd07647073a",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 1.471121553604818,
+      "min_ttc_s": 0.7110328832976094,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "3c69eb5eacde974d16961b46f1f4044fc1ad1b2650448926b44239d2528d8163",
+      "telemetry_sha256": "edcc16d57d68395f4d6a8665cfa710229f7feb89b81c8d03a0fb8f669828d491",
+      "normalized_recipe_sha256": "3bdfbd1479fae0c5b4fbac8b6bbfe176fe64dd7ce0d36c0a05261438e0519882",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 53.36925506591797,
+            "y": 134.15017700195312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.32044982910156,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 32.38915857523686,
+            "y": 130.53278135843965,
+            "z": 0.49999999999999484
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": -179.67955017089844,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 29.39200193371099,
+            "y": 130.01601055222343,
+            "z": 0.4999999999999941
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 90.32044982910158,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "43c608f1-94eb-4cfe-9c7b-ecdb2685c4db",
+      "observed": "critical_avoidance",
+      "target_collision_count": 0,
+      "all_actor_collision_count": 0,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.5113235623735498,
+      "min_ttc_s": 0.5126342604833733,
+      "overall_severity": null,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "f83ca7657974621ee2b776cff0ab004446ce02e8162eb60b9663b48a85647250",
+      "telemetry_sha256": "e1b5a13292867753884de99385ee32165e90433ffaea8dfca35d17076847eb7e",
+      "normalized_recipe_sha256": "7d23fe313fa5262d8e767d416751c647ba9ac2b7094e9801c5e3faef29854cca",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -48.85201644897461,
+            "y": -14.804238319396973,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 450.1412048339844,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -52.40376004233,
+            "y": 6.187072202984879,
+            "z": 0.49999999999999484
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": 90.14120483398439,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -52.91115198423791,
+            "y": 9.18583084903943,
+            "z": 0.4999999999999941
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 0.1412048339843929,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "calibration",
+      "seed": 7,
+      "simulation_id": "140338af-6d1d-4b4a-b434-bad8e38719f2",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.15620646168236418,
+      "min_ttc_s": 0.022448163567579435,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "f6e472eb5cdf6e711763295170d50721e2f4cec6b53919b1c015b27618799100",
+      "telemetry_sha256": "fc9b926129294e5d06067f40699bcbb12a3de44ebe37de8015e94870ca2d9226",
+      "normalized_recipe_sha256": "9b7c69192abfc26ad99540fd499b3a0ca6e409ba93d14ac98465e92e5e2f5a81",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -0.19075477123260498,
+            "y": 137.2099609375,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 0.3521270751953125,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 9.789302218127029,
+            "y": 140.48564333086404,
+            "z": 0.49999999999999756
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": 0.3521270751953125,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 13.78132501387088,
+            "y": 141.79591628820967,
+            "z": 0.49999999999999656
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": -89.64787292480469,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "calibration",
+      "seed": 11,
+      "simulation_id": "782ad9de-fd13-4f1e-a095-2205095f7850",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "2910e3b2731344f13756761dbe6761cb3b56b7149b3806c49f0adfd71a338e81",
+      "telemetry_sha256": "5d1e64a19ecbfdc1586b80dfda54aeb90fde6884c5cc7e75d5249d73334e054e",
+      "normalized_recipe_sha256": "c2aa45f3c4e98498aa30ea73787a6162cf2f3da4adef1e7797665b05dc34e125",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -110.17086791992188,
+            "y": -6.286602973937988,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 90.6422348022461,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -113.49704047961043,
+            "y": 3.6767402780149467,
+            "z": 0.49999999999999756
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": 90.6422348022461,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -114.82750950348586,
+            "y": 7.662077578796122,
+            "z": 0.49999999999999656
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 0.6422348022460928,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "calibration",
+      "seed": 19,
+      "simulation_id": "c818a38f-c9c9-4a06-adb4-d27bef8e71f6",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.19863337827180672,
+      "min_ttc_s": null,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "result_sha256": "71e52c5d49d25132c4e0b6d7e1c1ff36ebe4ae1f4267e45c2e1e4e67e1b75f08",
+      "telemetry_sha256": "1c1adc442e626a6c447decdaa2cd589010e7304cf0ca13eaa7aa31f7cd3f5dfe",
+      "normalized_recipe_sha256": "9ce17cca27ded0c5e4754372325d7d2412da70911b7ae76517ebc037753cb618",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 7.7860870361328125,
+            "y": 137.30043029785156,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 1.0912076234817505,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 17.72306059537646,
+            "y": 140.70457323491428,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 1.0912076234817505,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 21.697850019073915,
+            "y": 142.06623040973935,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -88.90879237651825,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "benchmark",
+      "seed": 23,
+      "simulation_id": "a941bc42-94a6-40d0-94d1-a9586e5b47ce",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "d0b0c6f2b383c2b3614571b45cc55efc321f74a982530f5f6f47afd79b92b79d",
+      "telemetry_sha256": "edf66ca07f32cc3084ca1d2ffbad14b19fdc54c8e727a50e352e44beca1ec2f5",
+      "normalized_recipe_sha256": "d63e6cf683c8fa1a5e636b342af0c6267accdf421c368a3a399c5aff329d8e78",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 23.811246871948242,
+            "y": -64.40670013427734,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 179.97657775878906,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 13.80993372289325,
+            "y": -67.61689762782832,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 179.97657775878906,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 9.809408463271254,
+            "y": -68.9009766252487,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 89.97657775878905,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "benchmark",
+      "seed": 29,
+      "simulation_id": "96a350b1-8433-4e90-9c14-08a49f6b8a68",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "f2da3c1904f748bd0d3ed36ce67c69ffd8c72725e51bd7c56b274c2d4431bc70",
+      "telemetry_sha256": "f7c7a0e21c3917ed886b4bd73257962495c5d086913af25b4e9c9503aaf714e6",
+      "normalized_recipe_sha256": "0af12a21d28fcb00940c05d979cba5e9313c2d6176b55c234e096084b920d6f4",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -106.53657531738281,
+            "y": -18.246618270874023,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.3577651977539,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -103.21040275769425,
+            "y": -28.20996152282696,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.3577651977539,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -101.87993373381883,
+            "y": -32.195298823608134,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -179.3577651977539,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "benchmark",
+      "seed": 31,
+      "simulation_id": "cb7735df-7d6a-407f-a3ff-24b057f14dda",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "65c18ab0fc418d9af34b1ac742fada9b1adecaa89033408dc3524ca3c0bc7f2b",
+      "telemetry_sha256": "e61bb7035325c06da2008348ac907d6bf5a2f37359fdfcba1dd1e672789a945c",
+      "normalized_recipe_sha256": "cfd96315dde962a8a93d5c45e6c61e96e0c9b90048349ef6f1e0ea4cfce0a231",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -25.800437927246094,
+            "y": -61.26321792602539,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.5967352390289307,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -15.834456446328419,
+            "y": -57.94495847639413,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.5967352390289307,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -11.848063853961348,
+            "y": -56.61765469654162,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -89.40326476097107,
+            "roll_deg": -0.0
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "benchmark",
+      "seed": 37,
+      "simulation_id": "5023966a-66bd-4e04-8dd1-3eda7a7433ce",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "2b30239d2d42b1b7b0da0841efdf6e3e7a89cae10cc3c3610f3305b5020c875e",
+      "telemetry_sha256": "5d668713936717fcaadfc0b3064bac23de8e863b426ac422e470435160f38a9f",
+      "normalized_recipe_sha256": "1abc5f4d95a5d036461afa65ddef0fde35b015eb9d6881db06c5184b09dcb5b0",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": 53.36925506591797,
+            "y": 134.15017700195312,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 180.32044982910156,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": 43.38738856807129,
+            "y": 130.88001280542915,
+            "z": 0.49999999999999756
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": -179.67955017089844,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": 39.39464196893262,
+            "y": 129.57194712681957,
+            "z": 0.49999999999999656
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 90.32044982910158,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "phase": "benchmark",
+      "seed": 41,
+      "simulation_id": "f6f1e0e0-9fb4-46af-bd7f-a90bcfb967df",
+      "observed": "collision",
+      "target_collision_count": 1,
+      "all_actor_collision_count": 1,
+      "other_contact_ids": [],
+      "min_clearance_m": 0.0,
+      "min_ttc_s": 0.0,
+      "overall_severity": 100.0,
+      "full_evaluation_coverage": false,
+      "source_directory": "s0-v1-benchmark-heldout",
+      "result_sha256": "2aa110a3e485d62cf2f1115e62935cab05a5d2d25e4fccd6f99c3d86026f607e",
+      "telemetry_sha256": "42e9499c7c77f4b42720f03c5c9ea142f6ecd91b0810fbe05775167c8ada10c1",
+      "normalized_recipe_sha256": "be41b8d4686398746ed4711f33b755d8e2e28c7c0fccf6f6c71ae983e4352eed",
+      "resolved_spawns": {
+        "ego": {
+          "position": {
+            "x": -48.85201644897461,
+            "y": -14.804238319396973,
+            "z": 0.5
+          },
+          "rotation": {
+            "pitch_deg": 360.0,
+            "yaw_deg": 450.1412048339844,
+            "roll_deg": 0.0
+          }
+        },
+        "occluder": {
+          "position": {
+            "x": -52.0909372697298,
+            "y": -4.812190252562038,
+            "z": 0.49999999999999756
+          },
+          "rotation": {
+            "pitch_deg": -1.4033418597069752e-14,
+            "yaw_deg": 90.14120483398439,
+            "roll_deg": -0.0
+          }
+        },
+        "pedestrian": {
+          "position": {
+            "x": -53.386505598031874,
+            "y": -0.8153710258280622,
+            "z": 0.49999999999999656
+          },
+          "rotation": {
+            "pitch_deg": -8.592990582998206e-31,
+            "yaw_deg": 0.1412048339843929,
+            "roll_deg": 1.4033418597069752e-14
+          }
+        }
+      }
+    }
+  ],
+  "scope": "Controlled green-signal CARLA 0.9.16/Town10HD_Opt ground-truth baseline on one Windows laptop. Small repeated trials are descriptive; seeds do not imply independent layouts or population crash-probability inference."
+}

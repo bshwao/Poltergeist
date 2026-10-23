@@ -6,6 +6,7 @@ import { makeGenerateRequest, parameterDefaults, parseRecipeJson, readDurationFi
 import { bindScenarioForm, reconcileSave, sameRecipe } from "./scenario-workspace";
 import { SavedScenarios } from "./SavedScenarios";
 import { LaunchPanel } from "./LaunchPanel";
+import { StressPresets } from "./StressPresets";
 
 type RequestFailure = { message: string; issues: { path: string; message: string }[] };
 type RecipeStatus = "empty" | "generated" | "edited" | "validated";
@@ -48,6 +49,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
   const [libraryVersion, setLibraryVersion] = useState(0);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [pendingLoad, setPendingLoad] = useState<ScenarioRecord | null>(null);
+  const [pendingPreset, setPendingPreset] = useState<Scenario | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveNotice, setSaveNotice] = useState<{ error: boolean; message: string; conflictId?: string } | null>(null);
   const serial = useRef(0);
@@ -62,7 +64,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
     mounted.current = true;
     return () => { mounted.current = false; serial.current += 1; activeRequest.current?.abort(); };
   }, []);
-  useEffect(() => { if (pendingLoad) loadPrompt.current?.focus(); }, [pendingLoad]);
+  useEffect(() => { if (pendingLoad || pendingPreset) loadPrompt.current?.focus(); }, [pendingLoad, pendingPreset]);
 
   function associate(record: ScenarioRecord | null) {
     savedRef.current = record;
@@ -76,6 +78,7 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
     setBusy(null);
     setLoadingId(null);
     setPendingLoad(null);
+    setPendingPreset(null);
     setFailure(null);
   }
 
@@ -134,6 +137,14 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
     associate(record);
     acceptRecipe(record.scenario, "validated");
     syncForm(record.scenario);
+    setSaveNotice(null);
+  }
+
+  function applyPreset(result: Scenario) {
+    invalidate();
+    associate(null);
+    acceptRecipe(result, "validated");
+    syncForm(result);
     setSaveNotice(null);
   }
 
@@ -292,6 +303,14 @@ export function ScenarioBuilder({ templates, active = true, registryRevision = 0
       <SavedScenarios currentId={savedRecord?.id ?? null} refreshKey={libraryVersion} loadingId={loadingId} writing={saving} onLoad={(id) => void loadSaved(id)} onDeleted={(id) => { if (loadingId === id || pendingLoad?.id === id) invalidate(); if (savedRef.current?.id === id) associate(null); }} />
       {pendingLoad && <div className="notice warning-notice load-confirmation" role="region" aria-label="Replace workspace draft" tabIndex={-1} ref={loadPrompt}>
         <strong>Replace the current draft?</strong><p>Load “{pendingLoad.scenario.name}”, revision {pendingLoad.revision}. Unsaved workspace edits will be replaced.</p><div className="saved-item-actions"><button className="button primary small" type="button" onClick={() => applyRecord(pendingLoad)}>Load saved recipe</button><button className="button secondary small" type="button" onClick={() => setPendingLoad(null)}>Keep current draft</button></div>
+      </div>}
+      <StressPresets active={active} disabled={busy !== null || saving} onLoad={result => {
+        if (busy !== null || saving) return;
+        if (dirty) { invalidate(); setPendingPreset(result); }
+        else applyPreset(result);
+      }} />
+      {pendingPreset && <div className="notice warning-notice load-confirmation" role="region" aria-label="Replace workspace draft" tabIndex={-1} ref={loadPrompt}>
+        <strong>Replace the current draft?</strong><p>Load “{pendingPreset.name}”. Unsaved workspace edits will be replaced; existing saved recipes remain in your library.</p><div className="saved-item-actions"><button className="button primary small" type="button" onClick={() => applyPreset(pendingPreset)}>Replace with stress preset</button><button className="button secondary small" type="button" onClick={() => setPendingPreset(null)}>Keep current draft</button></div>
       </div>}
       <section className="template-section" aria-labelledby="template-heading">
         <div className="section-heading"><div><p className="eyebrow">01 / Choose a starting point</p><h2 id="template-heading">Scenario templates</h2></div><span className="muted">{templates.length} available templates</span></div>

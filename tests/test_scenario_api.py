@@ -11,6 +11,7 @@ from backend.main import create_app
 from backend.services.persistence_service import PersistenceService
 from scenarios import build_scenario
 from scenarios.parameters import get_parameter_specs
+from scenarios.stress_presets import STRESS_PRESETS
 from shared.models import ScenarioTemplate
 
 
@@ -32,8 +33,20 @@ def test_pure_scenario_routes_do_not_initialize_database_or_storage(api):
     assert client.get("/health").status_code == 200
     assert client.get("/scenarios/templates").status_code == 200
     assert client.get("/scenarios/templates/sudden_braking").status_code == 200
+    assert client.get("/scenarios/stress-presets").status_code == 200
     assert client.post("/scenarios/validate", json=recipe()).status_code == 200
     assert client.post("/scenarios/generate", json={"template": "intersection"}).status_code == 200
+    assert not settings.storage_dir.exists()
+
+
+def test_stress_presets_are_pure_canonical_recipes_with_a_validated_seed(api):
+    client, settings = api
+    response = client.get("/scenarios/stress-presets?seed=19")
+    assert response.status_code == 200
+    assert response.json() == [preset.scenario(seed=19).model_dump(mode="json") for preset in STRESS_PRESETS]
+    assert len(response.json()) == 12
+    for seed in (-1, 2**31, "invalid"):
+        assert client.get(f"/scenarios/stress-presets?seed={seed}").status_code == 422
     assert not settings.storage_dir.exists()
 
 

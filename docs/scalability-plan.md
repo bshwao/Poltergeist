@@ -1,11 +1,12 @@
-# Distribution and scalability: ten phases
+# Distribution and scalability: S0–S10
 
-Status: S1 private prototype in progress; S2–S10 planned. This roadmap records the proposed hosted dashboard/backend and
+Status: S0 implemented and locally validated; S1 private prototype partial;
+S2–S10 planned. This roadmap records the proposed hosted dashboard/backend and
 local companion architecture; it does not indicate that those services or the
 companion have been implemented. It is separate from the completed
 [autonomous driving integration roadmap](autonomous-agents-plan.md).
 
-Use the identifiers **S1–S10** when requesting implementation, for example
+Use the identifiers **S0–S10** when requesting implementation, for example
 "Implement scalability phase S1", to distinguish these phases from earlier work.
 
 ## User experience and scope
@@ -85,7 +86,7 @@ initial packaging work.
 
 ## Phases and completion gates
 
-Phases proceed in order. S1 has a private command-line packaging prototype;
+Phases proceed in order. S0 adds collision-stress calibration; S1 has a private command-line packaging prototype;
 its independent clean-machine completion gate remains open. Later phases are
 **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
@@ -96,6 +97,29 @@ synthetic prerequisites, CARLA client/launcher presence, explicit RPC/version
 checks, and untested execution. This is a small precursor to S1 capabilities and
 S3 diagnostics; it does not complete S1 packaging, define the hosted runner
 boundary, or provide a companion/installer. See the S1 status below.
+
+### S0 — Collision-stress scenarios and unchanged-baseline benchmark
+
+**Status: implemented and locally validated.** The [collision-stress catalogue and
+measurement record](collision-stress.md) contain twelve fixed presets, three per
+existing family, 36 selected live calibration trials and a 60-trial held-out
+baseline benchmark. The unchanged baseline had target contacts in 0/20 low,
+1/20 medium and 20/20 high benchmark runs. Results are scoped to the recorded
+CARLA/map/green-signal protocol; repeated seeds often resolved the same geometry.
+The dashboard picker, read-only catalogue API and JSON exporter make the recipes
+available without altering generic template defaults or the baseline controller.
+
+- Create twelve usable presets across intersection, pedestrian crossing, sudden
+  braking and occluded pedestrian scenarios.
+- Measure their collision/near-conflict outcomes in CARLA, retain failures and
+  cleanup evidence, and refine physical placement/timing using calibration seeds.
+- Freeze the recipes/protocol, benchmark the unchanged default baseline on
+  separate seeds, and publish per-preset outcomes and limitations.
+
+**Complete when:** all twelve presets have valid live calibration and a recorded
+baseline benchmark, with evidence for their measured danger levels, source
+identity and observation/cleanup coverage. This does not validate a perception
+model or establish general road safety.
 
 ### S1 — Prove packaging and define the split
 

@@ -767,6 +767,8 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     getAgentReadiness: (id: string, options: RequestOptions = {}) => request<AgentReadiness>(`/agents/${checkedId(id)}/readiness`, options, value => isReadiness(value) && isObject(value) && sameId(value.agent_id, id)),
     deactivateAgent: (id: string, options: RequestOptions = {}) => request<RegisteredAgent>(`/agents/${checkedId(id)}/deactivate`, options, value => isRegisteredAgent(value) && isObject(value) && sameId(value.id, id) && value.active === false, "POST", {}),
     listTemplates: (options: RequestOptions = {}) => request<TemplateInfo[]>("/scenarios/templates", options, isTemplates),
+    listStressPresets: (options: RequestOptions = {}) => request<Scenario[]>("/scenarios/stress-presets", options,
+      value => Array.isArray(value) && value.every(isScenario) && new Set(value.map(item => item.name)).size === value.length),
     generateScenario: (input: ScenarioGenerate, options: RequestOptions = {}) => request<Scenario>("/scenarios/generate", options, isScenario, "POST", input),
     validateScenario: (recipe: unknown, options: RequestOptions = {}) => request<Scenario>("/scenarios/validate", options, isScenario, "POST", recipe),
     listScenarios: async (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<ScenarioRecord[]>(`/scenarios${paginationQuery(pagination)}`, options, value => Array.isArray(value) && value.every(isScenarioRecord)),
@@ -816,7 +818,7 @@ export const api = createApiClient();
 export const {
   getReadiness, checkCarlaConnection,
   registerAgent, listAgents, getAgent, getAgentReadiness, deactivateAgent,
-  health, listTemplates, generateScenario, validateScenario, listScenarios, getScenario,
+  health, listTemplates, listStressPresets, generateScenario, validateScenario, listScenarios, getScenario,
   createScenario, updateScenario, deleteScenario, getSimulationQueue, launchSimulation,
   listSimulations, getSimulation, getSimulationProgress, getSimulationResult, getBehaviorAnalysis, cancelSimulation, getTelemetry,
   listFailures, getFailure, createFailure, updateReproduction, getAnalytics, artifactUrl, sampleUrl, reportUrl, getReport, getCaptureManifest, getCaptureSample,

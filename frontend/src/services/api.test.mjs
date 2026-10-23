@@ -110,6 +110,21 @@ test("template metadata and generation preserve the canonical request and respon
   assert.deepEqual(JSON.parse(calls[1].options.body), input);
 });
 
+test("stress recipes use a cancellable read and reject malformed or duplicate entries", async () => {
+  const controller = new AbortController();
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, `${API_BASE_URL}/scenarios/stress-presets`);
+    assert.equal(options.method, "GET");
+    assert.equal(options.signal, controller.signal);
+    return jsonResponse([recipe]);
+  };
+  assert.deepEqual(await api.listStressPresets({ signal: controller.signal }), [recipe]);
+  for (const body of [[recipe, recipe], [{ ...recipe, duration_s: -1 }], [null], {}]) {
+    globalThis.fetch = async () => jsonResponse(body);
+    await assert.rejects(api.listStressPresets(), ApiError);
+  }
+});
+
 test("validation sends the full edited recipe without normalizing it in the client", async () => {
   const edited = { ...recipe, events: [{ actor_id: "lead", parameters: { target_speed_mps: 0 } }] };
   globalThis.fetch = async (url, options) => {

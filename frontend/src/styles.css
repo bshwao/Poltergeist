@@ -315,6 +315,11 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .delete-confirm > div { display: flex; gap: 8px; }
 .load-confirmation { margin: 0 0 24px; }
 .load-confirmation .saved-item-actions { margin-top: 13px; }
+.stress-preset-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; margin-block: 16px; }
+.stress-presets details { margin-top: 16px; font-size: 12px; }
+.stress-presets summary { cursor: pointer; }
+.stress-presets details p { margin: 12px 0 0; line-height: 1.7; }
+@media (max-width: 600px) { .stress-preset-controls { grid-template-columns: minmax(0, 1fr); } }
 .recipe-name-field { margin: 21px 24px 0; }
 .custom-recipe-panel > p { padding: 24px; font-size: 12px; color: var(--muted); }
 .save-panel, .launch-panel { margin-top: 24px; }

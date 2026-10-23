@@ -49,6 +49,7 @@ beforeEach(() => {
   listCalls = 0;
   globalThis.requestAnimationFrame = callback => { callback(0); return 0; };
   api.listScenarios = async () => { listCalls++; return structuredClone(records); };
+  api.listStressPresets = async () => [];
   api.getScenario = async id => {
     const record = records.find(item => item.id === id);
     assert.ok(record, `Unexpected saved scenario ${id}`);
@@ -503,4 +504,73 @@ test("a delayed validation result cannot validate or replace JSON edited while i
   assert.equal(jsonDraft(), newer);
   assert.equal(button("Update saved recipe").props.disabled, true);
   assert.match(text(renderer.root), /Draft · needs validation/);
+});
+
+const stressRecipe = { ...structuredClone(templateRecipe), name: "intersection-medium", seed: 7, map: "Town10HD_Opt", duration_s: 8 };
+
+test("a stress preset binds the complete validated recipe without saving or launching", async () => {
+  api.listStressPresets = async () => [structuredClone(stressRecipe)];
+  await mount();
+  await edit("stress-preset", stressRecipe.name);
+  await click("Load stress preset");
+  assert.deepEqual(JSON.parse(jsonDraft()), stressRecipe);
+  assert.equal(field("scenario-seed").props.value, "7");
+  assert.equal(field("scenario-duration").props.value, "8");
+  assert.equal(field("scenario-map").props.value, "Town10HD_Opt");
+  assert.equal(button("Save new recipe").props.disabled, false);
+});
+
+test("loading a stress preset protects unsaved edits and detaches the saved identity only after confirmation", async () => {
+  api.listStressPresets = async () => [structuredClone(stressRecipe)];
+  await mount();
+  await openAndLoad();
+  await edit("recipe-name", "Keep these edits");
+  const before = jsonDraft();
+  await edit("stress-preset", stressRecipe.name);
+  await click("Load stress preset");
+  assert.equal(jsonDraft(), before);
+  await click("Keep current draft");
+  assert.equal(jsonDraft(), before);
+  await click("Load stress preset");
+  await click("Replace with stress preset");
+  assert.deepEqual(JSON.parse(jsonDraft()), stressRecipe);
+  assert.equal(button("Save new recipe").props.disabled, false);
+  assert.deepEqual(records[0], source);
+});
+
+test("stress catalogue failures can be retried without changing the workspace", async () => {
+  api.listStressPresets = async () => { throw new Error("Catalogue unavailable"); };
+  await mount();
+  assert.match(text(renderer.root), /Catalogue unavailable/);
+  api.listStressPresets = async () => [structuredClone(stressRecipe)];
+  await click("Retry stress presets");
+  assert.equal(field("stress-preset").findAllByType("option").length, 2);
+  assert.equal(jsonDraft(), "");
+});
+
+test("leaving the workspace aborts a stress catalogue read and ignores its late response", async () => {
+  const waiting = deferred();
+  let signal;
+  api.listStressPresets = options => { signal = options.signal; return waiting.promise; };
+  await mount();
+  await act(async () => renderer.update(React.createElement(ScenarioBuilder, { templates, active: false })));
+  assert.equal(signal.aborted, true);
+  await act(async () => waiting.resolve([structuredClone(stressRecipe)]));
+  assert.equal(field("stress-preset").findAllByType("option").length, 1);
+  assert.equal(jsonDraft(), "");
+});
+
+test("a hung stress catalogue request times out and cannot replace a successful retry", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const waiting = deferred();
+  let signal;
+  api.listStressPresets = options => { signal = options.signal; return waiting.promise; };
+  await mount();
+  await act(async () => t.mock.timers.tick(11_000));
+  assert.equal(signal.aborted, true);
+  assert.match(text(renderer.root), /Loading stress presets timed out/);
+  api.listStressPresets = async () => [structuredClone(stressRecipe)];
+  await click("Retry stress presets");
+  await act(async () => waiting.resolve([]));
+  assert.equal(field("stress-preset").findAllByType("option").length, 2);
 });

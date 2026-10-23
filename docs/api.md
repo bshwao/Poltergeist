@@ -66,6 +66,16 @@ do not install dependencies or write application data. `/health` remains process
 liveness only. Concurrent explicit probes are independent bounded reads, not a
 lease on the simulator or permission to share a synchronous tick owner.
 
+## Collision-stress catalogue
+
+`GET /scenarios/stress-presets` returns twelve ordinary `Scenario` recipes at
+seed 7. Optional `?seed=19` selects another integer seed in `[0, 2**31-1]` without
+sampling different parameters. There are three fixed levels per existing family,
+using Town10HD_Opt and eight-second windows. The endpoint performs no storage,
+queue, agent or simulator initialization. Read the [calibration and baseline
+benchmark](collision-stress.md) before interpreting the levels; regular dashboard
+launches retain the server's current signals, while calibration used fixed green.
+
 ## Generate, save, launch, and read a test run
 
 Start the API in one terminal. In a second PowerShell terminal:

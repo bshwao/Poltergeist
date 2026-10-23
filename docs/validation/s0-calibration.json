@@ -1,0 +1,617 @@
+{
+  "schema_version": "poltergeist-stress-calibration-selection-v1",
+  "catalog_version": "collision-stress-v1",
+  "baseline_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d",
+  "baseline_defaults": {
+    "target_speed_mps": null,
+    "emergency_ttc_s": 1.5,
+    "minimum_clearance_m": 2.0
+  },
+  "selected_trials": 36,
+  "all_recipes_matched": true,
+  "all_target_metrics_recomputed": true,
+  "all_states_restored": true,
+  "presets": [
+    {
+      "preset": "intersection-low",
+      "intended_stress": "low",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "5a34ddb5-c382-4675-8e3d-c62099417c44",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 6.5577060593751115,
+          "min_ttc_s": 4.037198237053566,
+          "overall_severity": null,
+          "result_sha256": "e8dde263d05e6d2788af424c8b2ad8f681e3d7a2a2ad7d8286e9d78f51319d43",
+          "telemetry_sha256": "c198be33f9d5ca701e5c96eb561656ca48b6feea84892a918b60772adc601ec1",
+          "normalized_recipe_sha256": "5691ac247cfaf09008a2ab348f06e1d6730e561d4e9581dac62c987d1aac8296"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "73047105-e7b8-4c3b-990c-e8be4d0d16d1",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 6.5555674540055175,
+          "min_ttc_s": 4.03719823047891,
+          "overall_severity": null,
+          "result_sha256": "1b2416991edcba8467fcbdc10f2b26058450ca6ded5ee4ffbb13fe651e9b9526",
+          "telemetry_sha256": "cbb174d85c136e3906e9caaaaa798ad1b724ca1044b2181105c28ee198b5a935",
+          "normalized_recipe_sha256": "6e593eeb76368daf033d249f86f99737da44aad24419f46fb8d835a8e3ecbd15"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "49b5ed3b-00cb-4bc7-8948-ae25a8d1c656",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 6.5611165886097975,
+          "min_ttc_s": 4.037198230484804,
+          "overall_severity": null,
+          "result_sha256": "52a69bdb7a8e23a0e3d8158ea1d261ca0f259ab91763364a9a98bc8c7f2d25f1",
+          "telemetry_sha256": "8ce0e85d656f20a8558eee06a178e0b8176b99a50ebb16041b7f5d9aed8df78e",
+          "normalized_recipe_sha256": "4ccd2603f053116d4d698eee6408d8c1a52c23dc7cbc95e520e9d2169866e591"
+        }
+      ]
+    },
+    {
+      "preset": "intersection-medium",
+      "intended_stress": "medium",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "ed854394-0ac9-41fa-a06e-b3c7ece82106",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.182492925503338,
+          "min_ttc_s": 0.6811389918229145,
+          "overall_severity": null,
+          "result_sha256": "267a04cdf088dc49896d9d5225e95011a445005522636d304699917175c72235",
+          "telemetry_sha256": "05207500f6c592488415a4ea2045b96a9a3e6446bf81eefc915d73fefc4c6ef5",
+          "normalized_recipe_sha256": "10df6f94b7701e552b3c89f07377aef1cdc6f2c42f20117a06f585fe75b46ed9"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "371b4b64-84de-4545-aad4-68482c565c36",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.182492925503338,
+          "min_ttc_s": 0.6811389918436221,
+          "overall_severity": null,
+          "result_sha256": "2b13cf35ce3568c62661d126ef43b7d5b6ab1d6436e7fdb95a9eddc9415bba6d",
+          "telemetry_sha256": "661f01d2ab342ca0cd891394d2c9e44513d7f5536cfc9ee3f52fd7ba291902e2",
+          "normalized_recipe_sha256": "94c3d27510a8a94c9769ecce9568cf2505060673e432b4ed364d2fd236719819"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "e1746de5-f1c9-43fa-98af-10dfbfe90cc2",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.6136673640914259,
+          "min_ttc_s": 0.653830350517009,
+          "overall_severity": null,
+          "result_sha256": "73be765566fd1d1b60a31876eee930eada735341f7e7a314554408057316fafc",
+          "telemetry_sha256": "0490fea19d92a36d7f9c2f1ed2c2d0a0ad93de8d33effda0c31b7b6a07b1a569",
+          "normalized_recipe_sha256": "be3a75be7c647140bcd5a8a9cf899bf8073c51c8486662c12fd3c4f8045f7698"
+        }
+      ]
+    },
+    {
+      "preset": "intersection-high",
+      "intended_stress": "high",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "a03fd37c-6530-4ace-88eb-3f807efe840e",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 2,
+          "min_clearance_m": 0.0,
+          "min_ttc_s": 0.0,
+          "overall_severity": 100.0,
+          "result_sha256": "f4c18687c67c9c12d9132de5042239bba58f7ac07cea7f3f589d9e761f72d261",
+          "telemetry_sha256": "2726c40e7bca4ea0b42a1cf3d11812be1f647dec3c6904904559fd405328b354",
+          "normalized_recipe_sha256": "04f5a6acd1630ca32e11a198be3ba276a166f9f07223306c17fe4f5f36897300"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "acdb9948-adfe-41f7-9dc6-ac8f73d5d838",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 2,
+          "min_clearance_m": 0.0,
+          "min_ttc_s": 0.0,
+          "overall_severity": 100.0,
+          "result_sha256": "aed502796227d27754d85693ae8a3138c384c9fc3d3dedca83c0e4175c4ae50d",
+          "telemetry_sha256": "76be419cd1ba11cf56e92014ee72ad7f4328ff1bd1e2229d00da020cb51b49ed",
+          "normalized_recipe_sha256": "b2659e3a4018fa21820faa29d280d7fa078105d461dd786ef66637a641e6ecc9"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "8e4224fc-9584-49f6-a7a0-7cf92ce1ad02",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 2,
+          "min_clearance_m": 0.0,
+          "min_ttc_s": 0.0,
+          "overall_severity": 100.0,
+          "result_sha256": "67cfd3261f9b68f2a0818c55fa713f22229deb24fd5d0f9f985b5a8f661d7eca",
+          "telemetry_sha256": "e0db95a41897e3bc85a8a947d3c1dfd271877b9d0a2d65f92c4277b3bcbbb162",
+          "normalized_recipe_sha256": "1ca1d8b7ac31fe7795d5feb1d3a9ac64fd86c4c5346c07c20ae4d303eee6f845"
+        }
+      ]
+    },
+    {
+      "preset": "pedestrian_crossing-low",
+      "intended_stress": "low",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "921dd0ea-853f-49f2-a964-f4f54682b303",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.9395475629780095,
+          "min_ttc_s": null,
+          "overall_severity": null,
+          "result_sha256": "4229b8928b96da891edc5d049553a0934f2f8d30c7dd09c7e72eae1e76c10792",
+          "telemetry_sha256": "3be01b6c633bf78223270950fd0d91941e87038f027631bd532e249087a123fb",
+          "normalized_recipe_sha256": "738d75716329517dd64c37e9d835ac3e45ead721394f70b5aa41d084d4ead849"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "7faf11ad-3e08-4af8-9454-4bfaab0ceb0c",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.8213194456621922,
+          "min_ttc_s": null,
+          "overall_severity": null,
+          "result_sha256": "d929c93633a59c31a2d165521b951aaa560b9d47351d7d53c2f6b5511ff46022",
+          "telemetry_sha256": "9b2b4c67aead975cf932e59ab0bb84ef56b9efb20aa89725bdf7e9ae8105665b",
+          "normalized_recipe_sha256": "997b46b55ee7c97b7f21daff04f5e14d878899a9c56ea53ef07a98241507869f"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "3b498256-2f7f-4a53-b9b4-d57cfac2190c",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.3752963263032232,
+          "min_ttc_s": null,
+          "overall_severity": null,
+          "result_sha256": "2cc19f4a0e5bbc5626479a51147b0c3c6fc91103c75634b47f99e9bd08dbed41",
+          "telemetry_sha256": "44a6b9ebc1dc6fe622f0620d6d505ff89f7a67c497647d950c7e285627ffd74f",
+          "normalized_recipe_sha256": "11dbd29c04cfb2d509ccee17535082c406053e51b83dfb92d30dd9fdbe9bf7e1"
+        }
+      ]
+    },
+    {
+      "preset": "pedestrian_crossing-medium",
+      "intended_stress": "medium",
+      "source_directory": "s0-calibration-candidate4-pedestrian-medium",
+      "source_catalog": "collision-stress-v1-candidate4",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "2841d1d4-d61a-4b15-8b25-8ba6daa8be21",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.2710117562575323,
+          "min_ttc_s": 0.3638702731447018,
+          "overall_severity": null,
+          "result_sha256": "893b1ef6f3565eebd56835fe9129935f020106d41f22c515a5ecbfdb2348e7e8",
+          "telemetry_sha256": "c542afae0199ce5533607e61a3d0be78c780732326214666ed57541662808d07",
+          "normalized_recipe_sha256": "d3084268c334d5fc286bd1a1a873d17e5afa735f5127edd792109a3cfbf30da9"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "c5210e00-cccc-4974-9299-5204db9d675a",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.2709991190338816,
+          "min_ttc_s": 0.36386702328023657,
+          "overall_severity": null,
+          "result_sha256": "41bf9c3662e66a902a71d127c478b9a5a5bbf169d7903dd99d1d750480adba3f",
+          "telemetry_sha256": "bca73bc80a27cd6490afbe2dce3590ba32e385b59c2d6cfe4e228a2a7e51bbc8",
+          "normalized_recipe_sha256": "1a434708320650e50466fae58e75d0855d8a670901fae8912c0201e1d0bdec36"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "138b6114-8bb9-4ef0-9fc0-857dedb37092",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 1.271192944973965,
+          "min_ttc_s": 0.36390211520217847,
+          "overall_severity": null,
+          "result_sha256": "ed29ac589a75f297d406fbd405751ca4c367358de7a3304e62431fe6e3e220ff",
+          "telemetry_sha256": "01278f25023d4044991b39449f054b7a19021a467d9ca0137b9aeaa5775bf3af",
+          "normalized_recipe_sha256": "84307db1e5f7884d0205e6a59720ad047d28a9c5fe222d5ef55b6fb0c3ac78bb"
+        }
+      ]
+    },
+    {
+      "preset": "pedestrian_crossing-high",
+      "intended_stress": "high",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "0485980b-6647-4b71-8be0-d1bf514f8c78",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.0,
+          "min_ttc_s": 0.0,
+          "overall_severity": 100.0,
+          "result_sha256": "958264ed0b692cab4a4b33f9f30b8e2904d423e6f7e0a6f0646909e7f4b842cd",
+          "telemetry_sha256": "96ce41b85e80a605aeda8c1309d99008e1cc053fba7c9b917a524c73cd01e1ab",
+          "normalized_recipe_sha256": "9953cd9faab557bd17c7e716f12bd8e48e8e40c90913388f7eb565d8e35b08fa"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "c58aa307-d12d-47e1-b455-f835824918e7",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.0,
+          "min_ttc_s": 0.0,
+          "overall_severity": 100.0,
+          "result_sha256": "4d80e46e3c4e237ebdda6840e9d7fd06608d5690f6dbc6e346a386bb16390434",
+          "telemetry_sha256": "869478965536841015692684bb7316982c7e4b076c832077a886e31056fd9f5c",
+          "normalized_recipe_sha256": "079e5f299cf59595daada69f2ddd7377bb86822ca484d75ddf33a44aecb7ff51"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "09e9ad7b-a0ca-4ed2-af04-76e09cea15bd",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.0,
+          "min_ttc_s": 0.0,
+          "overall_severity": 100.0,
+          "result_sha256": "5a089021d73d140fabcc1aad6ae4ca6600d28cc72246745f5bfb6f70cf9ef225",
+          "telemetry_sha256": "c84697644dcebbdd3894623079a7b46adda86930209c09c44ed8bdc1fe407307",
+          "normalized_recipe_sha256": "f174e0ce14173c7478fdc20e425b0abe75627d3e2a85366b58d19d4167ea47b3"
+        }
+      ]
+    },
+    {
+      "preset": "sudden_braking-low",
+      "intended_stress": "low",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "c1ecf7b5-801f-4c4d-8a6a-6922f1ba711f",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 29.88032076956082,
+          "min_ttc_s": null,
+          "overall_severity": null,
+          "result_sha256": "406dbc7badce6f95f920cd1d3f811b2f5b0d9b0e427be52ca60479a565f16445",
+          "telemetry_sha256": "75ce40a7a87fbf3d34b7bc5c0024686612994561c5aaed1cb0f0df74b44427de",
+          "normalized_recipe_sha256": "daa7b12a296d9c5aef814e5074eee0bcfdbe26263106641f596228e0e5c380b3"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "c8958285-88cc-4e5c-87c7-06922c8bf380",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 29.880270895203257,
+          "min_ttc_s": null,
+          "overall_severity": null,
+          "result_sha256": "5c88e1f4a54b09dbbee2a8ef52ad263469008ae7d9e1223a1b59d8b878de85e5",
+          "telemetry_sha256": "7081e840aa54246b77ddfeccf37ac406a67479c365f6f186b0f0fd09d9c30313",
+          "normalized_recipe_sha256": "d06fba05b48d68b58c19acc9ffcca4a3fd1976103828f9a5e4f31583e60d649a"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "596528d3-c219-4964-891d-60db69ec8c3b",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 29.880270895203257,
+          "min_ttc_s": null,
+          "overall_severity": null,
+          "result_sha256": "8a0089d6361fd39218d6460acb66584e3e348ea2d5d2e09f930b2e720971febb",
+          "telemetry_sha256": "91f51b8745d8fa20dfeb1419cb1920a1afae5c20cccf2f21ab2b57df195aa9b4",
+          "normalized_recipe_sha256": "312642f1b4d1f3b948cd9f598d415458389334bd8d25e1cfa9fc19ecd58e0f7a"
+        }
+      ]
+    },
+    {
+      "preset": "sudden_braking-medium",
+      "intended_stress": "medium",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "030093e3-543b-4317-a487-ef1f349722b3",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 0.13972427755993852,
+          "min_ttc_s": 0.09833877765335797,
+          "overall_severity": null,
+          "result_sha256": "c1e2a2cacb48bb55abbf88e1d06508712d2d3510c9c46f03c4b742f6237ddfd0",
+          "telemetry_sha256": "6f8f85449e7581cd5988e4f64a6b55a0a0b33d3abbdaff591d92d7daef66adc8",
+          "normalized_recipe_sha256": "29fe3c2f61b748d2a16c4a589658a1ae4d138a8093921966cdb1abdcb08cd9c6"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "dbdeafd4-c066-4b01-9404-20dbd0214bb3",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 0.14707697837875805,
+          "min_ttc_s": 0.10119520876373218,
+          "overall_severity": null,
+          "result_sha256": "4df824b4bed7528da6f2f45c5ad7933b0ff0aa9278b7254ee3061505c5ee7f73",
+          "telemetry_sha256": "677dc6648c5119d48d641a1c0a75d551be127b10f21fdf0d23973098bccafe3d",
+          "normalized_recipe_sha256": "7eed8bbd9ce9b97981551a8ce1b9ad66ea25ae034801806ac3cace4b444cc6cd"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "ba605b52-4221-429e-a053-8a3e7fa26c26",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 0.14735803605444445,
+          "min_ttc_s": 0.10130474883889978,
+          "overall_severity": null,
+          "result_sha256": "932c0836a627731185e293166e062e02926106d2b65be5c36b4a12638e50cc60",
+          "telemetry_sha256": "c01b0c98614e9a98b851a1cc07db569d59857bc94e8aa22fa7e3029a05a6adda",
+          "normalized_recipe_sha256": "0f0571b5e5e91976db2f374404c82fc62c173b8aacdaf1c45f20d3e6e80c2840"
+        }
+      ]
+    },
+    {
+      "preset": "sudden_braking-high",
+      "intended_stress": "high",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "9f35cc63-03f3-4034-b573-c480afe3ab52",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.03260630209143074,
+          "min_ttc_s": 0.004486462298574136,
+          "overall_severity": 100.0,
+          "result_sha256": "5750f9a3978c5a0f9ae86a63e2990ea6438731eeea0004b987bc4a9a0baa0abf",
+          "telemetry_sha256": "a85402c76ee251f559427aceb35fe331864cee722d1a646961e0c8d1629bcba3",
+          "normalized_recipe_sha256": "c8f5ca4a523f305978d0acf14070358059a7b5ad30ea3175a5b6c05f8275d8a9"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "6e9ff7b4-137e-40ec-ae17-1f9940eee16a",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.0326063164381372,
+          "min_ttc_s": 0.004486462298574136,
+          "overall_severity": 100.0,
+          "result_sha256": "f171cf5b769872543a265d782ce12b3e6cd2d379ceebc358e3d554928cbdf100",
+          "telemetry_sha256": "af8e86f9a2dbde392848ece02ec4c0c8767a7198a5c6f9c08a4d1936d8fd76c3",
+          "normalized_recipe_sha256": "aa19b70c71e5c23c3a87d319374998d612544de02975576e25e08f5867e562c7"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "6ef3015f-12f8-40b4-9a89-b3a8ec06aefa",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.03260630209143074,
+          "min_ttc_s": 0.004486462298574136,
+          "overall_severity": 100.0,
+          "result_sha256": "b1eab10dafc2ed53496112cc19ffa33d5becc7fc9057791a5390a4ff62bb093e",
+          "telemetry_sha256": "eafc6d8b2aebc0229bdb7c3ba3c96f383096ae00869980a0862fe9b200975dc2",
+          "normalized_recipe_sha256": "df5b37a3ff3363a81644f90f4d5b7cc0c88c6475cfff394c3e6a64965429e838"
+        }
+      ]
+    },
+    {
+      "preset": "occluded_pedestrian-low",
+      "intended_stress": "low",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "f29687f1-991a-43e0-ada2-04c7747aa90d",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 5.1161177048985556,
+          "min_ttc_s": 6.4313417045430805,
+          "overall_severity": null,
+          "result_sha256": "46128859b0a444c53f67937a66a07af237e510c5ceac79530d31be4d2fad4383",
+          "telemetry_sha256": "296aba5932583c735a527630c51933aae291e836cad8ac0260ce7cc72d29871d",
+          "normalized_recipe_sha256": "a667a6f42cf2cd651b15cc31c626e441c604e39908958731c66f45fdbf1f8224"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "aafaa767-84cf-46db-853b-62a75930e7d6",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 5.086633289117797,
+          "min_ttc_s": 6.431351428154846,
+          "overall_severity": null,
+          "result_sha256": "eda024da9a2620c78ea1d668c3972036ae95f5a91c8c89a672da9b36624606e8",
+          "telemetry_sha256": "e83e168459473bc09ccdc6fc7da1943340f1f98765edb40f25d38cd295e37b63",
+          "normalized_recipe_sha256": "8b8fab6c21ac66c7d7067ddb5f4abd3ed3bb57624112755a3f2f566c915167aa"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "2387f520-4006-4d03-8e3d-030e5505903a",
+          "observed": "clear",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 4.375674251189674,
+          "min_ttc_s": 6.431361852707998,
+          "overall_severity": null,
+          "result_sha256": "e924c4e638adb60408dda44250e55443371c2d84022cc8182aaffb35497d5883",
+          "telemetry_sha256": "704da9d253e312091890721e02685db85ccb74a3d163f449ed8fdf8b1fd50797",
+          "normalized_recipe_sha256": "11f0c0a7d125ccc5c11e2646fe36c0516023814a3c5f54294ec0366fa693da3a"
+        }
+      ]
+    },
+    {
+      "preset": "occluded_pedestrian-medium",
+      "intended_stress": "medium",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "3418474e-cfe2-49d4-8461-02b39574c18c",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 4.290390028943306,
+          "min_ttc_s": 1.3756238433723218,
+          "overall_severity": 100.0,
+          "result_sha256": "5975d4ba6f42e7ec119bce065c1205a04bedcd414ffae57794751841829f1dff",
+          "telemetry_sha256": "cf2a2250908795023a1656bcedd08fe273019a428e083644e9b2db3b1ad9412d",
+          "normalized_recipe_sha256": "f0987b3514a619a36e049e139808f66b56eeb249aea9a822a3db92b53e9c7efe"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "e0825963-64c4-466b-98c4-8bd42d527931",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 4.491320218848665,
+          "min_ttc_s": 1.3756238433723218,
+          "overall_severity": null,
+          "result_sha256": "f8b9bb15272b993471469fca0f34ced126bcb4d606154653c4579bdff861677e",
+          "telemetry_sha256": "e2275471d30a935b51fb1a96224a310772f172a63555c74b5df2a2af484b0982",
+          "normalized_recipe_sha256": "2c2aabe1aaf2f95967e6f374413c14cf21d661f6228594abd954a481602c726c"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "8876827b-308d-457c-b286-a214ae5eafbe",
+          "observed": "critical_avoidance",
+          "target_collision_count": 0,
+          "all_actor_collision_count": 0,
+          "min_clearance_m": 0.16654859463495006,
+          "min_ttc_s": 0.3892163530339152,
+          "overall_severity": null,
+          "result_sha256": "77dacf5afbed861209681ccbc19dbf29c5a658fcbc6ee72affccff74229c2fdb",
+          "telemetry_sha256": "8d39d8d7d23f02827a1b245bd0b3a49a37bc85077ade0a41660a0a13499c5326",
+          "normalized_recipe_sha256": "802247eb5d738a7cea61d7e1c6e53e78978879e3859d5b7084f013af1b72f4ae"
+        }
+      ]
+    },
+    {
+      "preset": "occluded_pedestrian-high",
+      "intended_stress": "high",
+      "source_directory": "s0-calibration-candidate3-seeds7-11-19",
+      "source_catalog": "collision-stress-v1-candidate3",
+      "source_differences": [
+        "scenarios/stress_presets.py"
+      ],
+      "trials": [
+        {
+          "seed": 7,
+          "simulation_id": "140338af-6d1d-4b4a-b434-bad8e38719f2",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.15620646168236418,
+          "min_ttc_s": 0.022448163567579435,
+          "overall_severity": 100.0,
+          "result_sha256": "f6e472eb5cdf6e711763295170d50721e2f4cec6b53919b1c015b27618799100",
+          "telemetry_sha256": "fc9b926129294e5d06067f40699bcbb12a3de44ebe37de8015e94870ca2d9226",
+          "normalized_recipe_sha256": "9b7c69192abfc26ad99540fd499b3a0ca6e409ba93d14ac98465e92e5e2f5a81"
+        },
+        {
+          "seed": 11,
+          "simulation_id": "782ad9de-fd13-4f1e-a095-2205095f7850",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.0,
+          "min_ttc_s": 0.0,
+          "overall_severity": 100.0,
+          "result_sha256": "2910e3b2731344f13756761dbe6761cb3b56b7149b3806c49f0adfd71a338e81",
+          "telemetry_sha256": "5d1e64a19ecbfdc1586b80dfda54aeb90fde6884c5cc7e75d5249d73334e054e",
+          "normalized_recipe_sha256": "c2aa45f3c4e98498aa30ea73787a6162cf2f3da4adef1e7797665b05dc34e125"
+        },
+        {
+          "seed": 19,
+          "simulation_id": "c818a38f-c9c9-4a06-adb4-d27bef8e71f6",
+          "observed": "collision",
+          "target_collision_count": 1,
+          "all_actor_collision_count": 1,
+          "min_clearance_m": 0.19863337827180672,
+          "min_ttc_s": null,
+          "overall_severity": 100.0,
+          "result_sha256": "71e52c5d49d25132c4e0b6d7e1c1ff36ebe4ae1f4267e45c2e1e4e67e1b75f08",
+          "telemetry_sha256": "1c1adc442e626a6c447decdaa2cd589010e7304cf0ca13eaa7aa31f7cd3f5dfe",
+          "normalized_recipe_sha256": "9ce17cca27ded0c5e4754372325d7d2412da70911b7ae76517ebc037753cb618"
+        }
+      ]
+    }
+  ],
+  "scope": "Earlier trial evidence is reused only for byte-identical normalized recipes and unchanged execution/evaluation/controller source. The catalogue data module differs due to refinement of the pedestrian medium entry and version text."
+}

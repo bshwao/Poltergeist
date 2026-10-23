@@ -4,6 +4,12 @@ Section 2 provides file loading, structural and template validation, parameter
 discovery, seeded generation, and saving. All operations are independent of CARLA.
 Public functions and error types are exported from `scenarios`.
 
+For twelve fixed collision-stress presets, use the dashboard's **Collision stress
+presets** picker or `get_stress_preset(id).scenario(seed=7)` from
+`scenarios.stress_presets`. They use Town10HD_Opt and an eight-second window.
+See [the calibration protocol and unchanged-baseline benchmark](collision-stress.md)
+for measured tiers, exports, API access and limits before interpreting their risk.
+
 ## Create and reproduce a scenario
 
 Use template defaults for a controlled configuration, or sample variations:
