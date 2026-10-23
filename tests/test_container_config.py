@@ -27,10 +27,14 @@ def compose_config(*, carla=False, overrides=None):
     if carla:
         arguments += ["--profile", "carla"]
     arguments += ["config", "--format", "json"]
-    # A cold Compose plugin can take over 30s to start on shared Windows runners.
-    # This validates configuration, not CLI startup performance; keep a finite
-    # bound without skipping the parser or weakening its assertions.
-    completed = subprocess.run(arguments, cwd=ROOT, env=environment, text=True, capture_output=True, timeout=90)
+    # The first cold invocation exceeded 90s on a shared Windows runner while
+    # all five later invocations passed. Keep parsing/assertions on both OSes;
+    # this test does not measure the installed CLI's cold-start performance.
+    timeout = 180 if os.name == "nt" else 90
+    try:
+        completed = subprocess.run(arguments, cwd=ROOT, env=environment, text=True, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        pytest.fail(f"Docker Compose configuration exceeded its {timeout}s startup deadline; the parser check did not complete")
     if completed.returncode and ("is not a docker command" in completed.stderr or "unknown command" in completed.stderr):
         pytest.skip("Docker Compose plugin is not installed")
     assert completed.returncode == 0, completed.stderr

@@ -17,7 +17,7 @@ from shared.origins import service_origin
 
 
 class CompanionConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True)
+    model_config = ConfigDict(extra="forbid", strict=True, hide_input_in_errors=True)
     schema_version: Literal["poltergeist-companion-config-v1"] = "poltergeist-companion-config-v1"
     carla_executable: str | None = None
     carla_port: int = Field(default=2000, ge=1, le=65535)

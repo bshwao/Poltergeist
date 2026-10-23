@@ -13,14 +13,53 @@ from companion.controller import CompanionController
 from companion.ui import CompanionWindow
 
 
-def pump_until(root, predicate, timeout=30):
+def pump_until(root, predicate, timeout=90, *, stage="desktop callback", desktop=None, errors=None):
+    import faulthandler
+    import json
+    import math
+    import sys
+
     deadline = monotonic() + timeout
-    while monotonic() < deadline:
-        root.update()
-        if predicate():
-            return
-        Event().wait(.01)
-    raise AssertionError("Desktop callbacks did not finish")
+    # Arm the dump before entering Tcl: a stall inside root.update() must also
+    # leave worker/import/filesystem stacks before the outer process guard fires.
+    faulthandler.dump_traceback_later(timeout, file=sys.stderr)
+    try:
+        while monotonic() < deadline:
+            root.update()
+            if predicate():
+                return
+            Event().wait(.01)
+    finally:
+        faulthandler.cancel_dump_traceback_later()
+    diagnostic = {"stage": stage, "timeout_s": timeout, "callback_error_count": len(errors or [])}
+    if desktop is not None:
+        future = desktop._future
+        diagnostic["action"] = "none" if future is None else "done" if future.done() else "pending"
+        snapshot = desktop._last_snapshot or {}
+        queue = snapshot.get("queue", {})
+        pending = queue.get("pending")
+        diagnostic["queue"] = {
+            "state": queue.get("state") if queue.get("state") in {"stopped", "running", "stopping", "error"} else "unknown",
+            "pending": pending if type(pending) is int and pending >= 0 else None,
+            "active": queue.get("active_id") is not None,
+            "accepting": queue.get("accepting") if type(queue.get("accepting")) is bool else None,
+        }
+        diagnostic["runs"] = []
+        for run in snapshot.get("runs", [])[:5]:
+            progress = run.get("progress")
+            if type(progress) not in (int, float) or not math.isfinite(progress) or not 0 <= progress <= 1:
+                progress = None
+            diagnostic["runs"].append({
+                "mode": run.get("mode") if run.get("mode") in {"test", "carla"} else "unknown",
+                "status": run.get("status") if run.get("status") in {"queued", "running", "completed", "failed", "cancelled"} else "unknown",
+                "progress": progress,
+                "has_result": run.get("has_result") if type(run.get("has_result")) is bool else None,
+            })
+    # Omit arbitrary errors, scenario/agent names, configuration and paths.
+    message = "Desktop callbacks did not finish: " + json.dumps(diagnostic, sort_keys=True, allow_nan=False)
+    print(message, file=sys.stderr, flush=True)
+    faulthandler.dump_traceback(file=sys.stderr, all_threads=True)
+    raise AssertionError(message)
 
 
 @pytest.fixture(scope="module")
@@ -58,7 +97,8 @@ def test_run_button_persisted_history_export_stop_and_restart(window):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None and desktop._last_snapshot is not None)
     desktop.run_button.invoke()
-    pump_until(root, lambda: desktop._future is None and any(r["status"] == "completed" for r in (desktop._last_snapshot or {}).get("runs", [])))
+    pump_until(root, lambda: desktop._future is None and any(r["status"] == "completed" for r in (desktop._last_snapshot or {}).get("runs", [])),
+               stage="synthetic run completion", desktop=desktop, errors=errors)
     run = desktop._last_snapshot["runs"][0]
     assert run["mode"] == "test"
     assert desktop.runs.item(run["id"], "values")[2] == "completed"
@@ -162,6 +202,19 @@ def test_pairing_controls_review_real_account_preserve_origin_and_revoke(window)
         pump_until(root, lambda: desktop._future is None)
         assert panel._displayed["state"] == "unpaired"
         assert api.get("/v1/devices", headers=headers).json()[0]["revoked_at"] is not None
+
+
+def test_invalid_pairing_address_is_not_echoed_in_messages_or_logs(window, caplog):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    desktop.pairing.origin.set("https://user:private_address_sentinel@coordinator.test")
+    with caplog.at_level(logging.ERROR):
+        desktop.pairing.save_origin()
+        pump_until(root, lambda: desktop._future is None)
+    assert errors and "HTTPS origin" in errors[0][1]
+    assert "private_address_sentinel" not in str(errors) + caplog.text + desktop.message.get()
+    assert controller.config.coordinator_origin is None
+    errors.clear()
 
 
 def test_imported_recipe_and_settings_apply_through_desktop_callbacks(window):

@@ -6,6 +6,15 @@ from urllib.parse import urlsplit
 
 
 def service_origin(value, *, allow_insecure_loopback=False):
+    try:
+        return _service_origin(value, allow_insecure_loopback=allow_insecure_loopback)
+    except ValueError:
+        # urllib's port/hostname errors can include rejected input. An address
+        # pasted into a settings field may contain credentials; never echo it.
+        raise ValueError("Configure a single coordinator HTTPS origin") from None
+
+
+def _service_origin(value, *, allow_insecure_loopback=False):
     if not isinstance(value, str) or len(value) > 256 or any(character.isspace() for character in value):
         raise ValueError("Configure a single coordinator HTTPS origin")
     parts = urlsplit(value)

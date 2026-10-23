@@ -11,13 +11,24 @@ import pytest
 from companion.credential_store import CredentialStoreError, WindowsCredentialStore
 from companion.pairing_client import PairingClient, PairingClientError
 from companion.controller import CompanionController
+from companion.profile import CompanionConfig
 from backend.persistence_errors import ConflictError
 from coordinator.app import COOKIE, create_app
 from coordinator.settings import CoordinatorSettings
 from shared.models.coordination import DevicePolicy
+from shared.origins import service_origin
 
 ORIGIN = "https://coordinator.test"
 SCOPES = ["status:read", "run:execute:test"]
+
+
+@pytest.mark.parametrize("address", ["https://user:private_address_sentinel@host.test",
+    "https://host.test:private_address_sentinel", "https://[private_address_sentinel]"])
+def test_invalid_origin_errors_omit_submitted_values(address):
+    for validate in (service_origin, lambda value: CompanionConfig(coordinator_origin=value)):
+        with pytest.raises(ValueError) as error:
+            validate(address)
+        assert "private_address_sentinel" not in str(error.value)
 
 
 class MemoryStore:

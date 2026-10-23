@@ -3,6 +3,7 @@
   "checked_on": "2026-10-23",
   "branch": "codex/s4-hosted-pairing",
   "source_base_commit": "7cda315179f9829a133ae8d80655d988acb5a816",
+  "foundation_commit": "2ce3e42762ee5637e915ae9ea398a37ed76487fd",
   "scope": "Account, owner-scoped locally approved pairing, Windows protected enrollment and private desktop/TLS foundation. S4 remains in progress.",
   "foundation_checks_passed": true,
   "s4_complete": false,
@@ -14,7 +15,7 @@
       "passed": 2802,
       "skipped": 35,
       "seconds": 545.29,
-      "scope": "Existing full suite plus account/pairing/desktop tests collected at run start.",
+      "scope": "Foundation full suite before final malformed-address error hardening; that follow-up is covered by the focused reruns below.",
       "optional_skips": ["Windows symlink privileges", "Docker CLI", "optional optimization/model/sensor dependencies and weight checks"]
     },
     "coordinator_verifier_added_after_full_collection": {
@@ -24,6 +25,36 @@
     "python_314_focused": {
       "account_pairing_credential_controller_passed": 81,
       "native_desktop_application_cases_passed": 10
+    },
+    "malformed_address_hardening_followup": {
+      "python_312_focused_passed": 66,
+      "python_314_focused_passed": 41,
+      "all_11_native_desktop_cases_passed_on_both_interpreters": true,
+      "submitted_values_absent_from_rendered_errors_messages_and_logs": true
+    },
+    "first_github_foundation_run": {
+      "commit": "2ce3e42762ee5637e915ae9ea398a37ed76487fd",
+      "run_id": 39954176546,
+      "conclusion": "failure",
+      "dashboard_and_both_ubuntu_jobs_passed": true,
+      "windows_312_failure": "First Docker Compose configuration exceeded its 90-second startup deadline; five later Compose checks passed.",
+      "windows_314_failure": "First synthetic desktop completion exceeded its 30-second test wait; no worker stack was captured.",
+      "exact_314_gui_case_passed_unchanged_locally": true,
+      "followup_preserves_checks_and_production_deadlines": true,
+      "compose_checks_skipped_locally_because_docker_absent": 6,
+      "new_commit_requires_fresh_github_validation": true
+    },
+    "ci_harness_followup": {
+      "windows_compose_config_timeout_s": 180,
+      "other_os_compose_config_timeout_s": 90,
+      "gui_functional_wait_timeout_s": 90,
+      "gui_isolated_process_guard_s": 360,
+      "gui_timeout_includes_sanitized_state_and_thread_stacks": true,
+      "gui_cases_passed_python_312": 11,
+      "gui_cases_passed_python_314": 11,
+      "checks_or_assertions_removed": false,
+      "production_deadlines_changed": false,
+      "underlying_windows_314_stall_reproduced_locally": false
     },
     "dashboard": {
       "tests_passed": 329,
@@ -36,10 +67,11 @@
   "packaged_companion": {
     "prototype": "S1-S4-pairing-foundation-private-windows-x64",
     "archive": "Poltergeist-S1-windows-x64.zip",
-    "archive_bytes": 47921126,
-    "archive_sha256": "1c9f8d7abd315947f1523e8854fd4ee7043d200e1b475c9e47cee8796f071ea0",
-    "manifest_sha256": "b98a7a61641f789bb12f8ccc40669340369e7361791266647b4b45e15851c0ef",
-    "project_wheel_sha256": "25b24a1a42f82ba727030cce3b0a938b0adea3dd14b38f0ad3053ba7d298f6e6",
+    "build": "C",
+    "archive_bytes": 47921267,
+    "archive_sha256": "97c4f630622df7ac4a2310f7590e36dd5ef6766bde871d544c8e51ee468f35ab",
+    "manifest_sha256": "2a77bda0c1929feddd97a479c8388627ad7dc0825db94b845c13dfca24d6e1e6",
+    "project_wheel_sha256": "6950ac4078754891eee2c5849c8a05361ab321bd4f447b40d8b2639b7ed22ca2",
     "matching_normalized_first_party_python_sources": 160,
     "coordinator_argon2_and_hosted_verifier_excluded": true,
     "python_version": "3.12.15",
@@ -48,10 +80,17 @@
     "hidden_connection_callbacks": ["save bound HTTPS origin", "create pairing code", "review claiming account and permissions", "approve locally", "close and reopen", "resume protected enrollment", "revoke pairing"],
     "current_user_dpapi_verified": true,
     "no_plaintext_credentials_in_blob_or_public_projection": true,
+    "three_malformed_address_callbacks_preserve_config_and_redact_normal_logs": true,
     "all_6071_manifest_files_valid_before_and_after_both_opens": true,
     "same_machine_only": true,
     "visual_or_hardware_input_verified": false,
     "existing_s3_installer_changed": false
+  },
+  "previous_private_build_preserved": {
+    "build": "B",
+    "archive_sha256": "1c9f8d7abd315947f1523e8854fd4ee7043d200e1b475c9e47cee8796f071ea0",
+    "tls_dpapi_native_checks_passed": true,
+    "superseded_by": "C adds fixed malformed-origin errors and suppresses rejected configuration input in rendered validation errors."
   },
   "transport": {
     "real_loopback_https": true,
@@ -67,6 +106,7 @@
     "carla_or_existing_installed_app_touched": false
   },
   "isolated_wheel": {
+    "build": "C",
     "non_editable_install_outside_checkout": true,
     "core_doctor_and_synthetic_sensor_workflow_passed_before_coordinator_install": true,
     "coordinator_extra_installed_from_exact_lock": true,

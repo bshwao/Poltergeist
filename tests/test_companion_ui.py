@@ -22,7 +22,7 @@ CASE_NAMES = [node.name for node in ast.parse(CASES.read_text(encoding="utf-8"))
 def test_gui_application_process(case, tmp_path):
     report = tmp_path / "gui-case.xml"
     result = subprocess.run([sys.executable, "-m", "pytest", "-q", str(CASES), "-k", case,
-                             f"--junitxml={report}"], capture_output=True, text=True, timeout=120)
+                             f"--junitxml={report}"], capture_output=True, text=True, timeout=360)
     output = result.stdout + "\n" + result.stderr
     assert result.returncode in (0, 5), output
     assert "Windows fatal exception" not in output and "Fatal Python error" not in output, output

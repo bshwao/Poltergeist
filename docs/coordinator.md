@@ -82,6 +82,8 @@ there is no account website in this slice.
 
 Snapshots/diagnostics project explicit public fields and omit credentials and
 approval payloads. A damaged enrollment is reported without hiding local runs.
+Rejected coordinator addresses are omitted from rendered validation errors and
+normal companion logs, including malformed port/host errors from URL parsing.
 Saving CARLA/setup choices preserves the configured coordinator. Local runtime
 status polling does not initiate a network connection.
 

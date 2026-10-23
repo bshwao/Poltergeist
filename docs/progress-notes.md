@@ -46,6 +46,12 @@ private prototype does not close independent-machine or release validation.
   The private companion bundle excludes hosted dependencies, matches all 160
   first-party runtime sources, and passed real TLS/DPAPI account approval and
   revocation through hidden native callbacks across two process launches.
+- Final address-validation review found that rejected userinfo/port strings
+  could appear in errors. Fixed parser errors and hidden rejected configuration
+  input now keep them out of messages and logs. Follow-up checks passed 66 cases
+  on Python 3.12 and 41 on 3.14. Rebuilt private bundle C passed the full native
+  pairing/TLS/reopen/revoke check, plus three rejected-address callbacks using
+  the normal companion log; configuration stayed unchanged and no sentinel leaked.
 
 ## Prior S3 work
 
@@ -91,6 +97,25 @@ deadlines were unchanged. All five jobs passed for `2318b3d` in
 The complete S3 commit `7cda315179f9829a133ae8d80655d988acb5a816` also passed
 all five jobs in [run 39923801579](https://github.com/bshwao/Poltergeist/actions/runs/39923801579).
 Each run validates its recorded commit; the S4 branch requires its own checks.
+
+The first S4 run for `2ce3e42`,
+[39954176546](https://github.com/bshwao/Poltergeist/actions/runs/39954176546), passed
+the dashboard and both Ubuntu jobs. Its two Windows failures were in existing
+test harnesses: the first Compose configuration invocation exceeded 90 seconds
+(the five later Compose checks passed), and a synthetic desktop completion wait
+exceeded 30 seconds. The latter case passed unchanged locally on Python 3.14;
+the generic worker-close message did not establish a CARLA/native call.
+
+The follow-up keeps those checks and assertions enabled, allows bounded Windows
+Compose startup and desktop completion time, and adds stage/state/thread
+diagnostics for a future GUI timeout. Production deadlines are unchanged.
+All eleven isolated desktop cases passed again on Python 3.12 and 3.14 after
+the harness change. This local success does not identify the CI stall's cause;
+the next runner failure, if any, must be investigated using its captured state.
+Docker is absent locally, so its six parser checks remain explicitly skipped
+here and require the actual CI runners. Follow the
+[S4 branch workflows](https://github.com/bshwao/Poltergeist/actions?query=branch%3Acodex%2Fs4-hosted-pairing)
+for each newer commit's result.
 
 ## Remaining practical gates
 
