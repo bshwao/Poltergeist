@@ -1,6 +1,7 @@
 # S0–S10 progress notes
 
-Updated October 24, 2026. Current work: **S4 — hosted backend and pairing**.
+Updated October 24, 2026. Current checkpoint: **S4 private workflow validated on
+the development laptop; S5 website integration is next**.
 Branch: `codex/s4-hosted-pairing`.
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
@@ -15,7 +16,7 @@ private prototype does not close independent-machine or release validation.
 | S1 — Standalone packaging | Private prototype validated on the development laptop | Pinned private Python/core dependencies, relocated synthetic/CARLA/SDK checks. An independent computer without developer tools, redistribution review and a native support matrix remain open. |
 | S2 — Companion application | Private desktop prototype | Native application, isolated profile, durable local queue/results, configuration, diagnostics and deliberate imports/exports. S4 adds explicit relay connection and consent controls. See [desktop guide](companion.md). |
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
-| **S4 — Hosted backend and pairing** | **In progress; desktop consent and transport validation** | Account/pairing foundation plus authenticated outbound relay, atomic remote receipts, owner-scoped commands/cancellation and safe baseline summaries. Desktop Connect/Disconnect now requires session consent against the reviewed account/policy. Transport and combined packaged acceptance are being checked. See [scope and evidence](coordinator.md). |
+| **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | S5 — Website integration | Pending | Paired-device dashboard transport and a real HTTPS deployment. |
 | S6 — Reliable remote execution | Pending | S4 now supplies durable remote receipts and initial reconnect/cancellation proofs. The wider crash/sleep/timeout matrix and cross-profile CARLA endpoint ownership remain open. |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
@@ -42,6 +43,13 @@ private prototype does not close independent-machine or release validation.
   run; queued/active cancellation, durable readback and revocation pass.
   The first bootstrap deadline failure and successful instrumented repeat are
   both retained in the [desktop consent receipt](validation/s4-desktop-consent.json).
+- An isolated validation installer for G also passed native setup, the same
+  two-account consent proof from its installed version directory, and default
+  data-preserving uninstall. The proof used a fresh custom data profile; it did
+  not launch the installed shortcut or exercise the compiled default profile.
+  Both companion processes exited cleanly, the validation registration/runtime
+  were removed, and profile/evidence data remain available. See the
+  [installed consent receipt](validation/s4-installed-consent.json).
 - Controller tests pass 43 cases on each Python version; native Tk tests pass
   14 on each. The updated normal-controller two-companion TLS proof also passes
   on Python 3.14. Hidden callback checks make no visual or physical-input claim.
@@ -145,6 +153,12 @@ private installer/bundle identities, test scope and remaining gates. The normal
 private installer is separate from the isolated native-test installer.
 
 ## GitHub validation
+
+The consent and single-owner TLS implementation
+`26331fbcb6ada614baf0059d669aeec7cb6289f0` passed all five jobs in
+[run 40140867479](https://github.com/bshwao/Poltergeist/actions/runs/40140867479),
+including each full Python suite and the isolated non-editable core/coordinator
+wheel checks. This run follows the scoped fixture corrections described above.
 
 The relay implementation `ba8c6ddd625aa1c294b5bf4c5e72c3ab706691c8`
 passed all five jobs in

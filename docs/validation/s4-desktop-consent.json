@@ -153,9 +153,19 @@
     "visual_physical_input_carla_or_independent_machine_acceptance_claimed": false,
     "prior_failed_attempt_retained": "First packaged attempt reached the ninety-second bootstrap harness deadline before ready; no phase data identified the cause. The instrumented repeat passed with the same deadline. It performs two full file-integrity passes before ready, compared with one in the normal launcher; this workload difference does not prove the earlier cause."
   },
+  "published_code_validation": {
+    "commit": "26331fbcb6ada614baf0059d669aeec7cb6289f0",
+    "workflow": "Validate supported workflows",
+    "run_id": 40140867479,
+    "url": "https://github.com/bshwao/Poltergeist/actions/runs/40140867479",
+    "conclusion": "success",
+    "jobs_passed": 5,
+    "full_python_matrix": ["Ubuntu 3.12", "Ubuntu 3.14", "Windows 3.12", "Windows 3.14"],
+    "dashboard_passed": true,
+    "isolated_core_and_coordinator_wheel_workflows_passed": true
+  },
   "remaining_gates": [
-    "Fresh complete regression matrix after the scoped fixture-budget corrections",
-    "S4 supported install-profile acceptance and disclosure review",
+    "Installed default-profile/shortcut and visual acceptance across supported machines",
     "S5 same-origin hosted dashboard, baseline CARLA execution and HTTPS deployment",
     "S6 broader crash, sleep and total elapsed network deadline matrix",
     "Cross-profile CARLA endpoint ownership",

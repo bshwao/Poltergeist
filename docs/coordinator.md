@@ -211,6 +211,13 @@ It creates a new owned profile, two fixture accounts and short-lived loopback TL
 keys, verifies bundled imports/integrity and saves a local receipt. Credentials
 travel through inherited pipes; the coordinator uses the separate source runtime.
 It starts no CARLA and changes no existing installation or profile.
+
+The same driver passed again from an actual installed G runtime, followed by a
+successful default data-preserving uninstall. It used a fresh custom data
+profile; the installed shortcut and compiled default profile were not invoked.
+The validation registration/runtime were removed and both profile/evidence
+datasets were retained. See the
+[installed consent receipt](validation/s4-installed-consent.json).
 This API-driven private proof does not establish a hosted website, visual UI
 acceptance, CARLA execution or a public deployment. See the
 [relay receipt](validation/s4-relay-prototype.json) for the current evidence.
