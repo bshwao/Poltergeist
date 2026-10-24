@@ -51,7 +51,7 @@ class CompanionWindow:
         ttk.Label(outer, text="Private local prototype · Windows x64", foreground="#555555").pack(anchor="w", pady=(2, 10))
         self.runtime_text = tk.StringVar(value="Local runtime: starting…" if autostart else "Local runtime: stopped")
         ttk.Label(outer, textvariable=self.runtime_text, font=("Segoe UI", 11, "bold")).pack(anchor="w")
-        ttk.Label(outer, text="Account pairing preview · Remote execution is still in development.", wraplength=790).pack(anchor="w", pady=(4, 8))
+        ttk.Label(outer, text="Private account connection preview. Remote requests need pairing, local consent and an explicit connection.", wraplength=790).pack(anchor="w", pady=(4, 8))
         toolbar = ttk.Frame(outer)
         toolbar.pack(fill="x", pady=(0, 10))
         self.start_button = self._button(toolbar, "Start local runtime", lambda: self._run(self._start_runtime, self._apply_snapshot))
@@ -220,6 +220,13 @@ class CompanionWindow:
             button.state(["disabled"])
         self._success = success
         self._future = self._executor.submit(action)
+        self.pairing.sync_controls()
+
+    def _refresh_controls(self):
+        busy = self._future is not None or self._closing
+        for button in self._buttons:
+            button.state(["disabled"] if busy else ["!disabled"])
+        self.pairing.sync_controls()
 
     def _pump(self):
         if self._destroyed:
@@ -227,13 +234,13 @@ class CompanionWindow:
         if self._future is not None and self._future.done():
             future, success = self._future, self._success
             self._future = self._success = None
-            for button in self._buttons:
-                button.state(["!disabled"])
+            failed = False
             try:
                 value = future.result()
                 if success:
                     success(value)
             except Exception as error:
+                failed = True
                 self.logger.exception("Companion action failed")
                 self.message.set(str(error))
                 if not self._closing:
@@ -244,8 +251,14 @@ class CompanionWindow:
                     messagebox.showerror("Could not close safely", str(error), parent=self.root)
             if self._destroyed:
                 return
+            refresh_connection = self.pairing.action_finished(failed=failed)
+            self._refresh_controls()
             if self._closing:
                 self._begin_close()
+            elif refresh_connection:
+                # A failed connection action can retain a partially started
+                # relay. Read its ownership before offering another Connect.
+                self._run(self.controller.snapshot, self._apply_snapshot)
         self._poll_count += 1
         if self._future is None and not self._closing and self._poll_count % 20 == 0:
             self._run(self.controller.snapshot, self._apply_snapshot)
@@ -255,6 +268,7 @@ class CompanionWindow:
         self._last_snapshot = snapshot
         self.pairing.show(snapshot.get("pairing", {"state": "unconfigured"}))
         queue = snapshot["queue"]
+        self.pairing.show_connection(snapshot["relay"], queue)
         active = " · one active run" if queue["active_id"] else ""
         self.runtime_text.set(f"Local runtime: {queue['state']}{active} · {queue['pending']} waiting")
         if queue["error"]:
@@ -276,6 +290,7 @@ class CompanionWindow:
         self.agent.set(old if old in self._agent_ids else "Baseline controller")
 
     def _stop(self):
+        self.pairing.reset_consent()
         def stop():
             clean = self.controller.stop()
             return clean, self.controller.snapshot()
@@ -289,6 +304,7 @@ class CompanionWindow:
         if self._closing:
             return
         self._closing = True
+        self.pairing.reset_consent()
         self._close_requested.set()
         self.message.set("Waiting for the local worker to stop safely…")
         if self._future is None:

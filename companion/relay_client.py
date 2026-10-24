@@ -7,21 +7,10 @@ import ssl
 from threading import Event, Lock, Thread, Timer, current_thread
 from time import monotonic
 
-from websockets.sync.client import reconnect
+from .relay_transport import RelayClientError, RelayConnector
 
 from shared.models.remote import (ClientReady, MAX_RELAY_BYTES, RelayCommand,
     RelayPing, RelayPong, RelayReply, ServerHello, canonical_json, parse_message)
-
-
-class RelayClientError(RuntimeError):
-    pass
-
-
-class _NoRedirect(reconnect):
-    def process_redirect(self, exc):
-        # Even same-origin redirects aren't enrollment or relay endpoints.
-        # Returning an exception suppresses all redirect handling in websockets.
-        return RelayClientError("The coordinator refused the secure relay handshake")
 
 
 def _abort_transport(socket):
@@ -44,7 +33,7 @@ class RelayClient:
         self.service = service
         self.enabled = bool(remote_execution_enabled)
         self._context = _ssl_context or ssl.create_default_context()
-        self._connector = _connector or _NoRedirect
+        self._connector = _connector or RelayConnector
         if (isinstance(_send_timeout_s, bool) or not isinstance(_send_timeout_s, (int, float))
                 or not isfinite(_send_timeout_s) or not 0 < _send_timeout_s <= 30):
             raise ValueError("Relay write deadline must be positive and at most thirty seconds")
@@ -53,6 +42,7 @@ class RelayClient:
         self._lock = Lock()
         self._thread = None
         self._socket = None
+        self._opening = None
         self._state = "disconnected"
         # An isolated logger prevents third-party DEBUG output from recording
         # Authorization headers even when the user's root logger is verbose.
@@ -79,7 +69,9 @@ class RelayClient:
     def stop(self):
         self._stop.set()
         with self._lock:
-            socket, thread = self._socket, self._thread
+            socket, thread, opening = self._socket, self._thread, self._opening
+        if opening is not None and callable(getattr(opening, "abort", None)):
+            opening.abort()
         if socket is not None:
             # The relay thread owns final close after the native interrupt.
             _abort_transport(socket)
@@ -114,12 +106,18 @@ class RelayClient:
             try:
                 binding, policy, credential = self.enrollment()
                 uri = "wss" + self.origin[5:] + "/v1/device/connect"
-                with self._connector(uri, ssl=self._context, proxy=None, compression=None,
+                connector = self._connector(uri, ssl=self._context, proxy=None, compression=None,
                         additional_headers={"Authorization": "Bearer " + credential},
                         open_timeout=10, close_timeout=2, ping_interval=None, ping_timeout=None,
-                        max_size=MAX_RELAY_BYTES, max_queue=4, logger=self._logger).connect() as socket:
+                        max_size=MAX_RELAY_BYTES, max_queue=4, logger=self._logger)
+                with self._lock:
+                    self._opening = connector
+                if self._stop.is_set() and callable(getattr(connector, "abort", None)):
+                    connector.abort()
+                with connector.connect() as socket:
                     with self._lock:
                         self._socket = socket
+                        self._opening = None
                     if self._stop.is_set():
                         break
                     self._serve(socket, binding, policy, credential)
@@ -131,6 +129,7 @@ class RelayClient:
             finally:
                 with self._lock:
                     self._socket = None
+                    self._opening = None
             if self._stop.wait(delay):
                 break
             delay = min(delay * 2, 30)

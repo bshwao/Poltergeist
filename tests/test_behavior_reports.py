@@ -209,7 +209,9 @@ def test_registered_diagnostics_identity_and_sensor_provenance_survive_without_l
     source.write_text(source.read_text().replace('"control": {"brake": self.configuration["brake"]}',
         '"control": {"brake": self.configuration["brake"]}, "diagnostics": ' + repr(diagnostics)), encoding="utf-8")
     with TestClient(create_app(settings)) as client:
-        registration = register(client, directory)
+        # Give this reporting fixture a bounded native interpreter-exit budget.
+        # Dedicated lifecycle checks cover short deadlines and termination.
+        registration = register(client, directory, process_options={"close_timeout_s": 10})
         run_id = launch(client, registration["id"], recipe=scene(sensors=sensors))["simulation"]["id"]
         def finalized():
             response = client.get(f"/simulations/{run_id}")

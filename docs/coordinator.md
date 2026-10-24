@@ -4,8 +4,8 @@ The current source and S4 private companion build provide accounts, revocable
 browser sessions, device ownership and explicit approval on the Windows device.
 **S4 remains in progress.** The source now includes an authenticated outbound
 WebSocket relay, durable command receipts and a safe baseline result projection.
-Normal companion execution still reports `remote_execution_enabled: false`;
-the relay execution proof uses an explicit constructor-only private test gate.
+Normal startup keeps remote execution disabled. The Connection tab now offers
+explicit Connect/Disconnect controls and consent for each connection session.
 There is no public coordinator address or hosted account UI. S5 dashboard
 integration and the S6 fault acceptance matrix remain open. The previously
 delivered S3 installer is unchanged.
@@ -71,6 +71,15 @@ The prototype has a 256 KiB message limit, thirty-two pending commands per devic
 thirty-second heartbeats and a ninety-second dead-connection timeout. The
 in-memory connection registry requires one service worker.
 
+One event-loop thread owns each companion TLS connection; the local command
+worker uses a bounded synchronous facade. This avoids concurrent reads/writes
+on one SSL connection across threads, which OpenSSL's
+[threading guidance](https://docs.openssl.org/master/man7/openssl-threads/)
+does not support. Stop and the write deadline signal that captured owner to
+abort its own transport. Cleanup retains the relay/profile lease while its I/O
+thread or DNS resolver is still alive. Default certificate/hostname verification
+and normal TLS version/session-ticket negotiation remain enabled.
+
 Owner requests use `POST /v1/devices/{device_id}/commands`; readback uses
 `GET /v1/devices/{device_id}/commands/{request_id}`. Closed typed operations are
 `execute`, `cancel`, `status` and `result`. Scope, ownership, credential and
@@ -121,7 +130,20 @@ Revocation denies new commands/results; accepted local work may finish locally.
    grants in one transaction. Exact approval retries are idempotent. After a
    lost response or restart, **Refresh / resume** confirms the saved credential;
    it can also recover after the original terminal attempt was cleaned up.
-6. **Revoke pairing** invalidates device access and clears the local protected
+6. Start the local runtime, then review the saved coordinator, account, device,
+   approved permissions and limits. Select **Allow approved remote requests for
+   this connection** to permit those requests, then choose **Connect**. Consent
+   is checked against that exact protected identity and policy before connecting.
+   A changed pairing requires a fresh review. Leaving the box unchecked connects
+   with every new companion request paused, including status, results and
+   cancellation. An authorized account can still read receipts already stored
+   by the coordinator; revocation removes that account's device access.
+7. **Disconnect** blocks new admission before waiting for transport cleanup.
+   Accepted local work may continue. Disconnect, Stop, Close, a changed pairing
+   and reopening the application clear consent; Start and polling never connect
+   automatically. Network reconnection within the same explicitly enabled
+   session retains its consent. Disconnect before changing it.
+8. **Revoke pairing** invalidates device access and clears the local protected
    record after confirmation. A lost revoke response can be retried. An
    unapproved code may be discarded. A saved pending/paired credential cannot
    be silently discarded or rebound to another server.
@@ -136,8 +158,10 @@ status polling does not initiate a network connection.
 The current approval policy records scopes for status, synthetic/CARLA execution,
 cancellation and result reads. Bounds are at most 120 seconds, 10,000 ticks and
 10 waiting runs, with no map reload, graphics change or raw capture. The preview
-UI approves only the baseline controller. These grants are persisted, but no
-remote command dispatcher exists yet, so they cannot currently start work.
+UI approves only the baseline controller. Permission controls become read-only
+after approval is saved; changing a pairing policy requires revocation and a
+fresh pairing. A grant authorizes only its stated operation and limits, and the
+explicit connection consent must also be active for a request to arrive.
 
 ## Evidence and remaining acceptance
 
@@ -165,9 +189,28 @@ module inside that bundle. The coordinator stayed in the separate source runtime
 This proof uses the explicit private constructor flag and exercises no GUI relay
 controls.
 
-The normal desktop still needs a reviewed local relay connection/control flow
-and combined native desktop/install-profile acceptance before its execution gate
-can be enabled.
+Private build G passed the normal controller and native Tk consent flow across
+two bundled process launches. Its two-account proof covers paused requests,
+Stop/restart and reopen consent reset, lost acknowledgement recovery, completed
+results, queued/active cancellation and owner revocation denial. It verifies all
+168 first-party sources, 6,079 manifest files and 99 bundled import paths per
+process. The native window is withdrawn; this validates callbacks rather than
+visual appearance or physical input. The first bootstrap deadline failure and
+successful repeat with the same deadline remain in the
+[desktop consent receipt](validation/s4-desktop-consent.json).
+
+The packaged proof driver is retained in `tests/packaged_companion_consent.py`.
+On Windows, after building a fresh private bundle, run it with the source
+development interpreter and that bundle's directory:
+
+```powershell
+.\.venv\Scripts\python.exe tests/packaged_companion_consent.py --bundle validation-evidence/portable-dist/s4-consent-g-20261024/Poltergeist-S1-windows-x64
+```
+
+It creates a new owned profile, two fixture accounts and short-lived loopback TLS
+keys, verifies bundled imports/integrity and saves a local receipt. Credentials
+travel through inherited pipes; the coordinator uses the separate source runtime.
+It starts no CARLA and changes no existing installation or profile.
 This API-driven private proof does not establish a hosted website, visual UI
 acceptance, CARLA execution or a public deployment. See the
 [relay receipt](validation/s4-relay-prototype.json) for the current evidence.

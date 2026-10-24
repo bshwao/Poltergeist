@@ -133,7 +133,8 @@ def test_closed_window_releases_tk_variables_on_gui_thread(window):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None)
     references = [weakref.ref(desktop.executable), weakref.ref(desktop.message), weakref.ref(desktop.setup.map_name),
-        weakref.ref(desktop.pairing.origin), *[weakref.ref(value) for value in desktop.pairing.permissions.values()]]
+        weakref.ref(desktop.pairing.origin), weakref.ref(desktop.pairing.allow_remote_execution),
+        *[weakref.ref(value) for value in desktop.pairing.permissions.values()]]
     desktop.request_close()
     pump_until(root, lambda: desktop._destroyed)
     assert all(reference() is None for reference in references)
@@ -323,3 +324,224 @@ def test_onboarding_connection_reports_actual_map_and_synchronous_owner(window, 
     assert "0.9.16 verified" in text and "Town03" in text and "synchronous" in text
     assert desktop.setup.maps.cget("values") == ("Town03",)
     assert "No simulation or model was executed" in desktop.setup.summary.get()
+
+
+def connection_fixture(window, monkeypatch):
+    """Real controller/worker and Tk, with explicit memory enrollment/relay fixtures.
+
+    These cases check UI consent and ownership, not TLS or Windows protection.
+    Separate transport and packaged acceptance exercise those boundaries.
+    """
+    from copy import deepcopy
+    from datetime import UTC, datetime, timedelta
+    from uuid import uuid4
+    from shared.models.coordination import DevicePolicy
+
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    class Store:
+        record = None
+        def load(self):
+            return deepcopy(self.record)
+        def clear(self):
+            self.record = None
+    store = Store()
+    created = []
+    class Relay:
+        def __init__(self, origin, enrollment, service, *, remote_execution_enabled):
+            self.origin, self.enrollment, self.service = origin, enrollment, service
+            self.enabled = remote_execution_enabled
+            self.running, self.clean = False, True
+            self.state = "disconnected"
+            created.append(self)
+        def start(self):
+            self.running = True
+            self.state = "connected"
+        def stop(self):
+            if self.clean:
+                self.running = False
+                self.state = "disconnected"
+            return self.clean
+        def snapshot(self):
+            return {"state": self.state, "running": self.running,
+                    "remote_execution_enabled": self.enabled}
+    monkeypatch.setattr(controller, "_credential_store_factory", lambda _: store)
+    monkeypatch.setattr(controller, "_relay_factory", Relay)
+    controller.configure_pairing("https://coordinator.test")
+    policy = DevicePolicy(scopes=["status:read", "result:read", "run:execute:test", "run:cancel"],
+                          max_duration_s=12., max_ticks=240, max_waiting_runs=2)
+    store.record = {"origin": "https://coordinator.test", "state": "paired",
+        "created": {"attempt_id": str(uuid4()), "device_id": str(uuid4()), "code": "ABCDEFGHJK",
+            "expires_at": (datetime.now(UTC) + timedelta(minutes=5)).isoformat()},
+        "private_secret": "pa_" + "a" * 43, "requested_scopes": list(policy.scopes),
+        "approval": {"request_id": str(uuid4()), "expected_account_id": str(uuid4()),
+            "expected_revision": 2, "credential": "pd_" + "b" * 43,
+            "policy": policy.model_dump(mode="json")}}
+    desktop._apply_snapshot(controller.snapshot())
+    return store, created
+
+
+def test_connection_buttons_require_fresh_consent_and_keep_tk_reads_on_gui_thread(window, monkeypatch):
+    from copy import deepcopy
+    from threading import get_ident
+
+    root, controller, desktop, errors = window
+    store, relays = connection_fixture(window, monkeypatch)
+    panel = desktop.pairing
+    saved = deepcopy(store.record)
+    saved_config = (controller.profile / "companion.json").read_bytes()
+    main_thread = get_ident()
+    original_get = panel.allow_remote_execution.get
+    reads, calls = [], []
+    def read_consent():
+        assert get_ident() == main_thread
+        reads.append(get_ident())
+        return original_get()
+    monkeypatch.setattr(panel.allow_remote_execution, "get", read_consent)
+    original_connect = controller.connect_relay
+    def connect(*, allow_remote_execution=False, displayed_status=None):
+        assert get_ident() != main_thread
+        assert type(allow_remote_execution) is bool
+        assert displayed_status is not panel._displayed
+        calls.append((allow_remote_execution, deepcopy(displayed_status)))
+        return original_connect(allow_remote_execution=allow_remote_execution, displayed_status=displayed_status)
+    monkeypatch.setattr(controller, "connect_relay", connect)
+    assert not relays and panel.allow_remote_execution.get() is False
+    assert not panel.connect_button.instate(["disabled"])
+    assert panel.disconnect_button.instate(["disabled"])
+    assert all(control.instate(["disabled"]) for control in panel.permission_controls.values())
+    assert "12 simulated seconds" in panel.approved_limits.get() and "2 waiting" in panel.approved_limits.get()
+    # Editing the address cannot change the reviewed coordinator binding.
+    panel.origin.set("https://unsaved.test")
+    panel.connect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert len(relays) == 1 and relays[0].enabled is False and calls[0][0] is False
+    assert calls[0][1]["origin"] == relays[0].origin == "https://coordinator.test"
+    assert "requests are paused" in panel.connection.get()
+    assert panel.connect_button.instate(["disabled"]) and panel.consent_control.instate(["disabled"])
+    panel.disconnect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert panel.allow_remote_execution.get() is False and not relays[0].running
+    panel.consent_control.invoke()
+    assert panel.allow_remote_execution.get() is True
+    panel.connect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert len(relays) == 2 and relays[1].enabled is True and calls[1][0] is True
+    assert "requests are allowed" in panel.connection.get()
+    assert store.record == saved and reads
+    assert (controller.profile / "companion.json").read_bytes() == saved_config
+    relays[1].state = "offline"
+    desktop._apply_snapshot(controller.snapshot())
+    assert panel.allow_remote_execution.get() is True and "offline" in panel.connection.get()
+    assert panel.consent_control.instate(["disabled"])
+    relays[1].state = "connected"
+    desktop._apply_snapshot(controller.snapshot())
+    assert "requests are allowed" in panel.connection.get()
+    desktop.stop_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert panel.allow_remote_execution.get() is False and not relays[1].running
+    assert panel.connect_button.instate(["disabled"])
+    desktop.start_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert len(relays) == 2 and not panel.connect_button.instate(["disabled"])
+    assert panel.allow_remote_execution.get() is False
+
+
+def test_disconnect_pending_cleanup_blocks_requests_and_retains_controls_for_retry(window, monkeypatch):
+    from uuid import uuid4
+    from shared.models.remote import StatusCommand
+
+    root, controller, desktop, errors = window
+    store, relays = connection_fixture(window, monkeypatch)
+    panel = desktop.pairing
+    panel.consent_control.invoke()
+    panel.connect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    relay = relays[0]
+    binding, _, _ = relay.enrollment()
+    relay.clean = False
+    panel.disconnect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert controller._runtime is not None and controller._owned
+    assert panel.allow_remote_execution.get() is False
+    assert controller.snapshot()["relay"]["remote_execution_enabled"] is False
+    assert "New remote requests are blocked" in panel.connection.get()
+    assert panel.connect_button.instate(["disabled"])
+    assert not panel.disconnect_button.instate(["disabled"])
+    assert relay.service.dispatch(binding, StatusCommand(request_id=uuid4())).code == "permission_denied"
+    relay.clean = True
+    panel.disconnect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert not relay.running and not controller.snapshot()["relay"]["owned"]
+    assert not panel.connect_button.instate(["disabled"])
+    assert panel.disconnect_button.instate(["disabled"])
+    # A partially started relay may survive the controller's failed start.
+    # The error path must refresh ownership before enabling Connect again.
+    original_start = type(relay).start
+    def failed_start(self):
+        original_start(self)
+        self.clean = False
+        raise RuntimeError("Injected partial relay start")
+    monkeypatch.setattr(type(relay), "start", failed_start)
+    panel.consent_control.invoke()
+    panel.connect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert errors and relays[-1].running and controller.snapshot()["relay"]["owned"]
+    assert panel.allow_remote_execution.get() is False
+    assert panel.connect_button.instate(["disabled"])
+    assert not panel.disconnect_button.instate(["disabled"])
+    assert "New remote requests are blocked" in panel.connection.get()
+    errors.clear()
+    relays[-1].clean = True
+    panel.disconnect_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert not controller.snapshot()["relay"]["owned"]
+
+
+def test_stale_connection_consent_is_refused_and_error_restores_eligible_controls(window, monkeypatch):
+    from uuid import uuid4
+
+    root, controller, desktop, errors = window
+    store, relays = connection_fixture(window, monkeypatch)
+    panel = desktop.pairing
+    panel.consent_control.invoke()
+    entered, release, responsive = Event(), Event(), Event()
+    def check():
+        entered.set()
+        assert release.wait(10)
+    desktop._startup_check, desktop._files_checked = check, False
+    panel.connect_button.invoke()
+    assert entered.wait(5)
+    assert panel.consent_control.instate(["disabled"])
+    root.after(20, responsive.set)
+    pump_until(root, responsive.is_set)
+    # The failed action's immediate status refresh can also fail. Until a real
+    # snapshot succeeds, the old empty relay display must not enable Connect.
+    unavailable = Event()
+    unavailable.set()
+    original_snapshot = controller.snapshot
+    def snapshot():
+        if unavailable.is_set():
+            raise RuntimeError("Injected connection status read failure")
+        return original_snapshot()
+    monkeypatch.setattr(controller, "snapshot", snapshot)
+    # Change the protected binding after the GUI captured its reviewed display.
+    store.record["approval"]["expected_account_id"] = str(uuid4())
+    release.set()
+    pump_until(root, lambda: desktop._future is None)
+    assert len(errors) >= 2 and not relays and panel.allow_remote_execution.get() is False
+    assert panel.connect_button.instate(["disabled"]) and panel.consent_control.instate(["disabled"])
+    assert not panel.disconnect_button.instate(["disabled"])
+    assert all(control.instate(["disabled"]) for control in panel.permission_controls.values())
+    assert store.record["approval"]["credential"] not in str(errors) + desktop.message.get()
+    unavailable.clear()
+    errors.clear()
+    desktop._run(controller.snapshot, desktop._apply_snapshot)
+    pump_until(root, lambda: desktop._future is None)
+    assert not panel.connect_button.instate(["disabled"])
+    assert panel.disconnect_button.instate(["disabled"])
+    assert store.record["approval"]["expected_account_id"] in panel.account.get()
+    panel.consent_control.invoke()
+    store.record["approval"]["policy"]["max_waiting_runs"] = 1
+    desktop._apply_snapshot(controller.snapshot())
+    assert panel.allow_remote_execution.get() is False and "1 waiting" in panel.approved_limits.get()

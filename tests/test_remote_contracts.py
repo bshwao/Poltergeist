@@ -9,7 +9,8 @@ from uuid import uuid4
 import pytest
 
 from backend.remote_receipts import RemoteBinding
-from companion.relay_client import RelayClient, RelayClientError, _NoRedirect
+from companion.relay_client import RelayClient, RelayClientError
+from companion.relay_transport import _NoRedirect
 from shared.models.coordination import DevicePolicy
 from shared.models.remote import (ClientReady, DeviceStatusReply, ExecuteCommand,
     MAX_COMMAND_BYTES, MAX_RELAY_BYTES, RelayCommand, RelayReply, ServerHello,

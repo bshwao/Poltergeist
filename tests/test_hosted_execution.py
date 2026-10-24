@@ -26,7 +26,7 @@ from coordinator.app import create_app
 from coordinator.settings import CoordinatorSettings
 from scenarios import validate_scenario
 from shared.models.coordination import DevicePolicy
-from shared.models.remote import (CancelCommand, ExecuteCommand, ResultCommand,
+from shared.models.remote import (CancelCommand, ExecuteCommand, ResultCommand, StatusCommand,
                                   canonical_json, parse_message)
 from simulator import SimulationRunner
 from simulator.test_adapter import TestSimulationAdapter
@@ -153,7 +153,7 @@ def test_two_owned_companions_execute_read_cancel_revoke_and_restart_over_tls(tm
         def runtime(settings):
             return ApiRuntime(settings, runner_factory=lambda **kwargs: SimulationRunner(BlockingAdapter(), **kwargs))
         controller = CompanionController(tmp_path / name, pairing_factory=pairing, relay_factory=relay,
-            credential_store_factory=protected, runtime_factory=runtime, _private_remote_execution=True)
+            credential_store_factory=protected, runtime_factory=runtime)
         controller.open()
         controllers.append(controller)
         controller.configure_pairing(origin)
@@ -165,8 +165,13 @@ def test_two_owned_companions_execute_read_cancel_revoke_and_restart_over_tls(tm
         assert client.post("/v1/pairing/claim", json={"code": created["code"]}, headers=headers).status_code == 200
         displayed = controller.pairing_status(refresh=True)
         saved = controller.approve_pairing(displayed["claim"], DevicePolicy(scopes=SCOPES))
-        controller.connect_relay()
         return saved["device_id"]
+
+    def connect(controller, *, enabled):
+        # Consent belongs to this explicit session and the identity/policy that
+        # the local user reviewed. It is neither saved nor inferred from pairing.
+        return controller.connect_relay(allow_remote_execution=enabled,
+            displayed_status=controller.pairing_status() if enabled else None)
 
     def disconnect():
         # Disable retrying clients before shutting down their server, including
@@ -183,6 +188,18 @@ def test_two_owned_companions_execute_read_cancel_revoke_and_restart_over_tls(tm
                 first, second = desktop(origin, "first", drop=True), desktop(origin, "second")
                 alice_device = enroll(first, alice, alice_headers)
                 bob_device = enroll(second, bob, bob_headers)
+                connect(first, enabled=False)
+                wait_for(lambda: first.relay_status()["state"] == "connected")
+                assert not app.state.relay.available(alice_device)
+                assert first.snapshot()["relay"]["remote_execution_enabled"] is False
+                paused_status = post_command(alice, alice_headers, alice_device,
+                    StatusCommand(request_id=uuid4()))
+                assert paused_status.status_code == 503
+                assert paused_status.json()["error"]["code"] == "device_unavailable"
+                assert first.snapshot()["runs"] == []
+                assert first.disconnect_relay()
+                connect(first, enabled=True)
+                connect(second, enabled=True)
                 wait_for(lambda: app.state.relay.available(alice_device) and app.state.relay.available(bob_device))
                 recipe = validate_scenario({"name": "Owned TLS experiment", "duration_s": .2,
                     "actors": [{"type": "ego_vehicle", "speed_mps": 2}]})
@@ -208,6 +225,23 @@ def test_two_owned_companions_execute_read_cancel_revoke_and_restart_over_tls(tm
                 assert post_command(alice, alice_headers, bob_device, result_request).status_code == 404
                 assert post_command(bob, bob_headers, bob_device, result_request).status_code == 404
                 assert len(second.snapshot()["runs"]) == 0
+                assert first.disconnect_relay()
+                connect(first, enabled=False)
+                wait_for(lambda: first.relay_status()["state"] == "connected")
+                # Paused means every remote request is unavailable, including
+                # reads and cancellation of a run already associated with Alice.
+                assert not app.state.relay.available(alice_device)
+                for paused in (ExecuteCommand(request_id=uuid4(), scenario=recipe, mode="test"),
+                               StatusCommand(request_id=uuid4()),
+                               ResultCommand(request_id=uuid4(), simulation_id=simulation_id),
+                               CancelCommand(request_id=uuid4(), simulation_id=simulation_id)):
+                    denied = post_command(alice, alice_headers, alice_device, paused)
+                    assert denied.status_code == 503
+                    assert denied.json()["error"]["code"] == "device_unavailable"
+                assert len(first.snapshot()["runs"]) == 1
+                assert first.disconnect_relay()
+                connect(first, enabled=True)
+                wait_for(lambda: app.state.relay.available(alice_device))
                 hold = ExecuteCommand(request_id=uuid4(), scenario=recipe.model_copy(update={"name": "Cancel this owned run"}), mode="test")
                 pending = complete_command(alice, alice_headers, alice_device, hold)
                 held_id = UUID(pending["simulation_id"])
@@ -238,7 +272,7 @@ def test_two_owned_companions_execute_read_cancel_revoke_and_restart_over_tls(tm
                     client.cookies.set(key, value)
                 assert client.get(f"/v1/devices/{alice_device}/commands/{command.request_id}", headers=alice_headers).status_code == 404
             first.start()
-            first.connect_relay()
+            connect(first, enabled=True)
             wait_for(lambda: first.relay_status()["state"] == "offline")
             assert not app.state.relay.available(alice_device)
             assert len(first.snapshot()["runs"]) == 2

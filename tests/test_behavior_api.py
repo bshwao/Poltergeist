@@ -160,7 +160,9 @@ def test_registered_history_retains_identity_inputs_and_ground_truth_separation(
         data = registered_scene(sensors=sensors)
         data["events"] = [{"actor_id": "npc", "action": "brake", "trigger_time_s": 0, "deceleration_mps2": 4}]
         run_id = launch(client, registration["id"], recipe=data)["simulation"]["id"]
-        saved = finished(client, run_id)
+        # Observe the complete native startup/failure/cleanup lifecycle, whose
+        # supported load deadline alone can exceed the old fifteen-second poll.
+        saved = finished(client, run_id, timeout=60)
         assert saved["simulation"]["status"] == ("failed" if fail else "completed"), saved["simulation"]["error"]
         before = client.get("/simulations").json()
         # Read historical bytes without reloading or revalidating current code.

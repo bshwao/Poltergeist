@@ -1,8 +1,9 @@
 # Distribution and scalability: S0–S10
 
 Status: S0 implemented and locally validated; S1 private prototype partial;
-S2 private desktop prototype; **S3 installer and onboarding in progress**;
-S4 design reviewed, S4–S10 implementation pending. See the dated
+S2 private desktop prototype; S3 installer/onboarding locally validated with
+external gates open; **S4 account, pairing, relay and desktop consent validation
+in progress**. S5–S10 remain planned. See the dated
 [progress notes](progress-notes.md) for current work and validation.
 This roadmap records the proposed hosted dashboard/backend and
 local companion architecture; it does not indicate that those services or the
@@ -92,7 +93,8 @@ initial packaging work.
 Phases proceed in order. S0 adds collision-stress calibration; S1 has a private command-line packaging prototype;
 its independent clean-machine completion gate remains open. S2 has a private
 desktop prototype; S3 has an installer/onboarding implementation under validation.
-S4 onward remain **planned**. Earlier phases may build
+S4 has private account/pairing, authenticated relay and normal desktop consent
+proofs. S5 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness

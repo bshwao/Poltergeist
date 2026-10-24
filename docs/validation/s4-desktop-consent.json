@@ -1,0 +1,165 @@
+{
+  "schema_version": "poltergeist-s4-desktop-consent-v1",
+  "checked_on": "2026-10-24",
+  "branch": "codex/s4-hosted-pairing",
+  "source_base_commit": "ba8c6ddd625aa1c294b5bf4c5e72c3ab706691c8",
+  "scope": "Explicit desktop connection consent, protected identity fencing and single-owner TLS I/O, including combined native packaged acceptance on this Windows machine.",
+  "s4_complete": false,
+  "public_deployment_verified": false,
+  "normal_startup_remote_execution_enabled": false,
+  "baseline_controller_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d",
+  "consent": {
+    "normal_controller_accepts_explicit_session_consent": true,
+    "real_boolean_required": true,
+    "reviewed_origin_device_owner_generation_and_policy_required": true,
+    "protected_credential_rotation_fences_existing_session": true,
+    "unchecked_connection_denies_new_execute_cancel_status_and_result_requests_to_companion": true,
+    "existing_coordinator_receipts_remain_owner_scoped_until_revocation": true,
+    "startup_polling_pairing_and_runtime_restart_never_connect": true,
+    "disconnect_stop_close_reopen_and_changed_pairing_clear_consent": true,
+    "network_reconnect_within_explicit_session_retains_consent": true,
+    "consent_not_saved_to_profile_or_environment": true,
+    "blocked_cleanup_retains_profile_runtime_and_relay_ownership": true,
+    "protected_credentials_absent_from_public_snapshots": true
+  },
+  "prior_commit_validation": {
+    "commit": "ba8c6ddd625aa1c294b5bf4c5e72c3ab706691c8",
+    "github_jobs_passed": 5,
+    "github_run_url": "https://github.com/bshwao/Poltergeist/actions/runs/40064187930",
+    "additional_local_full_python_312": {
+      "passed": 3015,
+      "skipped": 35,
+      "failed": 1,
+      "seconds": 662.21,
+      "failure": "Native fixture witness HTTP opening handshake did not complete after TLS."
+    }
+  },
+  "tls_investigation": {
+    "python_version": "3.14.4",
+    "openssl_version": "3.0.19",
+    "certificate_verification_remained_enabled": true,
+    "controlled_diagnostic_ipv4_only": true,
+    "default_tls_13_session_tickets": {
+      "successful_attempts_before_reproduction": 12,
+      "failed_attempt": 13,
+      "client_http_sendall_completed_bytes": 202,
+      "server_http_bytes_received_before_timeout": 0,
+      "client_and_server_receive_threads_waited_in_ssl_read": true
+    },
+    "diagnostic_server_zero_tickets": {"passed": 15, "failed": 0},
+    "diagnostic_tls_12": {"passed": 15, "failed": 0},
+    "interpretation": "The controlled comparison and unsupported concurrent use of an SSL connection support moving TLS I/O to one event-loop owner. They do not establish a specific OpenSSL internal defect. Diagnostic ticket/version changes are not the production fix.",
+    "primary_references": [
+      "https://docs.openssl.org/master/man7/openssl-threads/",
+      "https://github.com/python/cpython/issues/151508"
+    ]
+  },
+  "controller_validation_before_transport_change": {
+    "python_312_passed": 43,
+    "python_314_passed": 43,
+    "normal_controller_source_tls_python_312": {"passed": 1, "seconds": 59.53}
+  },
+  "verified_desktop_and_source_checks": {
+    "native_tk_python_312": {"passed": 14, "seconds": 49.92},
+    "native_tk_python_314": {"passed": 14, "seconds": 52.05},
+    "normal_controller_source_tls_python_314_after_transport_change": {"passed": 1, "seconds": 55.03},
+    "source_tls_uses_two_accounts_two_started_companions_and_windows_dpapi": true,
+    "failed_connection_and_failed_refresh_keep_connect_disabled_until_successful_snapshot": true,
+    "gui_callback_tests_use_fake_relay_and_explicit_memory_enrollment_except_real_pairing_case": true
+  },
+  "verified_transport_checks": {
+    "native_python_312_relay_and_lifecycle": {"passed": 37, "seconds": 49.44},
+    "native_python_314_relay_and_lifecycle": {"passed": 37, "seconds": 50.99},
+    "independent_native_python_314_relay_lifecycle_and_contracts": {"passed": 77, "seconds": 50.00},
+    "repeated_python_312_witness_stop_restart": {
+      "passed_iterations": 20,
+      "failed_iterations": 0,
+      "actual_wss_connections": 60,
+      "seconds_approximately": 122.6,
+      "server_session_tickets": 2,
+      "default_strict_tls_and_hostname_verification": true,
+      "ipv4_forcing_ticket_suppression_or_tls_downgrade": false,
+      "remaining_owned_threads": 0
+    },
+    "bootstrap_failure_abort_before_coroutine_and_retained_dns_executor_covered": true,
+    "pending_receive_reused_without_losing_messages_between_polls": true,
+    "send_exception_consumed_and_public_error_fixed": true,
+    "unrelated_witness_connection_survives_stop_and_write_timeout": true,
+    "collection_diagnostic_retained": "Initial full-run collection found a private test import of _NoRedirect at its old module. Only the test import moved to companion.relay_transport; all forty contract checks then passed."
+  },
+  "local_full_regression_before_final_fixture_budgets": {
+    "passed": 3045,
+    "skipped": 35,
+    "failed": 3,
+    "seconds": 1313.64,
+    "new_consent_and_transport_cases_failed": 0,
+    "failures": [
+      "Comparison variant completed both steps and acknowledged Close, then exhausted the two-second native process-exit budget.",
+      "History observer timed out at fifteen seconds; the original durable record eventually contained its intended registered inference failure.",
+      "Sensor diagnostics completed both steps and acknowledged Close, then exhausted the two-second native process-exit budget."
+    ],
+    "original_sqlite_and_agent_event_records_inspected_read_only": true,
+    "three_isolated_reruns_passed_unchanged": true,
+    "native_exit_slowdown_cause_established": false,
+    "test_only_corrections": "Comparison/report registrations now explicitly request a ten-second close budget. The history case has a sixty-second observer and safe last-state diagnostics. Production deadlines and dedicated timeout/termination assertions are unchanged."
+  },
+  "affected_registered_agent_regression_after_fixture_corrections": {
+    "python_312": {"passed": 142, "seconds": 309.22},
+    "python_314": {"passed": 142, "seconds": 324.92},
+    "modules": ["agent_comparisons", "behavior_api", "behavior_reports", "registered_agent_execution", "agent_process"],
+    "dedicated_short_deadline_pid_marker_and_process_termination_assertions_retained": true,
+    "production_sdk_deadlines_unchanged": true
+  },
+  "private_packaged_acceptance": {
+    "build": "G",
+    "repeatable_driver": "tests/packaged_companion_consent.py",
+    "driver_sha256": "aa310ac18a61148b5d75308e7cfc9bc7529f5cd83f368993cb031fbdb5865a2d",
+    "archive_sha256": "dd2925167f5ae435765fd263566b1a524e5ff3952a86d7724f0f76ac3d2f16fa",
+    "archive_bytes": 47947951,
+    "manifest_sha256": "26d18cfb5994ce58086d696fa9e6de3d37fd8fc6c6a7b2e8e738450d31e8830d",
+    "project_wheel_sha256": "9458f71de936d9184b455ce3e5b6e69946eb60cb4bd52680a764782b10138125",
+    "python_version": "3.12.15",
+    "first_party_python_files_matching_source_before_and_after": 168,
+    "manifest_files_verified_before_and_after": 6079,
+    "bundled_import_provenance_entries_per_process": 99,
+    "profile_count": 1,
+    "independent_bundled_process_launches": 2,
+    "account_count": 2,
+    "normal_controller_no_private_constructor_flag": true,
+    "actual_native_tk_start_pair_approve_checkbox_connect_disconnect_stop_close_callbacks": true,
+    "gui_window_withdrawn": true,
+    "bundled_tcl_tk_paths_override_hostile_ambient_environment": true,
+    "windows_current_user_profile_bound_dpapi": true,
+    "real_loopback_https_and_wss_default_verification": true,
+    "unchecked_connection_denies_all_new_companion_operations": true,
+    "stop_restart_and_reopen_require_fresh_consent_and_never_connect_automatically": true,
+    "lost_acceptance_acknowledgement_keeps_one_original_run": true,
+    "completed_telemetry_frames": 5,
+    "queued_cancel_telemetry_frames": 0,
+    "active_cooperative_cancel_telemetry_frames": 1,
+    "persisted_jobs": 3,
+    "persisted_execute_cancel_receipts": 5,
+    "reopen_preserves_enrollment_request_identity_and_result": true,
+    "second_account_denied_reads_execution_results_and_revocation": true,
+    "owner_account_revocation_denies_commands_readback_and_reconnect": true,
+    "local_revoke_button_claimed_in_this_proof": false,
+    "accepted_local_results_retained": true,
+    "secrets_absent_from_owned_logs_and_receipt": true,
+    "companion_exit_codes": [0, 0],
+    "owned_source_coordinator_fixture_deliberately_terminated_exit_code": 1,
+    "all_owned_processes_exited_and_fixture_private_keys_removed": true,
+    "unsigned_manifest_is_file_integrity_only": true,
+    "existing_s3_installer_changed": false,
+    "visual_physical_input_carla_or_independent_machine_acceptance_claimed": false,
+    "prior_failed_attempt_retained": "First packaged attempt reached the ninety-second bootstrap harness deadline before ready; no phase data identified the cause. The instrumented repeat passed with the same deadline. It performs two full file-integrity passes before ready, compared with one in the normal launcher; this workload difference does not prove the earlier cause."
+  },
+  "remaining_gates": [
+    "Fresh complete regression matrix after the scoped fixture-budget corrections",
+    "S4 supported install-profile acceptance and disclosure review",
+    "S5 same-origin hosted dashboard, baseline CARLA execution and HTTPS deployment",
+    "S6 broader crash, sleep and total elapsed network deadline matrix",
+    "Cross-profile CARLA endpoint ownership",
+    "Visual and physical-input acceptance; independent-machine validation",
+    "Signing, redistribution review, safe updates and external beta"
+  ]
+}

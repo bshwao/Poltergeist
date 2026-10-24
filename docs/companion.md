@@ -3,8 +3,9 @@
 Status: private Windows x64 prototype, with S2 desktop execution and S3 installer
 and onboarding under validation. The companion executes local work and preserves
 it across restarts. See the [installer/setup guide](installer-onboarding.md) and
-[current progress](progress-notes.md). Hosted pairing, managed model downloads
-and public release remain later milestones. The S1 independent-machine and
+[current progress](progress-notes.md). S4 source adds account pairing and an
+explicit consent-based relay connection; a hosted dashboard, managed model
+downloads and public release remain later milestones. The S1 independent-machine and
 redistribution gates remain open.
 
 ## Open the application
@@ -159,6 +160,7 @@ separate from the tested Tk callbacks. Independent no-developer-tools testing,
 broader Windows/display/hardware coverage, signing, release licensing and safe
 updates are still required. Website connection status explicitly remains
 unavailable in the delivered S3 installer. Current source and S4 private builds
-add a [Connection pairing preview](coordinator.md), while remote execution and
-the hosted dashboard remain disabled. The S1 runner DTOs are not an authenticated
-hosted dispatcher.
+add a [Connection preview](coordinator.md) with pairing, approved permissions,
+Connect/Disconnect and consent for each connection session. Normal startup and
+reopening keep requests disabled; an unchecked connection pauses every remote
+operation. The hosted dashboard and public deployment remain pending.

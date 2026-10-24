@@ -138,13 +138,20 @@ def wait_until(predicate, *, timeout=15):
     raise AssertionError("Registered agent did not reach the expected state")
 
 
-def finished(client, simulation_id):
+def finished(client, simulation_id, *, timeout=15):
+    last_state = {}
     def result():
         response = client.get(f"/simulations/{simulation_id}")
         assert response.status_code == 200, response.text
         body = response.json()
+        last_state.update(status=body["simulation"]["status"],
+                          result_available=body["result"] is not None)
         return body if body["result"] is not None else None
-    return wait_until(result)
+    try:
+        return wait_until(result, timeout=timeout)
+    except AssertionError as error:
+        error.add_note("Last registered simulation state: " + json.dumps(last_state, sort_keys=True))
+        raise
 
 
 def register(client, directory, **extra):

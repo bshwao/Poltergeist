@@ -126,8 +126,12 @@ def test_registered_agent_pairs_and_source_reproduction_minimization(settings, p
     directory, log = package()
     app = create_app(settings, runner_factory=lambda **kw: SimulationRunner(CollisionAdapter(), **kw))
     with TestClient(app) as client:
-        agent = register(client, directory)
-        variant = register(client, directory, configuration={"brake": .2})
+        # This test measures comparison/reproduction identity. Give native
+        # interpreter exit its own explicit fixture budget; dedicated lifecycle
+        # tests retain short close deadlines and process-termination assertions.
+        process_options = {"close_timeout_s": 10}
+        agent = register(client, directory, process_options=process_options)
+        variant = register(client, directory, configuration={"brake": .2}, process_options=process_options)
         identifier = submit(client, agents=[None, agent["id"], variant["id"]], seeds=[4], repeats=1, failure_kind="collision")
         view = wait(client, identifier)
         assert view["operation"]["status"] == "completed", view

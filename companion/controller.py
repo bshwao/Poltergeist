@@ -58,9 +58,12 @@ class CompanionController:
         self._remote_lock = RLock()
         self._relay = None
         self._relay_admission = False
+        self._relay_execution = False
+        self._relay_approval = None
         self._relay_factory = relay_factory
-        # Deliberately constructor-only: neither saved config nor environment
-        # variables can enable the unfinished private acceptance boundary.
+        # Compatibility for the earlier private acceptance driver. Ordinary
+        # builds need a fresh explicit local consent action below; saved config
+        # and environment variables cannot enable hosted requests.
         self._private_remote_execution = _private_remote_execution is True
         self.config = load_config(self.profile)
 
@@ -161,6 +164,8 @@ class CompanionController:
             saved = client.saved_status()
         if saved["state"] == "attempt" and self._pairing_display is not None:
             saved["claim"] = self._pairing_display.model_dump(mode="json")
+        if saved["state"] == "paired":
+            saved["ownership_generation"] = 1
         return saved
 
     def begin_pairing(self, display_name, scopes):
@@ -190,51 +195,106 @@ class CompanionController:
         self._pairing_display = None
         return self.pairing_status()
 
-    def _remote_enrollment(self):
+    @staticmethod
+    def _relay_consent(binding, policy):
+        return {"state": "paired", "origin": binding.origin, "device_id": str(binding.device_id),
+                "owner_id": str(binding.owner_id), "ownership_generation": binding.generation,
+                "policy": policy.model_dump(mode="json")}
+
+    @classmethod
+    def _relay_fingerprint(cls, binding, policy, credential):
+        # The protected credential remains private even in the controller's
+        # retained comparison value. A rotation also fences the old connection.
+        content = cls._relay_consent(binding, policy)
+        content["credential_sha256"] = hashlib.sha256(credential.encode("utf-8")).hexdigest()
+        return json.dumps(content, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+    def _protected_enrollment(self):
         from backend.remote_receipts import RemoteBinding
         from .pairing_client import EnrollmentRecord
+        try:
+            record = EnrollmentRecord.model_validate(self._credential_store_factory(self.profile).load())
+            if (record.state != "paired" or record.origin != self.config.coordinator_origin
+                    or record.approval is None):
+                raise ValueError
+            binding = RemoteBinding(record.origin, record.created.device_id,
+                record.approval.expected_account_id, 1)
+            return binding, record.approval.policy, record.approval.credential
+        except Exception:
+            raise ConflictError("Review the saved local approval before connecting") from None
+
+    def _remote_enrollment(self):
         with self._remote_lock:
             self._require_open()
             if not self._relay_admission or self._runtime is None or self._stopping:
                 raise ConflictError("The local relay is not accepting commands")
             try:
-                record = EnrollmentRecord.model_validate(self._credential_store_factory(self.profile).load())
-                if (record.state != "paired" or record.origin != self.config.coordinator_origin
-                        or record.approval is None):
+                binding, policy, credential = self._protected_enrollment()
+                if (self._relay_approval is not None and
+                        self._relay_fingerprint(binding, policy, credential) != self._relay_approval):
                     raise ValueError
-                binding = RemoteBinding(record.origin, record.created.device_id,
-                    record.approval.expected_account_id, 1)
-                return binding, record.approval.policy, record.approval.credential
+                return binding, policy, credential
             except Exception:
+                self._relay_admission = False
                 raise ConflictError("Review the saved local approval before connecting") from None
 
-    def connect_relay(self):
-        """Explicit local action; normal builds keep remote execution disabled."""
+    def connect_relay(self, *, allow_remote_execution=False, displayed_status=None):
+        """Connect only by local action; enabling requires the displayed binding."""
         from .relay_client import RelayClient
         from .remote_service import RemoteService
+        if type(allow_remote_execution) is not bool:
+            raise ValueError("Choose whether to allow remote execution using a checkbox")
+        start_failed = False
         with self._remote_lock:
             runtime = self._running()
             if self._relay is not None:
                 raise ConflictError("Disconnect the existing relay first")
-            self._relay_admission = True
             try:
-                binding, policy, credential = self._remote_enrollment()
+                binding, policy, credential = self._protected_enrollment()
+                if allow_remote_execution:
+                    expected = self._relay_consent(binding, policy)
+                    try:
+                        if (not isinstance(displayed_status, dict)
+                                or type(displayed_status.get("ownership_generation")) is not int):
+                            raise ValueError
+                        shown = {key: displayed_status[key] for key in expected}
+                        same = (json.dumps(shown, sort_keys=True, separators=(",", ":"), allow_nan=False)
+                            == json.dumps(expected, sort_keys=True, separators=(",", ":"), allow_nan=False))
+                    except (ValueError, TypeError, KeyError, RecursionError):
+                        same = False
+                    if not same:
+                        raise ConflictError("Pairing changed; review the saved account and policy before connecting")
+                self._relay_execution = allow_remote_execution or self._private_remote_execution
+                self._relay_approval = self._relay_fingerprint(binding, policy, credential)
+                self._relay_admission = True
                 service = RemoteService(runtime.worker(), lambda: self._remote_enrollment()[:2],
                     lock=self._remote_lock)
                 factory = self._relay_factory or RelayClient
                 relay = factory(binding.origin, self._remote_enrollment, service,
-                    remote_execution_enabled=self._private_remote_execution)
+                    remote_execution_enabled=self._relay_execution)
                 self._relay = relay
-                relay.start()
+                try:
+                    relay.start()
+                except Exception:
+                    # Join outside admission ownership; a partially started
+                    # transport may be waiting to inspect its local binding.
+                    self._relay_admission = False
+                    start_failed = True
             except Exception:
                 self._relay_admission = False
+                self._relay_execution = False
+                self._relay_approval = None
                 self._relay = None
                 raise
-            return relay.snapshot()
+        if start_failed:
+            self.disconnect_relay()
+            raise ConflictError("The relay could not start; use Disconnect before retrying if cleanup is still running") from None
+        return self.relay_status()
 
     def disconnect_relay(self):
         with self._remote_lock:
             self._relay_admission = False
+            self._relay_execution = False
             relay = self._relay
         # Joining outside the admission lock lets an in-flight action finish or
         # observe the disabled binding. Keep runtime/profile ownership on timeout.
@@ -242,13 +302,51 @@ class CompanionController:
             return False
         with self._remote_lock:
             self._relay = None
+            self._relay_approval = None
         return True
 
     def relay_status(self):
         with self._remote_lock:
             if self._relay is None:
-                return {"state": "disconnected", "remote_execution_enabled": False, "running": False}
-            return self._relay.snapshot()
+                return {"state": "disconnected", "owned": False, "running": False,
+                        "admission": False, "remote_execution_enabled": False}
+            try:
+                public = self._relay.snapshot()
+                running = public.get("running") is True
+                state = public.get("state")
+                if state not in {"disconnected", "connecting", "connected", "offline"}:
+                    state = "error"
+            except Exception:
+                self._relay_admission = False
+                running, state = False, "error"
+            if self._relay_admission:
+                try:
+                    self._remote_enrollment()
+                except Exception:
+                    self._relay_admission = False
+            if not self._relay_admission:
+                state = "disconnecting"
+            elif not running:
+                state = "error"
+            return {"state": state, "owned": True, "running": running,
+                    "admission": self._relay_admission,
+                    "remote_execution_enabled": (self._relay_admission and self._relay_execution
+                        and running and state == "connected")}
+
+    @staticmethod
+    def _hosted_message(relay):
+        if relay["state"] == "disconnected":
+            return "Unavailable — the hosted relay is disconnected"
+        if relay["state"] == "disconnecting":
+            return "Disconnecting — remote requests are disabled; retry Disconnect to finish cleanup"
+        if relay["state"] == "offline":
+            return "Offline — retrying the approved coordinator"
+        if relay["state"] == "connecting":
+            return "Connecting to the approved coordinator"
+        if relay["state"] == "connected":
+            return ("Connected — approved remote requests are allowed" if relay["remote_execution_enabled"]
+                else "Connected — remote requests are paused")
+        return "Unavailable — disconnect the retained relay before trying again"
 
     def _running(self):
         self._require_open()
@@ -297,8 +395,9 @@ class CompanionController:
         except Exception:
             # A damaged credential must not hide local runs or stop local work.
             pairing = {"state": "error", "message": "Saved pairing could not be read. Use Connection to review it."}
+        relay = self.relay_status()
         return {"queue": status, "runs": runs, "agents": agents, "pairing": pairing,
-                "hosted": "Unavailable — remote execution is not enabled in this private prototype"}
+                "relay": relay, "hosted": self._hosted_message(relay)}
 
     def export(self, simulation_id, *, format="json"):
         runtime = self._running()
@@ -314,10 +413,11 @@ class CompanionController:
         from backend.services.readiness_service import collect_readiness
         self._require_open()
         report = collect_readiness(local_settings(self.profile, self.config), connection_requested=check_carla)
+        snapshot = self.snapshot()
         return {"schema_version": "poltergeist-companion-diagnostics-v1", "profile": str(self.profile),
                 "python": sys.executable, "hosted_pairing_available": self.config.coordinator_origin is not None,
-                "remote_execution_enabled": False,
-                "runtime": self.snapshot()["queue"], "readiness": report.model_dump(mode="json")}
+                "remote_execution_enabled": snapshot["relay"]["remote_execution_enabled"],
+                "relay": snapshot["relay"], "runtime": snapshot["queue"], "readiness": report.model_dump(mode="json")}
 
     def import_report(self, path):
         """Archive an explicit export; never restore its queue, paths or code trust."""
