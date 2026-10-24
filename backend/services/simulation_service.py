@@ -8,6 +8,7 @@ running jobs request cancellation. A native call cannot be forcibly interrupted:
 
 from collections import deque
 from collections.abc import Mapping
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from math import isfinite
 from threading import Condition, Event, Thread, current_thread
@@ -165,16 +166,36 @@ class SimulationService:
                 "agent_snapshot": job.agent_snapshot,
             }
 
-    def cancel(self, simulation_id):
+    @contextmanager
+    def queue_snapshot(self):
+        """Hold lifecycle/queue ownership while the caller reads related storage.
+
+        Consumers open their database transaction after entering this context,
+        preserving the worker's condition-before-database lock order. The tuple
+        is an immutable snapshot; callers cannot mutate the worker's FIFO.
+        """
+        with self._condition:
+            yield tuple(self._pending)
+
+    def cancel(self, simulation_id, *, on_created=None):
+        """Commit the optional receipt hook before signalling cancellation.
+
+        The hook shares the worker's transaction and also runs for an already
+        finalized job. A hook failure rolls back the cancellation request and
+        never signals the runner. Callers must not open a nested writer.
+        """
         simulation_id = UUID(str(simulation_id))
         with self._condition:
             self._require_available()
-            stored = self.persistence.get_simulation(simulation_id)
             with self.persistence.database.session() as session:
+                stored = SimulationRepository(session).get(simulation_id)
                 job = JobRepository(session).get(simulation_id)
+                if stored.result is None:
+                    JobRepository(session).request_cancel(simulation_id)
+                if on_created is not None:
+                    on_created(session, stored)
                 if stored.result is not None:
                     return stored
-                JobRepository(session).request_cancel(simulation_id)
             if simulation_id == self._active_id:
                 self._active_cancel.set()
                 if self._active_runner is not None:

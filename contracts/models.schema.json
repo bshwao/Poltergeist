@@ -2629,6 +2629,122 @@
       "title": "BrowserSession",
       "type": "object"
     },
+    "CancelAccepted": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_at": {
+          "format": "date-time",
+          "title": "Accepted At",
+          "type": "string"
+        },
+        "kind": {
+          "const": "cancel_requested",
+          "default": "cancel_requested",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "terminal": {
+          "title": "Terminal",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "simulation_id",
+        "accepted_at",
+        "terminal"
+      ],
+      "title": "CancelAccepted",
+      "type": "object"
+    },
+    "CancelCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "cancel",
+          "default": "cancel",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "simulation_id"
+      ],
+      "title": "CancelCommand",
+      "type": "object"
+    },
+    "ClientReady": {
+      "additionalProperties": false,
+      "properties": {
+        "connection_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "ready",
+          "default": "ready",
+          "title": "Kind",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": "poltergeist-relay-v1",
+          "default": "poltergeist-relay-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "remote_execution_enabled": {
+          "default": false,
+          "title": "Remote Execution Enabled",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "ownership_generation",
+        "connection_generation",
+        "kind",
+        "remote_execution_enabled"
+      ],
+      "title": "ClientReady",
+      "type": "object"
+    },
     "CollisionEvent": {
       "additionalProperties": false,
       "properties": {
@@ -2663,6 +2779,43 @@
         "event_id"
       ],
       "title": "CollisionEvent",
+      "type": "object"
+    },
+    "CommandRejected": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "permission_denied",
+            "invalid_request",
+            "request_conflict",
+            "queue_full",
+            "device_unavailable",
+            "run_not_found",
+            "policy_denied",
+            "result_unavailable"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "kind": {
+          "const": "rejected",
+          "default": "rejected",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "code"
+      ],
+      "title": "CommandRejected",
       "type": "object"
     },
     "ComparisonAgent": {
@@ -3742,6 +3895,45 @@
       "title": "DevicePolicy",
       "type": "object"
     },
+    "DeviceStatusReply": {
+      "additionalProperties": false,
+      "properties": {
+        "accepting": {
+          "title": "Accepting",
+          "type": "boolean"
+        },
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "status",
+          "default": "status",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "waiting_remote_runs": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Waiting Remote Runs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "accepting",
+        "active",
+        "waiting_remote_runs"
+      ],
+      "title": "DeviceStatusReply",
+      "type": "object"
+    },
     "DeviceView": {
       "additionalProperties": false,
       "properties": {
@@ -4343,6 +4535,89 @@
       "title": "EvidenceSpan",
       "type": "object"
     },
+    "ExecuteAccepted": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_at": {
+          "format": "date-time",
+          "title": "Accepted At",
+          "type": "string"
+        },
+        "kind": {
+          "const": "accepted",
+          "default": "accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "simulation_id",
+        "accepted_at"
+      ],
+      "title": "ExecuteAccepted",
+      "type": "object"
+    },
+    "ExecuteCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "default": null,
+          "title": "Agent Id",
+          "type": "null"
+        },
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "kind": {
+          "const": "execute",
+          "default": "execute",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "test",
+            "carla"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/RemoteRunOptions"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "scenario",
+        "mode",
+        "agent_id",
+        "options",
+        "evaluation_settings"
+      ],
+      "title": "ExecuteCommand",
+      "type": "object"
+    },
     "ExecutionSpec": {
       "additionalProperties": false,
       "properties": {
@@ -4439,6 +4714,840 @@
         "created_at"
       ],
       "title": "FailureReport",
+      "type": "object"
+    },
+    "HostedCoverageV1": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_pairs": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Actor Pairs",
+          "type": "integer"
+        },
+        "braking_frames": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Braking Frames",
+          "type": "integer"
+        },
+        "clearance_frames": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Clearance Frames",
+          "type": "integer"
+        },
+        "clearance_pairs": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Clearance Pairs",
+          "type": "integer"
+        },
+        "collision_frames": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Collision Frames",
+          "type": "integer"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "has_gaps": {
+          "title": "Has Gaps",
+          "type": "boolean"
+        },
+        "total_frames": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Total Frames",
+          "type": "integer"
+        },
+        "traffic_rule_frames": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Traffic Rule Frames",
+          "type": "integer"
+        },
+        "ttc_frames": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Ttc Frames",
+          "type": "integer"
+        },
+        "ttc_pairs": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Ttc Pairs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_frames",
+        "collision_frames",
+        "traffic_rule_frames",
+        "braking_frames",
+        "clearance_frames",
+        "ttc_frames",
+        "actor_pairs",
+        "clearance_pairs",
+        "ttc_pairs",
+        "has_gaps",
+        "complete"
+      ],
+      "title": "HostedCoverageV1",
+      "type": "object"
+    },
+    "HostedEvaluationSettingsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "braking_full_severity_mps2": {
+          "exclusiveMinimum": 0,
+          "title": "Braking Full Severity Mps2",
+          "type": "number"
+        },
+        "braking_weight": {
+          "minimum": 0,
+          "title": "Braking Weight",
+          "type": "number"
+        },
+        "clearance_warning_m": {
+          "exclusiveMinimum": 0,
+          "title": "Clearance Warning M",
+          "type": "number"
+        },
+        "clearance_weight": {
+          "minimum": 0,
+          "title": "Clearance Weight",
+          "type": "number"
+        },
+        "collision_episode_gap_s": {
+          "minimum": 0,
+          "title": "Collision Episode Gap S",
+          "type": "number"
+        },
+        "hard_braking_threshold_mps2": {
+          "exclusiveMinimum": 0,
+          "title": "Hard Braking Threshold Mps2",
+          "type": "number"
+        },
+        "max_sample_gap_s": {
+          "exclusiveMinimum": 0,
+          "title": "Max Sample Gap S",
+          "type": "number"
+        },
+        "method_version": {
+          "const": "1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "speeding_tolerance_mps": {
+          "minimum": 0,
+          "title": "Speeding Tolerance Mps",
+          "type": "number"
+        },
+        "stopped_speed_mps": {
+          "minimum": 0,
+          "title": "Stopped Speed Mps",
+          "type": "number"
+        },
+        "traffic_rule_weight": {
+          "minimum": 0,
+          "title": "Traffic Rule Weight",
+          "type": "number"
+        },
+        "ttc_horizon_s": {
+          "exclusiveMinimum": 0,
+          "title": "Ttc Horizon S",
+          "type": "number"
+        },
+        "ttc_warning_s": {
+          "exclusiveMinimum": 0,
+          "title": "Ttc Warning S",
+          "type": "number"
+        },
+        "ttc_weight": {
+          "minimum": 0,
+          "title": "Ttc Weight",
+          "type": "number"
+        },
+        "violation_episode_gap_s": {
+          "minimum": 0,
+          "title": "Violation Episode Gap S",
+          "type": "number"
+        },
+        "violations_for_full_severity": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Violations For Full Severity",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "method_version",
+        "collision_episode_gap_s",
+        "violation_episode_gap_s",
+        "speeding_tolerance_mps",
+        "hard_braking_threshold_mps2",
+        "stopped_speed_mps",
+        "max_sample_gap_s",
+        "ttc_horizon_s",
+        "ttc_warning_s",
+        "clearance_warning_m",
+        "braking_full_severity_mps2",
+        "violations_for_full_severity",
+        "ttc_weight",
+        "clearance_weight",
+        "braking_weight",
+        "traffic_rule_weight"
+      ],
+      "title": "HostedEvaluationSettingsV1",
+      "type": "object"
+    },
+    "HostedEvidenceV1": {
+      "additionalProperties": false,
+      "description": "The caller checks local availability; counts describe persisted metadata.\n\nNo path, download URL or transfer capability is published. A known recorded\nframe count can survive a missing artifact without implying that it is zero.",
+      "properties": {
+        "artifact_reference_count": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Artifact Reference Count"
+        },
+        "state": {
+          "enum": [
+            "local_only",
+            "missing"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "telemetry_frames": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Telemetry Frames"
+        }
+      },
+      "required": [
+        "state",
+        "telemetry_frames",
+        "artifact_reference_count"
+      ],
+      "title": "HostedEvidenceV1",
+      "type": "object"
+    },
+    "HostedProvenanceV1": {
+      "additionalProperties": false,
+      "properties": {
+        "control_mode": {
+          "anyOf": [
+            {
+              "const": "scripted",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Control Mode"
+        },
+        "controller": {
+          "anyOf": [
+            {
+              "const": "baseline",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Controller"
+        },
+        "ego_state_source": {
+          "anyOf": [
+            {
+              "const": "simulator_state",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ego State Source"
+        },
+        "ground_truth_actor_inputs": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ground Truth Actor Inputs"
+        },
+        "navigation": {
+          "anyOf": [
+            {
+              "enum": [
+                "legacy_assisted",
+                "framework_route"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Navigation"
+        },
+        "observation_mode": {
+          "anyOf": [
+            {
+              "const": "simulator_state",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observation Mode"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "enum": [
+                "synthetic_state",
+                "carla_ground_truth"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "observation_mode",
+        "source",
+        "ego_state_source",
+        "ground_truth_actor_inputs",
+        "control_mode",
+        "controller",
+        "navigation"
+      ],
+      "title": "HostedProvenanceV1",
+      "type": "object"
+    },
+    "HostedPublicErrorV1": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "execution_failed",
+            "result_unavailable"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "correlation_id": {
+          "format": "uuid",
+          "title": "Correlation Id",
+          "type": "string"
+        },
+        "message": {
+          "enum": [
+            "The experiment failed on this computer. Review its local diagnostics.",
+            "The finalized result is unavailable on this computer."
+          ],
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "correlation_id"
+      ],
+      "title": "HostedPublicErrorV1",
+      "type": "object"
+    },
+    "HostedRunSummaryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "agent": {
+          "const": "baseline",
+          "default": "baseline",
+          "title": "Agent",
+          "type": "string"
+        },
+        "cancel_requested": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cancel Requested"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HostedPublicErrorV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence": {
+          "$ref": "#/$defs/HostedEvidenceV1"
+        },
+        "execute_request_id": {
+          "format": "uuid",
+          "title": "Execute Request Id",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "measured_duration_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Measured Duration S"
+        },
+        "metrics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HostedSafetyMetricsV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mode": {
+          "enum": [
+            "test",
+            "carla"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "progress": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Progress",
+          "type": "number"
+        },
+        "protocol_version": {
+          "const": "poltergeist-hosted-run-v1",
+          "default": "poltergeist-hosted-run-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HostedProvenanceV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "queue_position": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Queue Position"
+        },
+        "receipt_revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Receipt Revision",
+          "type": "integer"
+        },
+        "result_available": {
+          "title": "Result Available",
+          "type": "boolean"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "runtime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HostedRuntimeV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scenario": {
+          "$ref": "#/$defs/HostedScenarioV1"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Started At"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "ownership_generation",
+        "execute_request_id",
+        "receipt_revision",
+        "revision",
+        "simulation_id",
+        "mode",
+        "status",
+        "progress",
+        "cancel_requested",
+        "queue_position",
+        "created_at",
+        "started_at",
+        "finished_at",
+        "updated_at",
+        "scenario",
+        "agent",
+        "result_available",
+        "measured_duration_s",
+        "metrics",
+        "runtime",
+        "provenance",
+        "error",
+        "evidence"
+      ],
+      "title": "HostedRunSummaryV1",
+      "type": "object"
+    },
+    "HostedRuntimeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter": {
+          "enum": [
+            "test",
+            "carla"
+          ],
+          "title": "Adapter",
+          "type": "string"
+        },
+        "client_version": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Client Version"
+        },
+        "fixed_delta_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Fixed Delta Seconds",
+          "type": "number"
+        },
+        "map_name": {
+          "anyOf": [
+            {
+              "pattern": "^Town[0-9]{2}(?:HD)?(?:_Opt)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Map Name"
+        },
+        "seed": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "server_version": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Server Version"
+        }
+      },
+      "required": [
+        "adapter",
+        "server_version",
+        "client_version",
+        "map_name",
+        "fixed_delta_seconds",
+        "seed"
+      ],
+      "title": "HostedRuntimeV1",
+      "type": "object"
+    },
+    "HostedSafetyMetricsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "collision_count": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Collision Count"
+        },
+        "coverage": {
+          "$ref": "#/$defs/HostedCoverageV1"
+        },
+        "evaluation_settings": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HostedEvaluationSettingsV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hard_braking_count": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hard Braking Count"
+        },
+        "max_deceleration_mps2": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Deceleration Mps2"
+        },
+        "max_stopping_distance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Stopping Distance M"
+        },
+        "max_stopping_time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Stopping Time S"
+        },
+        "min_clearance_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min Clearance M"
+        },
+        "min_ttc_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min Ttc S"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Severity"
+        },
+        "traffic_violation_count": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Traffic Violation Count"
+        }
+      },
+      "required": [
+        "collision_count",
+        "traffic_violation_count",
+        "min_clearance_m",
+        "min_ttc_s",
+        "max_deceleration_mps2",
+        "hard_braking_count",
+        "max_stopping_distance_m",
+        "max_stopping_time_s",
+        "severity",
+        "coverage",
+        "evaluation_settings"
+      ],
+      "title": "HostedSafetyMetricsV1",
+      "type": "object"
+    },
+    "HostedScenarioV1": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "sha256"
+      ],
+      "title": "HostedScenarioV1",
       "type": "object"
     },
     "JobInfo": {
@@ -5660,6 +6769,473 @@
       "title": "RelativeSpawn",
       "type": "object"
     },
+    "RelayCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "discriminator": {
+            "mapping": {
+              "cancel": "#/$defs/CancelCommand",
+              "execute": "#/$defs/ExecuteCommand",
+              "result": "#/$defs/ResultCommand",
+              "status": "#/$defs/StatusCommand"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ExecuteCommand"
+            },
+            {
+              "$ref": "#/$defs/CancelCommand"
+            },
+            {
+              "$ref": "#/$defs/StatusCommand"
+            },
+            {
+              "$ref": "#/$defs/ResultCommand"
+            }
+          ],
+          "title": "Command"
+        },
+        "connection_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "command",
+          "default": "command",
+          "title": "Kind",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": "poltergeist-relay-v1",
+          "default": "poltergeist-relay-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "ownership_generation",
+        "connection_generation",
+        "kind",
+        "command"
+      ],
+      "title": "RelayCommand",
+      "type": "object"
+    },
+    "RelayPing": {
+      "additionalProperties": false,
+      "properties": {
+        "connection_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "ping",
+          "default": "ping",
+          "title": "Kind",
+          "type": "string"
+        },
+        "nonce": {
+          "format": "uuid",
+          "title": "Nonce",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": "poltergeist-relay-v1",
+          "default": "poltergeist-relay-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "ownership_generation",
+        "connection_generation",
+        "kind",
+        "nonce"
+      ],
+      "title": "RelayPing",
+      "type": "object"
+    },
+    "RelayPong": {
+      "additionalProperties": false,
+      "properties": {
+        "connection_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "pong",
+          "default": "pong",
+          "title": "Kind",
+          "type": "string"
+        },
+        "nonce": {
+          "format": "uuid",
+          "title": "Nonce",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": "poltergeist-relay-v1",
+          "default": "poltergeist-relay-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "ownership_generation",
+        "connection_generation",
+        "kind",
+        "nonce"
+      ],
+      "title": "RelayPong",
+      "type": "object"
+    },
+    "RelayReply": {
+      "additionalProperties": false,
+      "properties": {
+        "connection_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "reply",
+          "default": "reply",
+          "title": "Kind",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": "poltergeist-relay-v1",
+          "default": "poltergeist-relay-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        },
+        "reply": {
+          "discriminator": {
+            "mapping": {
+              "accepted": "#/$defs/ExecuteAccepted",
+              "cancel_requested": "#/$defs/CancelAccepted",
+              "rejected": "#/$defs/CommandRejected",
+              "result": "#/$defs/RunResultReply",
+              "status": "#/$defs/DeviceStatusReply"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ExecuteAccepted"
+            },
+            {
+              "$ref": "#/$defs/CancelAccepted"
+            },
+            {
+              "$ref": "#/$defs/DeviceStatusReply"
+            },
+            {
+              "$ref": "#/$defs/RunResultReply"
+            },
+            {
+              "$ref": "#/$defs/CommandRejected"
+            }
+          ],
+          "title": "Reply"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "ownership_generation",
+        "connection_generation",
+        "kind",
+        "reply"
+      ],
+      "title": "RelayReply",
+      "type": "object"
+    },
+    "RemoteCommandView": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "execute",
+            "cancel",
+            "status",
+            "result"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "reply": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "accepted": "#/$defs/ExecuteAccepted",
+                  "cancel_requested": "#/$defs/CancelAccepted",
+                  "rejected": "#/$defs/CommandRejected",
+                  "result": "#/$defs/RunResultReply",
+                  "status": "#/$defs/DeviceStatusReply"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ExecuteAccepted"
+                },
+                {
+                  "$ref": "#/$defs/CancelAccepted"
+                },
+                {
+                  "$ref": "#/$defs/DeviceStatusReply"
+                },
+                {
+                  "$ref": "#/$defs/RunResultReply"
+                },
+                {
+                  "$ref": "#/$defs/CommandRejected"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reply"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Simulation Id"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "accepted",
+            "completed",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "operation",
+        "status",
+        "created_at",
+        "updated_at",
+        "simulation_id",
+        "reply"
+      ],
+      "title": "RemoteCommandView",
+      "type": "object"
+    },
+    "RemoteContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "discriminator": {
+            "mapping": {
+              "cancel": "#/$defs/CancelCommand",
+              "execute": "#/$defs/ExecuteCommand",
+              "result": "#/$defs/ResultCommand",
+              "status": "#/$defs/StatusCommand"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ExecuteCommand"
+            },
+            {
+              "$ref": "#/$defs/CancelCommand"
+            },
+            {
+              "$ref": "#/$defs/StatusCommand"
+            },
+            {
+              "$ref": "#/$defs/ResultCommand"
+            }
+          ],
+          "title": "Command"
+        },
+        "envelope": {
+          "discriminator": {
+            "mapping": {
+              "command": "#/$defs/RelayCommand",
+              "hello": "#/$defs/ServerHello",
+              "ping": "#/$defs/RelayPing",
+              "pong": "#/$defs/RelayPong",
+              "ready": "#/$defs/ClientReady",
+              "reply": "#/$defs/RelayReply"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ServerHello"
+            },
+            {
+              "$ref": "#/$defs/ClientReady"
+            },
+            {
+              "$ref": "#/$defs/RelayCommand"
+            },
+            {
+              "$ref": "#/$defs/RelayReply"
+            },
+            {
+              "$ref": "#/$defs/RelayPing"
+            },
+            {
+              "$ref": "#/$defs/RelayPong"
+            }
+          ],
+          "title": "Envelope"
+        },
+        "reply": {
+          "discriminator": {
+            "mapping": {
+              "accepted": "#/$defs/ExecuteAccepted",
+              "cancel_requested": "#/$defs/CancelAccepted",
+              "rejected": "#/$defs/CommandRejected",
+              "result": "#/$defs/RunResultReply",
+              "status": "#/$defs/DeviceStatusReply"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ExecuteAccepted"
+            },
+            {
+              "$ref": "#/$defs/CancelAccepted"
+            },
+            {
+              "$ref": "#/$defs/DeviceStatusReply"
+            },
+            {
+              "$ref": "#/$defs/RunResultReply"
+            },
+            {
+              "$ref": "#/$defs/CommandRejected"
+            }
+          ],
+          "title": "Reply"
+        },
+        "view": {
+          "$ref": "#/$defs/RemoteCommandView"
+        }
+      },
+      "required": [
+        "command",
+        "reply",
+        "envelope",
+        "view"
+      ],
+      "title": "RemoteContracts",
+      "type": "object"
+    },
+    "RemoteRunOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "max_ticks": {
+          "default": 10000,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Ticks",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_ticks"
+      ],
+      "title": "RemoteRunOptions",
+      "type": "object"
+    },
     "ReproductionRequest": {
       "additionalProperties": false,
       "properties": {
@@ -5732,6 +7308,34 @@
         "reproduced"
       ],
       "title": "ReproductionUpdate",
+      "type": "object"
+    },
+    "ResultCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "result",
+          "default": "result",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "simulation_id"
+      ],
+      "title": "ResultCommand",
       "type": "object"
     },
     "Rotation": {
@@ -5817,6 +7421,32 @@
         "recorded_completion_fraction"
       ],
       "title": "RouteBehavior",
+      "type": "object"
+    },
+    "RunResultReply": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "result",
+          "default": "result",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "summary": {
+          "$ref": "#/$defs/HostedRunSummaryV1"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "summary"
+      ],
+      "title": "RunResultReply",
       "type": "object"
     },
     "RunnerCancelRequest": {
@@ -6679,6 +8309,80 @@
       "title": "SearchRequest",
       "type": "object"
     },
+    "ServerHello": {
+      "additionalProperties": false,
+      "properties": {
+        "connection_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Connection Generation",
+          "type": "integer"
+        },
+        "dead_timeout_s": {
+          "const": 90,
+          "default": 90,
+          "title": "Dead Timeout S",
+          "type": "integer"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "heartbeat_s": {
+          "const": 30,
+          "default": 30,
+          "title": "Heartbeat S",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "hello",
+          "default": "hello",
+          "title": "Kind",
+          "type": "string"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "title": "Owner Id",
+          "type": "string"
+        },
+        "ownership_generation": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Ownership Generation",
+          "type": "integer"
+        },
+        "policy": {
+          "$ref": "#/$defs/DevicePolicy"
+        },
+        "policy_revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 1,
+          "title": "Policy Revision",
+          "type": "integer"
+        },
+        "protocol_version": {
+          "const": "poltergeist-relay-v1",
+          "default": "poltergeist-relay-v1",
+          "title": "Protocol Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "device_id",
+        "ownership_generation",
+        "connection_generation",
+        "kind",
+        "owner_id",
+        "policy_revision",
+        "policy",
+        "heartbeat_s",
+        "dead_timeout_s"
+      ],
+      "title": "ServerHello",
+      "type": "object"
+    },
     "Simulation": {
       "additionalProperties": false,
       "properties": {
@@ -7324,6 +9028,28 @@
       "title": "SpeedChangeEvent",
       "type": "object"
     },
+    "StatusCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "status",
+          "default": "status",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id"
+      ],
+      "title": "StatusCommand",
+      "type": "object"
+    },
     "StoppingEpisode": {
       "additionalProperties": false,
       "properties": {
@@ -7731,6 +9457,9 @@
     "readiness": {
       "$ref": "#/$defs/ReadinessReport"
     },
+    "remote": {
+      "$ref": "#/$defs/RemoteContracts"
+    },
     "result": {
       "$ref": "#/$defs/SimulationResult"
     },
@@ -7759,7 +9488,8 @@
     "agent",
     "readiness",
     "runner",
-    "coordination"
+    "coordination",
+    "remote"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

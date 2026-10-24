@@ -919,22 +919,189 @@ export type CarlaConnectionRequested = boolean;
 export type CheckedAt1 = string;
 export type SchemaVersion4 = "poltergeist-readiness-v1";
 export type Scope = "local_core";
-export type ProtocolVersion5 = "poltergeist-runner-v1";
+export type Command = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand;
+export type AgentId6 = null;
+export type Kind8 = "execute";
+export type Mode8 = "test" | "carla";
+export type MaxTicks2 = number;
 export type RequestId1 = string;
+export type Kind9 = "cancel";
+export type RequestId2 = string;
 export type SimulationId5 = string;
+export type Kind10 = "status";
+export type RequestId3 = string;
+export type Kind11 = "result";
+export type RequestId4 = string;
+export type SimulationId6 = string;
+export type Envelope = ServerHello | ClientReady | RelayCommand | RelayReply | RelayPing | RelayPong;
+export type ConnectionGeneration = number;
+export type DeadTimeoutS = 90;
+export type DeviceId4 = string;
+export type HeartbeatS = 30;
+export type Kind12 = "hello";
+export type OwnerId1 = string;
+export type OwnershipGeneration2 = number;
+export type PolicyRevision1 = number;
+export type ProtocolVersion5 = "poltergeist-relay-v1";
+export type ConnectionGeneration1 = number;
+export type DeviceId5 = string;
+export type Kind13 = "ready";
+export type OwnershipGeneration3 = number;
+export type ProtocolVersion6 = "poltergeist-relay-v1";
+export type RemoteExecutionEnabled1 = boolean;
+export type Command1 = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand;
+export type ConnectionGeneration2 = number;
+export type DeviceId6 = string;
+export type Kind14 = "command";
+export type OwnershipGeneration4 = number;
+export type ProtocolVersion7 = "poltergeist-relay-v1";
+export type ConnectionGeneration3 = number;
+export type DeviceId7 = string;
+export type Kind15 = "reply";
+export type OwnershipGeneration5 = number;
+export type ProtocolVersion8 = "poltergeist-relay-v1";
+export type Reply = ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected;
+export type AcceptedAt = string;
+export type Kind16 = "accepted";
+export type RequestId5 = string;
+export type SimulationId7 = string;
+export type AcceptedAt1 = string;
+export type Kind17 = "cancel_requested";
+export type RequestId6 = string;
+export type SimulationId8 = string;
+export type Terminal = boolean;
+export type Accepting1 = boolean;
+export type Active1 = boolean;
+export type Kind18 = "status";
+export type RequestId7 = string;
+export type WaitingRemoteRuns = number;
+export type Kind19 = "result";
+export type RequestId8 = string;
+export type Agent2 = "baseline";
+export type CancelRequested3 = boolean | null;
+export type CreatedAt7 = string;
+export type DeviceId8 = string;
+export type Code2 = "execution_failed" | "result_unavailable";
+export type CorrelationId = string;
+export type Message =
+  | "The experiment failed on this computer. Review its local diagnostics."
+  | "The finalized result is unavailable on this computer.";
+export type ArtifactReferenceCount = number | null;
+export type State1 = "local_only" | "missing";
+export type TelemetryFrames2 = number | null;
+export type ExecuteRequestId = string;
+export type FinishedAt3 = string | null;
+export type MeasuredDurationS2 = number | null;
+export type CollisionCount1 = number | null;
+export type ActorPairs1 = number;
+export type BrakingFrames1 = number;
+export type ClearanceFrames1 = number;
+export type ClearancePairs1 = number;
+export type CollisionFrames1 = number;
+export type Complete = boolean;
+export type HasGaps1 = boolean;
+export type TotalFrames1 = number;
+export type TrafficRuleFrames1 = number;
+export type TtcFrames1 = number;
+export type TtcPairs1 = number;
+export type BrakingFullSeverityMps21 = number;
+export type BrakingWeight1 = number;
+export type ClearanceWarningM1 = number;
+export type ClearanceWeight1 = number;
+export type CollisionEpisodeGapS1 = number;
+export type HardBrakingThresholdMps21 = number;
+export type MaxSampleGapS2 = number;
+export type MethodVersion2 = "1.0";
+export type SpeedingToleranceMps1 = number;
+export type StoppedSpeedMps1 = number;
+export type TrafficRuleWeight1 = number;
+export type TtcHorizonS1 = number;
+export type TtcWarningS1 = number;
+export type TtcWeight1 = number;
+export type ViolationEpisodeGapS1 = number;
+export type ViolationsForFullSeverity1 = number;
+export type HardBrakingCount1 = number | null;
+export type MaxDecelerationMps21 = number | null;
+export type MaxStoppingDistanceM1 = number | null;
+export type MaxStoppingTimeS1 = number | null;
+export type MinClearanceM1 = number | null;
+export type MinTtcS1 = number | null;
+export type Severity2 = number | null;
+export type TrafficViolationCount1 = number | null;
+export type Mode9 = "test" | "carla";
+export type OwnershipGeneration6 = number;
+export type Progress2 = number;
+export type ProtocolVersion9 = "poltergeist-hosted-run-v1";
+export type ControlMode4 = "scripted" | null;
+export type Controller1 = "baseline" | null;
+export type EgoStateSource2 = "simulator_state" | null;
+export type GroundTruthActorInputs1 = boolean | null;
+export type Navigation1 = ("legacy_assisted" | "framework_route") | null;
+export type ObservationMode4 = "simulator_state" | null;
+export type Source4 = ("synthetic_state" | "carla_ground_truth") | null;
+export type QueuePosition2 = number | null;
+export type ReceiptRevision = number;
+export type ResultAvailable = boolean;
+export type Revision5 = number;
+export type Adapter1 = "test" | "carla";
+export type ClientVersion1 = string | null;
+export type FixedDeltaSeconds3 = number;
+export type MapName2 = string | null;
+export type Seed6 = number;
+export type ServerVersion1 = string | null;
+export type Name4 = string;
+export type Sha2563 = string;
+export type SimulationId9 = string;
+export type StartedAt3 = string | null;
+export type Status3 = "queued" | "running" | "completed" | "failed" | "cancelled";
+export type UpdatedAt2 = string;
+export type Code3 =
+  | "permission_denied"
+  | "invalid_request"
+  | "request_conflict"
+  | "queue_full"
+  | "device_unavailable"
+  | "run_not_found"
+  | "policy_denied"
+  | "result_unavailable";
+export type Kind20 = "rejected";
+export type RequestId9 = string;
+export type ConnectionGeneration4 = number;
+export type DeviceId9 = string;
+export type Kind21 = "ping";
+export type Nonce = string;
+export type OwnershipGeneration7 = number;
+export type ProtocolVersion10 = "poltergeist-relay-v1";
+export type ConnectionGeneration5 = number;
+export type DeviceId10 = string;
+export type Kind22 = "pong";
+export type Nonce1 = string;
+export type OwnershipGeneration8 = number;
+export type ProtocolVersion11 = "poltergeist-relay-v1";
+export type Reply1 = ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected;
+export type CreatedAt8 = string;
+export type Operation = "execute" | "cancel" | "status" | "result";
+export type Reply2 = (ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected) | null;
+export type RequestId10 = string;
+export type SimulationId10 = string | null;
+export type Status4 = "queued" | "accepted" | "completed" | "rejected";
+export type UpdatedAt3 = string;
+export type ProtocolVersion12 = "poltergeist-runner-v1";
+export type RequestId11 = string;
+export type SimulationId11 = string;
 export type CheckedAt2 = string;
 export type ExecutionModes = ("test" | "carla")[];
 export type ImplementationVersion = string;
 export type LocalFeatures = ("baseline" | "approved_sdk_agents" | "synthetic_sensor_fixtures" | "behavior_reports")[];
 export type MaxConcurrentRuns = 1;
 export type Platform = "windows-x86_64";
-export type ProtocolVersion6 = "poltergeist-runner-v1";
-export type RemoteExecutionEnabled1 = false;
+export type ProtocolVersion13 = "poltergeist-runner-v1";
+export type RemoteExecutionEnabled2 = false;
 export type SdkProtocols = ("1.0" | "1.1" | "1.2" | "1.3")[];
-export type AgentId6 = string | null;
-export type Mode8 = "test" | "carla";
-export type ProtocolVersion7 = "poltergeist-runner-v1";
-export type RequestId2 = string;
+export type AgentId7 = string | null;
+export type Mode10 = "test" | "carla";
+export type ProtocolVersion14 = "poltergeist-runner-v1";
+export type RequestId12 = string;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -949,6 +1116,7 @@ export interface PoltergeistContracts {
   metrics: SafetyMetrics;
   optimization: OptimizationContracts;
   readiness: ReadinessReport;
+  remote: RemoteContracts;
   result: SimulationResult;
   runner: RunnerContracts;
   scenario: Scenario;
@@ -2522,6 +2690,344 @@ export interface ReadinessCheck {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RemoteContracts".
+ */
+export interface RemoteContracts {
+  command: Command;
+  envelope: Envelope;
+  reply: Reply1;
+  view: RemoteCommandView;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ExecuteCommand".
+ */
+export interface ExecuteCommand {
+  agent_id: AgentId6;
+  evaluation_settings: EvaluationSettings;
+  kind: Kind8;
+  mode: Mode8;
+  options: RemoteRunOptions;
+  request_id: RequestId1;
+  scenario: Scenario;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RemoteRunOptions".
+ */
+export interface RemoteRunOptions {
+  max_ticks: MaxTicks2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CancelCommand".
+ */
+export interface CancelCommand {
+  kind: Kind9;
+  request_id: RequestId2;
+  simulation_id: SimulationId5;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "StatusCommand".
+ */
+export interface StatusCommand {
+  kind: Kind10;
+  request_id: RequestId3;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ResultCommand".
+ */
+export interface ResultCommand {
+  kind: Kind11;
+  request_id: RequestId4;
+  simulation_id: SimulationId6;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ServerHello".
+ */
+export interface ServerHello {
+  connection_generation: ConnectionGeneration;
+  dead_timeout_s: DeadTimeoutS;
+  device_id: DeviceId4;
+  heartbeat_s: HeartbeatS;
+  kind: Kind12;
+  owner_id: OwnerId1;
+  ownership_generation: OwnershipGeneration2;
+  policy: DevicePolicy;
+  policy_revision: PolicyRevision1;
+  protocol_version: ProtocolVersion5;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ClientReady".
+ */
+export interface ClientReady {
+  connection_generation: ConnectionGeneration1;
+  device_id: DeviceId5;
+  kind: Kind13;
+  ownership_generation: OwnershipGeneration3;
+  protocol_version: ProtocolVersion6;
+  remote_execution_enabled: RemoteExecutionEnabled1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RelayCommand".
+ */
+export interface RelayCommand {
+  command: Command1;
+  connection_generation: ConnectionGeneration2;
+  device_id: DeviceId6;
+  kind: Kind14;
+  ownership_generation: OwnershipGeneration4;
+  protocol_version: ProtocolVersion7;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RelayReply".
+ */
+export interface RelayReply {
+  connection_generation: ConnectionGeneration3;
+  device_id: DeviceId7;
+  kind: Kind15;
+  ownership_generation: OwnershipGeneration5;
+  protocol_version: ProtocolVersion8;
+  reply: Reply;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "ExecuteAccepted".
+ */
+export interface ExecuteAccepted {
+  accepted_at: AcceptedAt;
+  kind: Kind16;
+  request_id: RequestId5;
+  simulation_id: SimulationId7;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CancelAccepted".
+ */
+export interface CancelAccepted {
+  accepted_at: AcceptedAt1;
+  kind: Kind17;
+  request_id: RequestId6;
+  simulation_id: SimulationId8;
+  terminal: Terminal;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DeviceStatusReply".
+ */
+export interface DeviceStatusReply {
+  accepting: Accepting1;
+  active: Active1;
+  kind: Kind18;
+  request_id: RequestId7;
+  waiting_remote_runs: WaitingRemoteRuns;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RunResultReply".
+ */
+export interface RunResultReply {
+  kind: Kind19;
+  request_id: RequestId8;
+  summary: HostedRunSummaryV1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedRunSummaryV1".
+ */
+export interface HostedRunSummaryV1 {
+  agent: Agent2;
+  cancel_requested: CancelRequested3;
+  created_at: CreatedAt7;
+  device_id: DeviceId8;
+  error: HostedPublicErrorV1 | null;
+  evidence: HostedEvidenceV1;
+  execute_request_id: ExecuteRequestId;
+  finished_at: FinishedAt3;
+  measured_duration_s: MeasuredDurationS2;
+  metrics: HostedSafetyMetricsV1 | null;
+  mode: Mode9;
+  ownership_generation: OwnershipGeneration6;
+  progress: Progress2;
+  protocol_version: ProtocolVersion9;
+  provenance: HostedProvenanceV1 | null;
+  queue_position: QueuePosition2;
+  receipt_revision: ReceiptRevision;
+  result_available: ResultAvailable;
+  revision: Revision5;
+  runtime: HostedRuntimeV1 | null;
+  scenario: HostedScenarioV1;
+  simulation_id: SimulationId9;
+  started_at: StartedAt3;
+  status: Status3;
+  updated_at: UpdatedAt2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedPublicErrorV1".
+ */
+export interface HostedPublicErrorV1 {
+  code: Code2;
+  correlation_id: CorrelationId;
+  message: Message;
+}
+/**
+ * The caller checks local availability; counts describe persisted metadata.
+ *
+ * No path, download URL or transfer capability is published. A known recorded
+ * frame count can survive a missing artifact without implying that it is zero.
+ *
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedEvidenceV1".
+ */
+export interface HostedEvidenceV1 {
+  artifact_reference_count: ArtifactReferenceCount;
+  state: State1;
+  telemetry_frames: TelemetryFrames2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedSafetyMetricsV1".
+ */
+export interface HostedSafetyMetricsV1 {
+  collision_count: CollisionCount1;
+  coverage: HostedCoverageV1;
+  evaluation_settings: HostedEvaluationSettingsV1 | null;
+  hard_braking_count: HardBrakingCount1;
+  max_deceleration_mps2: MaxDecelerationMps21;
+  max_stopping_distance_m: MaxStoppingDistanceM1;
+  max_stopping_time_s: MaxStoppingTimeS1;
+  min_clearance_m: MinClearanceM1;
+  min_ttc_s: MinTtcS1;
+  severity: Severity2;
+  traffic_violation_count: TrafficViolationCount1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedCoverageV1".
+ */
+export interface HostedCoverageV1 {
+  actor_pairs: ActorPairs1;
+  braking_frames: BrakingFrames1;
+  clearance_frames: ClearanceFrames1;
+  clearance_pairs: ClearancePairs1;
+  collision_frames: CollisionFrames1;
+  complete: Complete;
+  has_gaps: HasGaps1;
+  total_frames: TotalFrames1;
+  traffic_rule_frames: TrafficRuleFrames1;
+  ttc_frames: TtcFrames1;
+  ttc_pairs: TtcPairs1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedEvaluationSettingsV1".
+ */
+export interface HostedEvaluationSettingsV1 {
+  braking_full_severity_mps2: BrakingFullSeverityMps21;
+  braking_weight: BrakingWeight1;
+  clearance_warning_m: ClearanceWarningM1;
+  clearance_weight: ClearanceWeight1;
+  collision_episode_gap_s: CollisionEpisodeGapS1;
+  hard_braking_threshold_mps2: HardBrakingThresholdMps21;
+  max_sample_gap_s: MaxSampleGapS2;
+  method_version: MethodVersion2;
+  speeding_tolerance_mps: SpeedingToleranceMps1;
+  stopped_speed_mps: StoppedSpeedMps1;
+  traffic_rule_weight: TrafficRuleWeight1;
+  ttc_horizon_s: TtcHorizonS1;
+  ttc_warning_s: TtcWarningS1;
+  ttc_weight: TtcWeight1;
+  violation_episode_gap_s: ViolationEpisodeGapS1;
+  violations_for_full_severity: ViolationsForFullSeverity1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedProvenanceV1".
+ */
+export interface HostedProvenanceV1 {
+  control_mode: ControlMode4;
+  controller: Controller1;
+  ego_state_source: EgoStateSource2;
+  ground_truth_actor_inputs: GroundTruthActorInputs1;
+  navigation: Navigation1;
+  observation_mode: ObservationMode4;
+  source: Source4;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedRuntimeV1".
+ */
+export interface HostedRuntimeV1 {
+  adapter: Adapter1;
+  client_version: ClientVersion1;
+  fixed_delta_seconds: FixedDeltaSeconds3;
+  map_name: MapName2;
+  seed: Seed6;
+  server_version: ServerVersion1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "HostedScenarioV1".
+ */
+export interface HostedScenarioV1 {
+  name: Name4;
+  sha256: Sha2563;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CommandRejected".
+ */
+export interface CommandRejected {
+  code: Code3;
+  kind: Kind20;
+  request_id: RequestId9;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RelayPing".
+ */
+export interface RelayPing {
+  connection_generation: ConnectionGeneration4;
+  device_id: DeviceId9;
+  kind: Kind21;
+  nonce: Nonce;
+  ownership_generation: OwnershipGeneration7;
+  protocol_version: ProtocolVersion10;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RelayPong".
+ */
+export interface RelayPong {
+  connection_generation: ConnectionGeneration5;
+  device_id: DeviceId10;
+  kind: Kind22;
+  nonce: Nonce1;
+  ownership_generation: OwnershipGeneration8;
+  protocol_version: ProtocolVersion11;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "RemoteCommandView".
+ */
+export interface RemoteCommandView {
+  created_at: CreatedAt8;
+  operation: Operation;
+  reply: Reply2;
+  request_id: RequestId10;
+  simulation_id: SimulationId10;
+  status: Status4;
+  updated_at: UpdatedAt3;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "RunnerContracts".
  */
 export interface RunnerContracts {
@@ -2536,9 +3042,9 @@ export interface RunnerContracts {
  * via the `definition` "RunnerCancelRequest".
  */
 export interface RunnerCancelRequest {
-  protocol_version: ProtocolVersion5;
-  request_id: RequestId1;
-  simulation_id: SimulationId5;
+  protocol_version: ProtocolVersion12;
+  request_id: RequestId11;
+  simulation_id: SimulationId11;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -2552,8 +3058,8 @@ export interface RunnerCapabilities {
   local_features: LocalFeatures;
   max_concurrent_runs: MaxConcurrentRuns;
   platform: Platform;
-  protocol_version: ProtocolVersion6;
-  remote_execution_enabled: RemoteExecutionEnabled1;
+  protocol_version: ProtocolVersion13;
+  remote_execution_enabled: RemoteExecutionEnabled2;
   sdk_protocols: SdkProtocols;
   synthetic_status: ReadinessStatus;
 }
@@ -2562,11 +3068,11 @@ export interface RunnerCapabilities {
  * via the `definition` "RunnerExecuteRequest".
  */
 export interface RunnerExecuteRequest {
-  agent_id: AgentId6;
+  agent_id: AgentId7;
   evaluation_settings: EvaluationSettings;
-  mode: Mode8;
+  mode: Mode10;
   options: SimulationOptions;
-  protocol_version: ProtocolVersion7;
-  request_id: RequestId2;
+  protocol_version: ProtocolVersion14;
+  request_id: RequestId12;
   scenario: Scenario;
 }

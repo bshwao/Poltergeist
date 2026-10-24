@@ -1,11 +1,14 @@
-# S4 account and pairing foundation
+# S4 account, pairing and private relay
 
 The current source and S4 private companion build provide accounts, revocable
 browser sessions, device ownership and explicit approval on the Windows device.
-**S4 remains in progress.** There is no public coordinator address, hosted account
-UI, WebSocket relay or authenticated remote execution. The companion reports
-`remote_execution_enabled: false`. S5 dashboard integration and the S6 fault
-acceptance matrix remain open. The previously delivered S3 installer is unchanged.
+**S4 remains in progress.** The source now includes an authenticated outbound
+WebSocket relay, durable command receipts and a safe baseline result projection.
+Normal companion execution still reports `remote_execution_enabled: false`;
+the relay execution proof uses an explicit constructor-only private test gate.
+There is no public coordinator address or hosted account UI. S5 dashboard
+integration and the S6 fault acceptance matrix remain open. The previously
+delivered S3 installer is unchanged.
 
 ## Separate service
 
@@ -32,8 +35,8 @@ client, and does not trust ambient proxy headers. Public deployment, operational
 backup/retention, account recovery and multi-user capacity are still pending.
 
 The companion bundle excludes the hosted `coordinator` package and its Argon2
-dependencies. Its outbound HTTPS and Windows credential protection use the
-bundled interpreter and standard Windows APIs.
+dependencies. Its outbound HTTPS, pinned `websockets` transport and Windows
+credential protection use the bundled interpreter and standard Windows APIs.
 
 ## Accounts and request boundaries
 
@@ -56,6 +59,49 @@ The implemented browser endpoints are `/v1/auth/register`, `/v1/auth/login`,
 `/v1/auth/session`, `/v1/auth/logout`, `/v1/auth/password`, `/v1/pairing/claim`,
 and owner-scoped `/v1/devices` reads/revocation. They are foundations for S5;
 there is no account website in this slice.
+
+## Private relay and command boundary
+
+The companion initiates `/v1/device/connect` over WSS with a device credential in
+the Authorization header. Redirects, browser Origin/cookies, query parameters,
+subprotocol credentials and ambiguous security headers are refused. One live
+connection owns each device; reconnect increments a persisted connection
+generation and fences the old socket. Ownership generation is a separate value.
+The prototype has a 256 KiB message limit, thirty-two pending commands per device,
+thirty-second heartbeats and a ninety-second dead-connection timeout. The
+in-memory connection registry requires one service worker.
+
+Owner requests use `POST /v1/devices/{device_id}/commands`; readback uses
+`GET /v1/devices/{device_id}/commands/{request_id}`. Closed typed operations are
+`execute`, `cancel`, `status` and `result`. Scope, ownership, credential and
+generation checks are repeated at admission, delivery, reply and readback.
+An execute acknowledgement identifies acceptance; it does not report completion
+or include result metrics. Result reads separately require `result:read`.
+
+Execution uses the existing local queue and baseline controller. The remote
+contract omits package, interpreter, model, configuration and filesystem choices.
+It admits at most 120 simulated seconds and 10,000 ticks, subject to the lower
+locally approved policy, and permits no map reload, graphics changes or raw
+capture. A zero waiting allowance means an idle worker slot; it cannot add a
+waiter behind active or queued local work. Cancellation and result requests must
+resolve an execution receipt under the same origin/device/owner/generation.
+An unrelated local simulation UUID grants no access.
+
+Migration 5 inserts local acceptance receipts in the same transaction as the
+simulation and worker job. Identical retries return the original run; changed
+content conflicts, and a losing competing submission rolls back its tentative
+run/job. Cancel receipts commit before the runner is signalled. Separate
+persisted projection revisions cover queue and cancellation changes that need
+not advance the simulation revision. Coordinator schema 2 retains command
+outcomes across restarts while preserving the original schema migration.
+
+`HostedRunSummaryV1` is built field by field. It retains unavailable metrics as
+null, measured coverage, accepted scenario identity and a bounded runtime and
+provenance subset. It omits local snapshots, paths, diagnostics and exception
+strings. Evidence is explicitly `local_only` or `missing`; downloads and raw
+telemetry transfer are still S8 work. Local Stop/Unpair disables admission before
+joining the relay, and retains runtime/profile ownership if shutdown is blocked.
+Revocation denies new commands/results; accepted local work may finish locally.
 
 ## Local pairing consent
 
@@ -102,13 +148,33 @@ lost responses, restarts, secret-free projections and real desktop callbacks.
 Real loopback TLS checks use a short-lived fixture certificate trusted only by
 the validation clients. They do not install a root CA or prove public hosting.
 
-S4 still needs the authenticated outbound WebSocket relay, generation fencing,
-owner-scoped command admission/cancellation/result reads, atomic local command
-receipts, an explicit public result projection, and real two-account execution
-acceptance across restarts/revocation. S6 must also exercise bounded queues,
-disconnections and total elapsed network deadlines: the current enrollment
+The source acceptance test now uses two account sessions and two started
+companions over real loopback TLS. Alice executes and cancels synthetic work;
+Bob's worker remains empty while swapped device/run requests are denied. It
+drops the first acceptance acknowledgement, reconnects to one original local
+run, reads a safe result, revokes while connected and confirms denial after a
+coordinator restart. Windows runs use actual current-user DPAPI; other platforms
+use an explicit memory fixture and make no Windows protection claim.
+
+Private build F also passed one packaged profile/two-account execution proof
+across two independent bundled processes: DPAPI enrollment, outgoing TLS/WSS,
+lost-acknowledgement retry, completed results, queued and active cancellation,
+durable reopening and revocation denial. It checked all 167 first-party sources
+and 6,078 manifest files against the frozen bundle, with every imported desktop
+module inside that bundle. The coordinator stayed in the separate source runtime.
+This proof uses the explicit private constructor flag and exercises no GUI relay
+controls.
+
+The normal desktop still needs a reviewed local relay connection/control flow
+and combined native desktop/install-profile acceptance before its execution gate
+can be enabled.
+This API-driven private proof does not establish a hosted website, visual UI
+acceptance, CARLA execution or a public deployment. See the
+[relay receipt](validation/s4-relay-prototype.json) for the current evidence.
+S6 must also exercise the wider disconnection/crash/sleep matrix and total
+elapsed network deadlines: the current enrollment
 transport bounds bytes and socket inactivity, rather than the whole DNS/TLS/body
 operation. Definitive abandonment of a never-committed/expired pending approval
 also remains in that fault matrix; the current UI retains uncertain credentials.
 The [pairing design](hosted-pairing-design.md) remains the acceptance
-contract; these foundations do not close that plan step.
+contract; these private boundaries do not close that plan step.

@@ -346,7 +346,11 @@ def test_abrupt_worker_exit_is_detected_without_waiting_for_normal_response(tmp_
 @pytest.mark.parametrize("operation", ["load", "reset", "step", "close"])
 def test_hung_lifecycle_operations_have_deadlines_and_terminate_worker(tmp_path, operation):
     pid_file = tmp_path / "pid.txt"
-    timeouts = {operation + "_timeout_s": 0.3 if operation != "load" else 3.0}
+    # Load includes a cold interpreter and framework imports. Use the same
+    # startup budget as the other lifecycle cases so this fixture reaches its
+    # intended hung user operation and PID marker under concurrent native tests.
+    # Reset/step/close still exercise their short operation-specific deadlines.
+    timeouts = {} if operation == "load" else {operation + "_timeout_s": 0.3}
     agent = ProcessAgent(write_package(tmp_path / "agent", hang=operation, pid_file=str(pid_file)),
                          options=options(**timeouts))
     try:
@@ -392,7 +396,9 @@ def test_load_deadline_also_covers_agent_module_import(tmp_path):
         f"Path({str(pid_file)!r}).write_text(str(os.getpid()))\n"
         "while True:\n    time.sleep(1)\n", encoding="utf-8",
     )
-    agent = ProcessAgent(package, options=options(load_timeout_s=3.0))
+    # Reach the deliberate module-import hang before asserting deadline cleanup;
+    # interpreter/framework startup shares the existing ten-second fixture budget.
+    agent = ProcessAgent(package, options=options())
     try:
         with pytest.raises(AgentTimeoutError):
             agent.load(agent.manifest.configuration)

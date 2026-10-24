@@ -1,4 +1,4 @@
-"""Isolated account/pairing ASGI factory. No inbound device service or simulator."""
+"""Isolated account, pairing and outbound-device relay ASGI factory."""
 
 from contextlib import asynccontextmanager
 import hmac
@@ -8,16 +8,19 @@ import time
 from urllib.parse import urlsplit
 from uuid import UUID
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, WebSocket
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from shared.models.coordination import (AccountIdentity, AccountInput, BrowserSession,
     EmptyInput, PairingApproveInput, PairingClaimInput, PairingCreateInput,
     PairingDenyInput, PasswordChangeInput)
+from shared.models.remote import parse_message
 
 from .auth import AuthError, AuthService
+from .commands import CommandService
 from .pairing import PairingService, timestamp
+from .relay import RelayHub
 from .settings import CoordinatorSettings, service_origin
 from .store import Store, StoreError
 
@@ -37,6 +40,25 @@ class RequestBoundary:
         self.app, self.settings = app, settings
 
     async def __call__(self, scope, receive, send):
+        if scope["type"] == "websocket":
+            raw = scope["headers"]
+            headers = {key.lower(): value for key, value in raw}
+            guarded = (b"host", b"origin", b"authorization", b"content-type", b"content-length", b"cookie", b"x-csrf-token", b"sec-websocket-protocol")
+            forbidden = (scope.get("query_string") or scope.get("subprotocols") or b"sec-websocket-protocol" in headers or
+                b"origin" in headers or b"cookie" in headers or
+                any(sum(key.lower() == name for key, value in raw) > 1 for name in guarded) or
+                sum(len(key) + len(value) for key, value in raw) > 16384)
+            try:
+                scheme = {"wss": "https", "ws": "http"}.get(scope["scheme"], scope["scheme"])
+                actual = service_origin(scheme + "://" + headers.get(b"host", b"").decode("ascii"),
+                    allow_insecure_loopback=self.settings.test_allow_insecure_loopback)
+            except (ValueError, UnicodeError):
+                actual = None
+            if forbidden or actual != self.settings.public_origin:
+                await send({"type": "websocket.close", "code": 1008})
+                return
+            await self.app(scope, receive, send)
+            return
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -96,9 +118,12 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
         store.initialize()
         app.state.auth = AuthService(store, now=now)
         app.state.pairing = PairingService(store, app.state.auth, now=now, ttl_s=settings.pairing_ttl_s)
+        app.state.commands = CommandService(store, now=now)
+        app.state.relay = RelayHub(app.state.commands)
         try:
             yield
         finally:
+            await app.state.relay.close()
             store.close()
 
     app = FastAPI(title="Poltergeist coordinator", lifespan=lifespan,
@@ -239,8 +264,34 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
         return request.app.state.pairing.device(browser(request)["account_id"], device_id)
 
     @app.post("/v1/devices/{device_id}/revoke")
-    def revoke(device_id: UUID, body: EmptyInput, request: Request):
-        return request.app.state.pairing.revoke(browser(request, write=True)["account_id"], device_id)
+    async def revoke(device_id: UUID, body: EmptyInput, request: Request):
+        result = request.app.state.pairing.revoke(browser(request, write=True)["account_id"], device_id)
+        await request.app.state.relay.disconnect(device_id)
+        return result
+
+    @app.post("/v1/devices/{device_id}/commands", status_code=202)
+    async def command(device_id: UUID, request: Request):
+        account = browser(request, write=True)
+        try:
+            body = parse_message(await request.body(), relay=False)
+        except ValueError:
+            raise AuthError(400, "invalid_request") from None
+        result = request.app.state.commands.admit(account["account_id"], device_id, body,
+            connected=request.app.state.relay.available(device_id))
+        request.app.state.relay.notify(device_id)
+        return result
+
+    @app.get("/v1/devices/{device_id}/commands/{request_id}")
+    def command_status(device_id: UUID, request_id: UUID, request: Request):
+        return request.app.state.commands.get(browser(request)["account_id"], device_id, request_id)
+
+    @app.websocket("/v1/device/connect")
+    async def device_connect(socket: WebSocket):
+        authorization = socket.headers.get("authorization", "")
+        if not re.fullmatch(r"Bearer pd_[A-Za-z0-9_-]{43}", authorization):
+            await socket.close(code=1008)
+            return
+        await socket.app.state.relay.connect(socket, authorization[7:])
 
     @app.get("/v1/device/session")
     def device_session(request: Request):
@@ -254,11 +305,13 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
             "remote_execution_enabled": False}
 
     @app.post("/v1/device/revoke")
-    def device_revoke(body: EmptyInput, request: Request):
+    async def device_revoke(body: EmptyInput, request: Request):
         device_request(request)
         authorization = request.headers.get("authorization", "")
         if not authorization.startswith("Bearer "):
             raise AuthError(401, "device_authentication_required")
-        return request.app.state.pairing.revoke_credential(authorization[7:])
+        result = request.app.state.pairing.revoke_credential(authorization[7:])
+        await request.app.state.relay.disconnect(result["device_id"])
+        return result
 
     return app

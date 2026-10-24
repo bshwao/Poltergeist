@@ -14,7 +14,7 @@ from sqlalchemy import Connection, inspect
 from .persistence_errors import DatabaseInitializationError
 
 
-CURRENT_REVISION = 4
+CURRENT_REVISION = 5
 
 _INITIAL_DDL = (
     """CREATE TABLE scenarios (
@@ -122,8 +122,47 @@ _AGENTS_CHECKSUM = sha256("\n".join(_AGENTS_DDL).encode("utf-8")).hexdigest()
 _COLUMNS["agent_registrations"] = {"id", "payload", "active", "created_at"}
 _COLUMNS["simulation_jobs"].add("agent_snapshot")
 
+_REMOTE_RECEIPTS_DDL = (
+    """CREATE TABLE remote_command_receipts (
+        id INTEGER PRIMARY KEY NOT NULL,
+        origin VARCHAR(256) NOT NULL, device_id VARCHAR(36) NOT NULL,
+        owner_id VARCHAR(36) NOT NULL,
+        generation INTEGER NOT NULL CONSTRAINT ck_remote_command_receipts_generation CHECK (generation >= 1),
+        request_id VARCHAR(36) NOT NULL,
+        operation VARCHAR(8) NOT NULL CONSTRAINT ck_remote_command_receipts_operation CHECK (operation IN ('execute','cancel')),
+        payload_sha256 VARCHAR(64) NOT NULL,
+        scenario_sha256 VARCHAR(64) CONSTRAINT ck_remote_command_receipts_scenario
+            CHECK ((operation = 'execute' AND scenario_sha256 IS NOT NULL) OR (operation = 'cancel' AND scenario_sha256 IS NULL)),
+        simulation_id VARCHAR(36) NOT NULL,
+        accepted_at VARCHAR(32) NOT NULL,
+        revision INTEGER NOT NULL CONSTRAINT ck_remote_command_receipts_revision CHECK (revision >= 1),
+        FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE RESTRICT
+    )""",
+    "CREATE UNIQUE INDEX ix_remote_command_receipts_request ON remote_command_receipts (origin, device_id, generation, request_id)",
+    "CREATE INDEX ix_remote_command_receipts_binding_run ON remote_command_receipts (origin, device_id, generation, simulation_id, operation)",
+    """CREATE TABLE remote_run_projections (
+        origin VARCHAR(256) NOT NULL, device_id VARCHAR(36) NOT NULL,
+        generation INTEGER NOT NULL CONSTRAINT ck_remote_run_projections_generation CHECK (generation >= 1),
+        simulation_id VARCHAR(36) NOT NULL, owner_id VARCHAR(36) NOT NULL,
+        revision INTEGER NOT NULL CONSTRAINT ck_remote_run_projections_revision CHECK (revision >= 1),
+        payload_sha256 VARCHAR(64) NOT NULL,
+        PRIMARY KEY (origin, device_id, generation, simulation_id),
+        FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE RESTRICT
+    )""",
+)
+_REMOTE_RECEIPTS_CHECKSUM = sha256("\n".join(_REMOTE_RECEIPTS_DDL).encode("utf-8")).hexdigest()
+_COLUMNS["remote_command_receipts"] = {
+    "id", "origin", "device_id", "owner_id", "generation", "request_id", "operation",
+    "payload_sha256", "scenario_sha256", "simulation_id", "accepted_at", "revision",
+}
+_COLUMNS["remote_run_projections"] = {
+    "origin", "device_id", "generation", "simulation_id", "owner_id", "revision", "payload_sha256",
+}
+
 
 def _table_revision(name: str) -> int:
+    if name in {"remote_command_receipts", "remote_run_projections"}:
+        return 5
     return 4 if name == "agent_registrations" else 3 if name.startswith("optimization_") else 2 if name == "simulation_jobs" else 1
 
 
@@ -158,8 +197,12 @@ def _verify_schema(connection: Connection, *, revision: int = CURRENT_REVISION) 
                 raise DatabaseInitializationError(f"Database column definition is incompatible: {name}.{wanted.name}")
         if inspector.get_pk_constraint(name)["constrained_columns"] != [column.name for column in table.primary_key.columns]:
             raise DatabaseInitializationError(f"Database primary key is incompatible: {name}")
-        indexes = {(index["name"], tuple(index["column_names"]), bool(index["unique"])) for index in inspector.get_indexes(name)}
-        wanted_indexes = {(index.name, tuple(column.name for column in index.columns), bool(index.unique)) for index in table.indexes}
+        indexes = {(index["name"], tuple(index["column_names"]), bool(index["unique"]),
+                    None if index.get("dialect_options", {}).get("sqlite_where") is None
+                    else _sql(str(index["dialect_options"]["sqlite_where"]))) for index in inspector.get_indexes(name)}
+        wanted_indexes = {(index.name, tuple(column.name for column in index.columns), bool(index.unique),
+                           None if index.dialect_options["sqlite"].get("where") is None
+                           else _sql(str(index.dialect_options["sqlite"]["where"]))) for index in table.indexes}
         if indexes != wanted_indexes:
             raise DatabaseInitializationError(f"Database indexes are incompatible: {name}")
         checks = {(check["name"], _sql(check["sqltext"])) for check in inspector.get_check_constraints(name)}
@@ -195,7 +238,8 @@ def migrate(connection: Connection) -> None:
         history = list(connection.exec_driver_sql("SELECT revision, name, checksum FROM schema_migrations ORDER BY revision"))
         expected = [(1, "initial_persistence", _INITIAL_CHECKSUM), (2, "simulation_jobs", _JOBS_CHECKSUM),
                     (3, "optimization_journal", _OPTIMIZATION_CHECKSUM),
-                    (4, "agent_registry", _AGENTS_CHECKSUM)][:len(history)]
+                    (4, "agent_registry", _AGENTS_CHECKSUM),
+                    (5, "remote_command_receipts", _REMOTE_RECEIPTS_CHECKSUM)][:len(history)]
         if [tuple(row) for row in history] != expected:
             raise DatabaseInitializationError("Unknown, future, or noncontiguous migration history")
         if not history and tables != {"schema_migrations"}:
@@ -235,5 +279,14 @@ def migrate(connection: Connection) -> None:
         connection.exec_driver_sql(
             "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
             (4, "agent_registry", _AGENTS_CHECKSUM, datetime.now(UTC).isoformat()),
+        )
+        history = [*history, (4, "agent_registry", _AGENTS_CHECKSUM)]
+    if len(history) == 4:
+        _verify_schema(connection, revision=4)
+        for statement in _REMOTE_RECEIPTS_DDL:
+            connection.exec_driver_sql(statement)
+        connection.exec_driver_sql(
+            "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
+            (5, "remote_command_receipts", _REMOTE_RECEIPTS_CHECKSUM, datetime.now(UTC).isoformat()),
         )
     _verify_schema(connection)

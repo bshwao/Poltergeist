@@ -7,7 +7,7 @@ from threading import RLock
 
 
 APPLICATION_ID = 0x504F4C43
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA = """
 CREATE TABLE coordinator_meta (version INTEGER NOT NULL);
@@ -59,6 +59,41 @@ CREATE TABLE security_events (
  outcome_code TEXT NOT NULL, account_id TEXT, device_id TEXT, attempt_id TEXT, command_id TEXT);
 """
 
+# Revision 1 is intentionally unchanged so an existing private coordinator can
+# be upgraded in one transaction, without rewriting accounts or credentials.
+SCHEMA_V2 = """
+ALTER TABLE commands ADD COLUMN reply_json TEXT;
+ALTER TABLE commands ADD COLUMN error_code TEXT;
+ALTER TABLE commands ADD COLUMN completed_at REAL;
+ALTER TABLE commands ADD COLUMN projection_revision INTEGER NOT NULL DEFAULT 0;
+UPDATE coordinator_meta SET version=2;
+"""
+
+
+def _statements(connection, script):
+    for statement in script.split(";"):
+        if statement.strip():
+            connection.execute(statement)
+
+
+def _shape(connection):
+    """Compare the full SQLite declarations, including constraints and indexes."""
+    return [(row[0], row[1], row[2], " ".join(row[3].split()) if row[3] else None)
+            for row in connection.execute("SELECT type,name,tbl_name,sql FROM sqlite_master "
+                "WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name")]
+
+
+def _verify_schema(connection, version):
+    reference = sqlite3.connect(":memory:")
+    try:
+        _statements(reference, SCHEMA)
+        if version == 2:
+            _statements(reference, SCHEMA_V2)
+        if _shape(connection) != _shape(reference):
+            raise StoreError("Unsupported coordinator database schema")
+    finally:
+        reference.close()
+
 
 class StoreError(RuntimeError):
     pass
@@ -105,16 +140,19 @@ class Store:
                     if "coordinator_meta" not in tables or identity != APPLICATION_ID:
                         raise StoreError("Refusing a database belonging to another application")
                     versions = connection.execute("SELECT version FROM coordinator_meta").fetchall()
-                    if len(versions) != 1 or versions[0][0] != SCHEMA_VERSION:
+                    if len(versions) != 1 or versions[0][0] not in (1, SCHEMA_VERSION):
                         raise StoreError("Unsupported coordinator database schema")
                     if tables != {"coordinator_meta", "accounts", "sessions", "pairing_attempts", "devices",
                                   "device_credentials", "device_grants", "commands", "security_counters", "security_events"}:
                         raise StoreError("Unsupported coordinator database schema")
+                    _verify_schema(connection, versions[0][0])
+                    if versions[0][0] == 1:
+                        _statements(connection, SCHEMA_V2)
                 else:
-                    for statement in SCHEMA.split(";"):
-                        if statement.strip():
-                            connection.execute(statement)
+                    _statements(connection, SCHEMA)
+                    _statements(connection, SCHEMA_V2)
                     connection.execute(f"PRAGMA application_id={APPLICATION_ID}")
+                _verify_schema(connection, SCHEMA_VERSION)
                 connection.commit()
                 connection.execute("PRAGMA journal_mode=WAL")
                 self._initialized = True

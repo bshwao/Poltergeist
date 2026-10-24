@@ -23,6 +23,9 @@ from .coordination import (
     PasswordChangeInput, PermissionScope,
 )
 from .runtime import SimulationOptions
+from .hosted import HostedRunSummaryV1
+from .remote import (CancelCommand, CommandRejected, ExecuteCommand, RemoteCommandView,
+                     RemoteContracts, ResultCommand, StatusCommand)
 from .readiness import ReadinessCheck, ReadinessReport, ReadinessStatus, WorkflowReadiness
 from .registry import (
     AgentExecutionOptions, AgentExternalFileFingerprint, AgentFileFingerprint,
@@ -60,6 +63,8 @@ from .telemetry import (
 )
 
 __all__ = [
+    "HostedRunSummaryV1", "CancelCommand", "CommandRejected", "ExecuteCommand",
+    "RemoteCommandView", "RemoteContracts", "ResultCommand", "StatusCommand",
     "AccountIdentity", "AccountInput", "ApprovedAgent", "BrowserSession", "CoordinationContracts",
     "DeviceCredentialStatus", "DevicePolicy", "DeviceView", "EmptyInput", "PairingApproveInput",
     "PairingClaimInput", "PairingCreateInput", "PairingCreated", "PairingDenyInput", "PairingStatus",

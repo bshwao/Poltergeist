@@ -1,6 +1,6 @@
 # S0–S10 progress notes
 
-Updated October 23, 2026. Current work: **S4 — hosted backend and pairing**.
+Updated October 24, 2026. Current work: **S4 — hosted backend and pairing**.
 Branch: `codex/s4-hosted-pairing`.
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
@@ -15,15 +15,42 @@ private prototype does not close independent-machine or release validation.
 | S1 — Standalone packaging | Private prototype validated on the development laptop | Pinned private Python/core dependencies, relocated synthetic/CARLA/SDK checks. An independent computer without developer tools, redistribution review and a native support matrix remain open. |
 | S2 — Companion application | Private desktop prototype | Native application, isolated profile, durable local queue/results, configuration, diagnostics and deliberate imports/exports. Hosted connection remains unavailable. See [desktop guide](companion.md). |
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
-| **S4 — Hosted backend and pairing** | **In progress; account/pairing foundation** | Separate coordinator, Argon2 accounts, browser sessions/CSRF, owner-scoped device pairing/revocation, DPAPI credentials and desktop consent controls. Relay, remote commands, public result projection and full execution acceptance remain open. See [scope and evidence](coordinator.md). |
+| **S4 — Hosted backend and pairing** | **In progress; private relay execution boundary** | Account/pairing foundation plus authenticated outbound relay, atomic remote receipts, owner-scoped commands/cancellation, safe baseline summaries and real TLS retry/revoke proof. Normal remote execution stays disabled pending desktop flow and packaged acceptance. See [scope and evidence](coordinator.md). |
 | S5 — Website integration | Pending | Paired-device dashboard transport and a real HTTPS deployment. |
-| S6 — Reliable remote execution | Pending | Durable remote command receipts, reconnect/idempotency tests, cancellation and cross-profile CARLA endpoint ownership. Existing local queue durability is only a foundation. |
+| S6 — Reliable remote execution | Pending | S4 now supplies durable remote receipts and initial reconnect/cancellation proofs. The wider crash/sleep/timeout matrix and cross-profile CARLA endpoint ownership remain open. |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
 | S10 — Distribution and release | Pending | Signing, updates/rollback, supported-machine validation and external beta. |
 
 ## Latest work
+
+- Added the private S4 relay and command boundary: closed message types,
+  authenticated/fenced connections, owner and scope checks at each boundary,
+  bounded queues/heartbeats, durable command outcomes and revocation.
+- Added migration 5 for local remote receipts and independent public projection
+  revisions. Submit and cancel receipts share the worker transaction; a retry
+  cannot commit a second tentative simulation/job.
+- Added explicit baseline-only result summaries with null/coverage preservation,
+  fixed errors and evidence availability. Local paths, snapshots and arbitrary
+  diagnostics never form the public response.
+- The source TLS execution proof passes with two accounts and two started
+  companions, an intentionally lost acknowledgement, one original accepted run,
+  scoped results, cooperative cancellation, swapped-identity denials and revoked
+  credentials after coordinator restart. Alice's worker executes; Bob's stays
+  empty. Normal app execution remains disabled. See the
+  [relay validation receipt](validation/s4-relay-prototype.json).
+- Private build F passed the packaged DPAPI/TLS/relay/worker proof across two
+  process launches with one profile and two account sessions. Lost acknowledgements
+  retain one job, results survive reopening, and both queued/active cancellation
+  and revocation denials pass. All 167 first-party sources and 6,078 manifest files
+  match the frozen bundle. This proof uses a constructor-only private switch;
+  native GUI relay controls and normal execution enablement remain open.
+- All 205 focused relay checks pass on Python 3.14. The 31 native transport and
+  deadline cases pass on both Python versions. Dashboard tests remain 329/329,
+  with contracts, typecheck and production build passing.
+
+## Account/pairing foundation evidence
 
 - Added a separate coordinator with explicit storage/configuration, bounded
   account authentication, revocable browser sessions and CSRF boundaries.

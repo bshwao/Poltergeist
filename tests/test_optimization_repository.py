@@ -127,7 +127,10 @@ def test_cancel_is_idempotent_and_recovery_does_not_restart_work(database):
         assert repository.request_cancel(first.id) == final
         resumed = repository.resume(second.id, expected_revision=3)
         assert resumed.status == "queued" and resumed.finished_at is None
-        assert resumed.started_at == recovered[1].started_at
+        # Timestamp ties are ordered by UUID; match the recovered identity rather
+        # than assuming the second-created operation occupies the second slot.
+        prior = next(item for item in recovered if item.id == second.id)
+        assert resumed.started_at == prior.started_at
 
 
 def test_failed_operations_need_error_and_only_interrupted_can_resume(database):
@@ -346,7 +349,7 @@ def test_revision_two_upgrade_preserves_historical_records_byte_for_byte(tmp_pat
     database.initialize()
     try:
         with database.engine.connect() as connection:
-            assert connection.exec_driver_sql("SELECT revision FROM schema_migrations ORDER BY revision").scalars().all() == [1, 2, 3, 4]
+            assert connection.exec_driver_sql("SELECT revision FROM schema_migrations ORDER BY revision").scalars().all() == [1, 2, 3, 4, 5]
             assert tuple(connection.exec_driver_sql("SELECT payload,revision,created_at,updated_at FROM scenarios").one()) == ("preserve original bytes", 7, "2026-01-01", "2026-01-02")
     finally:
         database.dispose()

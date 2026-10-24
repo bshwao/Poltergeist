@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+from threading import RLock
 from uuid import UUID, uuid4
 
 from backend.dependencies import ApiRuntime
@@ -42,7 +43,8 @@ def read_json(path):
 
 class CompanionController:
     def __init__(self, profile, *, bundle=None, runtime_factory=ApiRuntime,
-                 pairing_factory=PairingClient, credential_store_factory=WindowsCredentialStore):
+                 pairing_factory=PairingClient, credential_store_factory=WindowsCredentialStore,
+                 relay_factory=None, _private_remote_execution=False):
         self.profile = profile_path(profile, bundle=bundle)
         self._factory = runtime_factory
         self._lease = instance_lease(self.profile)
@@ -53,6 +55,13 @@ class CompanionController:
         self._pairing_factory = pairing_factory
         self._credential_store_factory = credential_store_factory
         self._pairing_display = None
+        self._remote_lock = RLock()
+        self._relay = None
+        self._relay_admission = False
+        self._relay_factory = relay_factory
+        # Deliberately constructor-only: neither saved config nor environment
+        # variables can enable the unfinished private acceptance boundary.
+        self._private_remote_execution = _private_remote_execution is True
         self.config = load_config(self.profile)
 
     def open(self):
@@ -90,6 +99,8 @@ class CompanionController:
 
     def stop(self):
         self._require_open()
+        if not self.disconnect_relay():
+            return False
         if self._runtime is None:
             return True
         self._stopping = True
@@ -173,9 +184,71 @@ class CompanionController:
         return self.pairing_status()
 
     def revoke_pairing(self):
+        if not self.disconnect_relay():
+            raise ConflictError("The relay is still disconnecting; retry before revoking pairing")
         self._pairing().revoke()
         self._pairing_display = None
         return self.pairing_status()
+
+    def _remote_enrollment(self):
+        from backend.remote_receipts import RemoteBinding
+        from .pairing_client import EnrollmentRecord
+        with self._remote_lock:
+            self._require_open()
+            if not self._relay_admission or self._runtime is None or self._stopping:
+                raise ConflictError("The local relay is not accepting commands")
+            try:
+                record = EnrollmentRecord.model_validate(self._credential_store_factory(self.profile).load())
+                if (record.state != "paired" or record.origin != self.config.coordinator_origin
+                        or record.approval is None):
+                    raise ValueError
+                binding = RemoteBinding(record.origin, record.created.device_id,
+                    record.approval.expected_account_id, 1)
+                return binding, record.approval.policy, record.approval.credential
+            except Exception:
+                raise ConflictError("Review the saved local approval before connecting") from None
+
+    def connect_relay(self):
+        """Explicit local action; normal builds keep remote execution disabled."""
+        from .relay_client import RelayClient
+        from .remote_service import RemoteService
+        with self._remote_lock:
+            runtime = self._running()
+            if self._relay is not None:
+                raise ConflictError("Disconnect the existing relay first")
+            self._relay_admission = True
+            try:
+                binding, policy, credential = self._remote_enrollment()
+                service = RemoteService(runtime.worker(), lambda: self._remote_enrollment()[:2],
+                    lock=self._remote_lock)
+                factory = self._relay_factory or RelayClient
+                relay = factory(binding.origin, self._remote_enrollment, service,
+                    remote_execution_enabled=self._private_remote_execution)
+                self._relay = relay
+                relay.start()
+            except Exception:
+                self._relay_admission = False
+                self._relay = None
+                raise
+            return relay.snapshot()
+
+    def disconnect_relay(self):
+        with self._remote_lock:
+            self._relay_admission = False
+            relay = self._relay
+        # Joining outside the admission lock lets an in-flight action finish or
+        # observe the disabled binding. Keep runtime/profile ownership on timeout.
+        if relay is not None and not relay.stop():
+            return False
+        with self._remote_lock:
+            self._relay = None
+        return True
+
+    def relay_status(self):
+        with self._remote_lock:
+            if self._relay is None:
+                return {"state": "disconnected", "remote_execution_enabled": False, "running": False}
+            return self._relay.snapshot()
 
     def _running(self):
         self._require_open()

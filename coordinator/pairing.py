@@ -175,7 +175,8 @@ class PairingService:
             connection.execute("UPDATE devices SET revoked_at=COALESCE(revoked_at,?),connection_generation=connection_generation+1 WHERE id=? AND owner_id=?",
                 (now, str(device_id), str(owner_id)))
             connection.execute("UPDATE device_credentials SET revoked_at=COALESCE(revoked_at,?) WHERE device_id=?", (now, str(device_id)))
-            connection.execute("UPDATE commands SET status='rejected',updated_at=? WHERE device_id=? AND status='queued'", (now, str(device_id)))
+            connection.execute("UPDATE commands SET status='rejected',error_code='permission_denied',updated_at=?,completed_at=? "
+                "WHERE device_id=? AND status='queued'", (now, now, str(device_id)))
             audit(connection, now, "device_revoke", "allowed", account_id=str(owner_id), device_id=str(device_id))
             return self._view(connection, owner_id, device_id, include_revoked=True)
 
