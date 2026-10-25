@@ -8,9 +8,9 @@ S0 stress presets. Synthetic and CARLA mode choices respect approved scopes;
 managed agent installation/selection remains S7 work. The result view keeps
 acceptance separate from completion and preserves zero versus unmeasured values.
 
-S5 is **in progress**. Local synthetic browser acceptance passes. Public HTTPS
-hosting, a real CARLA run launched through this website, the current packaged
-companion, and independent-machine acceptance still need verification. S4 build G
+S5 is **in progress**. Local synthetic and real CARLA browser acceptance pass.
+Public HTTPS hosting, the current packaged companion, and independent-machine
+acceptance still need verification. S4 build G
 is historical evidence for its recorded source; the new shared contracts are
 not included in that archived build.
 
@@ -88,3 +88,21 @@ Desktop and phone screenshots verify layout and horizontal bounds. The initial
 Windows Python 3.12 browser run logged Proactor connection-reset callbacks
 during browser transport teardown; those diagnostics are retained, not hidden.
 This does not claim the S6 crash/sleep/failure matrix is complete.
+
+The separate live proof is opt-in: set `POLTERGEIST_HOSTED_LIVE_CARLA=1` before
+running the same browser command, with matching CARLA already running on the
+companion's configured endpoint/map. It selects `carla.spec.ts` and the normal
+companion runtime, with no synthetic adapter override. The test never starts or
+reloads the simulator. Its 0.5-second Town10HD_Opt run returned 11 frames, a real
+CARLA runtime/provenance summary, and durable results after reload. Native RPC
+also verified actor IDs and world settings before/after. See the
+[live receipt](validation/s5-carla-browser.json) and
+[public summary](validation/s5-carla-summary.json), including partial coverage
+and null TTC. The original absolute-placement and numeric-normalization failures
+remain recorded; the successful repeat does not relabel them as passes.
+
+The quick check uses the existing template's relative actor placement. Command
+validation canonicalizes template parameters through the same scenario validator
+as the worker before hashing: JavaScript's `2` and a template's `2.0` must not
+change the frozen recipe during admission. Receipt IDs still bind to canonical
+content; a changed request cannot replace an accepted recipe.

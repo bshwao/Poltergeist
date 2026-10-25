@@ -1,8 +1,8 @@
 # S0–S10 progress notes
 
 Updated October 25, 2026. Current checkpoint: **S5 hosted dashboard implemented;
-local synthetic browser acceptance passes. Public deployment and browser-driven
-CARLA acceptance remain open**.
+local synthetic and CARLA browser acceptance pass. Public deployment remains
+open**.
 Branch: `codex/s5-hosted-dashboard` (continues the preserved S4 branch).
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
@@ -19,7 +19,7 @@ private prototype does not close independent-machine or release validation.
 | S2 — Companion application | Private desktop prototype | Native application, isolated profile, durable local queue/results, configuration, diagnostics and deliberate imports/exports. S4 adds explicit relay connection and consent controls. See [desktop guide](companion.md). |
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
-| **S5 — Website integration** | **Implemented locally; acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic browser acceptance passes over local HTTPS/WSS. Real public HTTPS deployment, website-driven CARLA, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
+| **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
 | S6 — Reliable remote execution | Pending | S4 now supplies durable remote receipts and initial reconnect/cancellation proofs. The wider crash/sleep/timeout matrix and cross-profile CARLA endpoint ownership remain open. |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
@@ -28,6 +28,24 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- The browser now also completes a real CARLA 0.9.16 baseline using the normal
+  companion runtime: Town10HD_Opt, Low graphics, 0.5 measured simulated seconds,
+  11 frames and a completed summary that survives reload. Coverage is partial
+  and TTC is null; this is a workflow proof, not a safety benchmark. Native RPC
+  verifies the original actor IDs and world settings were restored. Only the
+  CARLA process tree created for this check was stopped afterward.
+- That live check found two issues: the quick-check recipe used an absolute
+  lead position outside a driving lane, and JavaScript's integral numbers changed
+  a template recipe hash when the worker later normalized them to floats. The
+  quick check now uses existing map-relative template placement. Execute commands
+  pass the same scenario normalization before hashing/admission; a real-worker
+  regression verifies that retries still create one job. S0 preset definitions
+  and the baseline controller remain unchanged. Both failed live attempts are
+  retained. See [live browser evidence](validation/s5-carla-browser.json).
+- GitHub run [40176474002](https://github.com/bshwao/Poltergeist/actions/runs/40176474002)
+  passes all five jobs for the first S5 commit `f69a970`. That includes the
+  production hosted browser proof and the full Windows/Linux Python 3.12/3.14
+  workflows. The subsequent live-check fixes require their own CI result.
 - Added the separate S5 website build at `/app/`: account sign-in/creation,
   pairing with local approval, owned-device availability, thirteen starting
   recipes, baseline experiment configuration, cancellation and measured results.

@@ -1,0 +1,48 @@
+{
+  "schema_version": "poltergeist-s5-local-carla-browser-v1",
+  "recorded_on": "2026-10-25",
+  "status": "passed_local_live_workflow_s5_incomplete",
+  "branch": "codex/s5-hosted-dashboard",
+  "browser_test": "frontend/hosted-e2e/carla.spec.ts",
+  "fixture": "tests/hosted_browser_server.py with POLTERGEIST_HOSTED_LIVE_CARLA=1",
+  "normal_runtime": true,
+  "synthetic_adapter_override": false,
+  "baseline_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d",
+  "carla": {"client": "0.9.16", "server": "0.9.16", "map": "Town10HD_Opt", "quality": "Low", "render_offscreen": true, "started_for_test": true, "owned_process_tree_stopped_after_test": true},
+  "result": {
+    "public_summary": "s5-carla-summary.json",
+    "simulation_id": "ba97f2e1-a99b-4e26-a269-70a87dec35e3",
+    "status": "completed",
+    "agent": "baseline",
+    "adapter": "carla",
+    "measured_duration_s": 0.5000000074505806,
+    "telemetry_frames": 11,
+    "collision_count": 0,
+    "min_ttc_s": null,
+    "coverage_complete": false,
+    "result_survives_reload": true,
+    "local_worker_jobs": 1
+  },
+  "cleanup": {"native_rpc_before_after_equal": true, "actor_ids_restored": true, "synchronous_restored_to": false, "fixed_delta_restored_to": null, "vehicles_after": 0, "walkers_after": 0, "sensors_after": 0},
+  "checks": {
+    "live_browser": {"passed": 1, "case_seconds": 25.8, "total_seconds": 33.3, "log": "validation-evidence/s5-live-browser.log"},
+    "python312_numeric_receipt_relay_regression": {"passed": 136, "seconds": 38.25, "receipt": "validation-evidence/s5-numeric-regression.xml"},
+    "python314_final_regression_and_two_companion_tls": {"passed": 137, "seconds": 93.68, "receipt": "validation-evidence/s5-final-python314.xml"},
+    "synthetic_browser_after_live_fixes": {"passed": 1, "case_seconds": 56.6, "log": "validation-evidence/s5-final-synthetic-browser.log"},
+    "first_s5_commit_ci": {"sha": "f69a9707356ed8bd29dbfec2f477579fc5db7519", "jobs_passed": 5, "url": "https://github.com/bshwao/Poltergeist/actions/runs/40176474002"}
+  },
+  "retained_failures": [
+    {"reason": "Initial native startup probe reused a timed-out RPC client; a fresh client reached the ready server", "production_change": false},
+    {"reason": "The quick recipe's absolute lead position was outside a driving lane", "resolution": "Use existing template-relative placement", "evidence": "validation-evidence/s5-live-placement-failure"},
+    {"reason": "Integral JavaScript template parameters were normalized after hashing and rejected at the frozen-recipe check", "resolution": "Normalize the scenario before command hashing/admission, with a one-job retry regression", "evidence": "validation-evidence/s5-live-numeric-failure"}
+  ],
+  "limits": [
+    "Local HTTPS website and source companion controller; no public deployment or packaged-client acceptance",
+    "Browser private-CA exception and memory-only fixture credentials as in the synthetic browser proof",
+    "CARLA was started separately for this authorized test, not by a new remote simulator-start capability",
+    "Only a short workflow smoke: partial coverage, null TTC and one initial hard-braking observation do not establish driving safety or a new baseline benchmark",
+    "Native UI consent input, downloads/protocol handler, supported-machine validation and broader S6 faults remain open",
+    "Windows Proactor connection-reset teardown diagnostics remain in the original log",
+    "The later live-check fixes have separate local validation; the first S5 commit's green CI does not establish those fixes' CI status"
+  ]
+}

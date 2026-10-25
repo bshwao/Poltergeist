@@ -7,8 +7,8 @@ WebSocket relay, durable command receipts and a safe baseline result projection.
 Normal startup keeps remote execution disabled. The Connection tab now offers
 explicit Connect/Disconnect controls and consent for each connection session.
 There is no public coordinator address. Source now includes the separate
-[S5 hosted account dashboard](hosted-dashboard.md), with local synthetic browser
-acceptance. Public deployment, website-driven CARLA and the S6 fault acceptance
+[S5 hosted account dashboard](hosted-dashboard.md), with local synthetic and CARLA
+browser acceptance. Public deployment and the S6 fault acceptance
 matrix remain open. The previously delivered S3 installer is unchanged.
 
 ## Separate service

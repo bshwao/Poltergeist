@@ -38,7 +38,10 @@ def main():
         raise ValueError("A private fixture control token is required")
     stop, release, entered, mutex = Event(), Event(), Event(), Lock()
     controllers, stores = {}, {}
+    live_carla = os.environ.get("POLTERGEIST_HOSTED_LIVE_CARLA") == "1"
     scopes = ["status:read", "result:read", "run:execute:test", "run:cancel"]
+    if live_carla:
+        scopes.append("run:execute:carla")
     origin = "https://localhost:8058"
 
     class HeldAdapter(TestSimulationAdapter):
@@ -55,6 +58,8 @@ def main():
         def relay(*args, **kwargs):
             return RelayClient(*args, **kwargs, _ssl_context=context)
         def runtime(settings):
+            if live_carla:
+                return ApiRuntime(settings)
             return ApiRuntime(settings, runner_factory=lambda **kwargs: SimulationRunner(HeldAdapter(), **kwargs))
         controller = CompanionController(root / name, pairing_factory=pairing, relay_factory=relay,
             credential_store_factory=lambda profile: stores.setdefault(str(profile), MemoryStore()), runtime_factory=runtime)

@@ -1,0 +1,90 @@
+{
+  "protocol_version": "poltergeist-hosted-run-v1",
+  "device_id": "34990d58-f54c-48e7-98fc-390fb6b443bc",
+  "ownership_generation": 1,
+  "execute_request_id": "57666064-83d0-46b2-b54f-001f462fc8d6",
+  "receipt_revision": 1,
+  "revision": 4,
+  "simulation_id": "ba97f2e1-a99b-4e26-a269-70a87dec35e3",
+  "mode": "carla",
+  "status": "completed",
+  "progress": 1,
+  "cancel_requested": false,
+  "queue_position": null,
+  "created_at": "2026-10-25T08:37:32.311718Z",
+  "started_at": "2026-10-25T08:37:32.910432Z",
+  "finished_at": "2026-10-25T08:37:33.374334Z",
+  "updated_at": "2026-10-25T08:37:33.476085Z",
+  "scenario": {
+    "name": "Website CARLA baseline",
+    "sha256": "128332fc006a7ceb3b3406d772aa95162b955bc3a44cf46683873ae3edd84a65"
+  },
+  "agent": "baseline",
+  "result_available": true,
+  "measured_duration_s": 0.5000000074505806,
+  "metrics": {
+    "collision_count": 0,
+    "traffic_violation_count": 0,
+    "min_clearance_m": 29.523610735881316,
+    "min_ttc_s": null,
+    "max_deceleration_mps2": 26.538447907929935,
+    "hard_braking_count": 1,
+    "max_stopping_distance_m": null,
+    "max_stopping_time_s": null,
+    "severity": null,
+    "coverage": {
+      "total_frames": 11,
+      "collision_frames": 11,
+      "traffic_rule_frames": 10,
+      "braking_frames": 11,
+      "clearance_frames": 11,
+      "ttc_frames": 11,
+      "actor_pairs": 11,
+      "clearance_pairs": 11,
+      "ttc_pairs": 11,
+      "has_gaps": false,
+      "complete": false
+    },
+    "evaluation_settings": {
+      "method_version": "1.0",
+      "collision_episode_gap_s": 1,
+      "violation_episode_gap_s": 1,
+      "speeding_tolerance_mps": 0.5,
+      "hard_braking_threshold_mps2": 4,
+      "stopped_speed_mps": 0.1,
+      "max_sample_gap_s": 0.5,
+      "ttc_horizon_s": 10,
+      "ttc_warning_s": 3,
+      "clearance_warning_m": 2,
+      "braking_full_severity_mps2": 8,
+      "violations_for_full_severity": 3,
+      "ttc_weight": 45,
+      "clearance_weight": 25,
+      "braking_weight": 15,
+      "traffic_rule_weight": 15
+    }
+  },
+  "runtime": {
+    "adapter": "carla",
+    "server_version": "0.9.16",
+    "client_version": "0.9.16",
+    "map_name": "Town10HD_Opt",
+    "fixed_delta_seconds": 0.05,
+    "seed": 7
+  },
+  "provenance": {
+    "observation_mode": "simulator_state",
+    "source": "carla_ground_truth",
+    "ego_state_source": "simulator_state",
+    "ground_truth_actor_inputs": true,
+    "control_mode": "scripted",
+    "controller": "baseline",
+    "navigation": "legacy_assisted"
+  },
+  "error": null,
+  "evidence": {
+    "state": "local_only",
+    "telemetry_frames": 11,
+    "artifact_reference_count": 2
+  }
+}

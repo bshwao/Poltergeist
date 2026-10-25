@@ -4,6 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 process.env.POLTERGEIST_HOSTED_FIXTURE_TOKEN ??= randomUUID();
 export default defineConfig({
   testDir: "./hosted-e2e", workers: 1, fullyParallel: false, retries: 0,
+  testMatch: process.env.POLTERGEIST_HOSTED_LIVE_CARLA === "1" ? "carla.spec.ts" : "workspace.spec.ts",
   timeout: 120_000, expect: { timeout: 20_000 },
   outputDir: "test-results/hosted", reporter: [["list"], ["html", { outputFolder: "playwright-report/hosted", open: "never" }]],
   use: { baseURL: "https://localhost:8058", ignoreHTTPSErrors: true,

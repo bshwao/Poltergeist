@@ -40,6 +40,11 @@ class ExecuteCommand(_RemoteModel):
     @field_validator("scenario")
     @classmethod
     def bounded_scenario(cls, value):
+        # Browser JSON has one number type: 2.0 arrives as 2. Normalize through
+        # the worker's scenario validator before hashing or admitting a request,
+        # so template parameter coercion cannot change its frozen recipe later.
+        from scenarios import validate_scenario
+        value = validate_scenario(value)
         if len(value.name) > 128:
             raise ValueError("Remote scenario names are limited to 128 characters")
         tick_ratio = value.duration_s / value.fixed_delta_seconds

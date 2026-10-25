@@ -108,6 +108,27 @@ def test_lost_acceptance_reply_reuses_one_run_and_scoped_result(harness):
     assert "frames.ndjson" not in serialized and "agent_snapshot" not in serialized
 
 
+def test_browser_integer_template_parameters_accept_once_with_the_normalized_recipe(harness):
+    from scenarios.stress_presets import get_stress_preset
+    from shared.models.remote import parse_message, payload_digest
+    binding, current, persistence, make, release = harness
+    worker, service, _ = make()
+    recipe = get_stress_preset("sudden_braking-low").scenario().model_dump(mode="json")
+    # JSON.stringify has no representation for an integral float. The browser
+    # sends these parameters as integers even though the template uses floats.
+    recipe["parameters"] = {key: int(value) if isinstance(value, float) and value.is_integer() else value
+                            for key, value in recipe["parameters"].items()}
+    request = {"kind": "execute", "request_id": str(uuid4()), "mode": "test", "scenario": recipe}
+    command = parse_message(json.dumps(request), relay=False)
+    first = service.dispatch(binding, command)
+    assert isinstance(first, ExecuteAccepted)
+    stored = worker.get(first.simulation_id)
+    assert payload_digest(stored.simulation.scenario) == payload_digest(command.scenario)
+    assert service.dispatch(binding, parse_message(json.dumps(request), relay=False)) == first
+    assert count(persistence, SimulationRecord) == count(persistence, SimulationJobRecord) == 1
+    wait_for(lambda: worker.get(first.simulation_id).result)
+
+
 def test_changed_request_content_conflicts_without_another_job(harness):
     binding, current, persistence, make, release = harness
     worker, service, _ = make()

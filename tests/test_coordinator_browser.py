@@ -135,6 +135,8 @@ def test_browser_catalogue_requires_a_session_and_preserves_calibrated_recipes(w
     presets = response.json()
     assert len(presets) == 13 and len({preset["id"] for preset in presets}) == 13
     assert presets[0]["recipe"]["duration_s"] == .5
+    lead = next(actor for actor in presets[0]["recipe"]["actors"] if actor["id"] == "lead")
+    assert lead["spawn"] is None and lead["relative_spawn"]["anchor_actor_id"] == "ego"
     assert {preset["id"]: preset["recipe"] for preset in presets[1:]} == {
         preset.id: preset.scenario().model_dump(mode="json") for preset in STRESS_PRESETS}
 

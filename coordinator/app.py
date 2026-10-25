@@ -279,12 +279,12 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
     @app.get("/v1/browser/scenarios")
     def browser_scenarios(request: Request):
         browser(request)
-        from scenarios import validate_scenario
+        from scenarios.scenario_generator import build_scenario
         from scenarios.stress_presets import STRESS_PRESETS
-        installation = validate_scenario({"name": "Companion installation check", "duration_s": .5,
-            "map": "Town10HD_Opt", "seed": 7,
-            "actors": [{"id": "ego", "type": "ego_vehicle", "speed_mps": 2.},
-                       {"id": "lead", "type": "vehicle", "speed_mps": 0., "spawn": {"position": {"x": 35.}}}]})
+        installation = build_scenario("sudden_braking", name="Companion installation check",
+            duration_s=.5, map_name="Town10HD_Opt", seed=7,
+            parameters={"ego_speed_mps": 2., "lead_speed_mps": 0., "lead_distance_m": 35.,
+                        "brake_delay_s": 0., "lead_deceleration_mps2": 3.})
         return [BrowserScenarioPreset(id="installation-check", label="Quick installation check",
             description="A short baseline recipe for checking your connected computer.",
             family="installation", recipe=installation),
