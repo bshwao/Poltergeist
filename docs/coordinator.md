@@ -6,9 +6,10 @@ browser sessions, device ownership and explicit approval on the Windows device.
 WebSocket relay, durable command receipts and a safe baseline result projection.
 Normal startup keeps remote execution disabled. The Connection tab now offers
 explicit Connect/Disconnect controls and consent for each connection session.
-There is no public coordinator address or hosted account UI. S5 dashboard
-integration and the S6 fault acceptance matrix remain open. The previously
-delivered S3 installer is unchanged.
+There is no public coordinator address. Source now includes the separate
+[S5 hosted account dashboard](hosted-dashboard.md), with local synthetic browser
+acceptance. Public deployment, website-driven CARLA and the S6 fault acceptance
+matrix remain open. The previously delivered S3 installer is unchanged.
 
 ## Separate service
 
@@ -57,8 +58,12 @@ survive service restarts; Argon2 work has a bounded concurrency budget.
 
 The implemented browser endpoints are `/v1/auth/register`, `/v1/auth/login`,
 `/v1/auth/session`, `/v1/auth/logout`, `/v1/auth/password`, `/v1/pairing/claim`,
-and owner-scoped `/v1/devices` reads/revocation. They are foundations for S5;
-there is no account website in this slice.
+and owner-scoped `/v1/devices` reads/revocation. S5 adds `/v1/browser/devices`,
+`/v1/browser/scenarios`, claimant-only `/v1/browser/claims/{attempt_id}` and
+paginated `/v1/devices/{device_id}/commands` history. Device views recheck current
+credential/grants and connection age without advancing last-seen timestamps.
+Connected, paused, offline and revoked remain distinct; CARLA readiness stays
+unknown until an actual experiment checks it.
 
 ## Private relay and command boundary
 

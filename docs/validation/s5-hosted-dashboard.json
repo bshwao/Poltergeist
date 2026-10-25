@@ -1,0 +1,58 @@
+{
+  "schema_version": "poltergeist-s5-local-browser-v1",
+  "recorded_on": "2026-10-25",
+  "branch": "codex/s5-hosted-dashboard",
+  "base_head": "dcdbf3e1fab0529cdeda62d948a8a321c87f623e",
+  "status": "local_synthetic_browser_passed_s5_incomplete",
+  "build": {
+    "directory": "frontend/dist-hosted",
+    "hosted.html": "dd52b360b00bd9ebce145f3549544a0a07d822ca91307bfc94d107d01a77ccb1",
+    "assets/hosted-BvymqSmp.css": "f974f9cff53ab614ff0f60de78352265fe25975392cf63fbd4578adecf1476f5",
+    "assets/hosted-DdspHeD-.js": "f754b273c5870db30cad2b59afbb7650d171da0b2b7842cd3ee3f94bcd531b0c"
+  },
+  "checks": {
+    "frontend_tests": {"passed": 333, "log": "validation-evidence/s5-frontend-tests.log"},
+    "existing_local_browser": {"passed": 6, "seconds": 50.3, "log": "validation-evidence/s5-existing-browser.log"},
+    "hosted_browser": {"passed": 1, "case_seconds": 57.9, "log": "validation-evidence/s5-hosted-browser.log"},
+    "python312_relay_static_browser_and_two_companion_tls": {"passed": 32, "skipped": 1, "seconds": 78.13, "receipt": "validation-evidence/s5-hosted-python.xml"},
+    "python312_expanded_account_pairing_contract_distribution_regression": {"passed": 102, "skipped": 1, "seconds": 32.92, "receipt": "validation-evidence/s5-coordinator-regression.xml"},
+    "python314_relay_static_initial_browser_checks": {"passed": 31, "skipped": 1, "seconds": 23.87, "receipt": "validation-evidence/s5-hosted-python314.xml", "note": "Before the two extra catalogue and generation-filter history cases were added."},
+    "skip_reason": "Windows denied creation of the symlink fixture. The symlink rejection case remains enabled on supported test hosts.",
+    "contracts": "Python schema export and generated TypeScript checks passed",
+    "production_builds": "Both hosted and original local dashboard builds passed",
+    "visual_review": "Desktop 1440px and phone 390px screenshots inspected; no horizontal overflow"
+  },
+  "browser_coverage": [
+    "Two independent browser cookie contexts and accounts",
+    "Code claim followed by actual local controller approval and explicit relay consent",
+    "Separate real source companion controllers and isolated fixture profiles",
+    "Owner-scoped device lists and foreign-device history denial",
+    "Lost HTTP response after real command admission; retry reused UUID and created one job",
+    "Accepted execution distinguished from measured completion",
+    "Zero collisions and null time-to-collision remain distinct",
+    "Reload recovered admitted runs and stored summaries",
+    "Second acceptance selected the new experiment",
+    "Active cooperative cancellation and final cancelled summary",
+    "Paused connection disabled new launches and result requests",
+    "Offline stored readback and revoked-device history removal",
+    "Revocation dialog Escape behavior and account sign-out",
+    "Strict production CSP without inline allowances, no policy violations or page errors",
+    "No browser requests to local simulation API or third-party origins",
+    "No localStorage or sessionStorage credentials"
+  ],
+  "earlier_failures": [
+    {"reason": "Playwright Chromium runtime was absent; no application UI ran", "resolution": "Installed the matching browser into a workspace test cache"},
+    {"reason": "Test incorrectly required a measured TTC for a null observation", "resolution": "Asserted null and measured zero separately", "artifacts": "validation-evidence/s5-browser-first-failure"},
+    {"reason": "Second launch retained the previous selected result and hid new-run cancellation", "resolution": "Select the new simulation when its original pending execute request is accepted", "artifacts": "validation-evidence/s5-browser-selection-failure"}
+  ],
+  "limitations": [
+    "Browser HTTPS uses an explicit exception for the private fixture CA; no claim of public browser certificate trust",
+    "Companion HTTPS/WSS clients verify the private fixture CA and hostname without disabling TLS verification",
+    "Credential stores are explicit memory fixtures; S5 does not claim new packaged-runtime, DPAPI or physical native-consent acceptance",
+    "Windows Python 3.12 Proactor connection-reset teardown callbacks remain in browser logs; no page errors were observed",
+    "Synthetic execution only; no website-driven CARLA result is claimed",
+    "No public deployment, independent-machine validation, managed AI installation, evidence transfer or capacity proof",
+    "Archived S4 build G retains its historical source identity and has not been rebuilt for S5",
+    "Full GitHub validation for this new branch is not yet reported in this pre-commit receipt"
+  ]
+}

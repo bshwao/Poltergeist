@@ -10,9 +10,11 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
+    "build:hosted": "tsc --noEmit && vite build --config vite.hosted.config.ts",
     "preview": "vite preview",
     "test": "node --test",
     "test:e2e": "playwright test",
+    "test:e2e:hosted": "playwright test --config playwright.hosted.config.ts",
     "contracts:generate": "node scripts/generate-types.mjs",
     "contracts:check": "node scripts/generate-types.mjs --check"
   },

@@ -10,6 +10,7 @@ from fastapi import WebSocket
 
 from shared.models.remote import (ClientReady, RelayCommand, RelayPing, RelayPong,
     RelayReply, ServerHello, canonical_json, parse_message, MAX_RELAY_BYTES)
+from shared.models.browser import BrowserConnectionView
 
 from .auth import AuthError
 
@@ -45,7 +46,30 @@ class RelayHub:
 
     def available(self, device_id):
         current = self.connections.get(str(device_id))
-        return current is not None and current.ready and current.enabled
+        return current is not None and current.ready and current.enabled and self._current(current)
+
+    def _current(self, current):
+        if self.monotonic() - current.last_received >= 90:
+            return False
+        try:
+            self.commands.connection_current(current.credential, current.identity)
+            return True
+        except AuthError:
+            return False
+
+    def browser_connection(self, device):
+        """Read on the app loop; browser polling never advances last_seen_at."""
+        last_seen = self.commands.last_seen(device.owner.account_id, device.device_id)
+        if device.revoked_at is not None:
+            return BrowserConnectionView(state="revoked", last_seen_at=last_seen)
+        current = self.connections.get(str(device.device_id))
+        if current is None or not self._current(current):
+            return BrowserConnectionView(state="offline", last_seen_at=last_seen)
+        state = "connecting" if not current.ready else "connected" if current.enabled else "paused"
+        return BrowserConnectionView(state=state, last_seen_at=last_seen,
+            protocol_version="poltergeist-relay-v1" if current.ready else None,
+            protocol_compatible=True if current.ready else None,
+            remote_requests_enabled=current.ready and current.enabled)
 
     def notify(self, device_id):
         current = self.connections.get(str(device_id))

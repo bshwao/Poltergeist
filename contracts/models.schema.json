@@ -2603,6 +2603,226 @@
       "title": "BrakingEvent",
       "type": "object"
     },
+    "BrowserCommandPage": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/RemoteCommandView"
+          },
+          "maxItems": 50,
+          "title": "Items",
+          "type": "array"
+        },
+        "next_before": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Before"
+        }
+      },
+      "required": [
+        "items",
+        "next_before"
+      ],
+      "title": "BrowserCommandPage",
+      "type": "object"
+    },
+    "BrowserConnectionView": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_only": {
+          "const": true,
+          "default": true,
+          "title": "Baseline Only",
+          "type": "boolean"
+        },
+        "carla_readiness": {
+          "const": "unknown",
+          "default": "unknown",
+          "title": "Carla Readiness",
+          "type": "string"
+        },
+        "last_seen_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Seen At"
+        },
+        "protocol_compatible": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Protocol Compatible"
+        },
+        "protocol_version": {
+          "anyOf": [
+            {
+              "const": "poltergeist-relay-v1",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Protocol Version"
+        },
+        "remote_requests_enabled": {
+          "default": false,
+          "title": "Remote Requests Enabled",
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "offline",
+            "connecting",
+            "connected",
+            "paused",
+            "revoked"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "last_seen_at",
+        "protocol_version",
+        "protocol_compatible",
+        "remote_requests_enabled",
+        "baseline_only",
+        "carla_readiness"
+      ],
+      "title": "BrowserConnectionView",
+      "type": "object"
+    },
+    "BrowserContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "commands": {
+          "$ref": "#/$defs/BrowserCommandPage"
+        },
+        "device": {
+          "$ref": "#/$defs/BrowserDeviceView"
+        },
+        "presets": {
+          "items": {
+            "$ref": "#/$defs/BrowserScenarioPreset"
+          },
+          "maxItems": 13,
+          "title": "Presets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "device",
+        "commands",
+        "presets"
+      ],
+      "title": "BrowserContracts",
+      "type": "object"
+    },
+    "BrowserDeviceView": {
+      "additionalProperties": false,
+      "properties": {
+        "connection": {
+          "$ref": "#/$defs/BrowserConnectionView"
+        },
+        "device": {
+          "$ref": "#/$defs/DeviceView"
+        }
+      },
+      "required": [
+        "device",
+        "connection"
+      ],
+      "title": "BrowserDeviceView",
+      "type": "object"
+    },
+    "BrowserScenarioPreset": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 400,
+          "title": "Description",
+          "type": "string"
+        },
+        "family": {
+          "enum": [
+            "installation",
+            "intersection",
+            "pedestrian_crossing",
+            "sudden_braking",
+            "occluded_pedestrian"
+          ],
+          "title": "Family",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "intended_stress": {
+          "anyOf": [
+            {
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intended Stress"
+        },
+        "label": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "recipe": {
+          "$ref": "#/$defs/Scenario"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description",
+        "family",
+        "intended_stress",
+        "recipe"
+      ],
+      "title": "BrowserScenarioPreset",
+      "type": "object"
+    },
     "BrowserSession": {
       "additionalProperties": false,
       "properties": {
@@ -9442,6 +9662,9 @@
     "api": {
       "$ref": "#/$defs/ApiContracts"
     },
+    "browser": {
+      "$ref": "#/$defs/BrowserContracts"
+    },
     "coordination": {
       "$ref": "#/$defs/CoordinationContracts"
     },
@@ -9489,7 +9712,8 @@
     "readiness",
     "runner",
     "coordination",
-    "remote"
+    "remote",
+    "browser"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

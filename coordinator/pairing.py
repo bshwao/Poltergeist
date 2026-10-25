@@ -100,6 +100,16 @@ class PairingService:
             row = self._private(connection, attempt_id, secret)
             return self._status(connection, row)
 
+    def claimed_status(self, account_id, attempt_id):
+        """A browser can follow its own claim without the companion's secret."""
+        with self.store.transaction() as connection:
+            self._expire(connection, self.now())
+            row = connection.execute("SELECT * FROM pairing_attempts WHERE id=? AND claimed_account_id=?",
+                (str(attempt_id), str(account_id))).fetchone()
+            if row is None:
+                raise AuthError(404, "resource_not_found")
+            return self._status(connection, row)
+
     def approve(self, attempt_id, secret, request):
         request = PairingApproveInput.model_validate(request)
         payload_hash = hash_token(canonical(request.model_dump(mode="json")))

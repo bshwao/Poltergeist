@@ -86,9 +86,13 @@ jobs:
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
+      - run: npm run build:hosted
+        working-directory: frontend
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npm run test:e2e
+        working-directory: frontend
+      - run: npm run test:e2e:hosted
         working-directory: frontend
       - uses: actions/upload-artifact@v7
         if: always()

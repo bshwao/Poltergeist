@@ -12,6 +12,7 @@ def main(argv=None):
     parser.add_argument("--port", type=int, default=8443)
     parser.add_argument("--certfile", type=Path, required=True)
     parser.add_argument("--keyfile", type=Path, required=True)
+    parser.add_argument("--hosted-assets", type=Path, help="Absolute directory of the production hosted frontend build")
     args = parser.parse_args(argv)
     if not 1 <= args.port <= 65535:
         parser.error("Use a valid local listening port")
@@ -20,7 +21,7 @@ def main(argv=None):
     from .app import create_app
     from .settings import CoordinatorSettings
     import uvicorn
-    settings = CoordinatorSettings(args.database, args.origin)
+    settings = CoordinatorSettings(args.database, args.origin, hosted_assets_dir=args.hosted_assets)
     uvicorn.run(create_app(settings), host=args.host, port=args.port, workers=1,
         ssl_certfile=str(args.certfile), ssl_keyfile=str(args.keyfile),
         proxy_headers=False, access_log=False, log_level="warning", ws_max_size=262144)

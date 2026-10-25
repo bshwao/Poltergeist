@@ -11,6 +11,7 @@ build/
 dist/
 node_modules/
 frontend/dist/
+frontend/dist-hosted/
 frontend/test-results/
 frontend/playwright-report/
 validation-evidence/

@@ -8,7 +8,7 @@ import time
 from urllib.parse import urlsplit
 from uuid import UUID
 
-from fastapi import FastAPI, Request, Response, WebSocket
+from fastapi import FastAPI, Query, Request, Response, WebSocket
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -16,6 +16,7 @@ from shared.models.coordination import (AccountIdentity, AccountInput, BrowserSe
     EmptyInput, PairingApproveInput, PairingClaimInput, PairingCreateInput,
     PairingDenyInput, PasswordChangeInput)
 from shared.models.remote import parse_message
+from shared.models.browser import BrowserDeviceView, BrowserScenarioPreset
 
 from .auth import AuthError, AuthService
 from .commands import CommandService
@@ -244,6 +245,12 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
         request.app.state.auth.rate_limit("pair-poll:" + str(attempt_id), 20, 60)
         return result
 
+    @app.get("/v1/browser/claims/{attempt_id}")
+    def claimed_status(attempt_id: UUID, request: Request):
+        account = browser(request)
+        request.app.state.auth.rate_limit("browser-pair-poll:" + account["account_id"], 30, 60)
+        return request.app.state.pairing.claimed_status(account["account_id"], attempt_id)
+
     @app.post("/v1/pairing/{attempt_id}/approve")
     def approve(attempt_id: UUID, body: PairingApproveInput, request: Request):
         secret = private_secret(request)
@@ -262,6 +269,28 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
     @app.get("/v1/devices/{device_id}")
     def device(device_id: UUID, request: Request):
         return request.app.state.pairing.device(browser(request)["account_id"], device_id)
+
+    @app.get("/v1/browser/devices")
+    async def browser_devices(request: Request):
+        owner = browser(request)["account_id"]
+        return [BrowserDeviceView(device=device, connection=request.app.state.relay.browser_connection(device))
+            for device in request.app.state.pairing.devices(owner)]
+
+    @app.get("/v1/browser/scenarios")
+    def browser_scenarios(request: Request):
+        browser(request)
+        from scenarios import validate_scenario
+        from scenarios.stress_presets import STRESS_PRESETS
+        installation = validate_scenario({"name": "Companion installation check", "duration_s": .5,
+            "map": "Town10HD_Opt", "seed": 7,
+            "actors": [{"id": "ego", "type": "ego_vehicle", "speed_mps": 2.},
+                       {"id": "lead", "type": "vehicle", "speed_mps": 0., "spawn": {"position": {"x": 35.}}}]})
+        return [BrowserScenarioPreset(id="installation-check", label="Quick installation check",
+            description="A short baseline recipe for checking your connected computer.",
+            family="installation", recipe=installation),
+            *[BrowserScenarioPreset(id=preset.id, label=preset.id.replace("_", " ").replace("-", " · ").title(),
+                description=preset.description, family=preset.family.value, intended_stress=preset.intended_stress,
+                recipe=preset.scenario()) for preset in STRESS_PRESETS]]
 
     @app.post("/v1/devices/{device_id}/revoke")
     async def revoke(device_id: UUID, body: EmptyInput, request: Request):
@@ -284,6 +313,12 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
     @app.get("/v1/devices/{device_id}/commands/{request_id}")
     def command_status(device_id: UUID, request_id: UUID, request: Request):
         return request.app.state.commands.get(browser(request)["account_id"], device_id, request_id)
+
+    @app.get("/v1/devices/{device_id}/commands")
+    def command_history(device_id: UUID, request: Request,
+                        limit: int = Query(20, ge=1, le=50), before: UUID | None = None):
+        return request.app.state.commands.history(browser(request)["account_id"], device_id,
+            limit=limit, before=before)
 
     @app.websocket("/v1/device/connect")
     async def device_connect(socket: WebSocket):
@@ -314,4 +349,6 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
         await request.app.state.relay.disconnect(result["device_id"])
         return result
 
+    from .hosted_static import configure_hosted_static
+    configure_hosted_static(app, settings)
     return app

@@ -1,12 +1,14 @@
 # S0–S10 progress notes
 
-Updated October 24, 2026. Current checkpoint: **S4 private workflow validated on
-the development laptop; S5 website integration is next**.
-Branch: `codex/s4-hosted-pairing`.
+Updated October 25, 2026. Current checkpoint: **S5 hosted dashboard implemented;
+local synthetic browser acceptance passes. Public deployment and browser-driven
+CARLA acceptance remain open**.
+Branch: `codex/s5-hosted-dashboard` (continues the preserved S4 branch).
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
 S2 desktop companion and S3 installer/setup flow. The latest changes add the
-account/pairing foundation and desktop consent controls for S4.
+account/pairing foundation and desktop consent controls for S4, plus the separate
+hosted dashboard for S5.
 The full [roadmap](scalability-plan.md) retains all completion gates; a working
 private prototype does not close independent-machine or release validation.
 
@@ -17,7 +19,7 @@ private prototype does not close independent-machine or release validation.
 | S2 — Companion application | Private desktop prototype | Native application, isolated profile, durable local queue/results, configuration, diagnostics and deliberate imports/exports. S4 adds explicit relay connection and consent controls. See [desktop guide](companion.md). |
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
-| S5 — Website integration | Pending | Paired-device dashboard transport and a real HTTPS deployment. |
+| **S5 — Website integration** | **Implemented locally; acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic browser acceptance passes over local HTTPS/WSS. Real public HTTPS deployment, website-driven CARLA, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
 | S6 — Reliable remote execution | Pending | S4 now supplies durable remote receipts and initial reconnect/cancellation proofs. The wider crash/sleep/timeout matrix and cross-profile CARLA endpoint ownership remain open. |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
@@ -26,6 +28,27 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Added the separate S5 website build at `/app/`: account sign-in/creation,
+  pairing with local approval, owned-device availability, thirteen starting
+  recipes, baseline experiment configuration, cancellation and measured results.
+  The original local dashboard keeps its own entry point and transport.
+- Browser traffic uses only the configured same origin and fixed `/v1` routes.
+  CSRF stays in memory; passwords and pairing codes clear on submission.
+  Server history checks current ownership, generation and per-operation grants,
+  with stable bounded pagination. Static serving is opt-in and serves an
+  immutable bounded build under strict CSP, with no API fallback.
+- The production-build Chromium proof passes with two separate accounts and
+  actual source companion controllers: pairing, owner denial, lost HTTP response
+  and same-identity retry producing one run, reload, cancellation, pause,
+  offline stored results and revocation. Desktop/390-pixel layouts were visually
+  reviewed. The proof is synthetic and uses a fixture browser certificate
+  exception and memory-only fixture credential stores; it does not establish
+  public TLS trust or packaged/DPAPI acceptance for S5.
+- All 333 frontend tests and both production builds pass. The first browser
+  assertion incorrectly expected measured TTC; it now asserts null and zero
+  separately. The next pass found that a second launch left the first result
+  selected; acceptance now selects the new run. Both earlier failure artifacts
+  are retained locally. See [S5 evidence](validation/s5-hosted-dashboard.json).
 - Added desktop Connect/Disconnect and an unchecked consent box beside the
   approved account, device, permissions and limits. The controller checks that
   exact protected binding before enabling the session. Disconnect/Stop/Close,

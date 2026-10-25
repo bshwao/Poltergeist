@@ -6,6 +6,7 @@ import time
 from uuid import uuid4
 
 from shared.models.coordination import DevicePolicy
+from shared.models.browser import BrowserCommandPage
 from shared.models.remote import (COMMAND_ADAPTER, REPLY_ADAPTER, CancelAccepted,
     CommandRejected, ExecuteAccepted, ExecuteCommand, RunResultReply,
     RemoteCommandView, canonical_json, command_scope, parse_message, payload_digest)
@@ -73,6 +74,67 @@ class CommandService:
                 raise AuthError(403, "permission_denied")
             connection.execute("UPDATE devices SET last_seen_at=? WHERE id=?", (self.now(), row["id"]))
             return dict(row)
+
+    def connection_current(self, credential, expected):
+        """Recheck a displayed connection without manufacturing device activity."""
+        with self.store.transaction(write=False) as connection:
+            row = self._credential(connection, credential, expected=expected)
+            policy = _stored(DevicePolicy, row["policy_json"])
+            grants = {item[0] for item in connection.execute("SELECT scope FROM device_grants "
+                "WHERE device_id=? AND ownership_generation=?", (row["id"], row["ownership_generation"]))}
+            if policy != expected["policy"] or grants != set(policy.scopes):
+                raise AuthError(403, "permission_denied")
+            return dict(row)
+
+    def last_seen(self, owner_id, device_id):
+        with self.store.transaction(write=False) as connection:
+            row = connection.execute("SELECT last_seen_at FROM devices WHERE id=? AND owner_id=?",
+                (str(device_id), str(owner_id))).fetchone()
+            if row is None:
+                raise AuthError(404, "resource_not_found")
+            return timestamp(row[0]) if row[0] is not None else None
+
+    def history(self, owner_id, device_id, *, limit=20, before=None):
+        if type(limit) is not int or not 1 <= limit <= 50:
+            raise AuthError(400, "invalid_request")
+        with self.store.transaction(write=False) as connection:
+            row = self._owner(connection, owner_id, device_id)
+            policy = _stored(DevicePolicy, row["policy_json"])
+            grants = {item[0] for item in connection.execute("SELECT scope FROM device_grants "
+                "WHERE device_id=? AND ownership_generation=?", (row["id"], row["ownership_generation"]))} & set(policy.scopes)
+            clauses, parameters = [], []
+            for operation, scope in (("status", "status:read"), ("cancel", "run:cancel"), ("result", "result:read")):
+                if scope in grants:
+                    clauses.append("operation=?")
+                    parameters.append(operation)
+            modes = [mode for mode in ("test", "carla") if "run:execute:" + mode in grants]
+            if modes:
+                clauses.append("(operation='execute' AND CASE WHEN json_valid(payload_json) "
+                    "THEN json_extract(payload_json,'$.mode') END IN (" + ",".join("?" for _ in modes) + "))")
+                parameters.extend(modes)
+            if not clauses:
+                if before is not None:
+                    raise AuthError(404, "resource_not_found")
+                return BrowserCommandPage(items=[])
+            condition = "device_id=? AND owner_id=? AND ownership_generation=? AND (" + " OR ".join(clauses) + ")"
+            values = [row["id"], str(owner_id), row["ownership_generation"], *parameters]
+            cursor = ""
+            if before is not None:
+                previous = connection.execute("SELECT created_at,id FROM commands WHERE " + condition + " AND request_id=?",
+                    (*values, str(before))).fetchone()
+                if previous is None:
+                    raise AuthError(404, "resource_not_found")
+                cursor = " AND (created_at<? OR (created_at=? AND id<?))"
+                values.extend((previous["created_at"], previous["created_at"], previous["id"]))
+            records = connection.execute("SELECT * FROM commands WHERE " + condition + cursor +
+                " ORDER BY created_at DESC,id DESC LIMIT ?", (*values, limit + 1)).fetchall()
+            items = []
+            for stored in records[:limit]:
+                command = _stored(COMMAND_ADAPTER, stored["payload_json"])
+                self._owner(connection, owner_id, device_id, scope=command_scope(command))
+                items.append(self._view(stored))
+            return BrowserCommandPage(items=items,
+                next_before=items[-1].request_id if len(records) > limit and items else None)
 
     @staticmethod
     def _execution(connection, row, simulation_id):
