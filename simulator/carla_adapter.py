@@ -8,6 +8,7 @@ from shared.models import AgentSensorSpec, ActorType, ControlInput, EvaluationSe
 
 from .actor_manager import ActorManager
 from .carla_client import CarlaConnectionSettings, connect
+from .carla_lease import CarlaEndpointLease
 from .errors import SimulationError
 from .protocols import ActorCommand, DrivingObservation, SensorSample, SimulationOptions
 from .rule_monitor import RuleMonitor
@@ -42,6 +43,7 @@ class CarlaSimulationAdapter:
         self._driving_route = []
         self._agent_sensors: tuple[AgentSensorSpec, ...] = ()
         self._cancellation: Callable[[], bool] = lambda: False
+        self._endpoint_lease = None
 
     def configure_agent_sensors(self, specs: list[AgentSensorSpec]) -> None:
         """Validate a dedicated agent rig before any server resources are owned."""
@@ -65,6 +67,12 @@ class CarlaSimulationAdapter:
             raise SimulationError("CARLA adapter is already open")
         self._opened = True
         self.scenario = scenario
+        if self.connection_settings is not None or self.client is None:
+            if self.connection_settings is None:
+                from backend.config import get_settings
+                self.connection_settings = CarlaConnectionSettings.from_settings(get_settings())
+            self._endpoint_lease = CarlaEndpointLease(self.connection_settings)
+            self._endpoint_lease.acquire()
         if self.carla is None:
             try:
                 import carla
@@ -84,7 +92,7 @@ class CarlaSimulationAdapter:
             if str(version).split("-")[0] != "0.9.16":
                 raise SimulationError(f"Expected CARLA 0.9.16 {kind}, received {version!r}")
         self.world_manager = WorldManager(self.client, self.carla, allow_map_reload=self.options.allow_map_reload,
-                                          no_rendering_mode=self.options.no_rendering_mode)
+                                          no_rendering_mode=self.options.no_rendering_mode, endpoint_lease=self._endpoint_lease)
         self.world = self.world_manager.open(scenario)
         self.actor_manager = ActorManager(self.world, self.carla, scenario)
         actors = self.actor_manager.spawn()
@@ -264,9 +272,13 @@ class CarlaSimulationAdapter:
                     resource.close()
                 except Exception as error:
                     errors.append(f"{name}: {error}")
-        self._opened = False
         self._reference_scene = None
         self._driving_task = None
         self._driving_route = []
         if errors:
             raise SimulationError("CARLA cleanup failed: " + "; ".join(errors))
+        if self._endpoint_lease is not None:
+            self._endpoint_lease.mark_clean()
+            self._endpoint_lease.release()
+            self._endpoint_lease = None
+        self._opened = False

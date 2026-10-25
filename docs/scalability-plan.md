@@ -1,16 +1,16 @@
-# Distribution and scalability: S0–S10
+# Poltergeist roadmap: S0–S19
 
-Status: S0 implemented and locally validated; S1 private prototype partial;
-S2 private desktop prototype; S3 installer/onboarding locally validated with
-external gates open; **S4 account, pairing, relay and desktop consent validation
-in progress**. S5–S10 remain planned. See the dated
+Status: S0 locally validated; S1–S5 have private implementations with outstanding
+deployment, packaging and independent-machine gates. **S6 reliability is current
+work.** Public S5 deployment is deferred at the user's request. S7–S19 remain
+planned; early S11 design work is already present in the S5 dashboard. See the dated
 [progress notes](progress-notes.md) for current work and validation.
 This roadmap records the proposed hosted dashboard/backend and
 local companion architecture; it does not indicate that those services or the
 production companion have been released. It is separate from the completed
 [autonomous driving integration roadmap](autonomous-agents-plan.md).
 
-Use the identifiers **S0–S10** when requesting implementation, for example
+Use the identifiers **S0–S19** when requesting implementation, for example
 "Implement scalability phase S1", to distinguish these phases from earlier work.
 
 ## User experience and scope
@@ -90,11 +90,16 @@ initial packaging work.
 
 ## Phases and completion gates
 
-Phases proceed in order. S0 adds collision-stress calibration; S1 has a private command-line packaging prototype;
+S0–S10 establish the core delivery and release workflow. S11–S19 are the numbered
+product and agent expansion backlog added October 25, 2026. Their dependencies
+can overlap earlier work: S11 design begins during S5, and S17 downloads support
+S7. Numbering does not postpone usability until after release or authorize paid
+provider usage or external publishing. S0 adds collision-stress calibration; S1 has a private command-line packaging prototype;
 its independent clean-machine completion gate remains open. S2 has a private
 desktop prototype; S3 has an installer/onboarding implementation under validation.
 S4 has private account/pairing, authenticated relay and normal desktop consent
-proofs. S5 onward remain **planned**. Earlier phases may build
+proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
+is deferred. S6 is in progress and S7 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -295,6 +300,100 @@ routing, bounded resource use and no interference between users' devices.
 **Complete when:** external users can install, pair, execute, review evidence,
 update and troubleshoot without repository access or developer assistance.
 
+### S11 — Visual design and usability
+
+- Establish a consistent dashboard and companion design, typography, themes,
+  responsive charts/layouts and readable device/experiment status.
+- Complete loading, empty, offline, error and recovery states; support keyboard
+  navigation and accessible contrast, labels and focus behavior.
+
+**Complete when:** principal workflows pass visual/accessibility review and
+first-run testing on supported desktop displays and phone viewport sizes.
+
+### S12 — Guided experimentation and adoption
+
+- Guide a first experiment with an illustrated scenario gallery and clear next
+  actions; add saved experiment suites, useful comparisons and replay highlights.
+- Make results and exports understandable and collect deliberate tester feedback
+  about confusing steps and reasons to return.
+
+**Complete when:** new testers can run an experiment and explain its recorded
+outcome without assistance, with feedback driving verified usability changes.
+
+### S13 — Failure Discovery Agent
+
+- Translate an evaluation goal into a validated experiment plan using typed,
+  allowlisted operations and user-approved execution/time budgets.
+- Search with supported local agents, repeat candidate failures, retain failed
+  trials and return reproducible scenarios with measured outcomes.
+
+**Complete when:** a bounded plan produces reproducible confirmed failures or
+honestly reports that no failure was confirmed, with a complete trial record.
+Depends on S6–S8; an optional language interface comes from S18.
+
+### S14 — Evidence Analyst Agent
+
+- Summarize recorded contacts, braking and interventions with exact frame links
+  and measurement coverage, keeping observations and hypotheses distinct.
+- Identify missing evidence and avoid inventing model reasoning or causal claims
+  from a collision or replay alone.
+
+**Complete when:** reviewed analyses trace factual claims to recorded evidence
+and preserve unknowns on incomplete or unavailable runs. Depends on S8.
+
+### S15 — Regression Agent
+
+- Compare frozen model versions on matched saved recipes and seeds, recording
+  input/execution differences, sample counts, uncertainty and incomplete results.
+- Flag measured regressions and retain reproducible suites and evidence.
+
+**Complete when:** repeatable comparisons identify introduced regressions and
+explain inconclusive outcomes without turning missing coverage into a good score.
+Depends on reliable execution, managed agents and evidence; S19 adds CI reporting.
+
+### S16 — Sensor-based driving agents
+
+- Integrate supported trained camera/LiDAR driving policies through the existing
+  agent worker, validating real sensor inputs and actual model vehicle control.
+- Verify dependencies, weights, licenses and hardware timing independently of
+  the existing object-centric PlanT integration.
+
+**Complete when:** a supported sensor policy runs through the app on documented
+hardware with verified inputs/control, bounded timing and reproducible results.
+Depends on S7 and S8; this does not imply general road-safety validation.
+
+### S17 — Hugging Face integration
+
+- Add curated revision-pinned model downloads supporting S7, with verified
+  hashes/licenses, caching, progress and bounded resumable transfer.
+- Handle interrupted downloads, insufficient storage, repair and removal while
+  respecting model access requirements and explicit account configuration.
+
+**Complete when:** supported model assets can be acquired, verified, resumed and
+removed through the app without manual weight-file management.
+
+### S18 — OpenAI integration
+
+- Offer an optional natural-language interface for discovery planning and
+  evidence analysis through validated, bounded Poltergeist tools.
+- Require explicit provider configuration and usage budgets; send only selected
+  evidence and independently check factual claims and coverage.
+
+**Complete when:** assistant workflows respect account/device permissions,
+execution and usage limits, decline unsupported actions and produce reviewable
+plans and evidence-linked reports. Supports S13–S14; no arbitrary shell access.
+
+### S19 — GitHub integration
+
+- Associate regression results with exact model commits and expose reliable
+  report/check status mappings for reviewed experiment suites.
+- Define app/token permissions, private-evidence disclosure and explicit
+  publishing authorization; preserve incomplete/failed validation states.
+
+**Complete when:** an authorized workflow attaches a reproducible regression
+summary to the correct revision and check, without disclosing unselected private
+evidence. Depends on S15 and appropriate repository access.
+
 ## Milestones and user involvement
 
 | Milestone | Required phases | Result |
@@ -303,6 +402,9 @@ update and troubleshoot without repository access or developer assistance.
 | Hosted baseline workflow | S4–S6 | Website account controls a paired local computer reliably |
 | Supported AI and evidence workflow | S7–S8 | Managed reference model and practical recording/result delivery |
 | Wider distribution | S9–S10 | Measured service capacity, updates and externally validated release |
+| Product quality and adoption | S11–S12 | Accessible, polished workflows and guided repeat use |
+| Experiment intelligence | S13–S16 | Discovery, analysis, regression and supported sensor policies |
+| External integrations | S17–S19 | Managed model acquisition, optional language assistance and authorized CI reporting |
 
 Development and automated testing can proceed within each phase. The owner needs
 to provide hosting/account access for deployment, signing credentials for public

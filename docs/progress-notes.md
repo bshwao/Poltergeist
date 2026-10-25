@@ -1,9 +1,9 @@
-# S0–S10 progress notes
+# S0–S19 progress notes
 
-Updated October 25, 2026. Current checkpoint: **S5 hosted dashboard implemented;
-local synthetic and CARLA browser acceptance pass. Public deployment remains
-open**.
-Branch: `codex/s5-hosted-dashboard` (continues the preserved S4 branch).
+Updated October 25, 2026. Current checkpoint: **S6 reliability in progress**.
+S5 local synthetic and CARLA browser acceptance pass; public deployment is
+deferred at the user's request. S11–S19 have been assigned roadmap numbers.
+Branch: `codex/s6-reliable-execution` (continues the preserved S5 branch).
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
 S2 desktop companion and S3 installer/setup flow. The latest changes add the
@@ -20,14 +20,39 @@ private prototype does not close independent-machine or release validation.
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
-| S6 — Reliable remote execution | Pending | S4 now supplies durable remote receipts and initial reconnect/cancellation proofs. The wider crash/sleep/timeout matrix and cross-profile CARLA endpoint ownership remain open. |
+| **S6 — Reliable remote execution** | **In progress; ownership/recovery checkpoint validated** | Cross-profile endpoint leases, unclean-episode quarantine and actual worker-loss receipt recovery pass targeted native checks and a real CARLA website run. Wider crash/network/physical-sleep and packaged acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
 | S10 — Distribution and release | Pending | Signing, updates/rollback, supported-machine validation and external beta. |
+| S11 — Visual design and usability | Planned; early dashboard design present | Consistent visual system, responsive layouts and accessibility across principal workflows. |
+| S12 — Guided experimentation and adoption | Planned | First-run guidance, galleries, saved suites, comparisons, replay highlights and tester feedback. |
+| S13 — Failure Discovery Agent | Planned | Budgeted search, confirmation and reproducible failure evidence. |
+| S14 — Evidence Analyst Agent | Planned | Evidence-linked analysis with coverage and uncertainty. |
+| S15 — Regression Agent | Planned | Matched, frozen-version comparisons and measured regression detection. |
+| S16 — Sensor-based driving agents | Planned | Supported camera/LiDAR policy inputs, control and hardware validation. |
+| S17 — Hugging Face integration | Planned | Verified revision-pinned downloads and managed asset lifecycle supporting S7. |
+| S18 — OpenAI integration | Planned | Optional bounded experiment planning and evidence analysis. |
+| S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
 
+- Assigned S11–S19 to the design/adoption milestones, Discovery/Analyst/Regression
+  and sensor-driving agents, plus Hugging Face/OpenAI/GitHub integrations, at the
+  user's request. The main roadmap now gives each a deliverable, dependencies
+  and completion gate. S0–S10 identifiers are unchanged and S6 remains current.
+- Added CARLA endpoint OS leases independent of profile/database, with common
+  loopback/resolved-address keys and durable unclean-episode quarantine. Cleanup
+  failure retains ownership; process loss does not silently label the world
+  clean. Recovery refuses active/dirty episodes without verified reset or
+  deliberate inspection. Both Python versions pass 139 focused checks with one
+  unavailable symlink fixture skipped. A real normal-runtime website CARLA run
+  passes and restores its original actor IDs and world settings.
+- Added actual worker process-loss tests proving interrupted claimed runs fail,
+  original request IDs do not create another execution, surviving waiters recover,
+  and cancellation acknowledgements remain distinct from final outcomes. The
+  full S6 fault matrix remains open. Earlier failed fixture attempts are retained
+  in the [S6 checkpoint receipt](validation/s6-ownership-recovery.json).
 - The browser now also completes a real CARLA 0.9.16 baseline using the normal
   companion runtime: Town10HD_Opt, Low graphics, 0.5 measured simulated seconds,
   11 frames and a completed summary that survives reload. Coverage is partial
@@ -249,6 +274,7 @@ No public hosted service is available. Authenticated remote control has been
 validated only on private test infrastructure; the delivered S3 installer is
 unchanged.
 
-Visual design, guided workflows, experiment agents and candidate API connections
-are recorded separately as [product impact proposals](product-impact-proposals.md).
-They are proposals; the active S0–S10 scope and gates above remain intact.
+Visual design, guided workflows, experiment agents and external connections are
+numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
+[product impact notes](product-impact-proposals.md). They remain planned work;
+existing S0–S10 identifiers and completion gates are preserved.

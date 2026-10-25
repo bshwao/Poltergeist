@@ -45,10 +45,11 @@ def _dynamic_actors(world: Any) -> list[Any]:
 
 
 class WorldManager:
-    def __init__(self, client: Any, carla_module: Any, *, allow_map_reload: bool = False, no_rendering_mode: bool | None = None):
+    def __init__(self, client: Any, carla_module: Any, *, allow_map_reload: bool = False, no_rendering_mode: bool | None = None, endpoint_lease=None):
         self.client = client
         self.carla = carla_module
         self.allow_map_reload = allow_map_reload
+        self.endpoint_lease = endpoint_lease
         if no_rendering_mode is not None and type(no_rendering_mode) is not bool:
             raise ValueError("no_rendering_mode must be a boolean or None")
         self.no_rendering_mode = no_rendering_mode
@@ -81,6 +82,8 @@ class WorldManager:
 
         original_settings = world.get_settings()
         original_weather = world.get_weather()
+        if self.endpoint_lease is not None:
+            self.endpoint_lease.begin(world, map_reload=mismatch)
         self.world = world
         self._original_map = original_map
         self._original_settings = original_settings

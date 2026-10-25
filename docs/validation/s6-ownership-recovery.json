@@ -1,0 +1,64 @@
+{
+  "schema_version": "poltergeist-s6-ownership-recovery-v1",
+  "recorded_on": "2026-10-25",
+  "branch": "codex/s6-reliable-execution",
+  "status": "checkpoint_passed_s6_incomplete",
+  "s5_public_deployment": "deferred_by_user",
+  "roadmap": "S0-S19; S11-S19 numbered at the user's request",
+  "checks": {
+    "python312": {"passed": 139, "skipped": 1, "seconds": 23.35, "receipt": "validation-evidence/s6-final-python312.xml"},
+    "python314": {"passed": 139, "skipped": 1, "seconds": 25.74, "receipt": "validation-evidence/s6-final-python314.xml"},
+    "skip": "Symlink creation unavailable on this Windows host; case remains enabled elsewhere",
+    "live_browser": {"passed": 1, "case_seconds": 23.6, "total_seconds": 32.7, "log": "validation-evidence/s6-live-browser.log"},
+    "s5_base_ci": {"sha": "12f5ccbc5bd4e42c477a87b1992adbf5c2631b0d", "jobs_passed": 5, "url": "https://github.com/bshwao/Poltergeist/actions/runs/40177633169"}
+  },
+  "ownership": [
+    "One nonblocking native OS lease for each configured/resolved CARLA endpoint, independent of profile/database",
+    "Loopback aliases collide; overlapping DNS aliases collide; independent ports remain independent",
+    "No clock-age expiry or PID-based process termination authority",
+    "Partial multi-address acquisition rolls back without releasing another owner",
+    "Active markers are flushed before world changes and survive abrupt process exit",
+    "Unverified same-episode cleanup remains quarantined",
+    "Possible interrupted map reload requires deliberate inspected recovery",
+    "Cleanup failures retain ownership until a verified retry succeeds",
+    "Corrupt markers and linked paths fail closed without rewriting private data"
+  ],
+  "worker_crash": [
+    "Actual Python worker exits abruptly with committed execute and cancellation receipts",
+    "Claimed work becomes failed with an explicit interrupted result, rather than rerunning",
+    "Original execute receipts replay the same simulation IDs and acceptance timestamps",
+    "Uncancelled waiter completes once; cancelled waiter stays cancelled",
+    "Active cancellation acknowledgement does not turn an interrupted execution into successful cancellation",
+    "Exactly two original local jobs remain in both tested recovery cases"
+  ],
+  "live_carla": {
+    "normal_companion_runtime": true,
+    "synthetic_adapter_override": false,
+    "server_version": "0.9.16",
+    "map": "Town10HD_Opt",
+    "graphics": "Low",
+    "simulation_id": "a296aa91-bc62-4e0b-8911-be6c4bff80bb",
+    "status": "completed",
+    "measured_duration_s": 0.5000000074505806,
+    "telemetry_frames": 11,
+    "coverage": "partial; TTC null",
+    "episode_actor_ids_and_world_settings_restored": true,
+    "only_owned_test_simulator_process_tree_stopped": true,
+    "baseline_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d",
+    "public_summary_local_path": "validation-evidence/s6-live-passed/carla-website-launches-a-m-9bbb3-lready-running-CARLA-server-hosted-chromium/carla-summary.json"
+  },
+  "retained_failures": [
+    "validation-evidence/s6-lease-first.log: Windows launcher termination let its child clean up; fixture now abruptly exits the actual child",
+    "validation-evidence/s6-crash-first.log and s6-native-python314.log: swapped fixture binding arguments and invalid queued-cancellation expectation; corrected fixtures retain strict identity/outcome assertions",
+    "The initial simulator cleanup guard refused an incorrectly parsed UTC timestamp; corrected parsing matched PID, executable, creation time and direct child before termination"
+  ],
+  "limits": [
+    "Lease coordination covers cooperating versions for one OS account on one machine, not arbitrary CARLA clients or other machines/users",
+    "Real browser uses the existing private-CA exception and source controller with memory fixture credentials",
+    "No packaged-runtime or independent-machine acceptance for S6",
+    "No claim of full S6 crash/network/physical-sleep acceptance",
+    "Normal OS DNS resolution and native RPC can remain blocked; worker/profile ownership must remain held",
+    "Windows Proactor browser teardown reset callbacks remain in the original log",
+    "This pre-commit checkpoint does not report the new S6 branch's GitHub CI result"
+  ]
+}

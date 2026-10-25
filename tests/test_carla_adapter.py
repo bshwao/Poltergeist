@@ -17,6 +17,13 @@ from simulator.simulation_runner import SimulationRunner
 def setup_adapter(monkeypatch):
     import simulator.carla_adapter as module
 
+    class Lease:
+        def __init__(self, settings): pass
+        def acquire(self): pass
+        def mark_clean(self): pass
+        def release(self): pass
+    monkeypatch.setattr(module, "CarlaEndpointLease", Lease)
+
     log = []
     scenario = validate_scenario({
         "name": "carla-boundary", "duration_s": 0.1,
@@ -147,6 +154,29 @@ def test_cleanup_attempts_every_resource_even_after_sensor_error(setup_adapter):
     with pytest.raises(SimulationError, match="sensor destroy failed"):
         adapter.close()
     assert log[-3:] == ["sensors-close", "actors-close", "world-close"]
+
+
+def test_endpoint_ownership_is_held_through_failed_cleanup_and_released_only_after_retry(setup_adapter, tmp_path, monkeypatch):
+    from simulator.carla_client import CarlaConnectionSettings
+    from simulator.carla_lease import CarlaEndpointLease
+    adapter, scenario, _, _, _, module = setup_adapter
+    settings = CarlaConnectionSettings(host="127.0.0.1")
+    adapter.connection_settings = settings
+    monkeypatch.setattr(module, "CarlaEndpointLease", lambda supplied: CarlaEndpointLease(supplied, _root=tmp_path))
+    adapter.open(scenario)
+    original_close = adapter.sensors.close
+    adapter.sensors.close = lambda: (_ for _ in ()).throw(RuntimeError("cleanup blocked"))
+    with pytest.raises(SimulationError, match="cleanup blocked"):
+        adapter.close()
+    with pytest.raises(SimulationError, match="Another Poltergeist"):
+        CarlaEndpointLease(CarlaConnectionSettings(host="localhost"), _root=tmp_path).acquire()
+    with pytest.raises(SimulationError, match="already open"):
+        adapter.open(scenario)
+    adapter.sensors.close = original_close
+    adapter.close()
+    contender = CarlaEndpointLease(settings, _root=tmp_path)
+    contender.acquire()
+    contender.release()
 
 
 def test_other_client_tick_is_rejected(setup_adapter):
