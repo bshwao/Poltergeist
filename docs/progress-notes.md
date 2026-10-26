@@ -20,7 +20,7 @@ private prototype does not close independent-machine or release validation.
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
-| **S6 — Reliable remote execution** | **In progress; source fault matrix expanded** | Real TLS coordinator crashes before/after ACK commits, repeated-outage cancellation, running-worker loss, native CARLA orphan/quarantine/reset and live cross-profile contention pass. Late-frame revival and artificial heartbeat activity are fixed; recovery requires a valid snapshot. Physical sleep, packaged and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
+| **S6 — Reliable remote execution** | **In progress; source and refreshed private bundle fault checks pass** | Real TLS coordinator crashes, repeated-outage cancellation, running-worker loss and native endpoint contention pass. Private runtime H also passes real CARLA crash/quarantine/reset and normal consent/DPAPI checks. Enrollment deadlines, pending-approval recovery, physical sleep, current installed-runtime and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
@@ -37,6 +37,25 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Refreshed private Windows runtime H includes all 171 current first-party Python
+  files and passes the normal TLS/DPAPI/Tk consent regression. Its isolated
+  packaged interpreter also passes a real CARLA process-loss witness: two orphaned
+  vehicles stay quarantined, another profile refuses the episode, and a verified
+  test-server reset permits a fresh 11-frame run while the original stays failed
+  once. Cleanup restores asynchronous settings and removes only the owned test
+  simulator. See the [packaged checkpoint](validation/s6-packaged-recovery.json).
+- An opt-in native Windows suspension test pauses only the disposable packaged
+  companion for 102 seconds. The owner sees offline status without artificial
+  last-seen activity; resuming creates a new connection generation, reconciles a
+  queued result and preserves the original ACK with one local job. The full
+  consent/cancellation/revocation regression also passes afterward. Physical PC
+  sleep and actual NIC failures remain separate unverified gates.
+- The first follow-up CI run failed a normal-reply fixture that requested Stop
+  during dispatch and still expected a socket reply. The normal fixture now stops
+  after its reply; a separate case asserts Stop suppresses a pending reply. Both
+  Python versions pass 82 contract/relay checks. The correction is `3b88642` in
+  [run 40262645583](https://github.com/bshwao/Poltergeist/actions/runs/40262645583);
+  its full matrix result must be checked separately from these local checks.
 - Fixed expired relay sessions accepting buffered frames after a scheduling gap:
   both endpoints check after receives, command delivery checks freshness again,
   and Stop prevents dispatch of a frame returned afterward. Read-only heartbeat

@@ -8,6 +8,7 @@ No hosted account or native GUI acceptance is implied by this local driver.
 
 import argparse
 from dataclasses import asdict
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,7 +17,8 @@ from threading import Event
 from time import monotonic
 from uuid import uuid4
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+if "--bundle" not in sys.argv:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend.dependencies import ApiRuntime
 from companion.controller import CompanionController
@@ -44,12 +46,34 @@ def wait_result(worker, simulation):
     raise AssertionError("The owned native recovery run did not finalize")
 
 
+def bundled_provenance(bundle):
+    if bundle is None:
+        return None
+    assert sys.flags.isolated and Path(sys.executable).resolve() == bundle / "runtime/python.exe"
+    assert all(Path(path).resolve().is_relative_to(bundle) for path in sys.path)
+    prefixes = {"backend", "shared", "simulator", "scenarios", "evaluation", "optimization", "scripts", "companion", "carla"}
+    imported = {name: str(Path(module.__file__).resolve()) for name, module in sys.modules.copy().items()
+                if name.split(".")[0] in prefixes and getattr(module, "__file__", None)}
+    assert imported and all(Path(path).is_relative_to(bundle) for path in imported.values())
+    return {"bundle_manifest_sha256": hashlib.sha256((bundle / "bundle.json").read_bytes()).hexdigest(),
+            "interpreter": str(Path(sys.executable).resolve()), "imported_product_paths": imported}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--port", type=int, required=True)
+    parser.add_argument("--bundle", type=Path, help="Require the isolated bundled interpreter and bundled product imports")
     parser.add_argument("--stage", choices=["crash", "reconcile", "blocked", "recovered", "verify-original", "hold-running", "active-blocked"], required=True)
     args = parser.parse_args()
+    bundle = None
+    if args.bundle is not None:
+        bundle = args.bundle.resolve()
+        bundled_provenance(bundle)
+        from scripts.portable import verify_bundle
+        print(json.dumps({"stage": args.stage, "checking_bundle_integrity": True}), flush=True)
+        integrity = verify_bundle(bundle)
+        print(json.dumps({"stage": args.stage, "bundle_integrity": integrity}), flush=True)
     root = args.root.resolve()
     if not args.root.is_absolute() or not 1 <= args.port <= 65535:
         raise ValueError("Use an absolute owned evidence root and a valid test port")
@@ -86,7 +110,8 @@ def main():
                                 "status": simulation.status, "started_at": simulation.started_at.isoformat(),
                                 "adapter": runner.adapter.mode, "episode": runner.adapter.world.id,
                                 "frame": runner.adapter.world.get_snapshot().frame,
-                                "native_actor_ids": sorted(runner.adapter.actor_manager.actor_ids)}
+                                "native_actor_ids": sorted(runner.adapter.actor_manager.actor_ids),
+                                "bundled_provenance": bundled_provenance(bundle)}
                             save(root / ("crash-signal.json" if args.stage == "crash" else "hold-signal.json"), signal)
                             print(json.dumps(signal), flush=True)
                             if args.stage == "crash":
@@ -150,7 +175,8 @@ def main():
         public = remote.dispatch(binding, ResultCommand(request_id=uuid4(), simulation_id=acceptance.simulation_id))
         assert public.kind == "result"
         save(root / (args.stage + ".json"), {"stage": args.stage, "job_count": 1,
-            "acceptance": acceptance.model_dump(mode="json"), "summary": public.summary.model_dump(mode="json")})
+            "acceptance": acceptance.model_dump(mode="json"), "summary": public.summary.model_dump(mode="json"),
+            "bundled_provenance": bundled_provenance(bundle)})
         print(json.dumps({"stage": args.stage, "status": public.summary.status, "jobs": 1,
                           "simulation_id": str(acceptance.simulation_id)}))
     finally:

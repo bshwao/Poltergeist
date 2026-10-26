@@ -217,6 +217,13 @@ keys, verifies bundled imports/integrity and saves a local receipt. Credentials
 travel through inherited pipes; the coordinator uses the separate source runtime.
 It starts no CARLA and changes no existing installation or profile.
 
+For the S6 private regression, use the refreshed runtime H and optionally append
+`--exercise-suspension`. This suspends only the owned test companion for at least
+100 seconds, verifies offline/last-seen behavior, then resumes and reconciles a
+pending result on a new connection generation. It leaves the physical PC awake.
+The [S6 packaged evidence](validation/s6-packaged-recovery.json) records its scope
+separately from the bundled native CARLA crash test.
+
 The same driver passed again from an actual installed G runtime, followed by a
 successful default data-preserving uninstall. It used a fresh custom data
 profile; the installed shortcut and compiled default profile were not invoked.

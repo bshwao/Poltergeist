@@ -1,0 +1,593 @@
+{
+  "schema_version": "poltergeist-s6-packaged-recovery-v1",
+  "recorded_at": "2026-10-26T03:21:36.505900+00:00",
+  "branch": "codex/s6-reliable-execution",
+  "product_source": "cf850bcc4ed0e82fe8bf6d7dded237c6525d9dfc",
+  "test_source_base": "3b88642466b9b392a0dd903eaefa3e3e188c94a9",
+  "driver_sha256": {
+    "tests/carla_crash_driver.py": "0b486a857c3cc1009d505b72e05068697ffcf9b0d6cf0c10f19d1393c166c522",
+    "tests/packaged_companion_consent.py": "2c077cd009e0733fb00a78a6a77f1a1d2ee67c475eb09eeb27251ed21d58f24a"
+  },
+  "driver_hash_scope": "Hashes identify the retained current helpers. The crash process started before diagnostic integrity-progress prints were added; subsequent native stages use the retained helper.",
+  "status": "private_packaged_checkpoint_passed_s6_incomplete",
+  "bundle": {
+    "directory": "validation-evidence/portable-dist/s6-recovery-h-20261025/Poltergeist-S1-windows-x64",
+    "archive_sha256": "2900bf0811a9bf4117326875d1eafbb582be70344e568d286330c6ca59ece0f0",
+    "archive_bytes": 47953978,
+    "manifest_sha256": "bb76b822127a1e9b8d4c58c02d083118a695cdc931f4b64f26b4a8d5c5505460",
+    "project_wheel": {
+      "filename": "poltergeist-0.1.0-py3-none-any.whl",
+      "sha256": "18c5dffb86e2c21488e0d8ae434d449a14223bceebe16487dfe8ab51bcd2442b"
+    },
+    "first_party_python_files": 171,
+    "latest_product_payload_matches": true,
+    "integrity_files": 6082,
+    "default_remote_execution_enabled": false,
+    "signed": false,
+    "installer": false
+  },
+  "provenance": {
+    "isolated_interpreter": "runtime/python.exe",
+    "running_product_module_count": 103,
+    "selected_running_module_paths": {
+      "companion.controller": "runtime/Lib/site-packages/companion/controller.py",
+      "backend.remote_receipts": "runtime/Lib/site-packages/backend/remote_receipts.py",
+      "simulator.carla_adapter": "runtime/Lib/site-packages/simulator/carla_adapter.py",
+      "simulator.carla_lease": "runtime/Lib/site-packages/simulator/carla_lease.py",
+      "carla.libcarla": "runtime/Lib/site-packages/carla/libcarla.cp312-win_amd64.pyd"
+    }
+  },
+  "consent_regression": {
+    "passed": true,
+    "receipt": "validation-evidence/s4-packaged-consent-20261025-225824-bdf364ad/receipt.json",
+    "native_dpapi": true,
+    "normal_tk_consent": true,
+    "tls": "CA and hostname verified loopback HTTPS/WSS",
+    "checks": [
+      "verify latest first-party payload and disabled normal bundle manifest",
+      "create private localhost TLS fixture and separate source coordinator",
+      "authenticate two accounts with independent browser sessions",
+      "pair packaged companion through native Tk approval with native DPAPI",
+      "connect with unchecked consent and deny remote status and execution",
+      "deny second-account reads execution result lookup and revocation",
+      "execute through outgoing WSS lose acceptance ACK and resolve original durable run",
+      "stop runtime resets consent and restart does not connect automatically",
+      "cancel queued run and cooperatively cancel active synthetic blocker",
+      "close and reopen real bundle process retaining DPAPI enrollment receipts and results",
+      "revoke owner credential and refuse remote reads execution and reconnect",
+      "scan owned logs and report for private enrollment and browser secrets",
+      "complete"
+    ]
+  },
+  "native_worker_crash": {
+    "observed_actual_child_exit_code": 79,
+    "crashed_simulation_id": "e3192a35-923b-4104-9ee2-2c26f0cdf2ef",
+    "crashed_episode": 12475441992831592816,
+    "running_frame": 14055,
+    "known_actor_ids": [
+      24,
+      25
+    ],
+    "before_denial": {
+      "episode": 12475441992831592816,
+      "snapshot_episode": 12475441992831592816,
+      "snapshot_frame": 0,
+      "snapshot_ready": false,
+      "synchronous": true,
+      "fixed_delta_seconds": 0.05,
+      "known_ids": [
+        24,
+        25
+      ],
+      "known_actors": [
+        {
+          "id": 24,
+          "type": "vehicle.tesla.model3"
+        },
+        {
+          "id": 25,
+          "type": "vehicle.tesla.model3"
+        }
+      ],
+      "dynamic_actors": null
+    },
+    "after_denial": {
+      "episode": 12475441992831592816,
+      "snapshot_episode": 12475441992831592816,
+      "snapshot_frame": 0,
+      "snapshot_ready": false,
+      "synchronous": true,
+      "fixed_delta_seconds": 0.05,
+      "known_ids": [
+        24,
+        25
+      ],
+      "known_actors": [
+        {
+          "id": 24,
+          "type": "vehicle.tesla.model3"
+        },
+        {
+          "id": 25,
+          "type": "vehicle.tesla.model3"
+        }
+      ],
+      "dynamic_actors": null
+    },
+    "reset_world": {
+      "episode": 17588605495761185153,
+      "snapshot_episode": 17588605495761185153,
+      "snapshot_frame": 1802,
+      "snapshot_ready": true,
+      "synchronous": false,
+      "fixed_delta_seconds": null,
+      "known_ids": [],
+      "known_actors": [],
+      "dynamic_actors": []
+    },
+    "final_world": {
+      "episode": 17588605495761185153,
+      "snapshot_episode": 17588605495761185153,
+      "snapshot_frame": 23555,
+      "snapshot_ready": true,
+      "synchronous": false,
+      "fixed_delta_seconds": null,
+      "known_ids": [
+        24,
+        25
+      ],
+      "known_actors": [],
+      "dynamic_actors": []
+    },
+    "stages": {
+      "reconcile": {
+        "acceptance": {
+          "kind": "accepted",
+          "request_id": "297bdada-6ab0-44cf-b298-2b1edfd64e7c",
+          "simulation_id": "e3192a35-923b-4104-9ee2-2c26f0cdf2ef",
+          "accepted_at": "2026-10-26T03:09:08.500775Z"
+        },
+        "job_count": 1,
+        "summary": {
+          "protocol_version": "poltergeist-hosted-run-v1",
+          "device_id": "d66cc391-d694-4a6a-a203-e5eb4b44ff8e",
+          "ownership_generation": 1,
+          "execute_request_id": "297bdada-6ab0-44cf-b298-2b1edfd64e7c",
+          "receipt_revision": 1,
+          "revision": 3,
+          "simulation_id": "e3192a35-923b-4104-9ee2-2c26f0cdf2ef",
+          "mode": "carla",
+          "status": "failed",
+          "progress": 0.0,
+          "cancel_requested": false,
+          "queue_position": null,
+          "created_at": "2026-10-26T03:09:08.470039Z",
+          "started_at": "2026-10-26T03:09:09.864774Z",
+          "finished_at": "2026-10-26T03:10:39.166438Z",
+          "updated_at": "2026-10-26T03:10:39.296222Z",
+          "scenario": {
+            "name": "Native interruption witness",
+            "sha256": "6960159d5b2cf01b74e0887804497579aedd4015489dbf6d6110d813d735782e"
+          },
+          "agent": "baseline",
+          "result_available": true,
+          "measured_duration_s": 0.0,
+          "metrics": {
+            "collision_count": null,
+            "traffic_violation_count": null,
+            "min_clearance_m": null,
+            "min_ttc_s": null,
+            "max_deceleration_mps2": null,
+            "hard_braking_count": null,
+            "max_stopping_distance_m": null,
+            "max_stopping_time_s": null,
+            "severity": null,
+            "coverage": {
+              "total_frames": 0,
+              "collision_frames": 0,
+              "traffic_rule_frames": 0,
+              "braking_frames": 0,
+              "clearance_frames": 0,
+              "ttc_frames": 0,
+              "actor_pairs": 0,
+              "clearance_pairs": 0,
+              "ttc_pairs": 0,
+              "has_gaps": false,
+              "complete": false
+            },
+            "evaluation_settings": {
+              "method_version": "1.0",
+              "collision_episode_gap_s": 1.0,
+              "violation_episode_gap_s": 1.0,
+              "speeding_tolerance_mps": 0.5,
+              "hard_braking_threshold_mps2": 4.0,
+              "stopped_speed_mps": 0.1,
+              "max_sample_gap_s": 0.5,
+              "ttc_horizon_s": 10.0,
+              "ttc_warning_s": 3.0,
+              "clearance_warning_m": 2.0,
+              "braking_full_severity_mps2": 8.0,
+              "violations_for_full_severity": 3,
+              "ttc_weight": 45.0,
+              "clearance_weight": 25.0,
+              "braking_weight": 15.0,
+              "traffic_rule_weight": 15.0
+            }
+          },
+          "runtime": null,
+          "provenance": null,
+          "error": {
+            "code": "execution_failed",
+            "message": "The experiment failed on this computer. Review its local diagnostics.",
+            "correlation_id": "d8f2afe3-91bf-5a80-a83e-1ddab2a2db91"
+          },
+          "evidence": {
+            "state": "local_only",
+            "telemetry_frames": 0,
+            "artifact_reference_count": 2
+          }
+        }
+      },
+      "blocked": {
+        "acceptance": {
+          "kind": "accepted",
+          "request_id": "c638de16-d74d-4afe-98bf-c6d7ee973a40",
+          "simulation_id": "6e73b654-9fd5-4942-9420-203b872833fe",
+          "accepted_at": "2026-10-26T03:10:39.309259Z"
+        },
+        "job_count": 1,
+        "summary": {
+          "protocol_version": "poltergeist-hosted-run-v1",
+          "device_id": "01113ae5-5349-4479-9398-6b4883d30c93",
+          "ownership_generation": 1,
+          "execute_request_id": "c638de16-d74d-4afe-98bf-c6d7ee973a40",
+          "receipt_revision": 1,
+          "revision": 2,
+          "simulation_id": "6e73b654-9fd5-4942-9420-203b872833fe",
+          "mode": "carla",
+          "status": "failed",
+          "progress": 0.0,
+          "cancel_requested": false,
+          "queue_position": null,
+          "created_at": "2026-10-26T03:10:39.292711Z",
+          "started_at": null,
+          "finished_at": "2026-10-26T03:10:39.705724Z",
+          "updated_at": "2026-10-26T03:10:39.832754Z",
+          "scenario": {
+            "name": "Quarantine must refuse",
+            "sha256": "5b6f3298b78d261b703cf56cbc80f2353e83b394f93aed90703e104bc359b749"
+          },
+          "agent": "baseline",
+          "result_available": true,
+          "measured_duration_s": 0.0,
+          "metrics": {
+            "collision_count": null,
+            "traffic_violation_count": null,
+            "min_clearance_m": null,
+            "min_ttc_s": null,
+            "max_deceleration_mps2": null,
+            "hard_braking_count": null,
+            "max_stopping_distance_m": null,
+            "max_stopping_time_s": null,
+            "severity": null,
+            "coverage": {
+              "total_frames": 0,
+              "collision_frames": 0,
+              "traffic_rule_frames": 0,
+              "braking_frames": 0,
+              "clearance_frames": 0,
+              "ttc_frames": 0,
+              "actor_pairs": 0,
+              "clearance_pairs": 0,
+              "ttc_pairs": 0,
+              "has_gaps": false,
+              "complete": false
+            },
+            "evaluation_settings": {
+              "method_version": "1.0",
+              "collision_episode_gap_s": 1.0,
+              "violation_episode_gap_s": 1.0,
+              "speeding_tolerance_mps": 0.5,
+              "hard_braking_threshold_mps2": 4.0,
+              "stopped_speed_mps": 0.1,
+              "max_sample_gap_s": 0.5,
+              "ttc_horizon_s": 10.0,
+              "ttc_warning_s": 3.0,
+              "clearance_warning_m": 2.0,
+              "braking_full_severity_mps2": 8.0,
+              "violations_for_full_severity": 3,
+              "ttc_weight": 45.0,
+              "clearance_weight": 25.0,
+              "braking_weight": 15.0,
+              "traffic_rule_weight": 15.0
+            }
+          },
+          "runtime": null,
+          "provenance": {
+            "observation_mode": "simulator_state",
+            "source": "carla_ground_truth",
+            "ego_state_source": "simulator_state",
+            "ground_truth_actor_inputs": true,
+            "control_mode": "scripted",
+            "controller": "baseline",
+            "navigation": "legacy_assisted"
+          },
+          "error": {
+            "code": "execution_failed",
+            "message": "The experiment failed on this computer. Review its local diagnostics.",
+            "correlation_id": "4ad60f41-b8e9-50f9-88f1-b87b8aa15439"
+          },
+          "evidence": {
+            "state": "local_only",
+            "telemetry_frames": 0,
+            "artifact_reference_count": 2
+          }
+        }
+      },
+      "recovered": {
+        "acceptance": {
+          "kind": "accepted",
+          "request_id": "36afd024-b2ac-4000-969c-a6bdda7d534a",
+          "simulation_id": "d140979e-54c7-46c3-93d7-2da963f940fc",
+          "accepted_at": "2026-10-26T03:14:54.695518Z"
+        },
+        "job_count": 1,
+        "summary": {
+          "protocol_version": "poltergeist-hosted-run-v1",
+          "device_id": "64abbc26-1f8f-4189-994f-0dcc4996e951",
+          "ownership_generation": 1,
+          "execute_request_id": "36afd024-b2ac-4000-969c-a6bdda7d534a",
+          "receipt_revision": 1,
+          "revision": 4,
+          "simulation_id": "d140979e-54c7-46c3-93d7-2da963f940fc",
+          "mode": "carla",
+          "status": "completed",
+          "progress": 1.0,
+          "cancel_requested": false,
+          "queue_position": null,
+          "created_at": "2026-10-26T03:14:54.677751Z",
+          "started_at": "2026-10-26T03:14:55.520975Z",
+          "finished_at": "2026-10-26T03:14:55.999405Z",
+          "updated_at": "2026-10-26T03:14:56.143046Z",
+          "scenario": {
+            "name": "After explicit CARLA restart",
+            "sha256": "527e5839dbda05c6ef5b1d05deabd2d0516b2ca61d1e42719803d091b6e49a0b"
+          },
+          "agent": "baseline",
+          "result_available": true,
+          "measured_duration_s": 0.5000000074505806,
+          "metrics": {
+            "collision_count": 0,
+            "traffic_violation_count": 0,
+            "min_clearance_m": 29.523610735881316,
+            "min_ttc_s": null,
+            "max_deceleration_mps2": 26.538447907929935,
+            "hard_braking_count": 1,
+            "max_stopping_distance_m": null,
+            "max_stopping_time_s": null,
+            "severity": null,
+            "coverage": {
+              "total_frames": 11,
+              "collision_frames": 11,
+              "traffic_rule_frames": 10,
+              "braking_frames": 11,
+              "clearance_frames": 11,
+              "ttc_frames": 11,
+              "actor_pairs": 11,
+              "clearance_pairs": 11,
+              "ttc_pairs": 11,
+              "has_gaps": false,
+              "complete": false
+            },
+            "evaluation_settings": {
+              "method_version": "1.0",
+              "collision_episode_gap_s": 1.0,
+              "violation_episode_gap_s": 1.0,
+              "speeding_tolerance_mps": 0.5,
+              "hard_braking_threshold_mps2": 4.0,
+              "stopped_speed_mps": 0.1,
+              "max_sample_gap_s": 0.5,
+              "ttc_horizon_s": 10.0,
+              "ttc_warning_s": 3.0,
+              "clearance_warning_m": 2.0,
+              "braking_full_severity_mps2": 8.0,
+              "violations_for_full_severity": 3,
+              "ttc_weight": 45.0,
+              "clearance_weight": 25.0,
+              "braking_weight": 15.0,
+              "traffic_rule_weight": 15.0
+            }
+          },
+          "runtime": {
+            "adapter": "carla",
+            "server_version": "0.9.16",
+            "client_version": "0.9.16",
+            "map_name": "Town10HD_Opt",
+            "fixed_delta_seconds": 0.05,
+            "seed": 7
+          },
+          "provenance": {
+            "observation_mode": "simulator_state",
+            "source": "carla_ground_truth",
+            "ego_state_source": "simulator_state",
+            "ground_truth_actor_inputs": true,
+            "control_mode": "scripted",
+            "controller": "baseline",
+            "navigation": "legacy_assisted"
+          },
+          "error": null,
+          "evidence": {
+            "state": "local_only",
+            "telemetry_frames": 11,
+            "artifact_reference_count": 2
+          }
+        }
+      },
+      "verify-original": {
+        "acceptance": {
+          "kind": "accepted",
+          "request_id": "297bdada-6ab0-44cf-b298-2b1edfd64e7c",
+          "simulation_id": "e3192a35-923b-4104-9ee2-2c26f0cdf2ef",
+          "accepted_at": "2026-10-26T03:09:08.500775Z"
+        },
+        "job_count": 1,
+        "summary": {
+          "protocol_version": "poltergeist-hosted-run-v1",
+          "device_id": "d66cc391-d694-4a6a-a203-e5eb4b44ff8e",
+          "ownership_generation": 1,
+          "execute_request_id": "297bdada-6ab0-44cf-b298-2b1edfd64e7c",
+          "receipt_revision": 1,
+          "revision": 3,
+          "simulation_id": "e3192a35-923b-4104-9ee2-2c26f0cdf2ef",
+          "mode": "carla",
+          "status": "failed",
+          "progress": 0.0,
+          "cancel_requested": false,
+          "queue_position": null,
+          "created_at": "2026-10-26T03:09:08.470039Z",
+          "started_at": "2026-10-26T03:09:09.864774Z",
+          "finished_at": "2026-10-26T03:10:39.166438Z",
+          "updated_at": "2026-10-26T03:10:39.296222Z",
+          "scenario": {
+            "name": "Native interruption witness",
+            "sha256": "6960159d5b2cf01b74e0887804497579aedd4015489dbf6d6110d813d735782e"
+          },
+          "agent": "baseline",
+          "result_available": true,
+          "measured_duration_s": 0.0,
+          "metrics": {
+            "collision_count": null,
+            "traffic_violation_count": null,
+            "min_clearance_m": null,
+            "min_ttc_s": null,
+            "max_deceleration_mps2": null,
+            "hard_braking_count": null,
+            "max_stopping_distance_m": null,
+            "max_stopping_time_s": null,
+            "severity": null,
+            "coverage": {
+              "total_frames": 0,
+              "collision_frames": 0,
+              "traffic_rule_frames": 0,
+              "braking_frames": 0,
+              "clearance_frames": 0,
+              "ttc_frames": 0,
+              "actor_pairs": 0,
+              "clearance_pairs": 0,
+              "ttc_pairs": 0,
+              "has_gaps": false,
+              "complete": false
+            },
+            "evaluation_settings": {
+              "method_version": "1.0",
+              "collision_episode_gap_s": 1.0,
+              "violation_episode_gap_s": 1.0,
+              "speeding_tolerance_mps": 0.5,
+              "hard_braking_threshold_mps2": 4.0,
+              "stopped_speed_mps": 0.1,
+              "max_sample_gap_s": 0.5,
+              "ttc_horizon_s": 10.0,
+              "ttc_warning_s": 3.0,
+              "clearance_warning_m": 2.0,
+              "braking_full_severity_mps2": 8.0,
+              "violations_for_full_severity": 3,
+              "ttc_weight": 45.0,
+              "clearance_weight": 25.0,
+              "braking_weight": 15.0,
+              "traffic_rule_weight": 15.0
+            }
+          },
+          "runtime": null,
+          "provenance": null,
+          "error": {
+            "code": "execution_failed",
+            "message": "The experiment failed on this computer. Review its local diagnostics.",
+            "correlation_id": "d8f2afe3-91bf-5a80-a83e-1ddab2a2db91"
+          },
+          "evidence": {
+            "state": "local_only",
+            "telemetry_frames": 0,
+            "artifact_reference_count": 2
+          }
+        }
+      }
+    },
+    "original_ack_preserved": true,
+    "original_not_rerun": true,
+    "owned_test_tree_stopped": {
+      "parent_pid": 16532,
+      "engine_pid": 12908,
+      "ownership_verified": true,
+      "stopped_at": "2026-10-26T03:16:22.6411524Z",
+      "port_closed": true
+    }
+  },
+  "native_process_suspension": {
+    "receipt": "validation-evidence/s4-packaged-consent-20261025-231522-aed61c52/receipt.json",
+    "passed": true,
+    "process_id": 16460,
+    "physical_pc_sleep": false,
+    "suspended_at": "2026-10-26T03:16:54.943205+00:00",
+    "elapsed_s": 102.1880000000001,
+    "before": {
+      "connection_generation": 3,
+      "last_seen_at": 1792984614.8748193
+    },
+    "settled": {
+      "connection_generation": 3,
+      "last_seen_at": 1792984614.8748193
+    },
+    "after_gap": {
+      "connection_generation": 3,
+      "last_seen_at": 1792984614.8748193
+    },
+    "offline": true,
+    "pending_result_still_queued": true,
+    "resume_status": 0,
+    "resumed_at": "2026-10-26T03:18:37.133127+00:00",
+    "after_resume": {
+      "connection_generation": 4,
+      "last_seen_at": 1792984721.3939667
+    },
+    "original_ack_preserved": true,
+    "pending_result_reconciled": true,
+    "original_jobs": 1,
+    "original_receipts": 1
+  },
+  "local_batches": {
+    "s6-contract-and-relay-after": {
+      "tests": 82,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 50.12,
+      "receipt": "validation-evidence/s6-contract-and-relay-after.xml"
+    },
+    "s6-contract-and-relay314-after": {
+      "tests": 82,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 55.225,
+      "receipt": "validation-evidence/s6-contract-and-relay314-after.xml"
+    }
+  },
+  "ci_failure_and_correction": {
+    "failed_revision": "cf850bcc4ed0e82fe8bf6d7dded237c6525d9dfc",
+    "failed_run": "https://github.com/bshwao/Poltergeist/actions/runs/40261246289",
+    "cause": "The normal-reply fixture stopped during dispatch, then expected a post-Stop send.",
+    "correction": "Stop after the valid reply in the normal-path fixture; separately assert Stop during dispatch suppresses its socket reply.",
+    "correction_revision": "3b88642466b9b392a0dd903eaefa3e3e188c94a9",
+    "validation_run": "https://github.com/bshwao/Poltergeist/actions/runs/40262645583"
+  },
+  "limitations": [
+    "Same Windows laptop/account; independent supported-machine and installed-current-runtime acceptance remain open.",
+    "Native Tk callbacks use a withdrawn window; this is not visual or physical-input acceptance.",
+    "The CARLA crash stages use a programmatic approved local binding, without a hosted account or native GUI.",
+    "The separate coordinator/consent/suspension proof uses synthetic execution; it is not a hosted native-CARLA combined crash scenario.",
+    "Process suspension does not establish physical PC sleep/resume, NIC failure, or longer real network-outage behavior.",
+    "S6 still includes enrollment total elapsed deadlines, uncertain pending-approval recovery and wider cancellation/finalization races.",
+    "The 0.5 second, 11-frame CARLA run has partial coverage and is a workflow proof, not a new safety benchmark.",
+    "Public S5 deployment remains deferred by the user; this private unsigned portable bundle is not a public release."
+  ]
+}

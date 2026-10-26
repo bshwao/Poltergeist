@@ -116,8 +116,48 @@ separately; frame-zero observations are not used to claim cleanup.
 | Cross-profile endpoint ownership | Real active CARLA contention plus OS process/alias tests and cleanup retention | Unsupported-client behavior and other OS accounts/machines |
 | Claimed worker process loss | Actual opening/running process exits, real orphaned CARLA vehicles/settings, honest failed recovery and reset quarantine | Wider native fault timing and independent machines |
 | Cancellation ordering | Lost ACK before/after commit, a repeated coordinator outage, offline cleanup and durable final result; waiter/rollback tests | Additional finalization race stress and external acceptance |
-| Reconnection and heartbeat | Native TLS deadlines and reconnects; late-frame/overdue-ping/scheduling-gap rejection; truthful activity timestamps | Physical PC sleep/resume and longer real outages |
-| Distribution | Source runtime verified | A new packaged runtime and independent-machine fault validation |
+| Reconnection and heartbeat | Native TLS deadlines, a 102-second packaged-process suspension, new-generation reconnect and original-result reconciliation; truthful activity timestamps | Physical PC sleep/resume, NIC faults and longer real outages |
+| Distribution | Refreshed private runtime H matches all 171 first-party Python files; bundled native crash/quarantine/reset and normal TLS/DPAPI consent checks pass | Current installed-runtime and independent-machine fault validation |
+
+### Refreshed private Windows runtime
+
+Runtime H carries the S6 production changes from `cf850bc`, with private Python
+3.12.15, the pinned CARLA client and 6,082 integrity-checked files. The normal
+bundle still requires explicit desktop consent for remote execution. Its full
+pairing, lost-ACK, cancellation, restart and revocation regression passes using
+the normal Tk callbacks and native DPAPI. This is an unsigned portable bundle;
+it has not replaced the user's installation.
+
+The native crash driver now accepts `--bundle` and requires the bundle's isolated
+interpreter, an entirely bundled import path and matching file integrity. It
+records provenance again after lazy CARLA imports. A real packaged worker exits
+with code 79 after durable running state, leaving two vehicles and synchronous
+settings. Reopening retains the original failed job and ACK; a separate packaged
+profile refuses the unclean episode without changing its known actors/settings.
+Restarting only the identity-checked test server allows a fresh 11-frame baseline.
+The original request remains failed once. A fresh asynchronous snapshot verifies
+cleanup before the owned replacement simulator is stopped.
+
+The public [packaged recovery record](validation/s6-packaged-recovery.json)
+retains identities, hashes, scoped results and limitations. Its native CARLA
+driver uses a programmatic approved local binding; the separate TLS/consent
+driver uses synthetic execution. These are complementary proofs, not a combined
+website-driven CARLA crash acceptance test.
+
+The consent driver also has an opt-in native suspension case:
+
+```powershell
+.\.venv\Scripts\python.exe tests/packaged_companion_consent.py --bundle validation-evidence/portable-dist/s6-recovery-h-20261025/Poltergeist-S1-windows-x64 --exercise-suspension
+```
+
+It suspends only its own live `Popen` child through the retained Windows process
+handle and always attempts to resume it in `finally`. The observed suspension
+lasted 102 seconds, exceeding the unchanged 90-second heartbeat deadline. A
+result request remains queued while the owner view becomes offline and last-seen
+stays unchanged. After resume, the connection generation advances from 3 to 4,
+the result reconciles, and retrying the original execute returns its exact ACK
+with one local job/receipt. The rest of the consent/cancellation/revocation
+regression also passes. The test does not put the physical PC to sleep.
 
 Earlier fixture failures remain recorded: the first OS crash test killed a
 Windows venv launcher, allowing its actual child to read EOF and clean up. It
@@ -127,3 +167,15 @@ nonterminal; both fixture assumptions were corrected without weakening assertion
 about production identity or final outcomes. The original failed logs are retained.
 The follow-up's seven pre-fix late-frame tests also remain recorded as failed;
 their passing repeats do not replace that evidence.
+
+The first follow-up CI run also exposed a stale normal-reply fixture: it invoked
+Stop during dispatch and then expected a reply on that stopped socket. The
+corrected normal-path fixture stops after sending its reply; a separate case
+proves that Stop during dispatch suppresses the reply. All 82 contract/relay
+checks pass on Python 3.12 and 3.14. The original failed CI logs are retained.
+
+S6 remains open for total elapsed enrollment deadlines (including native
+DNS/TLS/body operations), uncertain pending-approval recovery, wider native
+cancellation/finalization races, physical sleep/network faults and external
+supported-machine acceptance. Passing a private checkpoint does not close those
+requirements or the earlier independent-machine/release gates.

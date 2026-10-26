@@ -6,6 +6,7 @@ It never opens existing settings, starts CARLA, installs, or changes product cod
 """
 
 import argparse
+from contextlib import closing, contextmanager
 from datetime import UTC, datetime
 import hashlib
 import importlib.util
@@ -18,6 +19,7 @@ import re
 import secrets
 import socket
 import ssl
+import sqlite3
 import subprocess
 import sys
 from threading import Event
@@ -44,6 +46,33 @@ def wait_for(predicate, *, timeout=60):
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+@contextmanager
+def suspend_owned_process(process):
+    """Suspend only our live Popen child, retaining its authoritative OS handle."""
+    import ctypes
+    from ctypes import wintypes
+
+    require(os.name == "nt" and process.poll() is None, "suspension_requires_owned_live_windows_child")
+    native = ctypes.WinDLL("ntdll")
+    for operation in (native.NtSuspendProcess, native.NtResumeProcess):
+        operation.argtypes = [wintypes.HANDLE]
+        operation.restype = ctypes.c_long
+    suspended = False
+    witness = {"process_id": process.pid, "physical_pc_sleep": False}
+    try:
+        status = native.NtSuspendProcess(int(process._handle))
+        require(status >= 0, "owned_process_suspension_failed")
+        suspended = True
+        witness["suspended_at"] = datetime.now(UTC).isoformat()
+        yield witness
+    finally:
+        if suspended:
+            status = native.NtResumeProcess(int(process._handle))
+            witness["resume_status"] = status
+            witness["resumed_at"] = datetime.now(UTC).isoformat()
+            require(status >= 0, "owned_process_resume_failed")
 
 
 def child_main(args):
@@ -539,6 +568,53 @@ def parent_main(args):
         submit(bob, result_request, expected=404)
         receipt.update(execute_request_id=str(command.request_id), simulation_id=simulation_id,
             lost_ack_retry_same_run=True, single_job_after_retry=True, finalized=terminal, public_summary=summary)
+        if args.exercise_suspension:
+            stage("suspend only the owned packaged process beyond the production heartbeat deadline")
+            def device_state():
+                with closing(sqlite3.connect(database)) as connection:
+                    generation, seen = connection.execute("SELECT connection_generation,last_seen_at FROM devices WHERE id=?",
+                        (device,)).fetchone()
+                    return {"connection_generation": generation, "last_seen_at": seen}
+
+            before = device_state()
+            pending_result = ResultCommand(request_id=uuid4(), simulation_id=simulation_id)
+            suspended_at = time.monotonic()
+            with suspend_owned_process(first[0]) as suspension:
+                receipt["native_process_suspension"] = suspension
+                save()
+                submit(alice, pending_result)
+                # Allow frames already received by the server before suspension
+                # to settle, then verify its own heartbeat does not invent activity.
+                while time.monotonic() - suspended_at < 5:
+                    require(first[0].poll() is None, "suspended_owned_child_exited")
+                    time.sleep(.25)
+                settled = device_state()
+                while time.monotonic() - suspended_at < 100:
+                    require(first[0].poll() is None, "suspended_owned_child_exited")
+                    time.sleep(.25)
+                offline = alice.get("/v1/browser/devices")
+                device_view = next((row for row in offline.json() if row["device"]["device_id"] == device), None) if offline.status_code == 200 else None
+                require(device_view and device_view["connection"]["state"] == "offline", "suspended_device_not_offline")
+                after_gap = device_state()
+                require(after_gap["last_seen_at"] == settled["last_seen_at"], "heartbeat_invented_suspended_activity")
+                pending = alice.get(f"/v1/devices/{device}/commands/{pending_result.request_id}")
+                require(pending.status_code == 200 and pending.json()["status"] == "queued", "suspended_reply_falsely_completed")
+                submit(alice, StatusCommand(request_id=uuid4()), expected=503)
+                suspension.update(elapsed_s=time.monotonic() - suspended_at, before=before,
+                    settled=settled, after_gap=after_gap, offline=True, pending_result_still_queued=True)
+            wait_ready()
+            after_resume = device_state()
+            require(after_resume["connection_generation"] > before["connection_generation"], "suspended_socket_generation_reused")
+            resumed_result = complete(pending_result)
+            require(resumed_result["reply"]["summary"]["simulation_id"] == simulation_id
+                and resumed_result["reply"]["summary"]["status"] == "completed", "resumed_result_identity_changed")
+            require(complete(command) == accepted, "suspension_retry_changed_original_ack")
+            resumed_inventory = action(first, "inspect")
+            require(resumed_inventory["jobs"] == 1 and resumed_inventory["receipts"] == 1, "suspension_duplicated_local_work")
+            suspension.update(after_resume=after_resume, original_ack_preserved=True,
+                pending_result_reconciled=True, original_jobs=1, original_receipts=1)
+            receipt["limitations"].append("Native process suspension exceeds 90 seconds; physical PC sleep, NIC loss and hardware resume remain untested.")
+            save()
         stage("stop runtime resets consent and restart does not connect automatically")
         receipt["runtime_restart"] = action(first, "restart_runtime")
         action(first, "connect_paused")
@@ -651,6 +727,8 @@ def main():
     parser.add_argument("--origin")
     parser.add_argument("--cert")
     parser.add_argument("--control-handle", type=int)
+    parser.add_argument("--exercise-suspension", action="store_true",
+        help="Suspend only the owned Windows child for 100 seconds and verify reconnect/durable readback")
     args = parser.parse_args()
     return child_main(args) if args.child else parent_main(args)
 
