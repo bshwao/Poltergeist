@@ -1,0 +1,90 @@
+{
+  "schema_version": "poltergeist-s6-ci-enrollment-diagnostics-v1",
+  "recorded_at": "2026-10-26T22:41:10.919268+00:00",
+  "product_source_commit": "55db36e5ca926b1d979f1bb7ad843d739216ab91",
+  "failed_main_run": {
+    "id": 40409033693,
+    "url": "https://github.com/bshwao/Poltergeist/actions/runs/40409033693",
+    "passed_jobs": 4,
+    "failed_job": "core (windows-latest, 3.12)",
+    "failed_job_id": 121874288957,
+    "full_pytest": {
+      "passed": 3185,
+      "failed": 1,
+      "skipped": 19
+    }
+  },
+  "failure": {
+    "test": "test_coordinator_process_loss_reconciles_original_request_and_owned_work[execute-after_commit]",
+    "phase": "Second companion enrollment: approval preflight GET, before the coordinator crash is injected.",
+    "public_error_type": "PairingClientError",
+    "public_error": "The coordinator could not be reached securely",
+    "underlying_socket_or_tls_cause": "Not captured in that run; still unproven.",
+    "confirmed_root_cause_fix": false
+  },
+  "changes": [
+    "Only the crash-test fixture uses a diagnostic wrapper around the unchanged production enrollment exchange.",
+    "Its artifact records allowlisted exception kinds, numeric OS error codes and elapsed times; no request, credential, URL, body or exception text.",
+    "Preparation permits at most three normal review/resume attempts for the two fixed transport/deadline errors. It retains the reviewed claim and resumes the saved credential instead of creating another.",
+    "Changed reviews and semantic/refusal errors fail immediately. Pairing creation is never retried. Recovery categories are retained in the fixture artifact.",
+    "No skipped crash cases, relaxed crash assertions or production deadline changes."
+  ],
+  "local_batches_overlap": true,
+  "local_batches": [
+    {
+      "name": "s6-ci-after-commit-diagnostics312",
+      "passed": 1,
+      "seconds": 85.129,
+      "receipt": "validation-evidence/s6-ci-after-commit-diagnostics312.xml",
+      "receipt_sha256": "c03dce479612d6e4603adb91647b7923e426cf35451687c7ac41f4da7dbf28b7"
+    },
+    {
+      "name": "s6-ci-diagnostics312",
+      "passed": 6,
+      "seconds": 415.416,
+      "receipt": "validation-evidence/s6-ci-diagnostics312.xml",
+      "receipt_sha256": "abe1b2aa5c5eadb3b7f54e7ca1b72d10fbd7cfe56323275790001ee965f1144b"
+    },
+    {
+      "name": "s6-ci-fixture-recovery312-final",
+      "passed": 10,
+      "seconds": 271.359,
+      "receipt": "validation-evidence/s6-ci-fixture-recovery312-final.xml",
+      "receipt_sha256": "d3efd7ac5916ab094cb27bf8ffc7d00c789945554ecd12464fb45865cfb9af7b"
+    },
+    {
+      "name": "s6-ci-fixture-recovery314-final",
+      "passed": 10,
+      "seconds": 278.297,
+      "receipt": "validation-evidence/s6-ci-fixture-recovery314-final.xml",
+      "receipt_sha256": "26288dab4ac0ca5b8e5ee00b00397f954ea267af8c2f1dc856928fba62bb3e1d"
+    },
+    {
+      "name": "s6-ci-fixture-recovery-unit",
+      "passed": 5,
+      "seconds": 5.007,
+      "receipt": "validation-evidence/s6-ci-fixture-recovery-unit.xml",
+      "receipt_sha256": "9b0fe59dba3860590897fb31089d361d41780248b373c9f24c75952199eb781c"
+    }
+  ],
+  "source_sha256": {
+    "tests/enrollment_diagnostics.py": "ae704fbcf57056267e3975c4d9a8475c24a48333c19860664988e43c3464b67c",
+    "tests/test_enrollment_diagnostics.py": "d184d416294d0efb0bf449192e0f75238b1eebd600929d13dbed73b58a1c4399",
+    "tests/test_coordinator_crash_recovery.py": "f91b048ad04fdb8e427774730f603154846acc3608684a686929633fc557f17c"
+  },
+  "retained_local_failure": {
+    "receipt": "validation-evidence/s6-ci-diagnostics314.xml",
+    "receipt_sha256": "9d83c32643bb7e21398d76ebde87ec7bde5f745416ad5cbe11e7eb884fa1edba",
+    "passed": 5,
+    "failed": 1,
+    "phase": "First companion claim GET before the intentional crash; the absolute enrollment deadline expired.",
+    "same_underlying_cause_as_ci_proven": false
+  },
+  "next_gate": "Observe the next exact-commit matrix; if enrollment fails again, inspect its sanitized worker artifact before changing behavior.",
+  "installed_recovery_evidence": "docs/validation/s6-installed-recovery.json",
+  "limitations": [
+    "A passing local repeat does not explain or erase the failed Windows CI request.",
+    "Diagnostic test-worker wrapping is separate from the unwrapped installed Runtime I proof.",
+    "S6 remains in progress."
+  ]
+}

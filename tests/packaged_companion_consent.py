@@ -1,11 +1,13 @@
 """Private bundle/TLS/DPAPI proof through normal native Tk consent callbacks.
 
 Credentials and human pairing codes travel through inherited Windows pipes only.
-This driver creates fresh workspace-owned profiles and a disposable coordinator.
+This driver creates fresh workspace-owned profiles and a disposable coordinator,
+or verifies an unused profile compiled into a separate validation installation.
 It never opens existing settings, starts CARLA, installs, or changes product code.
 """
 
 import argparse
+import configparser
 from contextlib import closing, contextmanager
 from datetime import UTC, datetime
 import hashlib
@@ -46,6 +48,69 @@ def wait_for(predicate, *, timeout=60):
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def scan_owned_logs(base, profile, private_values):
+    """An installed profile is outside the fixture folder; scan both roots."""
+    logs = set(base.rglob("*.log")) | set(profile.rglob("*.log"))
+    for path in logs:
+        require(not path.is_symlink() and (path.resolve().is_relative_to(base.resolve())
+            or path.resolve().is_relative_to(profile.resolve())), "log_outside_owned_roots")
+        raw = path.read_bytes()
+        require(all(value.encode() not in raw for value in private_values), "secret_in_owned_log")
+    return {"roots": [str(base), str(profile)], "files": len(logs),
+        "profile_log_files": sum(path.is_relative_to(profile) for path in logs),
+        "all_profile_logs_scanned": True}
+
+
+def installed_validation_profile(root, bundle, installed_root):
+    """Accept only an unused profile compiled into our isolated test installer."""
+    identity = "Poltergeist.Private.Companion.Validation"
+    evidence = root / "validation-evidence"
+
+    def plain_owned(path, parent):
+        require(path.is_absolute(), "installed_path_must_be_absolute")
+        require(path.resolve().is_relative_to(parent.resolve()) and path.resolve() != parent.resolve(),
+            "installed_path_outside_owned_validation")
+        for item in (path, *path.parents):
+            if item.exists():
+                require(not item.is_symlink() and not (getattr(item.lstat(), "st_file_attributes", 0) & 0x400),
+                    "installed_path_is_linked")
+            if item == root:
+                break
+        return path.resolve()
+
+    def ini(path, section):
+        require(path.is_file(), "installed_ownership_metadata_missing")
+        raw = path.read_bytes()
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read_string(raw.decode("utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig"))
+        require(parser.has_section(section), "installed_ownership_section_missing")
+        return parser[section]
+
+    installed_root = plain_owned(Path(installed_root), evidence / "portable-dist")
+    metadata_path = installed_root / "installation.ini"
+    plain_owned(metadata_path, installed_root)
+    metadata = ini(metadata_path, "Installation")
+    build = "private-" + digest(bundle / "bundle.json")[:16]
+    require(metadata.get("AppId") == identity and metadata.get("Build") == build,
+        "installed_identity_or_build_mismatch")
+    require(bundle == installed_root / "versions" / build, "installed_runtime_mismatch")
+    plain_owned(bundle, installed_root)
+    profile = plain_owned(Path(metadata.get("Profile", "")), evidence)
+    require(profile.name == "CompanionPrototype" and not profile.is_relative_to(installed_root)
+        and not installed_root.is_relative_to(profile), "installed_profile_not_separate")
+    marker_path = profile / "installation-owner.ini"
+    plain_owned(marker_path, profile)
+    owner = ini(marker_path, "Owner")
+    require(owner.get("AppId") == identity and owner.get("Profile") == str(profile),
+        "installed_profile_ownership_mismatch")
+    require({path.name for path in profile.iterdir()} == {marker_path.name},
+        "installed_profile_already_used")
+    return profile, {"app_id": identity, "build_id": build, "install_root": str(installed_root),
+        "installation_ini_sha256": digest(metadata_path), "profile_owner_sha256": digest(marker_path),
+        "compiled_profile_used": True, "initial_profile_entries": [marker_path.name],
+        "shortcut_invoked": False}
 
 
 @contextmanager
@@ -220,6 +285,14 @@ def child_main(args):
                 time.sleep(.01)
             raise TimeoutError("native_action_deadline")
 
+        first_run_setup = not controller.config.setup_completed
+        if first_run_setup:
+            checkpoint("complete first-run synthetic setup through native callback")
+            buttons = [button for button in window._buttons if button.cget("text") == "Use synthetic for now"]
+            require(len(buttons) == 1, "native_synthetic_setup_button_missing")
+            buttons[0].invoke()
+            pump_until_idle()
+            require(controller.config.setup_completed, "native_synthetic_setup_not_saved")
         checkpoint("start native runtime callback")
         window.start_button.invoke()
         pump_until_idle()
@@ -252,6 +325,7 @@ def child_main(args):
             "python_version": sys.version.split()[0], "integrity_before": integrity,
             "coordinator_available": False, "argon2_available": False, "normal_constructor_remote_enabled": False,
             "native_window_withdrawn": root.state() == "withdrawn", "normal_constructor_and_tk_callbacks": True,
+            "native_first_run_synthetic_setup": first_run_setup,
             "gui_libraries": gui_libraries})
         while True:
             command = channel.recv()
@@ -407,22 +481,32 @@ def parent_main(args):
     bundle = Path(args.bundle).resolve()
     require(bundle.is_relative_to(root / "validation-evidence/portable-dist"), "bundle_outside_owned_builds")
     require((bundle / "bundle.json").is_file(), "bundle_not_complete")
+    installed = None
+    if args.installed_root:
+        profile, installed = installed_validation_profile(root, bundle, args.installed_root)
     base = root / "validation-evidence" / ("s4-packaged-consent-" + datetime.now().strftime("%Y%m%d-%H%M%S-") + uuid4().hex[:8])
     base.mkdir()
-    profile = base / "CompanionPrototype"
+    if installed is None:
+        profile = base / "CompanionPrototype"
     cert, key, database = base / "relay-certificates/ca.pem", base / "relay-certificates/server.key", base / "coordinator.db"
     receipt_path = base / "receipt.json"
     receipt = {"schema_version": "poltergeist-s4-packaged-consent-private-v1", "passed": False,
+        "driver_sha256": digest(Path(__file__)),
         "started_at": datetime.now(UTC).isoformat(), "bundle": str(bundle), "profile": str(profile), "steps": [],
         "scope": "One packaged companion profile, two source-coordinator accounts, real loopback HTTPS/WSS, native DPAPI and receipt-backed synthetic worker.",
         "limitations": ["Native Tk callbacks are invoked on a withdrawn window; no visual or physical-input claim.",
             "Same Windows account and machine; development-only fixture certificate; no public hosting or independent-machine proof.",
-            "Synthetic test adapter only, with a bounded blocker for cancellation; no CARLA, new installer, or physical hardware proof.",
+            "Synthetic test adapter only, with a bounded blocker for cancellation; no CARLA or physical hardware proof.",
             "Coordinator runs separately from the source environment, not from the desktop bundle.",
             "This is partial private S4 evidence and does not complete the S4 acceptance gate."],
         "default_remote_execution_enabled": False, "private_constructor_switch": False,
         "normal_controller_explicit_tk_consent": True, "public_deployment_verified": False,
         "exercise_pending_approval": args.exercise_pending_approval}
+    if installed is not None:
+        receipt["installed_validation"] = installed
+        receipt["limitations"].append("Installed runtime and compiled validation profile; no actual shortcut invocation or visual first-run acceptance.")
+    else:
+        receipt["limitations"].append("Portable runtime and fresh custom profile; no installer acceptance.")
     children, streams, browsers, private_values = [], [], [], []
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     env = os.environ.copy()
@@ -755,12 +839,11 @@ def parent_main(args):
         receipt["second_close"] = action(second, "close")
         receipt["revocation_denied_and_local_results_retained"] = True
         require(all(digest(root / relative) == digest(site / relative) for relative in source_names), "source_changed_during_private_proof")
+        require(digest(Path(__file__)) == receipt["driver_sha256"], "driver_changed_during_private_proof")
         stage("scan owned logs and report for private enrollment and browser secrets")
         for stream in streams:
             stream.flush()
-        for path in base.rglob("*.log"):
-            raw = path.read_bytes()
-            require(all(value.encode() not in raw for value in private_values), "secret_in_owned_log")
+        receipt["log_scan"] = scan_owned_logs(base, profile, private_values)
         save()
         raw = receipt_path.read_bytes()
         require(all(value.encode() not in raw for value in private_values), "secret_in_receipt")
@@ -807,6 +890,7 @@ def parent_main(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bundle", required=True)
+    parser.add_argument("--installed-root", help="Verify a workspace validation installation and use its unused compiled profile")
     parser.add_argument("--child", action="store_true")
     parser.add_argument("--profile")
     parser.add_argument("--origin")

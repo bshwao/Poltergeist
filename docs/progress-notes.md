@@ -4,6 +4,7 @@ Updated October 26, 2026. Current checkpoint: **S6 reliability in progress**.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
 Branch: `codex/s6-reliable-execution` (continues the preserved S5 branch).
+All earlier branch histories were fast-forwarded into GitHub `main` at `55db36e`.
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
 S2 desktop companion and S3 installer/setup flow. The latest changes add the
@@ -18,9 +19,9 @@ private prototype does not close independent-machine or release validation.
 | S1 — Standalone packaging | Private prototype validated on the development laptop | Pinned private Python/core dependencies, relocated synthetic/CARLA/SDK checks. An independent computer without developer tools, redistribution review and a native support matrix remain open. |
 | S2 — Companion application | Private desktop prototype | Native application, isolated profile, durable local queue/results, configuration, diagnostics and deliberate imports/exports. S4 adds explicit relay connection and consent controls. See [desktop guide](companion.md). |
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
-| **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
+| **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime/compiled-profile proofs pass on this laptop. Public deployment, actual shortcut invocation, visual and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
-| **S6 — Reliable remote execution** | **In progress; source and private Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6; real TLS/DPAPI/pending-recovery/suspension and outside-checkout pythonw provenance pass. Wider native faults, physical sleep, current installed-runtime and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
+| **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
@@ -37,6 +38,38 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Installed Runtime I into a fresh validation-only target and exercised its exact
+  compiled profile, initially containing only the installer owner marker. The
+  normal first-run synthetic callback, uncertain approval recovery, two-account
+  isolation, lost ACK, cancellation, reopen/revoke and 102-second suspension pass.
+  Setup verifies private native/GUI resources; shortcut metadata points to the
+  compiled profile. Ordinary uninstall removes the validation runtime/registration
+  and preserves all 13 profile files byte-for-byte. This does not claim actual
+  shortcut invocation or visual/external-machine acceptance. See the
+  [installed recovery record](validation/s6-installed-recovery.json).
+- Extended the acceptance driver's secret scan to include the separate installed
+  profile. The initial workflow/uninstall receipts remain retained with that scan
+  gap explicit; a new installation/profile passed the complete expanded scan.
+  Both Python versions pass 18 guard/installer tests, with one unavailable native
+  symlink fixture skipped. Used/foreign profiles and normal installer identities
+  are refused before the driver starts.
+- Product checkpoint `55db36e` passed all five branch jobs in
+  [run 40286537935](https://github.com/bshwao/Poltergeist/actions/runs/40286537935)
+  before the requested merge. Its new `main` run
+  [40409033693](https://github.com/bshwao/Poltergeist/actions/runs/40409033693)
+  passed four jobs but failed Windows 3.12 during the second companion's enrollment,
+  before the intended coordinator crash. The fixed public error does not reveal
+  the underlying network/TLS cause. A scoped local repeat passes; the crash fixture
+  now retains allowlisted exception categories and timings without request data
+  or error text. A local 3.14 run also hit the absolute deadline during a pre-fault
+  claim read; that separate failed receipt remains retained. Preparation now uses
+  at most three normal review/resume attempts for transport/deadline errors,
+  retaining the reviewed claim or saved credential. Changed reviews and refusals
+  still fail immediately. Production deadlines and crash assertions are unchanged.
+  Further matrix evidence is required; the underlying CI cause is unproven.
+  Both Python versions pass all ten final crash/recovery and fixture checks. The
+  [CI diagnostic record](validation/s6-ci-enrollment-diagnostics.json) retains the
+  failed runs, scoped repeats, bounded preparation behavior and exact evidence.
 - Runtime I matches all 173 current first-party Python files and passes 6,084
   manifest integrity checks. Normal native consent over real HTTPS/WSS recovers
   lost committed approval/cancellation replies, revokes only the saved binding,
@@ -60,10 +93,10 @@ private prototype does not close independent-machine or release validation.
   substitutes the later run state. Unknown legacy snapshots fail closed while
   preserving the original receipt and authorized result access. A real TLS test
   now completes cancellation offline before the first lost-ACK redelivery.
-- Checkpoint `58b77b4` passes all five GitHub jobs in
+- Earlier checkpoint `58b77b4` passed all five GitHub jobs in
   [run 40263788540](https://github.com/bshwao/Poltergeist/actions/runs/40263788540).
-  The new recovery changes have separate local/package evidence and need their
-  own CI; runtime H's earlier proof remains scoped to its recorded source.
+  Runtime H's earlier proof remains scoped to its recorded source; the newer
+  `55db36e` branch result and subsequent `main` investigation are recorded above.
 - Private Windows runtime H includes 171 first-party Python files from its
   recorded checkpoint and passes the normal TLS/DPAPI/Tk consent regression. Its isolated
   packaged interpreter also passes a real CARLA process-loss witness: two orphaned

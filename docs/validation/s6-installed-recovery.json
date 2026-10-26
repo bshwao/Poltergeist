@@ -1,0 +1,137 @@
+{
+  "schema_version": "poltergeist-s6-installed-recovery-v1",
+  "recorded_at": "2026-10-26T22:20:22.263748+00:00",
+  "product_source_commit": "55db36e5ca926b1d979f1bb7ad843d739216ab91",
+  "branch": "codex/s6-reliable-execution",
+  "scope": "Same Windows laptop/account, isolated validation installer, its unused compiled profile, withdrawn native Tk callbacks and strict loopback HTTPS/WSS to a separate source coordinator.",
+  "s6_complete": false,
+  "installer": {
+    "build_id": "private-ee1a99b888ca7b9f",
+    "bundle_manifest_sha256": "ee1a99b888ca7b9f2c9ebe2e184423e075bc21f18c6d4ef9cd44f476cf5c7687",
+    "installer_sha256": "caee92b7e8621dc72930bf045c10b4ea5d501c6713167736b40b429797087559",
+    "bytes": 32939499,
+    "compiler_version": "7.1.0",
+    "signed": false,
+    "validation_only": true
+  },
+  "payload": {
+    "project_wheel_sha256": "142d779c5faec1b21f99d09fc096b159588c60c96022fdcf7af809981ba0b819",
+    "first_party_python_files": 173,
+    "source_bytes_and_file_set_match": true,
+    "manifest_integrity_files": 6084,
+    "integrity_before_and_after_both_processes": true,
+    "private_python": "3.12.15",
+    "driver_sha256": "921e5b5a5dd3f4186bcaada3cda3b14812667559da90db7fca2040668abca668"
+  },
+  "native_workflow": {
+    "installed_interpreter_used": true,
+    "fresh_compiled_profile_used": true,
+    "profile_initially_contains_only_installer_owner_marker": true,
+    "normal_synthetic_first_run_callback": true,
+    "second_open_retains_completed_setup": true,
+    "shortcut_target_and_compiled_arguments_verified": true,
+    "shortcut_actually_invoked": false,
+    "normal_constructor_and_explicit_consent": true,
+    "native_dpapi": true,
+    "two_account_isolation": true,
+    "lost_ack_same_run_one_job": true,
+    "queued_cancellation_status": "cancelled",
+    "active_cancellation_status": "cancelled",
+    "reopen_preserves_receipts_and_results": true,
+    "revocation_denied_results_retained": true,
+    "lost_approval_and_cancellation_replies": {
+      "custody_retained_until_confirmation": true,
+      "exact_device_revoked": true,
+      "old_credential_denied": true,
+      "confirmed_retry_clears_custody": true,
+      "fresh_pairing_distinct": true
+    },
+    "suspension": {
+      "elapsed_s": 102.157,
+      "physical_pc_sleep": false,
+      "offline_observed": true,
+      "last_seen_unchanged_during_gap": true,
+      "generation_before": 3,
+      "generation_after_resume": 4,
+      "pending_result_reconciled": true,
+      "original_ack_preserved": true,
+      "original_jobs": 1,
+      "original_receipts": 1
+    }
+  },
+  "cleanup": {
+    "native_install_exit_code": 0,
+    "native_uninstall_exit_code": 0,
+    "validation_registration_removed": true,
+    "installed_runtime_removed": true,
+    "validation_shortcuts_removed": true,
+    "normal_registration_unchanged": true,
+    "explicit_profile_data_removal_requested": false,
+    "all_profile_file_bytes_preserved": true,
+    "retained_profile_file_count": 13,
+    "retained_database_sha256": "4f7b5681483b3f594525640b09c6d241b2883d4ea0c857fb51b097d225990efc",
+    "owned_processes": [
+      {
+        "label": "second_open",
+        "exit_code": 0,
+        "exited": true,
+        "terminated_owned_fixture": false
+      },
+      {
+        "label": "first_open",
+        "exit_code": 0,
+        "exited": true,
+        "terminated_owned_fixture": false
+      },
+      {
+        "label": "coordinator",
+        "exit_code": 1,
+        "exited": true,
+        "terminated_owned_fixture": true
+      }
+    ],
+    "fixture_private_keys_removed": true,
+    "no_private_credentials_in_owned_logs_or_receipt": true,
+    "log_files_scanned": 4,
+    "compiled_profile_log_files_scanned": 1
+  },
+  "local_guard_and_installer_tests": [
+    {
+      "python": "312",
+      "passed": 18,
+      "skipped": 1,
+      "skip_reason": "Native symlink creation is unavailable on this Windows account.",
+      "receipt": "validation-evidence/s6-installed-profile-guards312-final.xml"
+    },
+    {
+      "python": "314",
+      "passed": 18,
+      "skipped": 1,
+      "skip_reason": "Native symlink creation is unavailable on this Windows account.",
+      "receipt": "validation-evidence/s6-installed-profile-guards314-final.xml"
+    }
+  ],
+  "local_evidence": {
+    "proof": "validation-evidence/s4-packaged-consent-20261026-181445-a5cce38a/receipt.json",
+    "proof_sha256": "1d519f9890de640707a3f20048164a619fe983bbe7f77310133d16931685f059",
+    "lifecycle": "validation-evidence/s6-i-installed-lifecycle-b-20261026",
+    "install_sha256": "e4712f50b7b1d56aeaee5f326ec6b05c511f74da9cbf6033da6dca409a06a4e0",
+    "uninstall_sha256": "be988f5aa18a0feb07ed2ba69034446f98f330fd7cbe6955e51828205d5436b7",
+    "shortcut_metadata_sha256": "d011232b8192e78b60c8ad22f216e5b830b024fbb7c7b2abc662f9c5e41e4376"
+  },
+  "retained_initial_run": {
+    "proof": "validation-evidence/s4-packaged-consent-20261026-180659-9a0d5167/receipt.json",
+    "lifecycle": "validation-evidence/s6-i-installed-lifecycle-20261026",
+    "driver_snapshot": "validation-evidence/s6-i-installed-lifecycle-20261026/driver-before-installed-log-scan.py",
+    "driver_sha256": "0da59ddc31f63befc17e6cd9dba54a2ac3fa38e749237a9ba7f99b6d10f48787",
+    "scope_gap": "The initial driver scanned only fixture-folder logs, omitting the separate installed profile. Its workflow passed and data-preserving uninstall passed; the final record uses a fresh compiled profile and a scan covering both roots."
+  },
+  "limitations": [
+    "No actual shortcut invocation, visual/physical input or external-machine acceptance.",
+    "Synthetic adapter only; prior runtime H native CARLA evidence remains separately scoped.",
+    "Process suspension is not physical sleep, actual NIC loss or a longer real outage.",
+    "Wider cancellation/finalization races and supported-machine fault acceptance remain open.",
+    "Unsigned validation-only installer; signing, redistribution, updates and external beta remain open.",
+    "No public hosted service; public S5 deployment is deferred."
+  ]
+}

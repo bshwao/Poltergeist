@@ -22,12 +22,34 @@ from companion.controller import CompanionController
 from companion.credential_store import WindowsCredentialStore
 from companion.pairing_client import JsonTransport, PairingClient
 from companion.relay_client import RelayClient
+from enrollment_diagnostics import approve_for_crash_fixture, diagnostic_worker
 from shared.models.coordination import DevicePolicy
 from shared.models.remote import CancelCommand, ExecuteCommand, ResultCommand
 from simulator import SimulationRunner
 from simulator.test_adapter import TestSimulationAdapter
 from test_hosted_execution import MemoryStore, SCOPES, complete_command, login, post_command, wait_for
 from test_relay_client import make_certificates
+
+
+@pytest.fixture(autouse=True)
+def record_private_enrollment_failures(monkeypatch, tmp_path, record_property):
+    """Keep bounded error categories when CI fails before the injected crash."""
+    from companion.enrollment_process import EnrollmentProcess
+
+    directory = Path(__file__).resolve().parents[1] / "validation-evidence/coordinator-crash-enrollment" / (tmp_path.name + "-" + uuid4().hex[:8])
+    worker, _ = diagnostic_worker(directory)
+    record_property("enrollment_diagnostic_directory", directory.relative_to(Path(__file__).resolve().parents[1]).as_posix())
+    original = EnrollmentProcess.__init__
+    source = Path(__file__).resolve().parents[1] / "companion/enrollment_worker.py"
+
+    def initialize(self, worker_path, **options):
+        return original(self, worker if Path(worker_path).resolve() == source else worker_path, **options)
+
+    monkeypatch.setattr(EnrollmentProcess, "__init__", initialize)
+    recoveries = []
+    yield recoveries
+    record_property("enrollment_recoveries", json.dumps(recoveries))
+    (directory / "fixture-recovery.json").write_text(json.dumps({"recoveries": recoveries}) + "\n", encoding="utf-8")
 
 
 class CoordinatorProcess:
@@ -100,7 +122,7 @@ def stored(root, request):
         return connection.execute("SELECT status,reply_json FROM commands WHERE request_id=?", (str(request),)).fetchone()
 
 
-def _check_coordinator_process_loss(tmp_path, boundary, operation, *, finish_before_replay=False):
+def _check_coordinator_process_loss(tmp_path, boundary, operation, *, finish_before_replay=False, enrollment_recoveries=None):
     files = make_certificates(tmp_path)
     context = ssl.create_default_context(cafile=str(files["ca"]))
     with socket.socket() as reservation:
@@ -110,6 +132,7 @@ def _check_coordinator_process_loss(tmp_path, boundary, operation, *, finish_bef
         kind="accepted" if operation == "execute" else "cancel_requested", fault=boundary)
     origin, release, entered = first_server.origin, Event(), Event()
     controllers, stores, servers = [], {}, [first_server]
+    enrollment_recoveries = [] if enrollment_recoveries is None else enrollment_recoveries
 
     class HeldAdapter(TestSimulationAdapter):
         def open(self, scenario):
@@ -140,8 +163,7 @@ def _check_coordinator_process_loss(tmp_path, boundary, operation, *, finish_bef
     def enroll(controller, client, headers, name):
         created = controller.begin_pairing(name, SCOPES)
         assert client.post("/v1/pairing/claim", json={"code": created["code"]}, headers=headers).status_code == 200
-        claim = controller.pairing_status(refresh=True)["claim"]
-        approved = controller.approve_pairing(claim, DevicePolicy(scopes=SCOPES))
+        approved = approve_for_crash_fixture(controller, DevicePolicy(scopes=SCOPES), enrollment_recoveries)
         controller.connect_relay(allow_remote_execution=True, displayed_status=controller.pairing_status())
         return approved["device_id"]
 
@@ -237,9 +259,10 @@ def _check_coordinator_process_loss(tmp_path, boundary, operation, *, finish_bef
 
 @pytest.mark.parametrize("boundary", ["before_commit", "after_commit"])
 @pytest.mark.parametrize("operation", ["execute", "cancel"])
-def test_coordinator_process_loss_reconciles_original_request_and_owned_work(tmp_path, boundary, operation):
-    _check_coordinator_process_loss(tmp_path, boundary, operation)
+def test_coordinator_process_loss_reconciles_original_request_and_owned_work(tmp_path, boundary, operation, record_private_enrollment_failures):
+    _check_coordinator_process_loss(tmp_path, boundary, operation, enrollment_recoveries=record_private_enrollment_failures)
 
 
-def test_cancel_finishes_offline_before_first_lost_ack_redelivery(tmp_path):
-    _check_coordinator_process_loss(tmp_path, "before_commit", "cancel", finish_before_replay=True)
+def test_cancel_finishes_offline_before_first_lost_ack_redelivery(tmp_path, record_private_enrollment_failures):
+    _check_coordinator_process_loss(tmp_path, "before_commit", "cancel", finish_before_replay=True,
+        enrollment_recoveries=record_private_enrollment_failures)

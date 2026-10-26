@@ -225,6 +225,16 @@ keys, verifies bundled imports/integrity and saves a local receipt. Credentials
 travel through inherited pipes; the coordinator uses the separate source runtime.
 It starts no CARLA and changes no existing installation or profile.
 
+For a separately installed validation build, the driver also accepts
+`--installed-root <absolute-install-root>` alongside `--bundle` pointing to that
+installation's exact `versions/<build-id>` directory. The install root must be
+inside this checkout's `validation-evidence/portable-dist`. It checks the distinct
+validation AppID, manifest-derived build, compiled profile and owner marker before
+starting anything. The compiled profile must contain only its installer ownership
+marker; existing settings, databases and enrollment are refused. This mode uses
+the normal first-run **Use synthetic for now** callback before the recovery flow.
+It does not invoke an installed shortcut or establish visual acceptance.
+
 For the S6 private regression, Runtime I passes both optional modes shown above.
 Pending approval recovery loses committed approval/cancellation replies through
 the native callbacks, verifies protected custody and revocation, then starts a
@@ -240,6 +250,11 @@ profile; the installed shortcut and compiled default profile were not invoked.
 The validation registration/runtime were removed and both profile/evidence
 datasets were retained. See the
 [installed consent receipt](validation/s4-installed-consent.json).
+Runtime I additionally passes from its current installed runtime using the unused
+compiled validation profile, normal synthetic first-run callback and both recovery
+modes. Its scan includes fixture and profile logs, and uninstall retains all
+profile bytes. This later [installed recovery record](validation/s6-installed-recovery.json)
+preserves the separate shortcut/visual and external-machine gates.
 This API-driven private proof does not establish a hosted website, visual UI
 acceptance, CARLA execution or a public deployment. See the
 [relay receipt](validation/s4-relay-prototype.json) for the current evidence.

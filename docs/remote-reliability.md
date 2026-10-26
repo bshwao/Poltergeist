@@ -178,7 +178,7 @@ separately; frame-zero observations are not used to claim cleanup.
 | Claimed worker process loss | Actual opening/running process exits, real orphaned CARLA vehicles/settings, honest failed recovery and reset quarantine | Wider native fault timing and independent machines |
 | Cancellation ordering | Lost ACK before/after commit, a repeated coordinator outage, offline cleanup and durable final result; waiter/rollback tests | Additional finalization race stress and external acceptance |
 | Reconnection and heartbeat | Native TLS deadlines, a 102-second packaged-process suspension, new-generation reconnect and original-result reconciliation; truthful activity timestamps | Physical PC sleep/resume, NIC faults and longer real outages |
-| Distribution | Refreshed private runtime H matches all 171 first-party Python files; bundled native crash/quarantine/reset and normal TLS/DPAPI consent checks pass | Current installed-runtime and independent-machine fault validation |
+| Distribution | Runtime H passes native CARLA crash/quarantine/reset; Runtime I matches 173 sources and passes installed compiled-profile TLS/DPAPI/recovery/suspension with data-preserving uninstall | Actual shortcut/visual and independent-machine fault validation |
 
 ### Refreshed private Windows runtime
 
@@ -245,7 +245,17 @@ that its GUI interpreter starts the exact bundled enrollment worker through the
 private `python.exe`, with isolated imports and joined process/pipe ownership.
 All five coordinator crash cases also pass with this source transport.
 
-S6 remains open for current installed-runtime acceptance, wider native
+The [installed Runtime I record](validation/s6-installed-recovery.json) closes the
+same-laptop compiled-profile callback checkpoint. The validation installer passes
+native import/GUI/integrity checks, then a fresh installer-owned profile completes
+first-run synthetic setup, uncertain approval recovery, normal consent, lost ACK,
+cancellation, 102-second suspension and durable reopen/revocation. Uninstall keeps
+every profile file unchanged. Shortcut target/arguments are checked separately;
+the shortcut itself is not invoked. A first attempt exposed a harness scan gap
+for logs outside the fixture folder; the expanded scan passes on a second fresh
+installation/profile, and both attempts remain recorded.
+
+S6 remains open for actual installed shortcut/visual acceptance, wider native
 cancellation/finalization races, physical sleep/network faults and external
 supported-machine acceptance. Passing a private checkpoint does not close those
 requirements or the earlier independent-machine/release gates.

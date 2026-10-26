@@ -1,6 +1,6 @@
 # Private Windows installer and first-run setup
 
-Status: **S3 prototype under validation**, October 23, 2026. This builds on the
+Status: **private prototype under validation**, October 26, 2026. This builds on the
 [private desktop companion](companion.md) and its pinned private runtime. It is
 unsigned and has not passed the independent no-developer-tools machine gate or
 the external-tester S3 completion gate. See [progress notes](progress-notes.md).
@@ -96,7 +96,17 @@ regression result are recorded in the
 [sanitized S3 receipt](validation/s3-installer.json) and
 [progress notes](progress-notes.md).
 
+The originally delivered S3 installer predates accounts and remote execution.
+Later validation builds carry the current S4–S6 code; their evidence and payload
+identities are recorded separately. They do not replace that original installer
+or establish a public distribution.
+
+The [installed Runtime I recovery record](validation/s6-installed-recovery.json)
+uses the fresh compiled validation profile and normal first-run synthetic callback.
+Native setup, pairing/recovery, consent, cancellation, suspension and reopening
+pass on this laptop. Default uninstall preserves all profile file bytes. The
+Start menu shortcut's target/arguments are verified, without actually invoking it.
+
 External clean-machine/native support testing, visual onboarding inspection,
 redistribution terms, code signing and external beta remain open. CARLA and model
-weights are separate installations. Website pairing and remote execution are S4+
-work and remain unavailable in this build.
+weights are separate installations. Public hosting remains deferred.
