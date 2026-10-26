@@ -38,6 +38,29 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Reproduced a coarse-clock rounding defect in enrollment: a ten-second budget
+  can become `10.000000000000057` when subtraction uses a tied clock sample.
+  The strict worker correctly refuses that value before HTTPS. Remaining lock,
+  process and socket budgets are now capped at the configured limit; the original
+  absolute deadline and worker validation are preserved. Three regressions fail
+  against the immutable baseline and pass after the fix. Native Runtime I fails
+  the same fixed-clock cases, while fresh Runtime J passes all three.
+- Both source interpreters pass 38 enrollment/transport regressions. Runtime J
+  matches all 173 first-party Python sources and 6,084 integrity files, and passes
+  normal native TLS/WSS/DPAPI consent, uncertain approval recovery, lost ACK,
+  cancellation, suspension/reconnection, reopening and revocation. Its four
+  finalization-boundary cases also pass. These fresh portable proofs are recorded
+  in the [deadline and Runtime J record](validation/s6-deadline-roundoff.json);
+  earlier installed Runtime I evidence remains scoped to its recorded payload.
+- The previous Windows CI artifact contains two fixed worker-validation failures
+  and two successful bounded preparation recoveries. That pattern is compatible
+  with the reproduced rounding defect, but the original rejected input field was
+  not captured. Private fixture diagnostics now retain the fixed validation code
+  and bounded numeric socket budget without recording request data or secrets.
+- Checkpoint `2515583` passes all five jobs in
+  [run 40417249283](https://github.com/bshwao/Poltergeist/actions/runs/40417249283)
+  and has been fast-forwarded into GitHub and local `main`, as requested. The new
+  deadline fix and Runtime J require their own exact-commit matrix.
 - Added four finalization-boundary cases, passing on Python 3.12/3.14 and private
   Runtime I. Actual SQLite writers are forced into both cancellation/finalization
   orders; independent readers see neither uncommitted result nor receipt, the

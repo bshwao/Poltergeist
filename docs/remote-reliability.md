@@ -270,3 +270,20 @@ S6 remains open for actual installed shortcut/visual acceptance, broader native
 CARLA cancellation/finalization timing, physical sleep/network faults and external
 supported-machine acceptance. Passing a private checkpoint does not close those
 requirements or the earlier independent-machine/release gates.
+
+### Coarse-clock request-budget rounding
+
+On the tested Windows Python 3.12 runtime, the monotonic clock reports
+`GetTickCount64()` with a 15.625 ms resolution. Two reads can return the same
+sample. At a sample of `502.007`, `(sample + 10) - sample` becomes
+`10.000000000000057`, exceeding the worker's strict ten-second input limit.
+The request then fails before HTTPS with a fixed enrollment error.
+
+The caller now caps each remaining lock/process/socket budget at its configured
+limit. The absolute deadline and strict worker validation stay in place. The
+[rounding record](validation/s6-deadline-roundoff.json) retains three failing
+baseline regressions, matching failures in private Runtime I, positive Runtime J
+probes, 38 source checks per interpreter and the separate real native consent and
+finalization workflows. Fixed-clock probes use process/HTTP stubs; the native
+consent proof uses real HTTPS/WSS and DPAPI. Concurrent source runs also exposed
+pre-fault enrollment deadlines, retained separately from their isolated repeats.

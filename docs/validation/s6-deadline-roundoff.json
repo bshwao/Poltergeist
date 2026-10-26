@@ -1,0 +1,295 @@
+{
+  "schema_version": "poltergeist-s6-deadline-roundoff-v1",
+  "recorded_at": "2026-10-26T23:33:54.186354+00:00",
+  "source_base_commit": "2515583380ec35dcafd763616075717cf2c28470",
+  "s6_complete": false,
+  "defect": {
+    "reproduced": true,
+    "clock_sample_s": 502.007,
+    "requested_budget_s": 10.0,
+    "uncapped_remaining_s": 10.000000000000057,
+    "effect": "A tied nondecreasing clock sample rounds remaining time above the worker's strict ten-second maximum, producing an invalid-input refusal before HTTPS.",
+    "change": "Cap each remaining lock/process/socket budget at the configured request limit while preserving the original absolute deadline and worker validation."
+  },
+  "source_sha256": {
+    "companion/pairing_client.py": "83a04d2f3bad94d92928c5ecb4a0a911bfc3056a83dbabb3459171ea49d3ea84",
+    "tests/test_pairing_deadline_roundoff.py": "a962719a18eda20c23319dd4bd18ab1b73ae88cb24093868a62a48c6e251691b",
+    "tests/enrollment_diagnostics.py": "a1882c2c75f48eb318b27628027b1db3a583012e9ed64093b3a21bfc8a8611a6",
+    "tests/test_enrollment_diagnostics.py": "f249bd2b427ec7212c6531ff859827429e717bdf224126e2dfba9df87f268953"
+  },
+  "baseline_corrected_regressions": {
+    "failed": 3,
+    "receipt": "validation-evidence/s6-deadline-roundoff-baseline-corrected.xml",
+    "receipt_sha256": "a4cbcc1e246aefc2a04ac1d6feea97a00075016f00b85419ca2316145d857c3a",
+    "method": "The immutable baseline request method from Git 2515583 is compiled into an isolated test process; working-tree product files are unchanged."
+  },
+  "batches_overlap": true,
+  "local_batches": [
+    {
+      "name": "s6-deadline-roundoff312",
+      "passed": 38,
+      "receipt": "validation-evidence/s6-deadline-roundoff312.xml",
+      "receipt_sha256": "267e5b25cb82c70fcde1fcaa5f8f233a6a55b0efc5944aa0d9661fa04ffec68c"
+    },
+    {
+      "name": "s6-deadline-roundoff314",
+      "passed": 38,
+      "receipt": "validation-evidence/s6-deadline-roundoff314.xml",
+      "receipt_sha256": "c1aa270a674db94c2b8ff059e97601ffc0f3e7a6a87646b07221fabfbd9cbea7"
+    },
+    {
+      "name": "s6-roundoff-coordinator312-isolated",
+      "passed": 1,
+      "receipt": "validation-evidence/s6-roundoff-coordinator312-isolated.xml",
+      "receipt_sha256": "72686cec488ece12a1857bd20e6ef5a0abb3c6476e9abb08a14b5f488008382c"
+    },
+    {
+      "name": "s6-roundoff-coordinator314-isolated",
+      "passed": 1,
+      "receipt": "validation-evidence/s6-roundoff-coordinator314-isolated.xml",
+      "receipt_sha256": "32865b07f1b236e454bb8635bb17ab03dee96d99b9161ecebf01768096a30d6b"
+    },
+    {
+      "name": "s6-deadline-diagnostics-final",
+      "passed": 5,
+      "receipt": "validation-evidence/s6-deadline-diagnostics-final.xml",
+      "receipt_sha256": "c5ce90ae4c4f38d2227d284cbf42baa170e744a951dedd4a6dbe5aed82d2e272"
+    }
+  ],
+  "retained_concurrent_batches": [
+    {
+      "receipt": "validation-evidence/s6-roundoff-coordinator312.xml",
+      "counts": {
+        "tests": 10,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "scope": "Concurrent source/native validation: first crash case hit a pre-fault enrollment deadline; nine other checks passed. Its isolated repeat is recorded separately. The timeout cause was not fully traced."
+    },
+    {
+      "receipt": "validation-evidence/s6-roundoff-coordinator314.xml",
+      "counts": {
+        "tests": 10,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "scope": "Concurrent source/native validation: first crash case hit a pre-fault enrollment deadline; nine other checks passed. Its isolated repeat is recorded separately. The timeout cause was not fully traced."
+    }
+  ],
+  "native_fixed_clock_probe": {
+    "scope": "Actual private transport and worker modules with fixed coarse-clock samples and test process/HTTP stubs; no network claim.",
+    "clock": {
+      "implementation": "GetTickCount64()",
+      "monotonic": true,
+      "adjustable": false,
+      "resolution": 0.015625
+    },
+    "runtime_i_cases": [
+      {
+        "clock": 502.007,
+        "requested_budget_s": 10.0,
+        "uncapped_subtraction_s": 10.000000000000057,
+        "passed": false,
+        "error_type": "PairingClientError"
+      },
+      {
+        "clock": 502.016,
+        "requested_budget_s": 10.0,
+        "uncapped_subtraction_s": 10.000000000000057,
+        "passed": false,
+        "error_type": "PairingClientError"
+      },
+      {
+        "clock": 0.2,
+        "requested_budget_s": 0.1,
+        "uncapped_subtraction_s": 0.10000000000000003,
+        "passed": false,
+        "error_type": "AssertionError"
+      }
+    ],
+    "runtime_j_cases": [
+      {
+        "clock": 502.007,
+        "requested_budget_s": 10.0,
+        "uncapped_subtraction_s": 10.000000000000057,
+        "passed": true
+      },
+      {
+        "clock": 502.016,
+        "requested_budget_s": 10.0,
+        "uncapped_subtraction_s": 10.000000000000057,
+        "passed": true
+      },
+      {
+        "clock": 0.2,
+        "requested_budget_s": 0.1,
+        "uncapped_subtraction_s": 0.10000000000000003,
+        "passed": true
+      }
+    ],
+    "before": "validation-evidence/s6-native-roundoff-i-before.json",
+    "after": "validation-evidence/s6-native-roundoff-j-after.json"
+  },
+  "runtime_j": {
+    "private_python": "3.12.15",
+    "manifest_sha256": "f969dc42d4e1fc4a582819a528dc98c139c9a2c3f91b849155e41e79e7e6f486",
+    "archive_sha256": "c42414d986e4cd5f954abbd129b6031760afed69d731ea88aedb59b26969539d",
+    "archive_bytes": 47962875,
+    "project_wheel_sha256": "982cea9ca4349665a8f693214eaf05da0b43bfe99a8638f89e1046fffe538694",
+    "first_party_python_files": 173,
+    "integrity_files": 6084,
+    "normal_manifest_remote_execution_enabled": false,
+    "normal_native_tk_consent_https_wss_dpapi_passed": true,
+    "two_account_isolation": true,
+    "uncertain_approval_and_cancellation_recovery": true,
+    "distinct_fresh_pairing": true,
+    "lost_ack_one_job": true,
+    "queued_and_active_cancellation": {
+      "queued": {
+        "ok": true,
+        "action": "terminal",
+        "simulation_id": "2d2df8a2-ba39-4af2-9b38-59ff3d864953",
+        "status": "cancelled",
+        "telemetry_frames": 0,
+        "artifact_count": 2
+      },
+      "active": {
+        "ok": true,
+        "action": "terminal",
+        "simulation_id": "d6ee99d4-7dd3-4f4b-8312-93c9b08d415a",
+        "status": "cancelled",
+        "telemetry_frames": 1,
+        "artifact_count": 2
+      },
+      "jobs": 3,
+      "receipts": 5
+    },
+    "reopen_revocation_and_local_results_retained": true,
+    "native_suspension_s": 102.344,
+    "pending_result_reconciled": true,
+    "original_ack_preserved": true,
+    "owned_processes": [
+      {
+        "label": "second_open",
+        "exit_code": 0,
+        "exited": true,
+        "terminated_owned_fixture": false
+      },
+      {
+        "label": "first_open",
+        "exit_code": 0,
+        "exited": true,
+        "terminated_owned_fixture": false
+      },
+      {
+        "label": "coordinator",
+        "exit_code": 1,
+        "exited": true,
+        "terminated_owned_fixture": true
+      }
+    ],
+    "fixture_private_keys_removed": true,
+    "secret_scan_passed": true,
+    "finalization_writer_orders": [
+      {
+        "first_writer": "finalization",
+        "original_cancel_terminal": true,
+        "original_final_status": "completed",
+        "original_cancel_requested": false,
+        "next_run_status": "completed",
+        "next_run_cancel_requested": false,
+        "runner_cancellation_targets": [],
+        "frames_per_run": 5,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 4,
+        "uncommitted_writes_hidden_from_independent_reader": true,
+        "original_ack_unchanged_after_next_run_and_restart": true,
+        "artifacts_verified": true,
+        "worker_accepting_after_restart": true
+      },
+      {
+        "first_writer": "cancellation",
+        "original_cancel_terminal": false,
+        "original_final_status": "completed",
+        "original_cancel_requested": true,
+        "next_run_status": "completed",
+        "next_run_cancel_requested": false,
+        "runner_cancellation_targets": [
+          "Finalizing original run"
+        ],
+        "frames_per_run": 5,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 4,
+        "uncommitted_writes_hidden_from_independent_reader": true,
+        "original_ack_unchanged_after_next_run_and_restart": true,
+        "artifacts_verified": true,
+        "worker_accepting_after_restart": true
+      }
+    ],
+    "finalization_process_loss": [
+      {
+        "boundary": "before_commit",
+        "actual_child_exit_code": 79,
+        "owned_process_tree_exited": true,
+        "child_product_imports_match_parent": true,
+        "original_status": "failed",
+        "original_frames": 0,
+        "surviving_waiter_status": "completed",
+        "surviving_waiter_frames": 5,
+        "original_cancel_terminal": false,
+        "cancel_ack_replayed_unchanged": true,
+        "result_revision_unchanged_on_second_restart": true,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 3,
+        "published_artifacts_verified": 2,
+        "uncommitted_original_artifacts_retained_outside_recovered_result": true
+      },
+      {
+        "boundary": "after_commit",
+        "actual_child_exit_code": 79,
+        "owned_process_tree_exited": true,
+        "child_product_imports_match_parent": true,
+        "original_status": "completed",
+        "original_frames": 5,
+        "surviving_waiter_status": "completed",
+        "surviving_waiter_frames": 5,
+        "original_cancel_terminal": false,
+        "cancel_ack_replayed_unchanged": true,
+        "result_revision_unchanged_on_second_restart": true,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 3,
+        "published_artifacts_verified": 2,
+        "uncommitted_original_artifacts_retained_outside_recovered_result": false
+      }
+    ],
+    "consent_receipt": "validation-evidence/s4-packaged-consent-20261026-191717-2c2c7afd/receipt.json",
+    "consent_receipt_sha256": "7e9c6de7165d479710d690efbd2424a3df21af0dcaab30441f38c434253d1155",
+    "finalization_receipt": "validation-evidence/s6-finalization-native-j-20261026/receipt.json",
+    "finalization_receipt_sha256": "c029bf316d4a0752ac5a81808960caa171ee8294f061731ef6d1867eb30ce550"
+  },
+  "ci_context": {
+    "run": 40414408904,
+    "diagnostic_artifact_summary": "validation-evidence/ci-enrollment-artifacts-20261026-190603-0163e6/summary.json",
+    "windows312_worker_failure_events": 2,
+    "windows312_preparation_recoveries": 2,
+    "original_request_budget_field_captured": false,
+    "inference": "The Windows 3.12 worker-validation failures are compatible with this reproduced defect, but their exact rejected input field was not captured. New diagnostics include the fixed validation code and bounded numeric socket budget."
+  },
+  "retained_harness_failures": [
+    "s6-deadline-roundoff-before.xml includes one initially unsuitable small-budget clock sample; corrected baseline cases are retained separately.",
+    "The first baseline-reproduction launcher could not import companion through stale editable metadata; it now explicitly inserts the source root."
+  ],
+  "limitations": [
+    "Runtime J proof uses the portable runtime and fresh custom profile; installed Runtime I evidence stays scoped to its own source.",
+    "Fixed-clock probes use test process/HTTP stubs; the separate native consent workflow supplies real HTTPS/WSS/DPAPI coverage.",
+    "No real CARLA, physical sleep/NIC loss, actual shortcut/visual, external-machine or public-hosting acceptance in this checkpoint.",
+    "Kernel creation/termination and separate cleanup limits remain explicit; the cap does not establish an unconditional OS deadline.",
+    "This source change and Runtime J require their own GitHub matrix."
+  ]
+}

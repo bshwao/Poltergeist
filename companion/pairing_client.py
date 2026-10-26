@@ -70,7 +70,7 @@ class JsonTransport:
         if authorization is not None and (not isinstance(authorization, str) or len(authorization) > 512
                 or any(ord(char) < 32 or ord(char) == 127 for char in authorization)):
             raise PairingClientError("Unsupported coordinator authorization")
-        if not self._lock.acquire(timeout=max(0., deadline - monotonic())):
+        if not self._lock.acquire(timeout=max(0., min(self._timeout, deadline - monotonic()))):
             raise PairingClientError("The enrollment request exceeded its time limit")
         try:
             from .enrollment_process import EnrollmentProcess, EnrollmentTimeoutError
@@ -78,7 +78,9 @@ class JsonTransport:
                 if not self._owner.close():
                     raise PairingClientError("The previous account request is still stopping")
                 self._owner = None
-            remaining = deadline - monotonic()
+            # Tied coarse-clock samples can round subtraction just above the
+            # original cap. Keep the worker input within the requested budget.
+            remaining = min(self._timeout, deadline - monotonic())
             if remaining <= 0:
                 raise PairingClientError("The enrollment request exceeded its time limit")
             message = {"origin": self.origin, "method": method, "path": path,
@@ -87,7 +89,7 @@ class JsonTransport:
             encoded = json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
             if len(encoded) > 524288:
                 raise PairingClientError("Enrollment request exceeds its limit")
-            remaining = deadline - monotonic()
+            remaining = min(self._timeout, deadline - monotonic())
             if remaining <= 0:
                 raise PairingClientError("The enrollment request exceeded its time limit")
             self._owner = EnrollmentProcess(Path(__file__).with_name("enrollment_worker.py"),

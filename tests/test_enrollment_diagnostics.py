@@ -71,5 +71,6 @@ def test_diagnostic_worker_keeps_the_real_protocol_and_omits_private_error_input
     events = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
     assert len(events) == 1
     assert events[0]["outcome"] == "error" and events[0]["kind"] == "Failure"
-    assert set(events[0]) == {"outcome", "kind", "reason_kind", "elapsed_s"}
+    assert set(events[0]) == {"outcome", "kind", "reason_kind", "elapsed_s", "failure_code", "socket_timeout_s"}
+    assert events[0]["failure_code"] == "invalid" and events[0]["socket_timeout_s"] == 1
     assert private not in worker.read_text(encoding="utf-8") + output.read_text(encoding="utf-8") + answer.decode()

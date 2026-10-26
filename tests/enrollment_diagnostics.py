@@ -41,6 +41,7 @@ def diagnostic_worker(directory):
         "SOURCE = " + repr(str(source)) + "\nOUTPUT = " + repr(str(output)) + "\n" + r'''
 import importlib.util
 import json
+import math
 from pathlib import Path
 from time import monotonic
 
@@ -63,6 +64,12 @@ def observed(value):
         return original(value)
     except Exception as error:
         event.update(outcome="error", kind=kind(error), reason_kind=kind(getattr(error, "reason", None)))
+        code = getattr(error, "code", None)
+        if code in ("invalid", "redirect", "response"):
+            event["failure_code"] = code
+        timeout = value.get("socket_timeout_s") if isinstance(value, dict) else None
+        if type(timeout) in (int, float) and math.isfinite(timeout) and 0 < timeout <= 60:
+            event["socket_timeout_s"] = timeout
         for field in ("errno", "winerror"):
             number = getattr(error, field, None)
             if type(number) is int:
