@@ -188,6 +188,26 @@ def test_stale_connection_generation_cannot_dispatch_after_a_valid_hello():
 def test_explicit_private_enabled_relay_dispatches_only_the_validated_bound_command():
     value, policy, service = binding(), DevicePolicy(scopes=["status:read"]), Service()
     command = StatusCommand(request_id=uuid4())
+
+    class StopAfterReplySocket(Socket):
+        def send(self, message):
+            super().send(message)
+            if isinstance(self.sent[-1], RelayReply):
+                client._stop.set()
+
+    socket = StopAfterReplySocket([hello(value, policy), RelayCommand(device_id=value.device_id,
+        ownership_generation=1, connection_generation=2, command=command)])
+    client = RelayClient(value.origin, lambda: (value, policy, SENTINEL), service,
+        remote_execution_enabled=True, _ssl_context=object())
+    client._serve(socket, value, policy, SENTINEL)
+    assert service.commands == [(value, command)]
+    assert len(socket.sent) == 2 and isinstance(socket.sent[1], RelayReply)
+    assert socket.sent[1].connection_generation == 2
+
+
+def test_stop_during_validated_dispatch_keeps_the_local_result_off_the_stopped_socket():
+    value, policy, service = binding(), DevicePolicy(scopes=["status:read"]), Service()
+    command = StatusCommand(request_id=uuid4())
     socket = Socket([hello(value, policy), RelayCommand(device_id=value.device_id,
         ownership_generation=1, connection_generation=2, command=command)])
     client = RelayClient(value.origin, lambda: (value, policy, SENTINEL), service,
@@ -195,8 +215,7 @@ def test_explicit_private_enabled_relay_dispatches_only_the_validated_bound_comm
     service.stop = client._stop.set
     client._serve(socket, value, policy, SENTINEL)
     assert service.commands == [(value, command)]
-    assert len(socket.sent) == 2 and isinstance(socket.sent[1], RelayReply)
-    assert socket.sent[1].connection_generation == 2
+    assert len(socket.sent) == 1 and isinstance(socket.sent[0], ClientReady)
 
 
 def test_handshake_failures_and_verbose_root_logging_do_not_retain_credentials(caplog):
