@@ -1,6 +1,6 @@
 # S0–S19 progress notes
 
-Updated October 25, 2026. Current checkpoint: **S6 reliability in progress**.
+Updated October 26, 2026. Current checkpoint: **S6 reliability in progress**.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
 Branch: `codex/s6-reliable-execution` (continues the preserved S5 branch).
@@ -20,7 +20,7 @@ private prototype does not close independent-machine or release validation.
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
-| **S6 — Reliable remote execution** | **In progress; source and refreshed private bundle fault checks pass** | Real TLS coordinator crashes, repeated-outage cancellation, running-worker loss and native endpoint contention pass. Private runtime H also passes real CARLA crash/quarantine/reset and normal consent/DPAPI checks. Enrollment deadlines, pending-approval recovery, physical sleep, current installed-runtime and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
+| **S6 — Reliable remote execution** | **In progress; source and private Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6; real TLS/DPAPI/pending-recovery/suspension and outside-checkout pythonw provenance pass. Wider native faults, physical sleep, current installed-runtime and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
@@ -37,8 +37,35 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
-- Refreshed private Windows runtime H includes all 171 current first-party Python
-  files and passes the normal TLS/DPAPI/Tk consent regression. Its isolated
+- Runtime I matches all 173 current first-party Python files and passes 6,084
+  manifest integrity checks. Normal native consent over real HTTPS/WSS recovers
+  lost committed approval/cancellation replies, revokes only the saved binding,
+  creates a distinct fresh pairing and completes the ordinary execution/cancel/
+  reopen/revoke workflow. A 102-second process suspension reconciles on a new
+  connection generation with one original job/receipt. A separate outside-checkout
+  `pythonw.exe` probe confirms use of the private `python.exe` and exact bundled
+  worker with hostile Python environment variables ignored. See the
+  [enrollment and ACK checkpoint](validation/s6-enrollment-reconciliation.json).
+- Source now bounds each enrollment HTTP exchange with one absolute ten-second
+  deadline and an isolated owned worker. Native blocked-input/DNS/TLS/header/body
+  faults and cleanup ownership are tested separately; OS startup/termination
+  limits and server-side uncertainty stay explicit. Credentials remain in
+  anonymous pipes and HTTPS headers.
+- Added **Cancel saved approval** to the normal companion UI. The coordinator
+  atomically fences an uncommitted approval or revokes only the exact saved
+  binding. Lost replies and failed protected-record removal stay retryable.
+  Native Tk/DPAPI and service/API checks pass on both Python versions.
+- Fixed cancellation ACK drift after offline completion. Schema 6 stores its
+  original terminal snapshot in the acceptance transaction; replay never
+  substitutes the later run state. Unknown legacy snapshots fail closed while
+  preserving the original receipt and authorized result access. A real TLS test
+  now completes cancellation offline before the first lost-ACK redelivery.
+- Checkpoint `58b77b4` passes all five GitHub jobs in
+  [run 40263788540](https://github.com/bshwao/Poltergeist/actions/runs/40263788540).
+  The new recovery changes have separate local/package evidence and need their
+  own CI; runtime H's earlier proof remains scoped to its recorded source.
+- Private Windows runtime H includes 171 first-party Python files from its
+  recorded checkpoint and passes the normal TLS/DPAPI/Tk consent regression. Its isolated
   packaged interpreter also passes a real CARLA process-loss witness: two orphaned
   vehicles stay quarantined, another profile refuses the episode, and a verified
   test-server reset permits a fresh 11-frame run while the original stays failed

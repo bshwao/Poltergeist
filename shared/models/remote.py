@@ -90,6 +90,7 @@ class CancelAccepted(_RemoteModel):
     request_id: UUID
     simulation_id: UUID
     accepted_at: AwareDatetime
+    # Immutable snapshot at durable acceptance; use ResultCommand for final state.
     terminal: bool
 
 

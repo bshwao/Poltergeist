@@ -12,6 +12,8 @@ class RemoteCommandReceiptRecord(Base):
         CheckConstraint("generation >= 1", name="ck_remote_command_receipts_generation"),
         CheckConstraint("operation IN ('execute','cancel')", name="ck_remote_command_receipts_operation"),
         CheckConstraint("revision >= 1", name="ck_remote_command_receipts_revision"),
+        CheckConstraint("cancel_terminal IS NULL OR (operation = 'cancel' AND cancel_terminal IN (0,1))",
+                        name="ck_remote_command_receipts_cancel_terminal"),
         CheckConstraint("(operation = 'execute' AND scenario_sha256 IS NOT NULL) OR (operation = 'cancel' AND scenario_sha256 IS NULL)",
                         name="ck_remote_command_receipts_scenario"),
         Index("ix_remote_command_receipts_request", "origin", "device_id", "generation", "request_id", unique=True),
@@ -30,6 +32,8 @@ class RemoteCommandReceiptRecord(Base):
     simulation_id: Mapped[str] = mapped_column(String(36), ForeignKey("simulations.id", ondelete="RESTRICT"), nullable=False)
     accepted_at: Mapped[str] = mapped_column(String(32), nullable=False)
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    # NULL preserves the unknown historical ACK bit in revision-five receipts.
+    cancel_terminal: Mapped[int | None] = mapped_column(Integer)
 
 
 class RemoteProjectionRecord(Base):

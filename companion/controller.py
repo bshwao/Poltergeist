@@ -55,6 +55,7 @@ class CompanionController:
         self._pairing_factory = pairing_factory
         self._credential_store_factory = credential_store_factory
         self._pairing_display = None
+        self._pairing_client = None
         self._remote_lock = RLock()
         self._relay = None
         self._relay_admission = False
@@ -119,6 +120,8 @@ class CompanionController:
             return True
         if not self.stop():
             return False
+        if not self._close_pairing_client():
+            return False
         self._lease.release()
         self._owned = False
         return True
@@ -134,6 +137,18 @@ class CompanionController:
     def _check_origin_change(self, origin):
         if origin != self.config.coordinator_origin and self._credential_store_factory(self.profile).load() is not None:
             raise ConflictError("Revoke the saved pairing or discard its unapproved code before changing the coordinator")
+        if origin != self.config.coordinator_origin and not self._close_pairing_client():
+            raise ConflictError("The previous enrollment request is still stopping; retry before changing the coordinator")
+
+    def _close_pairing_client(self):
+        client = self._pairing_client
+        if client is None:
+            return True
+        close = getattr(client, "close", None)
+        if callable(close) and close() is not True:
+            return False
+        self._pairing_client = None
+        return True
 
     def configure_pairing(self, origin):
         self._require_open()
@@ -149,7 +164,9 @@ class CompanionController:
         self._require_open()
         if self.config.coordinator_origin is None:
             raise ConflictError("Save an HTTPS coordinator address first")
-        return self._pairing_factory(self.config.coordinator_origin, self._credential_store_factory(self.profile))
+        if self._pairing_client is None:
+            self._pairing_client = self._pairing_factory(self.config.coordinator_origin, self._credential_store_factory(self.profile))
+        return self._pairing_client
 
     def pairing_status(self, *, refresh=False):
         self._require_open()
@@ -192,6 +209,13 @@ class CompanionController:
         if not self.disconnect_relay():
             raise ConflictError("The relay is still disconnecting; retry before revoking pairing")
         self._pairing().revoke()
+        self._pairing_display = None
+        return self.pairing_status()
+
+    def cancel_pending_pairing(self):
+        if not self.disconnect_relay():
+            raise ConflictError("The relay is still disconnecting; retry before cancelling the saved approval")
+        self._pairing().cancel_pending_approval()
         self._pairing_display = None
         return self.pairing_status()
 

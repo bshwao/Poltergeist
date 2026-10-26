@@ -113,7 +113,7 @@ def test_actual_process_loss_fails_claimed_run_retains_waiter_and_replays_origin
         # or relabel the interrupted run as a successful cancellation.
         assert service.dispatch(binding, first).model_dump(mode="json") == receipts["first"]
         assert service.dispatch(binding, second).model_dump(mode="json") == receipts["second"]
-        assert service.dispatch(binding, CancelCommand.model_validate(receipts["cancel"])).kind == "cancel_requested"
+        assert service.dispatch(binding, CancelCommand.model_validate(receipts["cancel"])).model_dump(mode="json") == receipts["cancel_reply"]
         result = service.dispatch(binding, ResultCommand(request_id=uuid4(), simulation_id=first_id))
         assert isinstance(result, RunResultReply)
         assert result.summary.status == "failed" and result.summary.error.code == "execution_failed"

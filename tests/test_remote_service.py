@@ -221,8 +221,11 @@ def test_quota_excludes_active_and_cancelled_waiters_and_cancel_sequence_persist
     assert after.summary.cancel_requested is True
     assert after.summary.receipt_revision > before.summary.receipt_revision
     queued_cancel = CancelCommand(request_id=uuid4(), simulation_id=waiting.simulation_id)
-    assert service.dispatch(binding, queued_cancel).terminal is True
-    assert service.dispatch(binding, queued_cancel).terminal is True
+    # The durable ACK predates queued-run cleanup; replay never substitutes the
+    # later terminal state. Read the separate result for that final outcome.
+    assert service.dispatch(binding, queued_cancel).terminal is False
+    assert service.dispatch(binding, queued_cancel).terminal is False
+    assert service.dispatch(binding, ResultCommand(request_id=uuid4(), simulation_id=waiting.simulation_id)).summary.status == "cancelled"
     assert service.dispatch(binding, execute()).kind == "accepted"
 
 

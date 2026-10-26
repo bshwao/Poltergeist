@@ -86,6 +86,7 @@ class PairingPanel:
         self.approve_button = app._button(approval, "Approve reviewed account", self.approve)
         app._button(approval, "Deny claim", self.deny)
         self.revoke_button = app._button(approval, "Revoke pairing", self.revoke)
+        self.cancel_approval_button = app._button(approval, "Cancel saved approval", self.cancel_approval)
         ttk.Label(body, text="Account connection", font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(12, 4))
         ttk.Label(body, textvariable=self.connection, wraplength=740).pack(anchor="w", pady=4)
         self.consent_control = ttk.Checkbutton(body,
@@ -137,6 +138,8 @@ class PairingPanel:
         self.connect_button.state(["!disabled"] if ready and not busy else ["disabled"])
         self.disconnect_button.state(["!disabled"] if (owned or self._connection_uncertain) and not busy else ["disabled"])
         self.consent_control.state(["!disabled"] if ready and not busy else ["disabled"])
+        cancellable = self._displayed.get("state") == "pending_approval" and not busy and not owned
+        self.cancel_approval_button.state(["!disabled"] if cancellable else ["disabled"])
         editable = self._displayed.get("state") in {"unpaired", "attempt"} and not busy
         for control in self.permission_controls.values():
             control.state(["!disabled"] if editable else ["disabled"])
@@ -242,6 +245,13 @@ class PairingPanel:
     def discard(self):
         self._run(self.app.controller.discard_pairing_attempt)
 
+    def cancel_approval(self):
+        if self._displayed.get("state") != "pending_approval":
+            self.app.message.set("Review the saved pending approval before cancelling it.")
+            return
+        self.reset_consent()
+        self._run(self.app.controller.cancel_pending_pairing)
+
     def revoke(self):
         if self.app._future is not None or self.app._closing:
             return
@@ -271,7 +281,7 @@ class PairingPanel:
             "unconfigured": "Save your coordinator HTTPS address to begin pairing.",
             "unpaired": "Ready to create a pairing code. Enter it in your account, then refresh here.",
             "attempt": f"Pairing code expires at {status.get('expires_at', '')}. Refresh after claiming it in your account.",
-            "pending_approval": "Approval was saved on this computer. Refresh / resume to confirm its outcome safely.",
+            "pending_approval": "Approval was saved on this computer. Refresh / resume to confirm its outcome safely. Cancel saved approval stops this pairing; if approval already succeeded, its device access is revoked before local credentials are removed.",
             "paired": "Account paired. Review the approved permissions, then choose whether to allow requests when you connect. Revoke and pair again to change these permissions.",
             "error": status.get("message", "Saved pairing could not be read."),
         }

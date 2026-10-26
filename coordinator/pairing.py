@@ -10,7 +10,8 @@ import time
 from uuid import uuid4
 
 from shared.models.coordination import (AccountIdentity, DevicePolicy, DeviceView,
-    PairingApproveInput, PairingCreateInput, PairingCreated, PairingStatus)
+    PairingApproveInput, PairingCreateInput, PairingCreated, PairingStatus,
+    PendingApprovalCancelInput, PendingApprovalCancelled)
 
 from .auth import AuthError, audit, hash_token
 
@@ -168,6 +169,65 @@ class PairingService:
             ownership_generation=row["ownership_generation"], policy_revision=row["policy_revision"],
             policy=DevicePolicy.model_validate_json(row["policy_json"]), created_at=timestamp(row["created_at"]),
             revoked_at=timestamp(row["revoked_at"]) if row["revoked_at"] is not None else None)
+
+    def cancel_pending_approval(self, attempt_id, secret, request):
+        """Fence delayed approval, or revoke only the exact saved binding.
+
+        The write transaction serializes this operation against approve. A
+        pruned attempt cannot be recreated: create always assigns a new UUID.
+        Missing attempts therefore need no tombstone to fence future approval.
+        """
+        request = PendingApprovalCancelInput.model_validate(request)
+        if not isinstance(secret, str) or not re.fullmatch(r"pa_[A-Za-z0-9_-]{43}", secret):
+            raise AuthError(401, "pairing_authorization_required")
+        now = self.now()
+        with self.store.transaction() as connection:
+            self._expire(connection, now)
+            attempt = connection.execute("SELECT * FROM pairing_attempts WHERE id=?", (str(attempt_id),)).fetchone()
+            if attempt is not None:
+                attempt = self._private(connection, attempt_id, secret)
+                if (attempt["device_id"] != str(request.device_id)
+                        or attempt["claimed_account_id"] != str(request.owner_id)):
+                    raise AuthError(409, "pairing_changed")
+            credential = connection.execute("SELECT c.*,d.owner_id,d.policy_revision,d.ownership_generation AS device_generation "
+                "FROM device_credentials c JOIN devices d ON d.id=c.device_id WHERE c.token_hash=?",
+                (hash_token(request.credential),)).fetchone()
+            device = connection.execute("SELECT * FROM devices WHERE id=?", (str(request.device_id),)).fetchone()
+            if credential is not None:
+                if (credential["device_id"] != str(request.device_id) or credential["owner_id"] != str(request.owner_id)
+                        or credential["ownership_generation"] != 1 or credential["device_generation"] != 1 or credential["policy_revision"] != 1
+                        or (attempt is not None and attempt["state"] != "approved")):
+                    raise AuthError(409, "pairing_changed")
+                if connection.execute("SELECT 1 FROM device_credentials WHERE device_id=? AND revoked_at IS NULL AND id<>?",
+                        (str(request.device_id), credential["id"])).fetchone():
+                    raise AuthError(409, "pairing_changed")
+                # Possession of this exact credential already authorizes its
+                # revocation. A pruned attempt must not broaden that authority.
+                connection.execute("UPDATE devices SET connection_generation=connection_generation+CASE WHEN revoked_at IS NULL THEN 1 ELSE 0 END,"
+                    "revoked_at=COALESCE(revoked_at,?) WHERE id=? AND owner_id=?", (now, str(request.device_id), str(request.owner_id)))
+                connection.execute("UPDATE device_credentials SET revoked_at=COALESCE(revoked_at,?) WHERE id=?",
+                    (now, credential["id"]))
+                connection.execute("UPDATE commands SET status='rejected',error_code='permission_denied',updated_at=?,completed_at=? "
+                    "WHERE device_id=? AND status='queued'", (now, now, str(request.device_id)))
+                outcome = "revoked"
+            elif device is not None or (attempt is not None and attempt["state"] == "approved"):
+                # A different credential/device is not proof that this saved
+                # approval is absent. Keep local custody for inspection.
+                raise AuthError(409, "pairing_changed")
+            elif attempt is None:
+                outcome = "absent"
+            elif attempt["state"] == "claimed":
+                connection.execute("UPDATE pairing_attempts SET state='cancelled',revision=revision+1,terminal_at=?,code_hash=NULL WHERE id=?",
+                    (now, str(attempt_id)))
+                outcome = "cancelled"
+            elif attempt["state"] in ("cancelled", "expired", "denied"):
+                outcome = attempt["state"]
+            else:
+                raise AuthError(409, "pairing_changed")
+            audit(connection, now, "pairing_cancel", "allowed", account_id=str(request.owner_id),
+                device_id=str(request.device_id), attempt_id=str(attempt_id))
+            return PendingApprovalCancelled(attempt_id=attempt_id, device_id=request.device_id,
+                owner_id=request.owner_id, outcome=outcome)
 
     def device(self, owner_id, device_id):
         with self.store.transaction(write=False) as connection:

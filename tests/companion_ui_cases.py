@@ -205,6 +205,79 @@ def test_pairing_controls_review_real_account_preserve_origin_and_revoke(window)
         assert api.get("/v1/devices", headers=headers).json()[0]["revoked_at"] is not None
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Native Windows protected enrollment")
+def test_pending_approval_cancel_button_recovers_lost_approval_and_cancel_replies(window):
+    from fastapi.testclient import TestClient
+    from companion.credential_store import WindowsCredentialStore
+    from companion.pairing_client import PairingClient, PairingClientError
+    from coordinator.app import COOKIE, create_app
+    from coordinator.settings import CoordinatorSettings
+
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    origin = "https://coordinator.test"
+    with TestClient(create_app(CoordinatorSettings(controller.profile.parent / "pending-coordinator.db", origin)), base_url=origin) as api:
+        class Transport:
+            approval_reply = True
+            cancellation_reply = True
+            def request(self, method, path, *, body=None, authorization=None):
+                response = api.request(method, path, json=body,
+                    headers={"Authorization": authorization} if authorization else {})
+                if response.status_code >= 400:
+                    raise PairingClientError("The fixture coordinator refused the operation")
+                if path.endswith("/approve") and self.approval_reply:
+                    self.approval_reply = False
+                    raise PairingClientError("The approval reply was lost")
+                if path.endswith("/cancel-pending-approval") and self.cancellation_reply:
+                    self.cancellation_reply = False
+                    raise PairingClientError("The cancellation reply was lost")
+                return response.json()
+        transport = Transport()
+        controller._pairing_factory = lambda address, store: PairingClient(address, store, _transport=transport)
+        headers = {"Origin": origin, "X-Poltergeist-Client": "browser"}
+        credentials = {"username": "alice", "password": "a private test account passphrase"}
+        assert api.post("/v1/auth/register", json=credentials, headers=headers).status_code == 201
+        login = api.post("/v1/auth/login", json=credentials, headers=headers)
+        headers.update({"Cookie": f"{COOKIE}={login.cookies[COOKIE]}", "X-CSRF-Token": login.json()["csrf_token"]})
+        api.cookies.clear()
+        panel = desktop.pairing
+        panel.origin.set(origin)
+        panel.save_origin()
+        pump_until(root, lambda: desktop._future is None)
+        panel.begin_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        assert api.post("/v1/pairing/claim", json={"code": panel.code.get()}, headers=headers).status_code == 200
+        panel.refresh_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        panel.approve_button.invoke()
+        pump_until(root, lambda: desktop._future is None and panel._displayed["state"] == "pending_approval")
+        assert len(errors) == 1 and "approval reply was lost" in errors[0][1]
+        errors.clear()
+        store = WindowsCredentialStore(controller.profile)
+        pending = store.load()
+        assert pending["state"] == "pending_approval"
+        credential = pending["approval"]["credential"]
+        assert credential.encode() not in store.path.read_bytes()
+        assert "revoked" in panel.summary.get() and not panel.cancel_approval_button.instate(["disabled"])
+        assert not panel.allow_remote_execution.get()
+        panel.cancel_approval_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        assert len(errors) == 1 and "cancellation reply was lost" in errors[0][1]
+        errors.clear()
+        assert store.load() == pending and panel._displayed["state"] == "pending_approval"
+        assert api.get("/v1/device/session", headers={"Authorization": "Bearer " + credential}).status_code == 401
+        panel.cancel_approval_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        assert panel._displayed["state"] == "unpaired" and store.load() is None
+        assert panel.cancel_approval_button.instate(["disabled"])
+        assert not panel.allow_remote_execution.get()
+        devices = api.get("/v1/devices", headers=headers).json()
+        assert len(devices) == 1 and devices[0]["revoked_at"] is not None
+        panel.begin_button.invoke()
+        pump_until(root, lambda: desktop._future is None)
+        assert panel._displayed["state"] == "attempt" and len(panel.code.get()) == 10
+
+
 def test_invalid_pairing_address_is_not_echoed_in_messages_or_logs(window, caplog):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None)

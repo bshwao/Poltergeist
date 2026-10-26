@@ -14,11 +14,11 @@ from fastapi.responses import JSONResponse
 
 from shared.models.coordination import (AccountIdentity, AccountInput, BrowserSession,
     EmptyInput, PairingApproveInput, PairingClaimInput, PairingCreateInput,
-    PairingDenyInput, PasswordChangeInput)
+    PairingDenyInput, PasswordChangeInput, PendingApprovalCancelInput)
 from shared.models.remote import parse_message
 from shared.models.browser import BrowserDeviceView, BrowserScenarioPreset
 
-from .auth import AuthError, AuthService
+from .auth import AuthError, AuthService, hash_token
 from .commands import CommandService
 from .pairing import PairingService, timestamp
 from .relay import RelayHub
@@ -261,6 +261,15 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
     @app.post("/v1/pairing/{attempt_id}/deny")
     def deny(attempt_id: UUID, body: PairingDenyInput, request: Request):
         return request.app.state.pairing.deny(attempt_id, private_secret(request), body.expected_revision)
+
+    @app.post("/v1/pairing/{attempt_id}/cancel-pending-approval")
+    async def cancel_pending_approval(attempt_id: UUID, body: PendingApprovalCancelInput, request: Request):
+        secret = private_secret(request)
+        request.app.state.auth.rate_limit("pair-cancel-source:" + hash_token(source(request)), 20, 60)
+        result = request.app.state.pairing.cancel_pending_approval(attempt_id, secret, body)
+        if result.outcome == "revoked":
+            await request.app.state.relay.disconnect(result.device_id)
+        return result
 
     @app.get("/v1/devices")
     def devices(request: Request):

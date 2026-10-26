@@ -56,11 +56,17 @@ class RemoteService:
         return receipt
 
     @staticmethod
-    def _ack(receipt, *, terminal=False):
+    def _ack(receipt):
+        """Replay the durable acceptance snapshot, never today's lifecycle."""
         values = dict(request_id=receipt.request_id, simulation_id=receipt.simulation_id,
                       accepted_at=receipt.accepted_at)
-        return (ExecuteAccepted(**values) if receipt.operation == "execute"
-                else CancelAccepted(**values, terminal=terminal))
+        if receipt.operation == "execute":
+            return ExecuteAccepted(**values)
+        if receipt.cancel_terminal is None:
+            # The original revision-five ACK bit was never stored. Keep the
+            # receipt/run, but do not invent an acknowledgement from later state.
+            raise RemoteDenied("device_unavailable")
+        return CancelAccepted(**values, terminal=receipt.cancel_terminal)
 
     def dispatch(self, binding, command):
         """Return a closed reply; local exception text never crosses this boundary."""
@@ -146,8 +152,7 @@ class RemoteService:
         digest = payload_digest(command)
         existing = self._lookup(binding, command, digest)
         if existing is not None:
-            terminal = self.worker.get(existing.simulation_id).result is not None
-            return self._ack(existing, terminal=terminal)
+            return self._ack(existing)
         with self.database.session(write=False) as session:
             execution = RemoteReceiptRepository(session).execution_for_run(binding, command.simulation_id)
         if execution is None:
@@ -157,16 +162,16 @@ class RemoteService:
         def record(session, stored):
             self._approved(binding, command)
             accepted.append(RemoteReceiptRepository(session).create(binding, command.request_id,
-                "cancel", digest, stored.simulation.id))
+                "cancel", digest, stored.simulation.id, cancel_terminal=stored.result is not None))
 
         try:
-            stored = self.worker.cancel(command.simulation_id, on_created=record)
+            self.worker.cancel(command.simulation_id, on_created=record)
         except ConflictError:
             existing = self._lookup(binding, command, digest)
             if existing is not None:
-                return self._ack(existing, terminal=self.worker.get(existing.simulation_id).result is not None)
+                return self._ack(existing)
             raise
-        return self._ack(accepted[0], terminal=stored.result is not None)
+        return self._ack(accepted[0])
 
     def _result(self, binding, command):
         # Take the worker condition first for one consistent lifecycle/position

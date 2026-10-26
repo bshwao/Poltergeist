@@ -3651,6 +3651,9 @@
         "approve": {
           "$ref": "#/$defs/PairingApproveInput"
         },
+        "cancel_pending_approval": {
+          "$ref": "#/$defs/PendingApprovalCancelInput"
+        },
         "claim": {
           "$ref": "#/$defs/PairingClaimInput"
         },
@@ -3675,6 +3678,9 @@
         "password_change": {
           "$ref": "#/$defs/PasswordChangeInput"
         },
+        "pending_approval_cancelled": {
+          "$ref": "#/$defs/PendingApprovalCancelled"
+        },
         "session": {
           "$ref": "#/$defs/BrowserSession"
         },
@@ -3693,6 +3699,8 @@
         "status",
         "approve",
         "deny",
+        "cancel_pending_approval",
+        "pending_approval_cancelled",
         "device",
         "credential_status"
       ],
@@ -6765,6 +6773,80 @@
         "new_password"
       ],
       "title": "PasswordChangeInput",
+      "type": "object"
+    },
+    "PendingApprovalCancelInput": {
+      "additionalProperties": false,
+      "properties": {
+        "credential": {
+          "pattern": "^pd_[A-Za-z0-9_-]{43}$",
+          "title": "Credential",
+          "type": "string",
+          "writeOnly": true
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "title": "Owner Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "device_id",
+        "owner_id",
+        "credential"
+      ],
+      "title": "PendingApprovalCancelInput",
+      "type": "object"
+    },
+    "PendingApprovalCancelled": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "format": "uuid",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "completed": {
+          "const": true,
+          "default": true,
+          "title": "Completed",
+          "type": "boolean"
+        },
+        "device_id": {
+          "format": "uuid",
+          "title": "Device Id",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "cancelled",
+            "expired",
+            "denied",
+            "revoked",
+            "absent"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "title": "Owner Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "device_id",
+        "owner_id",
+        "outcome",
+        "completed"
+      ],
+      "title": "PendingApprovalCancelled",
       "type": "object"
     },
     "PermissionScope": {

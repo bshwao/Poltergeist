@@ -14,7 +14,7 @@ from sqlalchemy import Connection, inspect
 from .persistence_errors import DatabaseInitializationError
 
 
-CURRENT_REVISION = 5
+CURRENT_REVISION = 6
 
 _INITIAL_DDL = (
     """CREATE TABLE scenarios (
@@ -159,6 +159,16 @@ _COLUMNS["remote_run_projections"] = {
     "origin", "device_id", "generation", "simulation_id", "owner_id", "revision", "payload_sha256",
 }
 
+# Revision-five receipts did not record the cancellation ACK's terminal bit.
+# Preserve that uncertainty as NULL; never reconstruct history from today's run.
+_CANCEL_ACK_DDL = (
+    """ALTER TABLE remote_command_receipts ADD COLUMN cancel_terminal INTEGER
+        CONSTRAINT ck_remote_command_receipts_cancel_terminal
+        CHECK (cancel_terminal IS NULL OR (operation = 'cancel' AND cancel_terminal IN (0,1)))""",
+)
+_CANCEL_ACK_CHECKSUM = sha256("\n".join(_CANCEL_ACK_DDL).encode("utf-8")).hexdigest()
+_COLUMNS["remote_command_receipts"].add("cancel_terminal")
+
 
 def _table_revision(name: str) -> int:
     if name in {"remote_command_receipts", "remote_run_projections"}:
@@ -176,6 +186,7 @@ def _verify_schema(connection: Connection, *, revision: int = CURRENT_REVISION) 
     inspector = inspect(connection)
     expected_columns = {
         name: columns - ({"agent_snapshot"} if name == "simulation_jobs" and revision < 4 else set())
+            - ({"cancel_terminal"} if name == "remote_command_receipts" and revision < 6 else set())
         for name, columns in _COLUMNS.items() if _table_revision(name) <= revision
     }
     if set(inspector.get_table_names()) != set(expected_columns):
@@ -206,7 +217,9 @@ def _verify_schema(connection: Connection, *, revision: int = CURRENT_REVISION) 
         if indexes != wanted_indexes:
             raise DatabaseInitializationError(f"Database indexes are incompatible: {name}")
         checks = {(check["name"], _sql(check["sqltext"])) for check in inspector.get_check_constraints(name)}
-        wanted_checks = {(constraint.name, _sql(str(constraint.sqltext))) for constraint in table.constraints if hasattr(constraint, "sqltext")}
+        wanted_checks = {(constraint.name, _sql(str(constraint.sqltext))) for constraint in table.constraints
+                         if hasattr(constraint, "sqltext") and not
+                         (revision < 6 and constraint.name == "ck_remote_command_receipts_cancel_terminal")}
         if checks != wanted_checks:
             raise DatabaseInitializationError(f"Database check constraints are incompatible: {name}")
         foreign_keys = {
@@ -239,7 +252,8 @@ def migrate(connection: Connection) -> None:
         expected = [(1, "initial_persistence", _INITIAL_CHECKSUM), (2, "simulation_jobs", _JOBS_CHECKSUM),
                     (3, "optimization_journal", _OPTIMIZATION_CHECKSUM),
                     (4, "agent_registry", _AGENTS_CHECKSUM),
-                    (5, "remote_command_receipts", _REMOTE_RECEIPTS_CHECKSUM)][:len(history)]
+                    (5, "remote_command_receipts", _REMOTE_RECEIPTS_CHECKSUM),
+                    (6, "cancellation_acceptance_snapshot", _CANCEL_ACK_CHECKSUM)][:len(history)]
         if [tuple(row) for row in history] != expected:
             raise DatabaseInitializationError("Unknown, future, or noncontiguous migration history")
         if not history and tables != {"schema_migrations"}:
@@ -288,5 +302,14 @@ def migrate(connection: Connection) -> None:
         connection.exec_driver_sql(
             "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
             (5, "remote_command_receipts", _REMOTE_RECEIPTS_CHECKSUM, datetime.now(UTC).isoformat()),
+        )
+        history = [*history, (5, "remote_command_receipts", _REMOTE_RECEIPTS_CHECKSUM)]
+    if len(history) == 5:
+        _verify_schema(connection, revision=5)
+        for statement in _CANCEL_ACK_DDL:
+            connection.exec_driver_sql(statement)
+        connection.exec_driver_sql(
+            "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
+            (6, "cancellation_acceptance_snapshot", _CANCEL_ACK_CHECKSUM, datetime.now(UTC).isoformat()),
         )
     _verify_schema(connection)

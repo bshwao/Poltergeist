@@ -124,6 +124,21 @@ class PairingDenyInput(ContractModel):
     expected_revision: Annotated[int, Field(ge=1, strict=True)]
 
 
+class PendingApprovalCancelInput(ContractModel):
+    model_config = ConfigDict(str_strip_whitespace=False, hide_input_in_errors=True)
+    device_id: UUID
+    owner_id: UUID
+    credential: Annotated[str, Field(pattern=r"^pd_[A-Za-z0-9_-]{43}$")] = Field(repr=False, json_schema_extra={"writeOnly": True})
+
+
+class PendingApprovalCancelled(ContractModel):
+    attempt_id: UUID
+    device_id: UUID
+    owner_id: UUID
+    outcome: Literal["cancelled", "expired", "denied", "revoked", "absent"]
+    completed: Literal[True] = True
+
+
 class DeviceView(ContractModel):
     device_id: UUID
     display_name: Annotated[str, Field(min_length=1, max_length=64)]
@@ -154,5 +169,7 @@ class CoordinationContracts(ContractModel):
     status: PairingStatus
     approve: PairingApproveInput
     deny: PairingDenyInput
+    cancel_pending_approval: PendingApprovalCancelInput
+    pending_approval_cancelled: PendingApprovalCancelled
     device: DeviceView
     credential_status: DeviceCredentialStatus

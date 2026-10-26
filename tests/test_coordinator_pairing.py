@@ -10,7 +10,7 @@ import pytest
 from coordinator.auth import AuthError, AuthService
 from coordinator.pairing import PairingService
 from coordinator.store import Store
-from shared.models.coordination import DevicePolicy, PairingApproveInput, PairingCreateInput
+from shared.models.coordination import DevicePolicy, PairingApproveInput, PairingCreateInput, PendingApprovalCancelInput
 
 
 @pytest.fixture
@@ -39,6 +39,102 @@ def approval(account_id, revision=2, **updates):
         "policy": {"scopes": ["status:read", "run:execute:test", "run:cancel", "result:read"]}}
     request.update(updates)
     return PairingApproveInput.model_validate(request)
+
+
+def cancel_request(created, request, **changes):
+    return PendingApprovalCancelInput.model_validate({"device_id": created.device_id,
+        "owner_id": request.expected_account_id, "credential": request.credential, **changes})
+
+
+@pytest.mark.parametrize("phase", ["claimed", "expired", "pruned"])
+def test_cancel_uncommitted_approval_fences_delayed_approve_and_retries_after_terminal_cleanup(setup, phase):
+    service, auth, store, now, alice, bob = setup
+    created, secret = attempt(service)
+    service.claim(alice, created.code, source="127.0.0.1")
+    request = approval(alice)
+    if phase != "claimed":
+        now[0] += 300
+        assert service.poll(created.attempt_id, secret).state == "expired"
+        if phase == "pruned":
+            now[0] += 86401
+    cancellation = cancel_request(created, request)
+    first = service.cancel_pending_approval(created.attempt_id, secret, cancellation)
+    assert first.outcome == {"claimed": "cancelled", "expired": "expired", "pruned": "absent"}[phase]
+    assert service.cancel_pending_approval(created.attempt_id, secret, cancellation) == first
+    with pytest.raises(AuthError):
+        service.approve(created.attempt_id, secret, request)
+    assert service.devices(alice) == [] and service.devices(bob) == []
+
+
+@pytest.mark.parametrize("pruned", [False, True])
+@pytest.mark.parametrize("changed", ["device", "owner", "credential"])
+def test_cancel_committed_approval_requires_exact_binding_and_revokes_only_that_device(setup, pruned, changed):
+    service, auth, store, now, alice, bob = setup
+    created, secret = attempt(service)
+    service.claim(alice, created.code, source="127.0.0.1")
+    request = approval(alice)
+    service.approve(created.attempt_id, secret, request)
+    other, other_secret = attempt(service)
+    service.claim(bob, other.code, source="127.0.0.2")
+    other_request = approval(bob)
+    service.approve(other.attempt_id, other_secret, other_request)
+    if pruned:
+        now[0] += 86401
+    changes = {"device": {"device_id": other.device_id}, "owner": {"owner_id": bob},
+        "credential": {"credential": other_request.credential}}[changed]
+    with pytest.raises(AuthError) as error:
+        service.cancel_pending_approval(created.attempt_id, secret, cancel_request(created, request, **changes))
+    assert error.value.status == 409
+    assert service.authenticate_device(request.credential)["owner_id"] == alice
+    assert service.authenticate_device(other_request.credential)["owner_id"] == bob
+    outcome = service.cancel_pending_approval(created.attempt_id, secret, cancel_request(created, request))
+    assert outcome.outcome == "revoked"
+    assert service.cancel_pending_approval(created.attempt_id, secret, cancel_request(created, request)) == outcome
+    with pytest.raises(AuthError):
+        service.authenticate_device(request.credential)
+    assert service.authenticate_device(other_request.credential)["owner_id"] == bob
+
+
+def test_cancel_approval_race_serializes_and_never_leaves_a_live_credential(setup):
+    service, auth, store, now, alice, bob = setup
+    created, secret = attempt(service)
+    service.claim(alice, created.code, source="127.0.0.1")
+    request = approval(alice)
+    def approve():
+        try:
+            return service.approve(created.attempt_id, secret, request)
+        except AuthError as failure:
+            assert failure.status == 409
+            return None
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        approving = executor.submit(approve)
+        cancelling = executor.submit(service.cancel_pending_approval, created.attempt_id, secret, cancel_request(created, request))
+        approving.result()
+        assert cancelling.result().outcome in ("cancelled", "revoked")
+    with pytest.raises(AuthError):
+        service.authenticate_device(request.credential)
+    with store.transaction(write=False) as connection:
+        assert connection.execute("SELECT count(*) FROM devices WHERE revoked_at IS NULL").fetchone()[0] == 0
+        assert connection.execute("SELECT count(*) FROM devices").fetchone()[0] <= 1
+        assert connection.execute("SELECT count(*) FROM device_credentials").fetchone()[0] <= 1
+
+
+def test_cancel_existing_attempt_needs_its_private_secret_and_rejects_newer_device_generation(setup):
+    service, auth, store, now, alice, bob = setup
+    created, secret = attempt(service)
+    service.claim(alice, created.code, source="127.0.0.1")
+    request = approval(alice)
+    service.approve(created.attempt_id, secret, request)
+    with pytest.raises(AuthError) as error:
+        service.cancel_pending_approval(created.attempt_id, "pa_" + secrets.token_urlsafe(32), cancel_request(created, request))
+    assert error.value.status == 401
+    with store.transaction() as connection:
+        connection.execute("UPDATE devices SET ownership_generation=2 WHERE id=?", (str(created.device_id),))
+    with pytest.raises(AuthError) as error:
+        service.cancel_pending_approval(created.attempt_id, secret, cancel_request(created, request))
+    assert error.value.status == 409
+    with store.transaction(write=False) as connection:
+        assert connection.execute("SELECT revoked_at FROM devices WHERE id=?", (str(created.device_id),)).fetchone()[0] is None
 
 
 def test_claim_requires_local_approval_and_private_secrets_never_persist(setup):

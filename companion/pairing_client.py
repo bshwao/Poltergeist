@@ -1,10 +1,13 @@
 """Bounded outbound enrollment; save protected credentials before approval."""
 
 import json
+import math
+from pathlib import Path
 import secrets
 import ssl
+from threading import Lock
+from time import monotonic
 from typing import Literal
-from urllib import error, request
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -12,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from shared.models.coordination import (DeviceCredentialStatus, DevicePolicy, DeviceView,
     PairingApproveInput, PairingCreateInput, PairingCreated, PairingStatus, PermissionScope)
 from shared.origins import service_origin
+from shared.models.coordination import PendingApprovalCancelInput, PendingApprovalCancelled
 
 
 class PairingClientError(RuntimeError):
@@ -25,42 +29,100 @@ def _parse(model, value):
         raise PairingClientError("The coordinator returned an invalid enrollment message") from None
 
 
-class _NoRedirect(request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        raise PairingClientError("The coordinator redirected enrollment; no credential was forwarded")
-
-
 class JsonTransport:
-    def __init__(self, origin, *, _ssl_context=None):
+    def __init__(self, origin, *, _ssl_context=None, _request_timeout_s=10):
         self.origin = service_origin(origin)
-        self._opener = request.build_opener(request.ProxyHandler({}), _NoRedirect(),
-            request.HTTPSHandler(context=_ssl_context or ssl.create_default_context()))
+        if type(_request_timeout_s) not in (int, float) or not math.isfinite(_request_timeout_s) or not 0 < _request_timeout_s <= 10:
+            raise ValueError("Enrollment request timeout must be positive and at most ten seconds")
+        self._timeout = float(_request_timeout_s)
+        self._lock, self._owner = Lock(), None
+        self._trust_pem = None
+        if _ssl_context is not None:
+            if not _ssl_context.check_hostname or _ssl_context.verify_mode != ssl.CERT_REQUIRED:
+                raise ValueError("Enrollment requires certificate and hostname verification")
+            self._trust_pem = "".join(ssl.DER_cert_to_PEM_cert(value) for value in _ssl_context.get_ca_certs(binary_form=True))
+            if not self._trust_pem or len(self._trust_pem) > 262144:
+                raise ValueError("Enrollment trust certificates exceed their limit")
+
+    def close(self):
+        # The controller retains its profile lease while an OS cleanup is pending.
+        if not self._lock.acquire(blocking=False):
+            return False
+        try:
+            if self._owner is not None:
+                if not self._owner.close():
+                    return False
+                self._owner = None
+            return True
+        finally:
+            self._lock.release()
 
     def request(self, method, path, *, body=None, authorization=None):
-        if not path.startswith("/v1/") or "?" in path or "#" in path or "\\" in path or ".." in path:
+        deadline = monotonic() + self._timeout
+        if (method not in ("GET", "POST") or not isinstance(path, str) or len(path) > 4096
+                or not path.startswith("/v1/") or any(value in path for value in ("?", "#", "\\", ".."))):
             raise PairingClientError("Unsupported coordinator operation")
-        headers = {"Accept": "application/json", "User-Agent": "Poltergeist-Companion/0.1"}
         data = None
         if body is not None:
             data = json.dumps(body, allow_nan=False, separators=(",", ":")).encode("utf-8")
             if len(data) > 32768:
                 raise PairingClientError("Enrollment request exceeds its limit")
-            headers["Content-Type"] = "application/json"
-        if authorization is not None:
-            headers["Authorization"] = authorization
-        operation = request.Request(self.origin + path, data=data, headers=headers, method=method)
+        if authorization is not None and (not isinstance(authorization, str) or len(authorization) > 512
+                or any(ord(char) < 32 or ord(char) == 127 for char in authorization)):
+            raise PairingClientError("Unsupported coordinator authorization")
+        if not self._lock.acquire(timeout=max(0., deadline - monotonic())):
+            raise PairingClientError("The enrollment request exceeded its time limit")
         try:
-            with self._opener.open(operation, timeout=10) as response:
-                content = response.read(65537)
-                if len(content) > 65536 or response.headers.get_content_type() != "application/json":
+            from .enrollment_process import EnrollmentProcess, EnrollmentTimeoutError
+            if self._owner is not None:
+                if not self._owner.close():
+                    raise PairingClientError("The previous account request is still stopping")
+                self._owner = None
+            remaining = deadline - monotonic()
+            if remaining <= 0:
+                raise PairingClientError("The enrollment request exceeded its time limit")
+            message = {"origin": self.origin, "method": method, "path": path,
+                "body_json": data.decode("utf-8") if data is not None else None,
+                "authorization": authorization, "trust_pem": self._trust_pem, "socket_timeout_s": remaining}
+            encoded = json.dumps(message, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+            if len(encoded) > 524288:
+                raise PairingClientError("Enrollment request exceeds its limit")
+            remaining = deadline - monotonic()
+            if remaining <= 0:
+                raise PairingClientError("The enrollment request exceeded its time limit")
+            self._owner = EnrollmentProcess(Path(__file__).with_name("enrollment_worker.py"),
+                timeout_s=remaining, deadline=deadline, max_response_bytes=131072)
+            try:
+                raw = self._owner.exchange(encoded)
+                answer = json.loads(raw)
+                if type(answer) is not dict or type(answer.get("ok")) is not bool:
+                    raise ValueError("Invalid worker answer")
+                if monotonic() >= deadline:
+                    raise PairingClientError("The enrollment request exceeded its time limit")
+                if answer["ok"] and set(answer) == {"ok", "value"}:
+                    return answer["value"]
+                code = answer.get("code")
+                if code == "http" and set(answer) == {"ok", "code", "status"} and type(answer["status"]) is int and 400 <= answer["status"] <= 599:
+                    raise PairingClientError(f"The coordinator refused enrollment (HTTP {answer['status']})")
+                if code == "redirect" and set(answer) == {"ok", "code"}:
+                    raise PairingClientError("The coordinator redirected enrollment; no credential was forwarded")
+                if code == "response" and set(answer) == {"ok", "code"}:
                     raise PairingClientError("Unexpected coordinator response")
-                return json.loads(content, parse_constant=lambda _: (_ for _ in ()).throw(ValueError("nonfinite")))
-        except PairingClientError:
-            raise
-        except error.HTTPError as failure:
-            raise PairingClientError(f"The coordinator refused enrollment (HTTP {failure.code})") from None
-        except Exception:
-            raise PairingClientError("The coordinator could not be reached securely") from None
+                raise PairingClientError("The coordinator could not be reached securely")
+            except EnrollmentTimeoutError:
+                raise PairingClientError("The enrollment request exceeded its time limit") from None
+            except PairingClientError:
+                raise
+            except Exception:
+                raise PairingClientError("The coordinator could not be reached securely") from None
+            finally:
+                # exchange has already attempted its bounded cleanup. Retain an
+                # unconfirmed owner instead of silently adding another wait.
+                if self._owner.owned:
+                    raise PairingClientError("The previous account request is still stopping") from None
+                self._owner = None
+        finally:
+            self._lock.release()
 
 
 class PairingClient:
@@ -68,6 +130,10 @@ class PairingClient:
         self.origin = service_origin(origin)
         self.store = credential_store
         self.transport = _transport or JsonTransport(self.origin)
+
+    def close(self):
+        close = getattr(self.transport, "close", None)
+        return close() is True if callable(close) else True
 
     def _load(self):
         record = self.store.load()
@@ -198,6 +264,23 @@ class PairingClient:
         if record is not None and record.state != "attempt":
             raise PairingClientError("Reconcile or revoke the saved credential before forgetting enrollment")
         self.store.clear()
+
+    def cancel_pending_approval(self):
+        record = self._load()
+        if record is None or record.state != "pending_approval" or record.approval is None:
+            raise PairingClientError("There is no saved pending approval to cancel")
+        body = PendingApprovalCancelInput(device_id=record.created.device_id,
+            owner_id=record.approval.expected_account_id, credential=record.approval.credential)
+        result = _parse(PendingApprovalCancelled, self.transport.request("POST",
+            f"/v1/pairing/{record.created.attempt_id}/cancel-pending-approval",
+            authorization="Pairing " + record.private_secret, body=body.model_dump(mode="json")))
+        if (result.attempt_id != record.created.attempt_id or result.device_id != record.created.device_id
+                or result.owner_id != record.approval.expected_account_id):
+            raise PairingClientError("The coordinator returned a different cancellation binding")
+        # A timeout, refusal or mismatched reply leaves the protected record
+        # intact. Only the server's terminal result permits removing custody.
+        self.store.clear()
+        return result
 
     def revoke(self):
         record = self._load()

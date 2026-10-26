@@ -68,6 +68,67 @@ frames and unknown measurements for the interrupted run.
 
 ## Evidence and remaining work
 
+### Enrollment requests and uncertain approvals
+
+Enrollment now gives each HTTP exchange one ten-second monotonic budget,
+including waiting for a prior request, startup, pipe writes and DNS/TLS/HTTP
+work. Slow headers or a trickling body cannot renew it. The absolute deadline
+survives pauses between constructing and starting the request. Expired startup
+does not release credentials to the worker.
+
+A disposable isolated Python process performs the exchange. It uses the same
+private runtime as the companion, launched by absolute worker path with `-I -B`.
+Credentials travel through anonymous pipes and Authorization headers; they do
+not appear in arguments, environment variables or temporary credential files.
+Parent and child bound their pipe messages independently; the server body is
+limited to 64 KiB. TLS certificate/hostname verification stays enabled, proxies
+and redirects are disabled, and errors omit response bodies and private values.
+The private `_ssl_context` fixture override transfers public CA anchors only;
+it does not reproduce arbitrary custom TLS policy or client certificates.
+
+The request owner uses a suspended Windows launch assigned to its own job before
+resuming, so termination covers the actual interpreter behind a venv launcher.
+Owned reader/writer threads prevent a blocked stdin write from trapping the
+calling thread. After the request budget expires, a separate three-second
+cleanup attempt terminates and inspects only the owned process tree, reaps the
+launcher and joins its pipe threads. Unconfirmed cleanup retains its owner and
+the companion profile lease; another request cannot bypass it through a newly
+constructed client. Explicit close retries incomplete waits or handle closure.
+An unverifiable membership inspection remains quarantined; retry does not turn
+missing process-exit evidence into successful cleanup.
+
+These are operation deadlines, not an unconditional kernel timing guarantee:
+Python documents that [native process creation may be uninterruptible](https://docs.python.org/3.12/library/subprocess.html#subprocess.run),
+and Windows documents that [termination is asynchronous while I/O finishes or is cancelled](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess).
+An elapsed budget is checked again after startup and before success is returned.
+No successful cleanup is claimed merely because termination was requested.
+
+An HTTP timeout does not prove that the coordinator did not commit approval.
+The protected pending credential stays available for Refresh / resume. The
+explicit **Cancel saved approval** action offers a second recovery path. Its
+atomic coordinator operation either fences an uncommitted attempt or revokes
+only the exact already-approved device/owner/credential. A pruned attempt cannot
+be recreated through the API. Changed bindings, newer generations/policies and
+another active credential fail closed. Lost cancellation replies and failed
+local credential removal remain retryable. Credentials are removed only after
+the coordinator confirms the bounded outcome; session consent stays off.
+
+### Immutable cancellation acknowledgements
+
+Schema revision 6 adds the cancellation `terminal` acceptance snapshot to each
+new local receipt. Revisions 1–5 and their checksums remain unchanged. The bit is
+stored in the same writer transaction as acceptance and is reused for the first
+ACK and every replay, including after cleanup, restart or offline completion.
+Queued and active cancellation return `terminal=False` at acceptance; a request
+against an already-finalized run records `True`. Read the separate result for
+the eventual cancelled/completed/failed outcome.
+
+Older cancellation receipts did not record this bit. Their new nullable column
+stays unknown; v1 replay returns `device_unavailable` rather than inventing the
+old ACK or signalling cancellation again. The original receipt/run is retained,
+and an authorized result request can still read its final outcome. This
+compatibility limitation is covered by migration, replay and crash tests.
+
 The earlier checkpoint passes 139 targeted ownership, cleanup, process-loss and
 remote-receipt checks, with one unavailable Windows symlink fixture skipped.
 The real website/normal-companion CARLA baseline also passes with the new lease:
@@ -174,8 +235,17 @@ corrected normal-path fixture stops after sending its reply; a separate case
 proves that Stop during dispatch suppresses the reply. All 82 contract/relay
 checks pass on Python 3.12 and 3.14. The original failed CI logs are retained.
 
-S6 remains open for total elapsed enrollment deadlines (including native
-DNS/TLS/body operations), uncertain pending-approval recovery, wider native
+The [enrollment and ACK recovery record](validation/s6-enrollment-reconciliation.json)
+tracks these source changes and their own evidence; the older runtime H proof
+above does not validate a later payload. Private Runtime I matches all 173 source
+Python files and passes the refreshed real TLS/DPAPI/native consent workflow,
+including lost pending-approval/cancellation replies, a distinct fresh pairing,
+and a 102-second process suspension. An independent outside-checkout probe verifies
+that its GUI interpreter starts the exact bundled enrollment worker through the
+private `python.exe`, with isolated imports and joined process/pipe ownership.
+All five coordinator crash cases also pass with this source transport.
+
+S6 remains open for current installed-runtime acceptance, wider native
 cancellation/finalization races, physical sleep/network faults and external
 supported-machine acceptance. Passing a private checkpoint does not close those
 requirements or the earlier independent-machine/release gates.

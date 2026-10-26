@@ -7,7 +7,7 @@ No method commits or opens another session. Receipt revisions describe immutable
 acceptance, not the later simulation or hosted projection sequence.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 import re
 from typing import Literal
@@ -71,6 +71,7 @@ class RemoteReceipt:
     accepted_at: datetime
     revision: int
     scenario_sha256: str | None = None
+    cancel_terminal: bool | None = None
 
     def __post_init__(self):
         if not isinstance(self.binding, RemoteBinding):
@@ -84,6 +85,8 @@ class RemoteReceipt:
             _digest(self.scenario_sha256)
         elif self.scenario_sha256 is not None:
             raise PersistenceError("Cancellation receipts do not contain a scenario digest")
+        if self.cancel_terminal is not None and (self.operation != "cancel" or type(self.cancel_terminal) is not bool):
+            raise PersistenceError("Cancellation acceptance requires a boolean terminal snapshot")
         if (not isinstance(self.accepted_at, datetime) or self.accepted_at.tzinfo is None
                 or self.accepted_at.utcoffset() is None):
             raise PersistenceError("Remote command acceptance time must be timezone aware")
@@ -120,7 +123,10 @@ class RemoteReceiptRepository:
             binding = RemoteBinding(row.origin, row.device_id, row.owner_id, row.generation)
             receipt = RemoteReceipt(binding, row.request_id, row.operation, row.payload_sha256,
                                     row.simulation_id, datetime.fromisoformat(row.accepted_at), row.revision,
-                                    row.scenario_sha256)
+                                    row.scenario_sha256,
+                                    None if row.cancel_terminal is None else bool(row.cancel_terminal))
+            if row.cancel_terminal is not None and (type(row.cancel_terminal) is not int or row.cancel_terminal not in (0, 1)):
+                raise ValueError
             if (binding.origin != row.origin or str(binding.device_id) != row.device_id
                     or str(binding.owner_id) != row.owner_id or str(receipt.request_id) != row.request_id
                     or str(receipt.simulation_id) != row.simulation_id):
@@ -164,9 +170,10 @@ class RemoteReceiptRepository:
         return self._stored(rows[0])
 
     def create(self, binding: RemoteBinding, request_id: UUID | str, operation: Literal["execute", "cancel"],
-               payload_sha256: str, simulation_id: UUID | str, *, scenario_sha256: str | None = None) -> RemoteReceipt:
+               payload_sha256: str, simulation_id: UUID | str, *, scenario_sha256: str | None = None,
+               cancel_terminal: bool | None = None) -> RemoteReceipt:
         receipt = RemoteReceipt(binding, request_id, operation, payload_sha256, simulation_id,
-                                datetime.now(UTC), 1, scenario_sha256)
+                                datetime.now(UTC), 1, scenario_sha256, cancel_terminal)
         existing = self.lookup(binding, receipt.request_id)
         if existing is not None:
             if (existing.operation != receipt.operation or existing.payload_sha256 != receipt.payload_sha256
@@ -184,12 +191,23 @@ class RemoteReceiptRepository:
             raise ConflictError("Remote cancellation requires an owned execution receipt")
         if operation == "execute" and execution is not None:
             raise ConflictError("Remote run already has an execution request")
+        if operation == "cancel":
+            # Read the authoritative snapshot in this same writer transaction;
+            # an existing receipt above is never re-derived from later state.
+            run = self.session.get(SimulationRecord, str(receipt.simulation_id))
+            if run is None:
+                raise PersistenceError("Remote cancellation run is unavailable")
+            terminal = run.result is not None
+            if receipt.cancel_terminal is not None and receipt.cancel_terminal != terminal:
+                raise PersistenceError("Cancellation acceptance differs from the current stored result")
+            receipt = replace(receipt, cancel_terminal=terminal)
         self.session.add(RemoteCommandReceiptRecord(
             origin=binding.origin, device_id=str(binding.device_id), owner_id=str(binding.owner_id),
             generation=binding.generation, request_id=str(receipt.request_id), operation=receipt.operation,
             payload_sha256=receipt.payload_sha256, scenario_sha256=receipt.scenario_sha256,
             simulation_id=str(receipt.simulation_id), accepted_at=receipt.accepted_at.isoformat(timespec="microseconds"),
             revision=receipt.revision,
+            cancel_terminal=None if receipt.cancel_terminal is None else int(receipt.cancel_terminal),
         ))
         _flush(self.session)
         return receipt

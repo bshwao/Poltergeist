@@ -100,9 +100,7 @@ def stored(root, request):
         return connection.execute("SELECT status,reply_json FROM commands WHERE request_id=?", (str(request),)).fetchone()
 
 
-@pytest.mark.parametrize("boundary", ["before_commit", "after_commit"])
-@pytest.mark.parametrize("operation", ["execute", "cancel"])
-def test_coordinator_process_loss_reconciles_original_request_and_owned_work(tmp_path, boundary, operation):
+def _check_coordinator_process_loss(tmp_path, boundary, operation, *, finish_before_replay=False):
     files = make_certificates(tmp_path)
     context = ssl.create_default_context(cafile=str(files["ca"]))
     with socket.socket() as reservation:
@@ -185,6 +183,14 @@ def test_coordinator_process_loss_reconciles_original_request_and_owned_work(tmp
             expected = "queued" if boundary == "before_commit" else "accepted" if operation == "execute" else "completed"
             assert stored(tmp_path, target.request_id)[0] == expected
             assert len(first.snapshot()["runs"]) == 1 and second.snapshot()["runs"] == []
+            if finish_before_replay:
+                assert operation == "cancel" and boundary == "before_commit"
+                # The coordinator has no committed ACK yet. Finish cleanup while
+                # it remains down, before the first possible redelivery.
+                release.set()
+                interrupted_id = UUID(fault["reply"]["simulation_id"])
+                wait_for(lambda: first._worker.get(interrupted_id).result, timeout=30)
+                assert first._worker.get(interrupted_id).simulation.status == "cancelled"
             # A replacement starts only after the original process has proven
             # exit. Device connections and cookies reconcile against the same DB.
             replacement = CoordinatorProcess(tmp_path, files, port)
@@ -195,7 +201,7 @@ def test_coordinator_process_loss_reconciles_original_request_and_owned_work(tmp
             assert complete_command(alice, alice_headers, device, target) == reconciled
             simulation = UUID(fault["reply"]["simulation_id"])
             finished_offline = operation == "cancel" and boundary == "before_commit"
-            if finished_offline:
+            if finished_offline and not finish_before_replay:
                 # Lose the coordinator again after reconciliation. Local cleanup
                 # must finish independently, and its outcome must survive a
                 # second reconnect while the original cancel ACK stays unchanged.
@@ -227,3 +233,13 @@ def test_coordinator_process_loss_reconciles_original_request_and_owned_work(tmp
             assert controller.close()
         for server in reversed(servers):
             server.stop()
+
+
+@pytest.mark.parametrize("boundary", ["before_commit", "after_commit"])
+@pytest.mark.parametrize("operation", ["execute", "cancel"])
+def test_coordinator_process_loss_reconciles_original_request_and_owned_work(tmp_path, boundary, operation):
+    _check_coordinator_process_loss(tmp_path, boundary, operation)
+
+
+def test_cancel_finishes_offline_before_first_lost_ack_redelivery(tmp_path):
+    _check_coordinator_process_loss(tmp_path, "before_commit", "cancel", finish_before_replay=True)

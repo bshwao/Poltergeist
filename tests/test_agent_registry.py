@@ -354,7 +354,7 @@ def test_revision_three_upgrade_preserves_old_jobs_and_adds_registry_atomically(
         with database.engine.connect() as connection:
             assert connection.exec_driver_sql("SELECT simulation_id,agent_snapshot FROM simulation_jobs").all() == [(simulation_id, None)]
             assert connection.exec_driver_sql("SELECT COUNT(*) FROM agent_registrations").scalar() == 0
-            assert connection.exec_driver_sql("SELECT MAX(revision) FROM schema_migrations").scalar() == 5
+            assert connection.exec_driver_sql("SELECT MAX(revision) FROM schema_migrations").scalar() == 6
     finally:
         database.dispose()
 

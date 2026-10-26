@@ -1,0 +1,386 @@
+{
+  "schema_version": "poltergeist-s6-enrollment-reconciliation-v1",
+  "recorded_at": "2026-10-26T07:31:45.376803+00:00",
+  "branch": "codex/s6-reliable-execution",
+  "source_base": "58b77b4d3b33032a565d04239b2f082de8db6a87",
+  "status": "source_and_private_packaged_checkpoint_passed_s6_incomplete",
+  "source_sha256": {
+    "companion/pairing_client.py": "8712bc55de86286672e587c08de6cbdc91c27524aa9008971b5eb9f78204dfab",
+    "companion/enrollment_process.py": "970fbbf6749b118917671ea6088716cad2ce210390dbefd9f85cf8690006ab44",
+    "companion/enrollment_worker.py": "de3950d2db5b11b0b5b65a9728b7f8c556e9dd8f6a484ab3c1bdbd047ac22a17",
+    "companion/controller.py": "067668501d925d00c5f17cfceed37cf78076ba71f09b2040d586ced85bf7d000",
+    "companion/remote_service.py": "9cb32bfd9937de4902329951c8d4f2ef55304a1d2baff03484aefce1886a9329",
+    "coordinator/pairing.py": "16f5535580c5d42e98c18079ecbfc9862bff03e1fee01eaf324da63aeec617c7",
+    "coordinator/app.py": "6f099d8e0d0b64915e8496f4e8ee682e998eae34a61264c99ff3805f6d856954",
+    "backend/migrations.py": "67a4c062d2bf24e1e21f66be4919e01459fdbf088bbcae48a5ff9a079186da4d",
+    "backend/remote_receipts.py": "3905463f16eb810d4499e64dbc19ea31f5d763f7da99b6c518e4fbc4fbec6339",
+    "shared/models/coordination.py": "49d1aac885de15fb06c7a0a8c33980433fb188ebd46d3b4a976fa7cd9d368217"
+  },
+  "changes": {
+    "enrollment": "One absolute ten-second operation deadline, owned isolated worker, bounded secret-free pipes, strict HTTPS, separate cleanup wait and retained ownership on uncertainty.",
+    "pending_approval": "Explicit native cancellation atomically fences an uncommitted approval or revokes its exact saved binding; uncertain/lost replies keep protected custody until confirmed.",
+    "cancel_ack": "Schema6 freezes terminal at durable acceptance; queued/active requests record false, already-finalized no-ops true. Final outcome is read separately.",
+    "legacy": "Published migrations1-5 unchanged. Old unknown cancellation snapshots stayNULL and replay fails closed without deletion or re-signalling; scoped result readback survives."
+  },
+  "local_batches": {
+    "s6-enrollment-recovery-final312": {
+      "passed": 70,
+      "tests": 70,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 158.141,
+      "receipt": "validation-evidence/s6-enrollment-recovery-final312.xml"
+    },
+    "s6-enrollment-transport-final314": {
+      "passed": 14,
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 98.177,
+      "receipt": "validation-evidence/s6-enrollment-transport-final314.xml"
+    },
+    "s6-enrollment-members312-final": {
+      "passed": 21,
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 24.688,
+      "receipt": "validation-evidence/s6-enrollment-members312-final.xml"
+    },
+    "s6-enrollment-members314-final": {
+      "passed": 21,
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 27.559,
+      "receipt": "validation-evidence/s6-enrollment-members314-final.xml"
+    },
+    "s6-enrollment-owned-witness312": {
+      "passed": 2,
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 13.76,
+      "receipt": "validation-evidence/s6-enrollment-owned-witness312.xml"
+    },
+    "s6-pending-approval-api-final": {
+      "passed": 64,
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 39.42,
+      "receipt": "validation-evidence/s6-pending-approval-api-final.xml"
+    },
+    "s6-pending-approval-api314-final": {
+      "passed": 64,
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 43.012,
+      "receipt": "validation-evidence/s6-pending-approval-api314-final.xml"
+    },
+    "s6-pending-approval-ui-resumed": {
+      "passed": 1,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.956,
+      "receipt": "validation-evidence/s6-pending-approval-ui-resumed.xml"
+    },
+    "s6-pending-approval-ui314-final": {
+      "passed": 1,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.92,
+      "receipt": "validation-evidence/s6-pending-approval-ui314-final.xml"
+    },
+    "s6-pairing-controller-resumed": {
+      "passed": 51,
+      "tests": 51,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 30.013,
+      "receipt": "validation-evidence/s6-pairing-controller-resumed.xml"
+    },
+    "s6-cancel-ack-after": {
+      "passed": 111,
+      "tests": 111,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 40.547,
+      "receipt": "validation-evidence/s6-cancel-ack-after.xml"
+    },
+    "s6-cancel-ack-python314": {
+      "passed": 96,
+      "tests": 102,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 6,
+      "seconds": 46.511,
+      "receipt": "validation-evidence/s6-cancel-ack-python314.xml"
+    },
+    "s6-cancel-ack-final-delta312": {
+      "passed": 15,
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.649,
+      "receipt": "validation-evidence/s6-cancel-ack-final-delta312.xml"
+    },
+    "s6-cancel-ack-final-delta314": {
+      "passed": 15,
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.202,
+      "receipt": "validation-evidence/s6-cancel-ack-final-delta314.xml"
+    },
+    "s6-coordinator-recovery-final312": {
+      "passed": 5,
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 382.918,
+      "receipt": "validation-evidence/s6-coordinator-recovery-final312.xml"
+    },
+    "s6-enrollment-hosted-integration": {
+      "passed": 1,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 77.634,
+      "receipt": "validation-evidence/s6-enrollment-hosted-integration.xml"
+    }
+  },
+  "batch_note": "Batches overlap; do not sum them as a unique-test count.",
+  "dashboard": {
+    "passed": 333,
+    "failed": 0,
+    "schema_and_generated_types_current": true,
+    "log": "validation-evidence/s6-recovery-dashboard-tests.log"
+  },
+  "bundle": {
+    "directory": "validation-evidence/portable-dist/s6-recovery-i-20261026/Poltergeist-S1-windows-x64",
+    "archive_sha256": "78880b20f1060504e0060ada352f4efa74851794a32c29c927333ba103625640",
+    "archive_bytes": 47962794,
+    "manifest_sha256": "ee1a99b888ca7b9f2c9ebe2e184423e075bc21f18c6d4ef9cd44f476cf5c7687",
+    "project_wheel": {
+      "filename": "poltergeist-0.1.0-py3-none-any.whl",
+      "sha256": "142d779c5faec1b21f99d09fc096b159588c60c96022fdcf7af809981ba0b819"
+    },
+    "python": "3.12.15",
+    "integrity": {
+      "schema_version": "poltergeist-portable-integrity-v1",
+      "passed": true,
+      "files": 6084,
+      "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+    },
+    "source_python_files": 173,
+    "latest_payload_matches": true,
+    "default_remote_execution_enabled": false,
+    "signed": false,
+    "installer": false
+  },
+  "packaged_acceptance": {
+    "receipt": "validation-evidence/s4-packaged-consent-20261026-032215-349baecf/receipt.json",
+    "passed": true,
+    "scope": "One packaged companion profile, two source-coordinator accounts, real loopback HTTPS/WSS, native DPAPI and receipt-backed synthetic worker.",
+    "pending_approval_recovery": {
+      "lost_approval": {
+        "action": "approve_lost",
+        "device_id": "65a0fe25-445d-4915-858e-6edc6c58fd43",
+        "owner_id": "06ed2092-e643-4ab7-9047-e9c3978c80d9",
+        "protected_blob_bytes": 1230,
+        "protected_native_dpapi": true,
+        "controller_projection_redacted": true,
+        "saved_state": "pending_approval",
+        "approval_request_id": "39247a5c-7046-4ac5-9704-daae173287e3",
+        "approval_reply_lost": true,
+        "pending_cancel_revocation_explained": true,
+        "consent_off": true
+      },
+      "lost_cancellation": {
+        "action": "cancel_approval_lost",
+        "device_id": "65a0fe25-445d-4915-858e-6edc6c58fd43",
+        "owner_id": "06ed2092-e643-4ab7-9047-e9c3978c80d9",
+        "protected_blob_bytes": 1230,
+        "protected_native_dpapi": true,
+        "controller_projection_redacted": true,
+        "saved_state": "pending_approval",
+        "approval_request_id": "39247a5c-7046-4ac5-9704-daae173287e3",
+        "cancellation_reply_lost": true,
+        "protected_custody_preserved": true,
+        "consent_off": true
+      },
+      "confirmed_retry": {
+        "ok": true,
+        "action": "cancel_approval",
+        "confirmed_cancel": true,
+        "protected_custody_removed": true,
+        "consent_off": true
+      },
+      "bound_device_revoked": true,
+      "original_credential_denied": true,
+      "no_local_jobs": true,
+      "tls_verified": true,
+      "fresh_device_id": "1d61789f-d329-445b-ba9e-d7e6096c786a",
+      "fresh_pairing_distinct": true
+    },
+    "native_process_suspension": {
+      "process_id": 42892,
+      "physical_pc_sleep": false,
+      "suspended_at": "2026-10-26T07:24:13.671796+00:00",
+      "elapsed_s": 102.31199999999808,
+      "before": {
+        "connection_generation": 3,
+        "last_seen_at": 1792999453.6036122
+      },
+      "settled": {
+        "connection_generation": 3,
+        "last_seen_at": 1792999453.6036122
+      },
+      "after_gap": {
+        "connection_generation": 3,
+        "last_seen_at": 1792999453.6036122
+      },
+      "offline": true,
+      "pending_result_still_queued": true,
+      "resume_status": 0,
+      "resumed_at": "2026-10-26T07:25:55.986715+00:00",
+      "after_resume": {
+        "connection_generation": 4,
+        "last_seen_at": 1792999560.200153
+      },
+      "original_ack_preserved": true,
+      "pending_result_reconciled": true,
+      "original_jobs": 1,
+      "original_receipts": 1
+    },
+    "lost_ack_retry_same_run": true,
+    "single_job_after_retry": true,
+    "reopen_identity_preserved": true,
+    "revocation_and_local_results": true,
+    "keys_removed": true,
+    "owned_processes": [
+      {
+        "label": "second_open",
+        "exit_code": 0,
+        "exited": true,
+        "terminated_owned_fixture": false
+      },
+      {
+        "label": "first_open",
+        "exit_code": 0,
+        "exited": true,
+        "terminated_owned_fixture": false
+      },
+      {
+        "label": "coordinator",
+        "exit_code": 1,
+        "exited": true,
+        "terminated_owned_fixture": true
+      }
+    ],
+    "secret_scan_passed": true
+  },
+  "pythonw_worker_provenance": {
+    "receipt": "validation-evidence/s6-pythonw-provenance-20261026-032832-1f691e60/receipt.json",
+    "schema_version": "poltergeist-s6-pythonw-enrollment-v1",
+    "passed": true,
+    "scope": "One private Runtime I pythonw process, disposable loopback HTTPS fixture401, fake credential, outside checkout cwd; no profile or account.",
+    "child": {
+      "passed": true,
+      "isolated_pythonw": true,
+      "cwd_outside_checkout": true,
+      "hostile_python_environment_ignored": true,
+      "strict_tls_fixture_http_status": 401,
+      "launches": [
+        {
+          "executable": "runtime\\python.exe",
+          "flags": [
+            "-I",
+            "-B"
+          ],
+          "worker": "runtime\\Lib\\site-packages\\companion\\enrollment_worker.py",
+          "authorization_in_argv_or_environment": false,
+          "hostile_python_environment_removed": true
+        }
+      ],
+      "child_exit_codes": [
+        0
+      ],
+      "child_processes_reaped": true,
+      "pipe_threads_joined": true,
+      "paths": {
+        "companion.pairing_client": "runtime\\Lib\\site-packages\\companion\\pairing_client.py",
+        "companion.enrollment_process": "runtime\\Lib\\site-packages\\companion\\enrollment_process.py",
+        "simulator.agents.process_group": "runtime\\Lib\\site-packages\\simulator\\agents\\process_group.py",
+        "ssl": "runtime\\Lib\\ssl.py",
+        "_ssl": "runtime\\DLLs\\_ssl.pyd"
+      },
+      "manifest_sha256": "ee1a99b888ca7b9f2c9ebe2e184423e075bc21f18c6d4ef9cd44f476cf5c7687",
+      "worker_sha256": "de3950d2db5b11b0b5b65a9728b7f8c556e9dd8f6a484ab3c1bdbd047ac22a17",
+      "transport_closed": true
+    },
+    "probe_exit_code": 0,
+    "observed": [
+      {
+        "path": "/v1/device/session",
+        "fake_authorization_matched": true
+      }
+    ],
+    "fixture_thread_stopped": true,
+    "external_fixture_removed": true,
+    "finished_at": "2026-10-26T07:28:41.426326+00:00"
+  },
+  "native_job_member_exit": {
+    "receipt": "validation-evidence/s6-enrollment-descendant-2d318fb2/receipt.json",
+    "descendant_pid": 33404,
+    "in_owned_job": true,
+    "marker_s": 2.125,
+    "error": "EnrollmentTimeoutError",
+    "caller_finished_s": 10.15599999999904,
+    "owner_retained": false,
+    "signaled_immediately": true,
+    "signaled_within_3s": true
+  },
+  "previous_ci": {
+    "revision": "58b77b4d3b33032a565d04239b2f082de8db6a87",
+    "all_five_jobs": "success",
+    "url": "https://github.com/bshwao/Poltergeist/actions/runs/40263788540",
+    "current_changes_need_own_ci": true
+  },
+  "retained_failures": [
+    "s6-enrollment-before.xml: slow-body defect reproduced before implementation",
+    "s6-cancel-ack-before.xml: original cancellation ACK changed after finalization",
+    "s6-enrollment-transport-first.xml: oversized pytest IDs exceeded Windows environment limits; IDs shortened",
+    "s6-enrollment-transport-after.xml: artificial2s startup budgets did not reach TLS/header fault; repeats use unchanged production10s",
+    "s6-enrollment-process-start-guard312.xml: active job count reached zero before held descendant signaled; actual handle barrier added"
+  ],
+  "limitations": [
+    "Same Windows laptop/account; no independent supported-machine or current installed-runtime acceptance.",
+    "Packaged native callbacks run on a withdrawn Tk window; no visual or physical-input acceptance.",
+    "This Runtime I workflow uses synthetic execution; runtime H's real CARLA proof remains scoped to its recorded source.",
+    "Process suspension is not physical PC sleep, NIC failure or a long real outage.",
+    "Kernel startup/termination has no portable unconditional time bound; cleanup uses a separate wait and retains unconfirmed ownership.",
+    "Membership-inspection uncertainty remains quarantined; arbitrary continually spawning descendant trees are outside the builtin-worker guarantee.",
+    "The coordinator runs separately from source with private loopback certificates; public S5 deployment remains deferred.",
+    "Legacy unknown cancellation ACK bits cannot be reconstructed; v1 replay fails closed while results remain readable with authorization."
+  ]
+}

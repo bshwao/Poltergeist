@@ -51,9 +51,13 @@ class ApiTransport:
         self.api = api
         self.requests = []
         self.lose_response_for = None
+        self.fail_before_for = None
         self.changed_response = None
     def request(self, method, path, *, body=None, authorization=None):
         self.requests.append((method, path, copy.deepcopy(body)))
+        if self.fail_before_for and path.endswith(self.fail_before_for):
+            self.fail_before_for = None
+            raise PairingClientError("Injected interruption before server commit")
         headers = {"Authorization": authorization} if authorization else {}
         result = self.api.request(method, path, json=body, headers=headers)
         if result.status_code >= 400:
@@ -188,6 +192,112 @@ def test_pending_approval_can_reconcile_after_the_attempt_was_retired(setup):
     assert reopened.resume().device_id == displayed.device_id
     assert store.record["state"] == "paired" and store.record["approval"] == pending["approval"]
     assert len(api.get("/v1/devices", headers=headers).json()) == 1
+
+
+@pytest.mark.parametrize("committed", [False, True])
+@pytest.mark.parametrize("retired", [False, True])
+def test_explicit_cancel_saved_approval_reconciles_lost_reply_and_never_leaves_live_access(setup, committed, retired):
+    api, headers, transport, store, companion = setup
+    displayed = claim(setup)
+    if committed:
+        transport.lose_response_for = "/approve"
+    else:
+        transport.fail_before_for = "/approve"
+    with pytest.raises(PairingClientError):
+        companion.approve(displayed, DevicePolicy(scopes=SCOPES))
+    pending = copy.deepcopy(store.record)
+    if retired:
+        with api.app.state.store.transaction() as connection:
+            connection.execute("UPDATE pairing_attempts SET state=CASE WHEN state='claimed' THEN 'expired' ELSE state END,"
+                "terminal_at=1799913599 WHERE id=?", (str(displayed.attempt_id),))
+        PairingClient(ORIGIN, MemoryStore(), _transport=transport).begin("Retirement trigger", SCOPES)
+    transport.lose_response_for = "/cancel-pending-approval"
+    with pytest.raises(PairingClientError, match="lost response"):
+        companion.cancel_pending_approval()
+    assert store.record == pending
+    assert api.get("/v1/device/session", headers={"Authorization": "Bearer " + pending["approval"]["credential"]}).status_code == 401
+    reopened = PairingClient(ORIGIN, store, _transport=transport)
+    outcome = reopened.cancel_pending_approval()
+    assert outcome.outcome == ("revoked" if committed else "absent" if retired else "cancelled")
+    assert store.load() is None
+    assert all(row["revoked_at"] is not None for row in api.get("/v1/devices", headers=headers).json())
+    # Delayed approval cannot recreate the cancelled or pruned attempt.
+    response = api.post(f"/v1/pairing/{displayed.attempt_id}/approve", json=pending["approval"],
+        headers={"Authorization": "Pairing " + pending["private_secret"]})
+    assert response.status_code in (401, 404, 409)
+    assert companion.begin("Fresh explicit pairing", SCOPES).attempt_id != displayed.attempt_id
+
+
+def test_cancel_timeout_or_changed_reply_keeps_protected_pending_custody(setup):
+    api, headers, transport, store, companion = setup
+    displayed = claim(setup)
+    transport.fail_before_for = "/approve"
+    with pytest.raises(PairingClientError):
+        companion.approve(displayed, DevicePolicy(scopes=SCOPES))
+    pending = copy.deepcopy(store.record)
+    transport.fail_before_for = "/cancel-pending-approval"
+    with pytest.raises(PairingClientError):
+        companion.cancel_pending_approval()
+    assert store.record == pending and companion.poll().state == "claimed"
+    transport.changed_response = {"attempt_id": str(displayed.attempt_id), "device_id": str(uuid4()),
+        "owner_id": pending["approval"]["expected_account_id"], "outcome": "cancelled", "completed": True}
+    with pytest.raises(PairingClientError, match="different cancellation binding"):
+        companion.cancel_pending_approval()
+    assert store.record == pending
+    transport.changed_response = None
+    assert companion.cancel_pending_approval().outcome == "cancelled"
+    assert store.record is None
+
+
+def test_cancel_committed_server_outcome_retries_after_local_custody_removal_fails(setup, monkeypatch):
+    api, headers, transport, store, companion = setup
+    displayed = claim(setup)
+    transport.lose_response_for = "/approve"
+    with pytest.raises(PairingClientError):
+        companion.approve(displayed, DevicePolicy(scopes=SCOPES))
+    pending = copy.deepcopy(store.record)
+    clear = store.clear
+    def fail_clear():
+        raise CredentialStoreError("Injected protected record removal failure")
+    monkeypatch.setattr(store, "clear", fail_clear)
+    with pytest.raises(CredentialStoreError, match="record removal"):
+        companion.cancel_pending_approval()
+    assert store.record == pending
+    assert api.get("/v1/device/session", headers={"Authorization": "Bearer " + pending["approval"]["credential"]}).status_code == 401
+    monkeypatch.setattr(store, "clear", clear)
+    assert companion.cancel_pending_approval().outcome == "revoked"
+    assert store.record is None
+
+
+def test_pairing_transport_cleanup_retains_the_controller_profile_until_owned_child_exits(tmp_path):
+    class Transport:
+        clean = False
+        calls = 0
+        def close(self):
+            self.calls += 1
+            return self.clean
+    transport, store = Transport(), MemoryStore()
+    created = []
+    def factory(origin, credential_store):
+        client = PairingClient(origin, credential_store, _transport=transport)
+        created.append(client)
+        return client
+    controller = CompanionController(tmp_path / "profile", pairing_factory=factory,
+        credential_store_factory=lambda _: store)
+    controller.open()
+    controller.configure_pairing(ORIGIN)
+    assert controller._pairing() is controller._pairing() and len(created) == 1
+    assert not controller.close()
+    other = CompanionController(controller.profile)
+    with pytest.raises(ConflictError, match="already open"):
+        other.open()
+    with pytest.raises(ConflictError, match="still stopping"):
+        controller.configure_pairing("https://another.test")
+    assert controller.config.coordinator_origin == ORIGIN and controller._pairing() is created[0]
+    transport.clean = True
+    assert controller.close()
+    other.open()
+    assert other.close()
 
 
 def test_desktop_pairing_preserves_local_settings_and_projects_no_credentials(setup, tmp_path):

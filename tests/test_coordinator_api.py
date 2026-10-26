@@ -127,6 +127,38 @@ def test_browser_claim_alone_does_not_create_owned_device(client):
     assert poll.status_code == 200 and poll.json()["claimed_account"]["account_id"] == alice["account_id"]
 
 
+def test_pending_approval_cancel_is_device_only_strict_private_and_idempotent(client):
+    alice, alice_headers, _ = account(client, "alice")
+    created, secret, credential = pairing(client, alice_headers)
+    path = f"/v1/pairing/{created['attempt_id']}/cancel-pending-approval"
+    body = {"device_id": created["device_id"], "owner_id": alice["account_id"], "credential": credential}
+    private = {"Authorization": "Pairing " + secret}
+    assert client.post(path, json=body, headers={**private, **alice_headers}).status_code == 403
+    invalid = client.post(path, json={**body, "shell": "private_cancel_sentinel"}, headers=private)
+    assert invalid.status_code == 400
+    assert all(value not in invalid.text for value in (secret, credential, "private_cancel_sentinel"))
+    assert client.post(path, json=body, headers={"Authorization": "Pairing pa_" + "b" * 43}).status_code == 401
+    assert client.get("/v1/device/session", headers={"Authorization": "Bearer " + credential}).status_code == 200
+    result = client.post(path, json=body, headers=private)
+    assert result.status_code == 200 and result.json() == {"attempt_id": created["attempt_id"],
+        "device_id": created["device_id"], "owner_id": alice["account_id"], "outcome": "revoked", "completed": True}
+    assert credential not in result.text and secret not in result.text and "credential" not in result.text
+    assert client.post(path, json=body, headers=private).json() == result.json()
+    assert client.get("/v1/device/session", headers={"Authorization": "Bearer " + credential}).status_code == 401
+
+
+def test_pending_approval_cancel_absence_lookup_remains_source_rate_limited(client):
+    path = f"/v1/pairing/{uuid4()}/cancel-pending-approval"
+    body = {"device_id": str(uuid4()), "owner_id": str(uuid4()), "credential": "pd_" + secrets.token_urlsafe(32)}
+    private = {"Authorization": "Pairing pa_" + secrets.token_urlsafe(32)}
+    for _ in range(20):
+        result = client.post(path, json=body, headers=private)
+        assert result.status_code == 200 and result.json()["outcome"] == "absent"
+    result = client.post(path, json=body, headers=private)
+    assert result.status_code == 429 and result.headers.get("retry-after")
+    assert body["credential"] not in result.text and private["Authorization"] not in result.text
+
+
 @pytest.mark.parametrize("value", ["http://example.com", "https://user:password@example.com", "https://example.com/path", "https://example.com?a=b",
     "https://example.com#fragment", "https://foo\\bar", "https://example..com", "https://example.com:99999"])
 def test_configured_origin_rejects_unsafe_or_ambiguous_service_addresses(value):

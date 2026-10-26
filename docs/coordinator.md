@@ -39,6 +39,14 @@ The companion bundle excludes the hosted `coordinator` package and its Argon2
 dependencies. Its outbound HTTPS, pinned `websockets` transport and Windows
 credential protection use the bundled interpreter and standard Windows APIs.
 
+S6 adds an explicit **Cancel saved approval** recovery action for a protected
+approval whose outcome is uncertain. Its private device endpoint serializes
+against approval, fencing an uncommitted attempt or revoking only the exact
+already-approved binding before local credentials are removed. Lost replies
+remain retryable. Enrollment requests use an isolated owned process with a total
+operation deadline; a timeout retains pending custody because the server may
+already have committed. See [recovery and limits](remote-reliability.md).
+
 ## Accounts and request boundaries
 
 Accounts use lowercase ASCII usernames and Argon2id password hashes. Passwords
@@ -209,7 +217,7 @@ On Windows, after building a fresh private bundle, run it with the source
 development interpreter and that bundle's directory:
 
 ```powershell
-.\.venv\Scripts\python.exe tests/packaged_companion_consent.py --bundle validation-evidence/portable-dist/s4-consent-g-20261024/Poltergeist-S1-windows-x64
+.\.venv\Scripts\python.exe tests/packaged_companion_consent.py --bundle validation-evidence/portable-dist/s6-recovery-i-20261026/Poltergeist-S1-windows-x64 --exercise-pending-approval --exercise-suspension
 ```
 
 It creates a new owned profile, two fixture accounts and short-lived loopback TLS
@@ -217,12 +225,14 @@ keys, verifies bundled imports/integrity and saves a local receipt. Credentials
 travel through inherited pipes; the coordinator uses the separate source runtime.
 It starts no CARLA and changes no existing installation or profile.
 
-For the S6 private regression, use the refreshed runtime H and optionally append
-`--exercise-suspension`. This suspends only the owned test companion for at least
-100 seconds, verifies offline/last-seen behavior, then resumes and reconciles a
-pending result on a new connection generation. It leaves the physical PC awake.
-The [S6 packaged evidence](validation/s6-packaged-recovery.json) records its scope
-separately from the bundled native CARLA crash test.
+For the S6 private regression, Runtime I passes both optional modes shown above.
+Pending approval recovery loses committed approval/cancellation replies through
+the native callbacks, verifies protected custody and revocation, then starts a
+fresh pairing. Suspension pauses only the owned companion for at least 100
+seconds, verifies offline/last-seen behavior, then reconciles a pending result on
+a new connection generation. The physical PC stays awake. The
+[Runtime I evidence](validation/s6-enrollment-reconciliation.json) records its
+scope separately from runtime H's [native CARLA crash proof](validation/s6-packaged-recovery.json).
 
 The same driver passed again from an actual installed G runtime, followed by a
 successful default data-preserving uninstall. It used a fresh custom data
@@ -233,10 +243,10 @@ datasets were retained. See the
 This API-driven private proof does not establish a hosted website, visual UI
 acceptance, CARLA execution or a public deployment. See the
 [relay receipt](validation/s4-relay-prototype.json) for the current evidence.
-S6 must also exercise the wider disconnection/crash/sleep matrix and total
-elapsed network deadlines: the current enrollment
-transport bounds bytes and socket inactivity, rather than the whole DNS/TLS/body
-operation. Definitive abandonment of a never-committed/expired pending approval
-also remains in that fault matrix; the current UI retains uncertain credentials.
+S6 still needs the wider disconnection/crash/sleep matrix and current supported
+machine/package acceptance. Its source now implements total enrollment operation
+deadlines and explicit recovery for a never-committed/expired pending approval;
+the current source proof and remaining limits are recorded separately from older
+private runtime evidence.
 The [pairing design](hosted-pairing-design.md) remains the acceptance
 contract; these private boundaries do not close that plan step.

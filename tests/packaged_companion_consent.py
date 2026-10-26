@@ -125,6 +125,7 @@ def child_main(args):
         require(importlib.util.find_spec("argon2") is None, "argon_present")
         context = ssl.create_default_context(cafile=args.cert)
         dropped = []
+        lose_pairing_response = {"approve": False, "cancel-pending-approval": False}
 
         class BlockingAdapter(TestSimulationAdapter):
             def open(self, scenario):
@@ -150,7 +151,8 @@ def child_main(args):
 
         class DiagnosticTransport(JsonTransport):
             def request(self, method, path, **values):
-                event = {"method": method, "operation": path.rsplit("/", 1)[-1] if path.endswith(("approve", "session")) else "pairing"}
+                operation = path.rsplit("/", 1)[-1]
+                event = {"method": method, "operation": operation if operation in ("approve", "session", "cancel-pending-approval") else "pairing"}
                 transport_events.append(event)
                 try:
                     result = super().request(method, path, **values)
@@ -159,6 +161,12 @@ def child_main(args):
                     event["error"] = "http_" + status[1] if status else "secure_or_invalid_response"
                     raise
                 event["response_fields"] = sorted(result) if isinstance(result, dict) else []
+                if lose_pairing_response.get(operation):
+                    lose_pairing_response[operation] = False
+                    event["lost_committed_response"] = True
+                    # Keep real strict HTTPS and process cleanup. Only hide the
+                    # successful outcome from the normal approval/cancel caller.
+                    raise PairingClientError("Injected lost committed enrollment response")
                 return result
 
         def pairing(origin, store):
@@ -197,14 +205,17 @@ def child_main(args):
         window = CompanionWindow(root, controller, logger, autostart=False,
             startup_check=lambda: verify_bundle(bundle))
 
-        def pump_until_idle(*, closing=False):
+        def pump_until_idle(*, closing=False, expected_action_error=False):
             deadline = time.monotonic() + 90
             while time.monotonic() < deadline:
                 if closing and window._destroyed:
                     return
                 root.update()
-                require(not callback_errors, "native_callback_failed")
+                require(not callback_errors or (expected_action_error and callback_errors == ["action_error"]), "native_callback_failed")
                 if not closing and window._future is None:
+                    if expected_action_error:
+                        require(callback_errors == ["action_error"], "expected_native_action_error_missing")
+                        callback_errors.clear()
                     return
                 time.sleep(.01)
             raise TimeoutError("native_action_deadline")
@@ -223,9 +234,9 @@ def child_main(args):
                     "receipts": len(session.scalars(select(RemoteCommandReceiptRecord)).all()),
                     "dropped_ack_run_ids": list(dropped), "blocker_entered": entered.is_set()}
 
-        def protection():
+        def protection(expected_state="paired"):
             record = WindowsCredentialStore(profile).load()
-            require(record and record["state"] == "paired", "paired_enrollment_missing")
+            require(record and record["state"] == expected_state, "protected_enrollment_state_changed")
             credential, secret = record["approval"]["credential"], record["private_secret"]
             blob = (profile / "remote-enrollment.bin").read_bytes()
             require(credential.encode() not in blob and secret.encode() not in blob, "plaintext_enrollment")
@@ -233,7 +244,8 @@ def child_main(args):
             require(credential not in snapshot and secret not in snapshot, "secret_in_controller_projection")
             return {"device_id": record["created"]["device_id"], "owner_id": record["approval"]["expected_account_id"],
                 "credential": credential, "private_secret": secret, "protected_blob_bytes": len(blob),
-                "protected_native_dpapi": True, "controller_projection_redacted": True}
+                "protected_native_dpapi": True, "controller_projection_redacted": True,
+                "saved_state": record["state"], "approval_request_id": record["approval"]["request_id"]}
 
         checkpoint("native bootstrap ready")
         channel.send({"ok": True, "provenance": provenance, "sys_path": list(sys.path),
@@ -252,16 +264,49 @@ def child_main(args):
                 window.pairing.begin_button.invoke()
                 pump_until_idle()
                 response["code"] = window.pairing.code.get()
-            elif stage == "approve":
+            elif stage in ("approve", "approve_lost"):
+                if stage == "approve_lost":
+                    require(args.exercise_pending_approval, "pending_approval_mode_not_enabled")
                 window.pairing.refresh_button.invoke()
                 pump_until_idle()
                 displayed = window.pairing._displayed
                 require(displayed["claim"]["claimed_account"]["account_id"] == command["owner_id"], "claim_owner_changed")
+                lose_pairing_response["approve"] = stage == "approve_lost"
                 window.pairing.approve_button.invoke()
-                pump_until_idle()
-                require(window.pairing._displayed["state"] == "paired", "native_approval_missing")
+                pump_until_idle(expected_action_error=stage == "approve_lost")
+                if stage == "approve_lost":
+                    require(not lose_pairing_response["approve"], "approval_loss_hook_not_reached")
+                    window._apply_snapshot(controller.snapshot())
+                expected_state = "pending_approval" if stage == "approve_lost" else "paired"
+                require(window.pairing._displayed["state"] == expected_state, "native_approval_state_changed")
                 require(not window.pairing.allow_remote_execution.get(), "approval_enabled_session_consent")
-                response.update(protection())
+                require(not controller.relay_status()["owned"], "approval_connected_without_consent")
+                response.update(protection(expected_state))
+                if stage == "approve_lost":
+                    require("revoked" in window.pairing.summary.get(), "pending_cancel_revocation_not_explained")
+                    require(not window.pairing.cancel_approval_button.instate(["disabled"]), "pending_cancel_control_disabled")
+                    response.update(approval_reply_lost=True, pending_cancel_revocation_explained=True, consent_off=True)
+            elif stage in ("cancel_approval_lost", "cancel_approval"):
+                require(args.exercise_pending_approval, "pending_approval_mode_not_enabled")
+                store = WindowsCredentialStore(profile)
+                before = store.load()
+                require(before and before["state"] == "pending_approval", "pending_approval_custody_missing")
+                before_blob = store.path.read_bytes()
+                require(not window.pairing.cancel_approval_button.instate(["disabled"]), "pending_cancel_control_disabled")
+                lose_pairing_response["cancel-pending-approval"] = stage == "cancel_approval_lost"
+                window.pairing.cancel_approval_button.invoke()
+                pump_until_idle(expected_action_error=stage == "cancel_approval_lost")
+                window._apply_snapshot(controller.snapshot())
+                require(not window.pairing.allow_remote_execution.get() and not controller.relay_status()["owned"], "pending_cancel_enabled_consent")
+                if stage == "cancel_approval_lost":
+                    require(not lose_pairing_response["cancel-pending-approval"], "cancel_loss_hook_not_reached")
+                    require(store.load() == before and store.path.read_bytes() == before_blob, "lost_cancel_reply_removed_protected_custody")
+                    require(window.pairing._displayed["state"] == "pending_approval", "lost_cancel_reply_changed_native_state")
+                    response.update(protection("pending_approval"), cancellation_reply_lost=True, protected_custody_preserved=True, consent_off=True)
+                else:
+                    require(store.load() is None and not store.path.exists(), "confirmed_cancel_retained_protected_custody")
+                    require(window.pairing._displayed["state"] == "unpaired", "confirmed_cancel_not_unpaired")
+                    response.update(confirmed_cancel=True, protected_custody_removed=True, consent_off=True)
             elif stage == "resume":
                 require(window.pairing._displayed["state"] == "paired", "saved_enrollment_not_resumed")
                 require(not window.pairing.allow_remote_execution.get(), "reopen_restored_session_consent")
@@ -376,7 +421,8 @@ def parent_main(args):
             "Coordinator runs separately from the source environment, not from the desktop bundle.",
             "This is partial private S4 evidence and does not complete the S4 acceptance gate."],
         "default_remote_execution_enabled": False, "private_constructor_switch": False,
-        "normal_controller_explicit_tk_consent": True, "public_deployment_verified": False}
+        "normal_controller_explicit_tk_consent": True, "public_deployment_verified": False,
+        "exercise_pending_approval": args.exercise_pending_approval}
     children, streams, browsers, private_values = [], [], [], []
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     env = os.environ.copy()
@@ -408,7 +454,8 @@ def parent_main(args):
         try:
             process = subprocess.Popen([str(bundle / "runtime/python.exe"), "-I", "-B", str(Path(__file__).resolve()),
                 "--child", "--bundle", str(bundle), "--profile", str(profile), "--origin", origin,
-                "--cert", str(cert), "--control-handle", str(handle)], cwd=base, env=isolated,
+                "--cert", str(cert), "--control-handle", str(handle),
+                *(["--exercise-pending-approval"] if args.exercise_pending_approval else [])], cwd=base, env=isolated,
                 stdin=subprocess.DEVNULL, stdout=stream, stderr=subprocess.STDOUT, close_fds=True,
                 startupinfo=startup, creationflags=flags)
         finally:
@@ -523,6 +570,41 @@ def parent_main(args):
         owner = alice.get("/v1/auth/session").json()["account"]["account_id"]
         stage("pair packaged companion through native Tk approval with native DPAPI")
         first = spawn("first_open")
+        if args.exercise_pending_approval:
+            stage("recover lost committed approval and cancellation replies through native Cancel saved approval")
+            uncertain = action(first, "begin")
+            private_values.append(uncertain["code"])
+            require(alice.post("/v1/pairing/claim", json={"code": uncertain["code"]}).status_code == 200, "pending_owner_claim_failed")
+            pending = action(first, "approve_lost", owner_id=owner)
+            private_values.extend([pending["credential"], pending["private_secret"]])
+            pending_device = pending["device_id"]
+            require(pending["saved_state"] == "pending_approval" and pending["approval_reply_lost"]
+                and pending["consent_off"] and pending["pending_cancel_revocation_explained"], "lost_approval_not_reviewable")
+            approved_device = alice.get(f"/v1/devices/{pending_device}")
+            require(approved_device.status_code == 200 and approved_device.json()["revoked_at"] is None
+                and approved_device.json()["owner"]["account_id"] == owner, "lost_approval_not_committed")
+            require(bob.get(f"/v1/devices/{pending_device}").status_code == 404, "pending_device_foreign_read_allowed")
+            with httpx.Client(base_url=origin, verify=context, trust_env=False, timeout=10) as device_probe:
+                require(device_probe.get("/v1/device/session", headers={"Authorization": "Bearer " + pending["credential"]}).status_code == 200,
+                    "committed_pending_credential_not_active")
+                cancelled_reply = action(first, "cancel_approval_lost")
+                require(cancelled_reply["credential"] == pending["credential"] and cancelled_reply["device_id"] == pending_device
+                    and cancelled_reply["approval_request_id"] == pending["approval_request_id"]
+                    and cancelled_reply["protected_custody_preserved"] and cancelled_reply["cancellation_reply_lost"]
+                    and cancelled_reply["consent_off"], "lost_cancel_reply_changed_protected_binding")
+                require(device_probe.get("/v1/device/session", headers={"Authorization": "Bearer " + pending["credential"]}).status_code == 401,
+                    "pending_cancel_left_active_credential")
+            revoked = alice.get("/v1/devices")
+            require(revoked.status_code == 200 and len(revoked.json()) == 1 and revoked.json()[0]["device_id"] == pending_device
+                and revoked.json()[0]["revoked_at"] is not None, "pending_cancel_did_not_revoke_exact_device")
+            cleared = action(first, "cancel_approval")
+            require(cleared["confirmed_cancel"] and cleared["protected_custody_removed"] and cleared["consent_off"], "pending_cancel_retry_not_cleared")
+            require(action(first, "inspect")["jobs"] == 0, "pending_approval_recovery_created_work")
+            receipt["pending_approval_recovery"] = {"lost_approval": safe(pending), "lost_cancellation": safe(cancelled_reply),
+                "confirmed_retry": cleared, "bound_device_revoked": True, "original_credential_denied": True,
+                "no_local_jobs": True, "tls_verified": True}
+            receipt["limitations"].append("Approval/cancellation response loss is injected after strict HTTPS commits and worker cleanup, before normal native callers receive the result.")
+            stage("create a fresh normal pairing after explicit pending approval recovery")
         created = action(first, "begin")
         private_values.append(created["code"])
         require(alice.post("/v1/pairing/claim", json={"code": created["code"]}).status_code == 200, "owner_claim_failed")
@@ -531,6 +613,9 @@ def parent_main(args):
         device, credential = approved["device_id"], approved["credential"]
         private_values.extend([credential, approved["private_secret"]])
         receipt["enrollment"] = safe(approved)
+        if args.exercise_pending_approval:
+            require(device != pending_device and credential != pending["credential"], "fresh_pairing_reused_cancelled_identity")
+            receipt["pending_approval_recovery"].update(fresh_device_id=device, fresh_pairing_distinct=True)
         recipe = validate_scenario({"name": "Packaged owned experiment", "duration_s": .2,
             "actors": [{"type": "ego_vehicle", "speed_mps": 2}]})
         command = ExecuteCommand(request_id=uuid4(), scenario=recipe, mode="test")
@@ -634,7 +719,7 @@ def parent_main(args):
         wait_for(lambda: action(first, "inspect")["blocker_entered"])
         queued = complete(ExecuteCommand(request_id=uuid4(), scenario=recipe, mode="test"))
         cancel_queued = complete(CancelCommand(request_id=uuid4(), simulation_id=queued["simulation_id"]))
-        require(cancel_queued["reply"]["terminal"] is True, "queued_cancel_not_terminal")
+        require(cancel_queued["reply"]["terminal"] is False, "queued_cancel_ack_predicted_cleanup")
         cancelled = action(first, "terminal", simulation_id=queued["simulation_id"])
         require(cancelled["status"] == "cancelled" and cancelled["telemetry_frames"] == 0, "queued_cancel_constructed_runner")
         cancel_active = complete(CancelCommand(request_id=uuid4(), simulation_id=blocked["simulation_id"]))
@@ -729,6 +814,8 @@ def main():
     parser.add_argument("--control-handle", type=int)
     parser.add_argument("--exercise-suspension", action="store_true",
         help="Suspend only the owned Windows child for 100 seconds and verify reconnect/durable readback")
+    parser.add_argument("--exercise-pending-approval", action="store_true",
+        help="Lose committed approval/cancellation replies, recover through the native UI, then pair afresh")
     args = parser.parse_args()
     return child_main(args) if args.child else parent_main(args)
 

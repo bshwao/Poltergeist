@@ -1099,6 +1099,9 @@ export type Credential = string;
 export type ExpectedAccountId = string;
 export type ExpectedRevision1 = number;
 export type RequestId6 = string;
+export type Credential1 = string;
+export type DeviceId2 = string;
+export type OwnerId = string;
 export type Code2 = string;
 export type DisplayName1 = string;
 export type PrivateSecret = string;
@@ -1114,21 +1117,26 @@ export type RequestedScopes =
   | [PermissionScope, PermissionScope, PermissionScope, PermissionScope, PermissionScope];
 export type AttemptId = string;
 export type Code3 = string;
-export type DeviceId2 = string;
+export type DeviceId3 = string;
 export type ExpiresAt = string;
 export type PollIntervalS = 3;
-export type DeviceId3 = string;
-export type OwnerId = string;
+export type DeviceId4 = string;
+export type OwnerId1 = string;
 export type OwnershipGeneration2 = number;
 export type ProtocolVersion6 = "poltergeist-coordinator-v1";
 export type RemoteExecutionEnabled = boolean;
 export type ExpectedRevision2 = number;
 export type NewPassword = string;
 export type OldPassword = string;
+export type AttemptId1 = string;
+export type Completed = true;
+export type DeviceId5 = string;
+export type Outcome = "cancelled" | "expired" | "denied" | "revoked" | "absent";
+export type OwnerId2 = string;
 export type CsrfToken = string;
 export type ExpiresAt1 = string;
-export type AttemptId1 = string;
-export type DeviceId4 = string;
+export type AttemptId2 = string;
+export type DeviceId6 = string;
 export type ExpiresAt2 = string;
 export type RequestedScopes1 = PermissionScope[];
 export type Revision5 = number;
@@ -1167,39 +1175,39 @@ export type SimulationId10 = string;
 export type Envelope = ServerHello | ClientReady | RelayCommand | RelayReply | RelayPing | RelayPong;
 export type ConnectionGeneration = number;
 export type DeadTimeoutS = 90;
-export type DeviceId5 = string;
+export type DeviceId7 = string;
 export type HeartbeatS = 30;
 export type Kind17 = "hello";
-export type OwnerId1 = string;
+export type OwnerId3 = string;
 export type OwnershipGeneration3 = number;
 export type PolicyRevision1 = number;
 export type ProtocolVersion7 = "poltergeist-relay-v1";
 export type ConnectionGeneration1 = number;
-export type DeviceId6 = string;
+export type DeviceId8 = string;
 export type Kind18 = "ready";
 export type OwnershipGeneration4 = number;
 export type ProtocolVersion8 = "poltergeist-relay-v1";
 export type RemoteExecutionEnabled1 = boolean;
 export type Command1 = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand;
 export type ConnectionGeneration2 = number;
-export type DeviceId7 = string;
+export type DeviceId9 = string;
 export type Kind19 = "command";
 export type OwnershipGeneration5 = number;
 export type ProtocolVersion9 = "poltergeist-relay-v1";
 export type ConnectionGeneration3 = number;
-export type DeviceId8 = string;
+export type DeviceId10 = string;
 export type Kind20 = "reply";
 export type OwnershipGeneration6 = number;
 export type ProtocolVersion10 = "poltergeist-relay-v1";
 export type Reply1 = ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected;
 export type ConnectionGeneration4 = number;
-export type DeviceId9 = string;
+export type DeviceId11 = string;
 export type Kind21 = "ping";
 export type Nonce = string;
 export type OwnershipGeneration7 = number;
 export type ProtocolVersion11 = "poltergeist-relay-v1";
 export type ConnectionGeneration5 = number;
-export type DeviceId10 = string;
+export type DeviceId12 = string;
 export type Kind22 = "pong";
 export type Nonce1 = string;
 export type OwnershipGeneration8 = number;
@@ -2904,6 +2912,7 @@ export interface BrowserScenarioPreset {
 export interface CoordinationContracts {
   account_input: AccountInput;
   approve: PairingApproveInput;
+  cancel_pending_approval: PendingApprovalCancelInput;
   claim: PairingClaimInput;
   create: PairingCreateInput;
   created: PairingCreated;
@@ -2912,6 +2921,7 @@ export interface CoordinationContracts {
   device: DeviceView;
   empty: EmptyInput;
   password_change: PasswordChangeInput;
+  pending_approval_cancelled: PendingApprovalCancelled;
   session: BrowserSession;
   status: PairingStatus;
 }
@@ -2936,6 +2946,15 @@ export interface PairingApproveInput {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PendingApprovalCancelInput".
+ */
+export interface PendingApprovalCancelInput {
+  credential: Credential1;
+  device_id: DeviceId2;
+  owner_id: OwnerId;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "PairingClaimInput".
  */
 export interface PairingClaimInput {
@@ -2957,7 +2976,7 @@ export interface PairingCreateInput {
 export interface PairingCreated {
   attempt_id: AttemptId;
   code: Code3;
-  device_id: DeviceId2;
+  device_id: DeviceId3;
   expires_at: ExpiresAt;
   poll_interval_s: PollIntervalS;
 }
@@ -2966,8 +2985,8 @@ export interface PairingCreated {
  * via the `definition` "DeviceCredentialStatus".
  */
 export interface DeviceCredentialStatus {
-  device_id: DeviceId3;
-  owner_id: OwnerId;
+  device_id: DeviceId4;
+  owner_id: OwnerId1;
   ownership_generation: OwnershipGeneration2;
   protocol_version: ProtocolVersion6;
   remote_execution_enabled: RemoteExecutionEnabled;
@@ -2994,6 +3013,17 @@ export interface PasswordChangeInput {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "PendingApprovalCancelled".
+ */
+export interface PendingApprovalCancelled {
+  attempt_id: AttemptId1;
+  completed: Completed;
+  device_id: DeviceId5;
+  outcome: Outcome;
+  owner_id: OwnerId2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "BrowserSession".
  */
 export interface BrowserSession {
@@ -3006,9 +3036,9 @@ export interface BrowserSession {
  * via the `definition` "PairingStatus".
  */
 export interface PairingStatus {
-  attempt_id: AttemptId1;
+  attempt_id: AttemptId2;
   claimed_account: AccountIdentity | null;
-  device_id: DeviceId4;
+  device_id: DeviceId6;
   expires_at: ExpiresAt2;
   requested_scopes: RequestedScopes1;
   revision: Revision5;
@@ -3127,10 +3157,10 @@ export interface ResultCommand {
 export interface ServerHello {
   connection_generation: ConnectionGeneration;
   dead_timeout_s: DeadTimeoutS;
-  device_id: DeviceId5;
+  device_id: DeviceId7;
   heartbeat_s: HeartbeatS;
   kind: Kind17;
-  owner_id: OwnerId1;
+  owner_id: OwnerId3;
   ownership_generation: OwnershipGeneration3;
   policy: DevicePolicy;
   policy_revision: PolicyRevision1;
@@ -3142,7 +3172,7 @@ export interface ServerHello {
  */
 export interface ClientReady {
   connection_generation: ConnectionGeneration1;
-  device_id: DeviceId6;
+  device_id: DeviceId8;
   kind: Kind18;
   ownership_generation: OwnershipGeneration4;
   protocol_version: ProtocolVersion8;
@@ -3155,7 +3185,7 @@ export interface ClientReady {
 export interface RelayCommand {
   command: Command1;
   connection_generation: ConnectionGeneration2;
-  device_id: DeviceId7;
+  device_id: DeviceId9;
   kind: Kind19;
   ownership_generation: OwnershipGeneration5;
   protocol_version: ProtocolVersion9;
@@ -3166,7 +3196,7 @@ export interface RelayCommand {
  */
 export interface RelayReply {
   connection_generation: ConnectionGeneration3;
-  device_id: DeviceId8;
+  device_id: DeviceId10;
   kind: Kind20;
   ownership_generation: OwnershipGeneration6;
   protocol_version: ProtocolVersion10;
@@ -3178,7 +3208,7 @@ export interface RelayReply {
  */
 export interface RelayPing {
   connection_generation: ConnectionGeneration4;
-  device_id: DeviceId9;
+  device_id: DeviceId11;
   kind: Kind21;
   nonce: Nonce;
   ownership_generation: OwnershipGeneration7;
@@ -3190,7 +3220,7 @@ export interface RelayPing {
  */
 export interface RelayPong {
   connection_generation: ConnectionGeneration5;
-  device_id: DeviceId10;
+  device_id: DeviceId12;
   kind: Kind22;
   nonce: Nonce1;
   ownership_generation: OwnershipGeneration8;
