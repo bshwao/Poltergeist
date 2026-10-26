@@ -177,6 +177,7 @@ separately; frame-zero observations are not used to claim cleanup.
 | Cross-profile endpoint ownership | Real active CARLA contention plus OS process/alias tests and cleanup retention | Unsupported-client behavior and other OS accounts/machines |
 | Claimed worker process loss | Actual opening/running process exits, real orphaned CARLA vehicles/settings, honest failed recovery and reset quarantine | Wider native fault timing and independent machines |
 | Cancellation ordering | Lost ACK before/after commit, a repeated coordinator outage, offline cleanup and durable final result; waiter/rollback tests | Additional finalization race stress and external acceptance |
+| Final output commit | Forced real SQLite writer ordering and actual process exits before/after final-result commit, in source and Runtime I; original ACK and next queued job stay intact | Broader native CARLA timing, physical faults and power-loss durability |
 | Reconnection and heartbeat | Native TLS deadlines, a 102-second packaged-process suspension, new-generation reconnect and original-result reconciliation; truthful activity timestamps | Physical PC sleep/resume, NIC faults and longer real outages |
 | Distribution | Runtime H passes native CARLA crash/quarantine/reset; Runtime I matches 173 sources and passes installed compiled-profile TLS/DPAPI/recovery/suspension with data-preserving uninstall | Actual shortcut/visual and independent-machine fault validation |
 
@@ -255,7 +256,17 @@ the shortcut itself is not invoked. A first attempt exposed a harness scan gap
 for logs outside the fixture folder; the expanded scan passes on a second fresh
 installation/profile, and both attempts remain recorded.
 
-S6 remains open for actual installed shortcut/visual acceptance, wider native
-cancellation/finalization races, physical sleep/network faults and external
+The [finalization-boundary record](validation/s6-finalization-boundaries.json)
+adds both writer orders and actual process loss after artifact publication, before
+and after result commit. A pre-commit exit recovers as failed without replaying
+execution; a post-commit exit keeps its completed result and artifact references.
+The surviving queued run completes, the original cancellation ACK stays unchanged
+and a second restart changes no finalized revision. Pre-commit orphan files are
+retained outside the recovered failed result; this is separate from S8 retention
+and from power-loss durability. All four cases pass in private Runtime I, alongside
+the two source interpreters' 25-check regression batches.
+
+S6 remains open for actual installed shortcut/visual acceptance, broader native
+CARLA cancellation/finalization timing, physical sleep/network faults and external
 supported-machine acceptance. Passing a private checkpoint does not close those
 requirements or the earlier independent-machine/release gates.

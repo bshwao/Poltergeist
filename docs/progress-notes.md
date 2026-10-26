@@ -38,6 +38,26 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Added four finalization-boundary cases, passing on Python 3.12/3.14 and private
+  Runtime I. Actual SQLite writers are forced into both cancellation/finalization
+  orders; independent readers see neither uncommitted result nor receipt, the
+  original ACK remains stable, and a late cancellation never signals the next
+  queued run. Actual process exits before/after result commit preserve the original
+  receipts and surviving waiter. Source regression batches pass 25 checks per
+  interpreter. See the [boundary record](validation/s6-finalization-boundaries.json).
+- A crash after artifact publication but before SQL commit recovers the original
+  run as failed once, with zero reported frames; uncommitted artifact files stay
+  retained outside that failed result. A crash after commit preserves its five
+  completed frames and original artifact references. Both retain the original
+  nonterminal cancel ACK through a second restart. These are synthetic/private
+  runtime proofs; physical/native CARLA and power-loss scope stay separate.
+- All four full Python suites passed for `6a8377c` in
+  [run 40414408904](https://github.com/bshwao/Poltergeist/actions/runs/40414408904),
+  then its core jobs failed because diagnostic artifacts had already created the
+  CLI's required-new output directory. The workflow now creates the evidence
+  parent explicitly and gives installation validation its own fresh subdirectory.
+  The exact Python stanza passes locally beside existing diagnostics, preserving
+  them. The next matrix must validate the complete workflow again.
 - Installed Runtime I into a fresh validation-only target and exercised its exact
   compiled profile, initially containing only the installer owner marker. The
   normal first-run synthetic callback, uncertain approval recovery, two-account

@@ -1,0 +1,169 @@
+{
+  "schema_version": "poltergeist-s6-finalization-boundaries-v1",
+  "recorded_at": "2026-10-26T23:03:31.167786+00:00",
+  "source_base_commit": "6a8377c4e48e8d84660801e58102e5353449c86e",
+  "s6_complete": false,
+  "scope": "Real SQLite writer interleavings and actual disposable-process exits; synthetic adapter, direct RemoteService with test-approved binding, same Windows laptop/account.",
+  "source_batches_overlap": true,
+  "source_batches": [
+    {
+      "python": "312",
+      "passed": 25,
+      "receipt": "validation-evidence/s6-finalization312-final.xml",
+      "receipt_sha256": "b7bb9409ceecf81af52c53c35e308fb803ba4f243ac9ffd1007407d4afb65ea8"
+    },
+    {
+      "python": "314",
+      "passed": 25,
+      "receipt": "validation-evidence/s6-finalization314-final.xml",
+      "receipt_sha256": "81b72ac18f136347d75522cb3187b25ae5030bc639f488d758fb8fa043d542b2"
+    }
+  ],
+  "private_runtime": {
+    "python": "3.12.15",
+    "bundle_manifest_sha256": "ee1a99b888ca7b9f2c9ebe2e184423e075bc21f18c6d4ef9cd44f476cf5c7687",
+    "source_python_files_matched": 173,
+    "integrity_files_before_and_after": 6084,
+    "first_party_import_provenance_entries": 77,
+    "all_first_party_imports_within_bundle": true,
+    "writer_order_cases": [
+      {
+        "first_writer": "finalization",
+        "original_cancel_terminal": true,
+        "original_final_status": "completed",
+        "original_cancel_requested": false,
+        "next_run_status": "completed",
+        "next_run_cancel_requested": false,
+        "runner_cancellation_targets": [],
+        "frames_per_run": 5,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 4,
+        "uncommitted_writes_hidden_from_independent_reader": true,
+        "original_ack_unchanged_after_next_run_and_restart": true,
+        "artifacts_verified": true,
+        "worker_accepting_after_restart": true
+      },
+      {
+        "first_writer": "cancellation",
+        "original_cancel_terminal": false,
+        "original_final_status": "completed",
+        "original_cancel_requested": true,
+        "next_run_status": "completed",
+        "next_run_cancel_requested": false,
+        "runner_cancellation_targets": [
+          "Finalizing original run"
+        ],
+        "frames_per_run": 5,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 4,
+        "uncommitted_writes_hidden_from_independent_reader": true,
+        "original_ack_unchanged_after_next_run_and_restart": true,
+        "artifacts_verified": true,
+        "worker_accepting_after_restart": true
+      }
+    ],
+    "actual_process_loss_cases": [
+      {
+        "boundary": "before_commit",
+        "actual_child_exit_code": 79,
+        "owned_process_tree_exited": true,
+        "child_product_imports_match_parent": true,
+        "original_status": "failed",
+        "original_frames": 0,
+        "surviving_waiter_status": "completed",
+        "surviving_waiter_frames": 5,
+        "original_cancel_terminal": false,
+        "cancel_ack_replayed_unchanged": true,
+        "result_revision_unchanged_on_second_restart": true,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 3,
+        "published_artifacts_verified": 2,
+        "uncommitted_original_artifacts_retained_outside_recovered_result": true
+      },
+      {
+        "boundary": "after_commit",
+        "actual_child_exit_code": 79,
+        "owned_process_tree_exited": true,
+        "child_product_imports_match_parent": true,
+        "original_status": "completed",
+        "original_frames": 5,
+        "surviving_waiter_status": "completed",
+        "surviving_waiter_frames": 5,
+        "original_cancel_terminal": false,
+        "cancel_ack_replayed_unchanged": true,
+        "result_revision_unchanged_on_second_restart": true,
+        "runs": 2,
+        "jobs": 2,
+        "receipts": 3,
+        "published_artifacts_verified": 2,
+        "uncommitted_original_artifacts_retained_outside_recovered_result": false
+      }
+    ],
+    "receipt": "validation-evidence/s6-finalization-native-i-20261026-b/receipt.json",
+    "receipt_sha256": "cdd298b9bc9e5ec0e1b17a528b30f06ce09d049ffbeebb1e17f0c286ace910ed"
+  },
+  "ci_output_collision": {
+    "failed_commit": "6a8377c4e48e8d84660801e58102e5353449c86e",
+    "run_id": 40414408904,
+    "url": "https://github.com/bshwao/Poltergeist/actions/runs/40414408904",
+    "jobs": [
+      {
+        "job": "core (windows-latest, 3.12)",
+        "id": 121892980176,
+        "pytest_passed": 3205,
+        "pytest_skipped": 19,
+        "pytest_seconds": 1036.01,
+        "failed_step": "Isolated agent and sensor workflow"
+      },
+      {
+        "job": "core (windows-latest, 3.14)",
+        "id": 121892980179,
+        "pytest_passed": 3205,
+        "pytest_skipped": 19,
+        "pytest_seconds": 1081.16,
+        "failed_step": "Isolated agent and sensor workflow"
+      },
+      {
+        "job": "core (ubuntu-latest, 3.14)",
+        "id": 121892980186,
+        "pytest_passed": 3185,
+        "pytest_skipped": 39,
+        "pytest_seconds": 452.65,
+        "failed_step": "Isolated agent and sensor workflow"
+      },
+      {
+        "job": "core (ubuntu-latest, 3.12)",
+        "id": 121892980325,
+        "pytest_passed": 3185,
+        "pytest_skipped": 39,
+        "pytest_seconds": 467.47,
+        "failed_step": "Isolated agent and sensor workflow"
+      }
+    ],
+    "cause": "Pytest diagnostics now create validation-evidence before the following CLI step, which correctly refuses an existing output directory.",
+    "change": "The workflow explicitly creates the evidence parent and gives the CLI a fresh installation subdirectory; diagnostic files and the CLI refusal guard are preserved.",
+    "local_exact_python_stanza_exit_code": 0,
+    "local_existing_diagnostics_preserved": true,
+    "local_receipt": "validation-evidence/s6-ci-output-isolation-20261026/receipt.json",
+    "new_matrix_required": true
+  },
+  "source_sha256": {
+    "tests/finalization_faults.py": "b9603e8d3fad305a96aee24e8d91e92bee14a605428da7c1c2e76c1f6e714269",
+    "tests/test_remote_finalization_races.py": "1c4cee4cadf9925ceeca1090fe426f6f9ac1616656dbb8fa9adcb78295de2d79",
+    ".github/workflows/validation.yml": "6131dd4f025dba6613c9648b1bb0955400a41f24006aeecb1557bfb4d153d83a"
+  },
+  "retained_initial_fixture_failure": {
+    "receipt": "validation-evidence/s6-finalization-crashes312-first.xml",
+    "reason": "The source-only isolated child could not import companion through stale editable metadata. Explicit source-checkout bootstrapping was added; private-bundle children cannot use that switch."
+  },
+  "limitations": [
+    "No real CARLA run, GUI consent/shortcut, TLS, physical PC sleep/NIC failure, public hosting or external-machine acceptance in this fixture.",
+    "Before-commit crash artifacts remain retained outside the recovered failed result; automatic orphan retention/collection belongs to S8.",
+    "Same-process writer gates and process exits do not establish power-loss/fsync durability.",
+    "The earlier intermittent enrollment transport cause remains unproven; this output-directory collision is a separate confirmed regression.",
+    "Wider native fault timing and supported-machine/release gates remain open."
+  ]
+}

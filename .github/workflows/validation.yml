@@ -35,7 +35,11 @@ jobs:
       - run: python -m scripts.export_contracts --check
       - run: python -m scripts.doctor
       - name: Isolated agent and sensor workflow
-        run: python -m scripts.validate_installation --mode test --sensors --duration .15 --seeds 7 --output validation-evidence
+        shell: python
+        run: |
+          import pathlib, subprocess, sys
+          pathlib.Path('validation-evidence').mkdir(exist_ok=True)
+          subprocess.run([sys.executable, '-m', 'scripts.validate_installation', '--mode', 'test', '--sensors', '--duration', '.15', '--seeds', '7', '--output', 'validation-evidence/installation'], check=True)
       - name: Build wheel
         run: python -m pip wheel --no-deps . --wheel-dir validation-wheel
       - name: Test non-editable core and coordinator wheel workflows outside the checkout
