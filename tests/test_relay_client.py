@@ -625,6 +625,57 @@ def test_heartbeat_expiry_uses_monotonic_deadline_and_valid_ping_refresh(monkeyp
     assert socket.timeouts == [10, 1, 1, 1]
 
 
+@pytest.mark.parametrize("kind", ["ping", "command"])
+def test_frame_returned_after_receive_suspension_cannot_revive_expired_connection(monkeypatch, kind):
+    values = enrollment("https://fixture.example")
+    hello, clock, service = hello_for(values), [0.], Dispatch()
+    message = (RelayPing(**fields(hello), nonce=uuid4()) if kind == "ping" else
+               RelayCommand(**fields(hello), command=StatusCommand(request_id=uuid4())))
+    socket = ClockSocket(hello, clock, [(90., message)])
+    monkeypatch.setattr("companion.relay_client.monotonic", lambda: clock[0])
+    client = RelayClient(values[0].origin, lambda: values, service, remote_execution_enabled=True)
+    with pytest.raises(RelayClientError, match="heartbeat expired"):
+        client._serve(socket, *values)
+    assert service.calls == []
+    assert [type(message) for message in socket.sent] == [ClientReady]
+
+
+def test_stop_during_receive_prevents_dispatch_of_the_returned_command(monkeypatch):
+    values = enrollment("https://fixture.example")
+    hello, clock, service = hello_for(values), [0.], Dispatch()
+    command = RelayCommand(**fields(hello), command=StatusCommand(request_id=uuid4()))
+    class Socket(ClockSocket):
+        def recv(self, timeout):
+            if self.hello is None:
+                client._stop.set()
+            return super().recv(timeout)
+    socket = Socket(hello, clock, [(1., command)])
+    monkeypatch.setattr("companion.relay_client.monotonic", lambda: clock[0])
+    client = RelayClient(values[0].origin, lambda: values, service, remote_execution_enabled=True)
+    client._serve(socket, *values)
+    assert service.calls == []
+    assert [type(message) for message in socket.sent] == [ClientReady]
+
+
+def test_dispatch_that_outlives_heartbeat_keeps_its_receipt_without_sending_on_expired_socket(monkeypatch):
+    values = enrollment("https://fixture.example")
+    hello, clock = hello_for(values), [0.]
+    class Service(Dispatch):
+        def dispatch(self, binding, command):
+            reply = super().dispatch(binding, command)
+            clock[0] = 91.
+            return reply
+    service = Service()
+    command = RelayCommand(**fields(hello), command=StatusCommand(request_id=uuid4()))
+    socket = ClockSocket(hello, clock, [(1., command)])
+    monkeypatch.setattr("companion.relay_client.monotonic", lambda: clock[0])
+    client = RelayClient(values[0].origin, lambda: values, service, remote_execution_enabled=True)
+    with pytest.raises(RelayClientError, match="heartbeat expired"):
+        client._serve(socket, *values)
+    assert len(service.calls) == 1
+    assert [type(message) for message in socket.sent] == [ClientReady]
+
+
 @pytest.mark.parametrize("change", ["binding", "policy", "credential"])
 def test_local_enrollment_changes_stop_dispatch_before_next_message(change):
     values = enrollment("https://fixture.example")

@@ -156,6 +156,12 @@ class RelayClient:
                 raw = socket.recv(timeout=1)
             except TimeoutError:
                 continue
+            # A native receive may return after suspension or a long scheduler
+            # gap. Its buffered frame cannot renew an already expired session.
+            if self._stop.is_set():
+                break
+            if monotonic() - last_message >= hello.dead_timeout_s:
+                raise RelayClientError("The relay heartbeat expired")
             message = parse_message(raw)
             if any(getattr(message, field) != value for field, value in fields.items()):
                 raise RelayClientError("A stale relay generation was refused")
@@ -164,6 +170,10 @@ class RelayClient:
                 self._send(socket, RelayPong(**fields, nonce=message.nonce))
             elif isinstance(message, RelayCommand) and self.enabled:
                 reply = self.service.dispatch(binding, message.command)
+                if self._stop.is_set():
+                    break
+                if monotonic() - last_message >= hello.dead_timeout_s:
+                    raise RelayClientError("The relay heartbeat expired")
                 self._send(socket, RelayReply(**fields, reply=reply))
             else:
                 raise RelayClientError("The coordinator sent an unsupported relay message")

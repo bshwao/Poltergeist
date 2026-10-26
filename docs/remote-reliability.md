@@ -1,8 +1,9 @@
 # S6 reliable execution: current checkpoint
 
 S6 is in progress. Public S5 deployment is deferred at the user's request.
-The current source adds CARLA endpoint ownership across companion profiles and
-native process-loss checks for the existing durable command/worker boundary.
+The current source adds CARLA endpoint ownership across companion profiles,
+native process-loss checks, real coordinator crash/restart acceptance and
+deadline checks across receive/scheduling gaps.
 It does not close the complete crash, network and physical sleep acceptance matrix.
 
 ## CARLA execution ownership
@@ -37,8 +38,10 @@ python -m scripts.recover_carla_endpoint --host 127.0.0.1 --port 2000 `
 ```
 
 Use the original configured hostname so all of its lease records are inspected.
-The command acquires exclusive ownership, refuses dynamic actors or synchronous
-mode, and clears only valid quarantine metadata. It does not destroy actors,
+The command acquires exclusive ownership, refuses synchronous mode, waits for a
+natural asynchronous snapshot and checks its frame/episode before trusting the
+actor inventory. Dynamic actors prevent recovery. Only valid quarantine metadata
+is cleared. It does not destroy actors,
 reload maps or change world settings. Corrupt metadata fails closed for inspection.
 
 This is coordination among cooperating Poltergeist processes for one OS account
@@ -53,7 +56,7 @@ native call is alive rather than claiming that the process has stopped.
 
 The native crash fixture uses actual workers, SQLite transactions and remote
 receipts, then exits the real worker process with `os._exit` before any Python
-cleanup. Recovery marks claimed work failed with an interrupted-execution error.
+cleanup, during either opening or running. Recovery marks claimed work failed with an interrupted-execution error.
 It never retries that execution under a new simulation identity. A surviving
 uncancelled waiter runs normally; a cancelled waiter stays cancelled.
 
@@ -65,7 +68,7 @@ frames and unknown measurements for the interrupted run.
 
 ## Evidence and remaining work
 
-Both Python 3.12 and 3.14 pass 139 targeted ownership, cleanup, process-loss and
+The earlier checkpoint passes 139 targeted ownership, cleanup, process-loss and
 remote-receipt checks, with one unavailable Windows symlink fixture skipped.
 The real website/normal-companion CARLA baseline also passes with the new lease:
 0.5 simulated seconds, 11 frames, restored episode/actor IDs/world settings, then
@@ -74,13 +77,46 @@ proof with partial coverage, not a new safety benchmark. The unchanged baseline
 retains SHA256 `bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d`.
 See the [checkpoint receipt](validation/s6-ownership-recovery.json).
 
+The follow-up [relay/native recovery receipt](validation/s6-relay-native-recovery.json)
+records these additional checks:
+
+- Actual HTTPS/WSS coordinator processes crash immediately before or after an
+  execute/cancel reply commits. Two accounts and two companions reconnect to the
+  same database. Original ACKs reconcile, Alice keeps one run and Bob's queue
+  stays empty. A second outage during cancellation lets cleanup finish locally;
+  the later result is cancelled while the original cancellation ACK is unchanged.
+- Companion and coordinator recheck deadlines after receives. A buffered
+  ready/pong/reply/command cannot revive an expired session. Delivery rechecks
+  after pending work is loaded, and Stop during a receive prevents dispatch.
+  Server-side heartbeat polling no longer updates device last-seen activity.
+- A dedicated real CARLA server retains two vehicles and synchronous/fixed-step
+  settings after actual companion process loss in running state. Direct actor-ID
+  RPCs establish vehicle presence. The same-episode quarantine blocks another
+  profile without changing those vehicles or settings. After only the owned
+  server is restarted, a new baseline completes; the original interrupted request
+  still has its one failed job. Live contention also blocks a second profile
+  while a healthy native owner is running, then verified cleanup succeeds.
+
+### Initial actor inventories are not proof of an empty paused world
+
+The first observer reported frame zero and no actors even while the owner was
+running. That observation cannot establish actor absence. CARLA 0.9.16's client
+[skips its initial state wait in synchronous mode](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/client/detail/Simulator.cpp#L122-L131),
+and [enumerates actors from its cached episode state](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/client/detail/Episode.cpp#L115-L120).
+The corrected witness queries known spawned IDs through fresh clients. Recovery
+requires a naturally received nonzero snapshot whose
+[episode identity matches the world](https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/client/WorldSnapshot.h#L22-L28)
+before considering the actor list. It never forces a tick to inspect a paused
+world. The initial weak witness and the corrected direct-RPC evidence are retained
+separately; frame-zero observations are not used to claim cleanup.
+
 | Fault area | Current evidence | Remaining acceptance |
 | --- | --- | --- |
-| Lost acceptance / duplicate submit | S4 real WSS proof, S5 browser response loss and transactional receipt races | Wider coordinator/process crash timing combinations |
-| Cross-profile endpoint ownership | Native OS process contention, loopback/DNS alias overlap, cleanup retention and abrupt-loss quarantine | Broader live multi-profile native contention and unsupported-client behavior |
-| Claimed worker process loss | Actual process exit before open completes, honest failed recovery and stable receipt replay | Native process loss during running CARLA with orphaned simulator resources |
-| Cancellation ordering | Active request flag survives interruption; cancelled waiter remains cancelled; existing atomic rollback tests | Additional disconnect/crash boundaries around finalization |
-| Reconnection and heartbeat | Existing native TLS deadlines, stale-generation rejection and monotonic heartbeat tests | Physical PC sleep/resume, long outages and repeated coordinator failure |
+| Lost acceptance / duplicate submit | Real TLS coordinator crashes before/after ACK commit; original identity/ACK and one run survive | Wider operational fault combinations and independent machines |
+| Cross-profile endpoint ownership | Real active CARLA contention plus OS process/alias tests and cleanup retention | Unsupported-client behavior and other OS accounts/machines |
+| Claimed worker process loss | Actual opening/running process exits, real orphaned CARLA vehicles/settings, honest failed recovery and reset quarantine | Wider native fault timing and independent machines |
+| Cancellation ordering | Lost ACK before/after commit, a repeated coordinator outage, offline cleanup and durable final result; waiter/rollback tests | Additional finalization race stress and external acceptance |
+| Reconnection and heartbeat | Native TLS deadlines and reconnects; late-frame/overdue-ping/scheduling-gap rejection; truthful activity timestamps | Physical PC sleep/resume and longer real outages |
 | Distribution | Source runtime verified | A new packaged runtime and independent-machine fault validation |
 
 Earlier fixture failures remain recorded: the first OS crash test killed a
@@ -89,3 +125,5 @@ now exits the actual child abruptly. The first worker crash fixture swapped
 owner/device arguments and incorrectly required a queued cancellation to remain
 nonterminal; both fixture assumptions were corrected without weakening assertions
 about production identity or final outcomes. The original failed logs are retained.
+The follow-up's seven pre-fix late-frame tests also remain recorded as failed;
+their passing repeats do not replace that evidence.

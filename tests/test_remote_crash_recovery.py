@@ -1,7 +1,6 @@
 """Abrupt process loss must not replay claimed work or lose cancel receipts."""
 
 import json
-from pathlib import Path
 import subprocess
 import sys
 from threading import Event
@@ -45,6 +44,12 @@ policy=DevicePolicy(scopes=list(PermissionScope))
 entered=Event()
 class Held(TestSimulationAdapter):
  def open(self,scenario):
+  if data['phase']=='opening':
+   self.hold()
+  return super().open(scenario)
+ def step(self,control,commands):
+  self.hold()
+ def hold(self):
   entered.set()
   Event().wait(60)
   raise RuntimeError('Crash fixture was not terminated')
@@ -57,6 +62,7 @@ second=ExecuteCommand.model_validate(data['second'])
 accepted=service.dispatch(binding,first)
 assert accepted.kind=='accepted'
 assert entered.wait(20)
+assert worker.get(accepted.simulation_id).simulation.status==('queued' if data['phase']=='opening' else 'running')
 waiting=service.dispatch(binding,second)
 assert waiting.kind=='accepted'
 cancel=CancelCommand(request_id=data['cancel_request'],simulation_id=waiting.simulation_id if data['cancel_waiting'] else accepted.simulation_id)
@@ -72,7 +78,8 @@ os._exit(79)
 
 
 @pytest.mark.parametrize("cancel_waiting", [False, True])
-def test_actual_process_loss_fails_claimed_run_retains_waiter_and_replays_original_receipts(tmp_path, cancel_waiting):
+@pytest.mark.parametrize("phase", ["opening", "running"])
+def test_actual_process_loss_fails_claimed_run_retains_waiter_and_replays_original_receipts(tmp_path, cancel_waiting, phase):
     binding = RemoteBinding("https://coordinator.example", uuid4(), uuid4(), 1)
     policy = DevicePolicy(scopes=list(PermissionScope))
     first = ExecuteCommand(request_id=uuid4(), scenario={"name": "Interrupted owned run", "duration_s": .1,
@@ -81,7 +88,7 @@ def test_actual_process_loss_fails_claimed_run_retains_waiter_and_replays_origin
         "actors": [{"id": "ego", "type": "ego_vehicle"}]}, mode="test")
     data = {"root": str(tmp_path), "origin": binding.origin, "owner": str(binding.owner_id),
         "device": str(binding.device_id), "first": first.model_dump(mode="json"), "second": second.model_dump(mode="json"),
-        "cancel_request": str(uuid4()), "cancel_waiting": cancel_waiting}
+        "cancel_request": str(uuid4()), "cancel_waiting": cancel_waiting, "phase": phase}
     child = subprocess.run([sys.executable, "-u", "-c", CHILD], input=json.dumps(data),
         capture_output=True, text=True, timeout=45)
     assert child.returncode == 79, child.stderr
@@ -99,6 +106,7 @@ def test_actual_process_loss_fails_claimed_run_retains_waiter_and_replays_origin
         assert interrupted.simulation.status == "failed"
         assert "interrupted" in interrupted.simulation.error
         assert interrupted.result.telemetry_frames == 0
+        assert (interrupted.simulation.started_at is not None) is (phase == "running")
         assert recovered.simulation.status == ("cancelled" if cancel_waiting else "completed")
         assert recovered.result is not None
         # Even a lost acceptance/cancel acknowledgement cannot create a new run

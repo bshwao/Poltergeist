@@ -343,7 +343,7 @@ def test_heartbeat_requires_current_grants_and_expires_without_pong():
     from coordinator.relay import RelayHub
     calls, clock, sent = [], [0.], []
     class Commands:
-        def authenticate(self, credential, identity):
+        def connection_current(self, credential, identity):
             calls.append(clock[0])
     async def sleep(duration):
         assert duration == 30
@@ -357,8 +357,30 @@ def test_heartbeat_requires_current_grants_and_expires_without_pong():
     hub = RelayHub(Commands(), monotonic=lambda: clock[0], sleep=sleep)
     with pytest.raises(TimeoutError, match="heartbeat expired"):
         asyncio.run(hub._heartbeat(current))
-    assert calls == [30., 60., 90., 120.]
+    assert calls == [30., 60., 90.]
     assert len(sent) == 1 and sent[0].kind == "ping"
+
+
+def test_server_heartbeats_do_not_manufacture_device_last_seen_activity(setup):
+    import asyncio
+    from types import SimpleNamespace
+    from coordinator.relay import RelayHub
+    service, pairing, store, now, owner, bob, device, credential, identity = setup
+    clock, sent = [0.], []
+    before = service.last_seen(owner, device)
+    async def sleep(duration):
+        clock[0] += duration
+        now[0] += duration
+    async def send(message):
+        sent.append(message)
+    current = SimpleNamespace(credential=credential, identity=identity, last_received=0., ping=None, send=send,
+        envelope=lambda: {"device_id": device, "ownership_generation": 1,
+                          "connection_generation": identity["connection_generation"]})
+    hub = RelayHub(service, monotonic=lambda: clock[0], sleep=sleep)
+    with pytest.raises(TimeoutError, match="heartbeat expired"):
+        asyncio.run(hub._heartbeat(current))
+    assert service.last_seen(owner, device) == before
+    assert len(sent) == 1
 
 
 def test_duplicate_websocket_authorization_is_rejected_before_authentication(web):

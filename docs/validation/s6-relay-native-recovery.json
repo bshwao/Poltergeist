@@ -1,0 +1,225 @@
+{
+  "schema_version": "poltergeist-s6-relay-native-recovery-v1",
+  "recorded_local_date": "2026-10-25",
+  "branch": "codex/s6-reliable-execution",
+  "source_base": "62b962341f2544a78084e61c2441040817591aed",
+  "status": "expanded_source_fault_matrix_passed_s6_incomplete",
+  "s5_public_deployment": "deferred_by_user",
+  "production_changes": [
+    "Reject buffered frames after heartbeat deadlines on both endpoints",
+    "Stop during receive prevents dispatch; an expired dispatch cannot send its reply on the old socket",
+    "Recheck freshness after reading pending work and before delivery",
+    "Overdue ping makes availability false even with recent other traffic",
+    "Read-only server heartbeat checks preserve truthful device last-seen activity",
+    "Require a naturally received valid same-episode snapshot before empty-world recovery"
+  ],
+  "local_batches": {
+    "s6-final-reliability-python312": {
+      "passed": 76,
+      "failures": 0,
+      "skipped": 0,
+      "seconds": 94.703,
+      "receipt": "validation-evidence/s6-final-reliability-python312.xml"
+    },
+    "s6-reliability-python314": {
+      "passed": 80,
+      "failures": 0,
+      "skipped": 0,
+      "seconds": 289.831,
+      "receipt": "validation-evidence/s6-reliability-python314.xml"
+    },
+    "s6-final-guard-and-restarts314": {
+      "passed": 25,
+      "failures": 0,
+      "skipped": 1,
+      "seconds": 190.057,
+      "receipt": "validation-evidence/s6-final-guard-and-restarts314.xml"
+    },
+    "s6-final-nontls312": {
+      "passed": 152,
+      "failures": 0,
+      "skipped": 1,
+      "seconds": 16.472,
+      "receipt": "validation-evidence/s6-final-nontls312.xml"
+    },
+    "s6-repeated-coordinator312": {
+      "passed": 1,
+      "failures": 0,
+      "skipped": 0,
+      "seconds": 51.199,
+      "receipt": "validation-evidence/s6-repeated-coordinator312.xml"
+    },
+    "s6-snapshot-guard": {
+      "passed": 21,
+      "failures": 0,
+      "skipped": 1,
+      "seconds": 10.256,
+      "receipt": "validation-evidence/s6-snapshot-guard.xml"
+    }
+  },
+  "batch_note": "Batches overlap; counts are not a combined unique-test total.",
+  "coordinator_process_faults": {
+    "transport": "Real HTTPS/WSS with strict fixture-CA and hostname verification",
+    "accounts": 2,
+    "companions": 2,
+    "credential_protection": "Windows DPAPI; explicit memory fixture on POSIX",
+    "boundaries": [
+      "execute before reply commit",
+      "execute after reply commit",
+      "cancel before reply commit",
+      "cancel after reply commit"
+    ],
+    "assertions": [
+      "Actual process exit 79 before replacement starts",
+      "Original identity and exact ACK reconcile against the same database",
+      "Alice retains one run and Bob has no work",
+      "Foreign account/device history remains denied after restart",
+      "Repeated cancellation outage permits offline local completion and result readback after a second reconnect",
+      "Original cancellation ACK remains distinct from its final outcome"
+    ]
+  },
+  "native_carla": {
+    "version": "0.9.16",
+    "map": "Town10HD_Opt",
+    "dedicated_port": 2012,
+    "launch_quality_argument": "Low",
+    "render_offscreen_argument": true,
+    "runtime": "Normal companion runtime with programmatic approved local binding; progress callback only exits or holds",
+    "crash_signal": {
+      "process_id": 13384,
+      "simulation_id": "083211ff-547b-4df2-99bc-743a716a0e5d",
+      "status": "running",
+      "started_at": "2026-10-26T02:30:41.224439+00:00",
+      "adapter": "carla",
+      "episode": 3840617674013697439,
+      "frame": 143976,
+      "native_actor_ids": [
+        32,
+        33
+      ]
+    },
+    "orphaned_vehicles_by_direct_id_rpc": [
+      [
+        32,
+        "vehicle.tesla.model3"
+      ],
+      [
+        33,
+        "vehicle.tesla.model3"
+      ]
+    ],
+    "unclean_settings": {
+      "synchronous": true,
+      "fixed_delta_seconds": 0.05
+    },
+    "observer_snapshot_frame": 0,
+    "same_episode_denial": "validation-evidence/s6-v2-after-denial-known-actors.json",
+    "live_owner_vehicles": [
+      [
+        29,
+        "vehicle.tesla.model3"
+      ],
+      [
+        30,
+        "vehicle.tesla.model3"
+      ]
+    ],
+    "live_contention_denial": "validation-evidence/s6-v2-active-after-denial.json",
+    "inspected_recovery": {
+      "occupied_world_refused": true,
+      "natural_frame_before": 1542,
+      "natural_frame_after": 1545,
+      "empty_world_recovery_verified": true,
+      "no_forced_tick": true
+    },
+    "stages": {
+      "reconcile": {
+        "simulation_id": "083211ff-547b-4df2-99bc-743a716a0e5d",
+        "execute_request_id": "be2f3d0b-4033-4373-b249-6bbdde0d0d3e",
+        "status": "failed",
+        "jobs": 1,
+        "frames": 0,
+        "duration_s": 0.0,
+        "local_receipt": "validation-evidence/s6-native-recovery-v2-20261025/reconcile.json"
+      },
+      "blocked": {
+        "simulation_id": "34baa456-d84b-4481-aa2f-ea8840c7ae22",
+        "execute_request_id": "8f58cbdb-c054-4316-aac3-3e268e4f9c3f",
+        "status": "failed",
+        "jobs": 1,
+        "frames": 0,
+        "duration_s": 0.0,
+        "local_receipt": "validation-evidence/s6-native-recovery-v2-20261025/blocked.json"
+      },
+      "recovered": {
+        "simulation_id": "689dff2e-c1e9-43af-96c8-961a62a84224",
+        "execute_request_id": "edbed433-9b08-4bbe-9503-db5f12d47050",
+        "status": "completed",
+        "jobs": 1,
+        "frames": 11,
+        "duration_s": 0.5000000074505806,
+        "local_receipt": "validation-evidence/s6-native-recovery-v2-20261025/recovered.json"
+      },
+      "verify-original": {
+        "simulation_id": "083211ff-547b-4df2-99bc-743a716a0e5d",
+        "execute_request_id": "be2f3d0b-4033-4373-b249-6bbdde0d0d3e",
+        "status": "failed",
+        "jobs": 1,
+        "frames": 0,
+        "duration_s": 0.0,
+        "local_receipt": "validation-evidence/s6-native-recovery-v2-20261025/verify-original.json"
+      },
+      "active-blocked": {
+        "simulation_id": "8496288d-bcbe-4add-8e56-cc8890c26ce1",
+        "execute_request_id": "9608bfc9-3f24-42b3-9d1c-2c559460ac45",
+        "status": "failed",
+        "jobs": 1,
+        "frames": 0,
+        "duration_s": 0.0,
+        "local_receipt": "validation-evidence/s6-native-recovery-v2-20261025/active-blocked.json"
+      },
+      "hold-running": {
+        "simulation_id": "95111b63-4ca3-4707-8822-3042384ac42a",
+        "execute_request_id": "8f42908f-757e-4d67-9d3c-8e7c0cead6a6",
+        "status": "completed",
+        "jobs": 1,
+        "frames": 11,
+        "duration_s": 0.5000000074505806,
+        "local_receipt": "validation-evidence/s6-native-recovery-v2-20261025/hold-running.json"
+      }
+    },
+    "final_cleanup": "validation-evidence/s6-v2-final-world.json",
+    "only_test_owned_simulator_trees_stopped": true,
+    "baseline_sha256": "bc62cc570dfbd8f3f8372538eb90305b2fd2be3d67970a67f8f5ad4dba0f1a4d"
+  },
+  "initial_failures_retained": [
+    {
+      "receipt": "validation-evidence/s6-resume-before.log",
+      "failed": 7,
+      "finding": "Stale frames/delivery revived expired connections and Stop during receive still dispatched",
+      "resolution": "Post-receive and pre-delivery freshness checks plus read-only heartbeat validation"
+    },
+    {
+      "receipt": "validation-evidence/s6-native-first-witness-assumption.json",
+      "finding": "A fresh paused observer reported frame zero and no actors even during a live run",
+      "resolution": "Never infer actor absence from that cache; repeat using known actor-ID RPCs and enforce a valid natural snapshot during recovery",
+      "corrected_evidence": "validation-evidence/s6-v2-after-crash-known-actors.json"
+    }
+  ],
+  "primary_sources": [
+    "https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/client/detail/Simulator.cpp#L122-L131",
+    "https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/client/detail/Episode.cpp#L103-L120",
+    "https://github.com/carla-simulator/carla/blob/0.9.16/LibCarla/source/carla/client/WorldSnapshot.h#L22-L28"
+  ],
+  "limits": [
+    "Physical PC sleep/resume has not been performed; deadline tests model scheduling gaps",
+    "No new packaged-runtime or independent-machine acceptance",
+    "Local native crash stages use programmatic approved bindings; hosted ownership is covered by separate real TLS tests",
+    "The fault hook wraps normal runner progress, never substitutes a native adapter",
+    "Initial frame-zero actor lists establish neither actor absence nor server frame advancement",
+    "Short completed baselines have partial coverage and null TTC; no new safety benchmark",
+    "Coordination covers cooperating versions for one OS account on one machine",
+    "Existing Windows Proactor teardown reset diagnostics remain in transport logs",
+    "Full GitHub validation for this follow-up is not reported in this pre-commit receipt"
+  ]
+}

@@ -20,7 +20,7 @@ private prototype does not close independent-machine or release validation.
 | S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime proofs pass on this laptop; all five code validation jobs pass. Public deployment, visual/default-shortcut and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
-| **S6 — Reliable remote execution** | **In progress; ownership/recovery checkpoint validated** | Cross-profile endpoint leases, unclean-episode quarantine and actual worker-loss receipt recovery pass targeted native checks and a real CARLA website run. Wider crash/network/physical-sleep and packaged acceptance remain open. See [reliability evidence](remote-reliability.md). |
+| **S6 — Reliable remote execution** | **In progress; source fault matrix expanded** | Real TLS coordinator crashes before/after ACK commits, repeated-outage cancellation, running-worker loss, native CARLA orphan/quarantine/reset and live cross-profile contention pass. Late-frame revival and artificial heartbeat activity are fixed; recovery requires a valid snapshot. Physical sleep, packaged and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
@@ -37,6 +37,25 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Fixed expired relay sessions accepting buffered frames after a scheduling gap:
+  both endpoints check after receives, command delivery checks freshness again,
+  and Stop prevents dispatch of a frame returned afterward. Read-only heartbeat
+  validation no longer manufactures a computer's last-seen activity. Seven new
+  regressions failed before the fix; native TLS and deadline repeats pass.
+- Real coordinator processes now crash before/after execute and cancellation
+  ACK commits in the fault suite. Two accounts/companions reconcile the exact
+  original ACK with one owned run and no work in the other queue. Repeated
+  coordinator loss also preserves cancellation completed locally while offline.
+- A real companion process crashed after durable running state, leaving native
+  vehicles and synchronous settings. Another profile was quarantined. Restarting
+  only the dedicated test server allowed a fresh baseline while the original
+  job remained failed once; a healthy live owner also excludes another profile.
+  Direct known-actor RPCs replace an initial weak frame-zero observer check.
+  Recovery now waits for a valid natural asynchronous snapshot before declaring
+  a world empty. See the [follow-up receipt](validation/s6-relay-native-recovery.json).
+- S6 checkpoint commit `62b9623` passes all five GitHub jobs in
+  [run 40221608654](https://github.com/bshwao/Poltergeist/actions/runs/40221608654).
+  Follow-up source changes have separate local evidence and require their own CI.
 - Assigned S11–S19 to the design/adoption milestones, Discovery/Analyst/Regression
   and sensor-driving agents, plus Hugging Face/OpenAI/GitHub integrations, at the
   user's request. The main roadmap now gives each a deliverable, dependencies

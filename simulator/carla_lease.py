@@ -20,6 +20,7 @@ _mutex = Lock()
 _owners = set()
 _BUSY = "Another Poltergeist execution owns this CARLA endpoint, or its lease is unavailable"
 _RECOVERY = "Previous CARLA cleanup is unverified. Restart CARLA before retrying this endpoint"
+_UNOBSERVED = "CARLA has no current asynchronous snapshot; recovery was not verified"
 
 
 def _directory():
@@ -160,11 +161,9 @@ class CarlaEndpointLease:
             # A different, empty asynchronous episode is evidence of a reset.
             # A map reload in the interrupted run may itself change episodes,
             # so its unknown marker requires deliberate inspected recovery.
-            if (any(record["episode"] is None or record["episode"] == episode for record in unfinished)
-                    or world.get_settings().synchronous_mode
-                    or any(actor.type_id.startswith(("vehicle.", "walker.", "sensor.", "controller."))
-                           for actor in world.get_actors())):
+            if any(record["episode"] is None or record["episode"] == episode for record in unfinished):
                 raise SimulationError(_RECOVERY)
+            self._verify_empty_async(world, _RECOVERY)
         # Write intent before the first mutation, including load_world which can
         # change an episode and raise before returning its new identity.
         self._dirty = True
@@ -178,11 +177,27 @@ class CarlaEndpointLease:
     def recover_inspected(self, world):
         """Explicit operator recovery after restarting an ambiguous episode."""
         self._records()  # Refuse corrupt records instead of silently resetting.
+        self._verify_empty_async(world, "Recovery requires an empty asynchronous CARLA world after a server restart")
+        self._write("clean", None)
+
+    def _verify_empty_async(self, world, refusal):
+        if world.get_settings().synchronous_mode:
+            raise SimulationError(refusal)
+        # Actor enumeration uses the client's episode snapshot. A newly attached
+        # client of a paused synchronous world can have frame zero and no actors
+        # even when the server owns vehicles. Wait for a natural asynchronous
+        # update before treating an actor list as evidence of an empty world.
+        try:
+            snapshot = world.wait_for_tick(self.settings.timeout)
+            if (type(snapshot.frame) is not int or snapshot.frame <= 0
+                    or type(snapshot.id) is not int or snapshot.id != world.id):
+                raise SimulationError(_UNOBSERVED)
+        except (RuntimeError, AttributeError, TypeError):
+            raise SimulationError(_UNOBSERVED) from None
         if (world.get_settings().synchronous_mode
                 or any(actor.type_id.startswith(("vehicle.", "walker.", "sensor.", "controller."))
                        for actor in world.get_actors())):
-            raise SimulationError("Recovery requires an empty asynchronous CARLA world after a server restart")
-        self._write("clean", None)
+            raise SimulationError(refusal)
 
     def release(self):
         # Do not clear the active marker here. Only verified resource/world

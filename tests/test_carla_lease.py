@@ -17,7 +17,8 @@ def lease(root, host="localhost", port=2000):
 
 def world(episode=1, *, synchronous=False, actors=()):
     return NS(id=episode, get_settings=lambda: NS(synchronous_mode=synchronous),
-        get_actors=lambda: [NS(type_id=name) for name in actors])
+        get_actors=lambda: [NS(type_id=name) for name in actors],
+        wait_for_tick=lambda timeout: NS(id=episode, frame=10))
 
 
 def test_profiles_and_loopback_aliases_share_one_owner_but_other_ports_are_independent(tmp_path):
@@ -122,6 +123,52 @@ def test_reusing_a_released_object_cannot_clear_an_old_unclean_marker(tmp_path):
             again.begin(world(7))
     finally:
         again.release()
+
+
+@pytest.mark.parametrize("snapshot", [None, NS(id=12, frame=0), NS(id=12, frame=True), NS(id=13, frame=10)])
+def test_recovery_requires_a_valid_new_snapshot_before_trusting_empty_actors(tmp_path, snapshot):
+    owner = lease(tmp_path)
+    owner.acquire()
+    try:
+        owner.begin(world(11))
+    finally:
+        owner.release()
+    candidate = world(12)
+    candidate.wait_for_tick = lambda timeout: snapshot
+    contender = lease(tmp_path)
+    contender.acquire()
+    try:
+        with pytest.raises(SimulationError, match="snapshot"):
+            contender.begin(candidate)
+        with pytest.raises(SimulationError, match="snapshot"):
+            contender.recover_inspected(candidate)
+        assert all(record["state"] == "active" and record["episode"] == 11 for record in contender._records())
+    finally:
+        contender.release()
+
+
+def test_recovery_waits_for_natural_frame_and_rejects_actors_missing_from_initial_cache(tmp_path):
+    owner = lease(tmp_path)
+    owner.acquire()
+    owner.begin(world(3))
+    owner.release()
+    candidate, observed = world(4), []
+    def wait(timeout):
+        assert timeout == owner.settings.timeout
+        observed.append("natural_frame")
+        return NS(id=4, frame=2)
+    def actors():
+        return [] if not observed else [NS(type_id="vehicle.previously_unobserved")]
+    candidate.wait_for_tick, candidate.get_actors = wait, actors
+    contender = lease(tmp_path)
+    contender.acquire()
+    try:
+        with pytest.raises(SimulationError, match="cleanup is unverified"):
+            contender.begin(candidate)
+        assert observed == ["natural_frame"]
+        assert contender._records()[0]["state"] == "active"
+    finally:
+        contender.release()
 
 
 @pytest.mark.parametrize("raw", [b"private_corrupt_marker", b"L{}", b"L" + b"x" * 1025,

@@ -49,13 +49,26 @@ class RelayHub:
         return current is not None and current.ready and current.enabled and self._current(current)
 
     def _current(self, current):
-        if self.monotonic() - current.last_received >= 90:
+        if self._expired(current):
             return False
         try:
             self.commands.connection_current(current.credential, current.identity)
             return True
         except AuthError:
             return False
+
+    def _expired(self, current):
+        now = self.monotonic()
+        return (now - current.last_received >= 90
+            or (current.ping is not None and now - current.ping[1] >= 90))
+
+    def _check_deadline(self, current):
+        if self._expired(current):
+            raise TimeoutError("Device heartbeat expired")
+
+    def _require_live(self, current):
+        self._check_deadline(current)
+        self.commands.connection_current(current.credential, current.identity)
 
     def browser_connection(self, device):
         """Read on the app loop; browser polling never advances last_seen_at."""
@@ -99,6 +112,9 @@ class RelayHub:
             frame = await asyncio.wait_for(current.socket.receive(), timeout=90)
             if frame["type"] == "websocket.disconnect":
                 return
+            # Check after the await: a buffered ready/pong/reply cannot revive
+            # an expired connection when the event loop resumes after a gap.
+            self._check_deadline(current)
             # Text JSON only. Binary recording/evidence transport is not S4.
             raw = frame.get("text")
             if not isinstance(raw, str) or len(raw.encode("utf-8")) > MAX_RELAY_BYTES:
@@ -129,9 +145,11 @@ class RelayHub:
             current.wake.clear()
             if not current.ready or not current.enabled:
                 continue
+            self._require_live(current)
             for command in self.commands.pending(current.credential, current.identity):
                 if command.request_id in current.sent:
                     continue
+                self._require_live(current)
                 # Recheck immediately before each send, never cache the handshake
                 # grant decision across an await or another command delivery.
                 if not self.commands.delivery_allowed(current.credential, current.identity, command.request_id):
@@ -143,10 +161,9 @@ class RelayHub:
     async def _heartbeat(self, current):
         while True:
             await self.sleep(30)
-            self.commands.authenticate(current.credential, current.identity)
+            # Server polling is not evidence of activity from the computer.
+            self._require_live(current)
             now = self.monotonic()
-            if now - current.last_received >= 90 or (current.ping is not None and now - current.ping[1] >= 90):
-                raise TimeoutError("Device heartbeat expired")
             if current.ping is None:
                 nonce = uuid4()
                 current.ping = nonce, now
