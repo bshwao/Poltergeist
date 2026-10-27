@@ -5,11 +5,12 @@ from pathlib import Path
 
 UPSTREAM_REVISION = "6269e5a43c6f6b984d2bd97e3ec4a025ebefbeef"
 MODEL_REPOSITORY = "SimonGer/PlanT2"
+MODEL_REVISION = "e81b261f8b92b20225d020fe9b7a0470c1434d96"
 CHECKPOINT_FILENAME = "epoch=029_final_1.ckpt"
 CHECKPOINT_BYTES = 446_559_352
 CHECKPOINT_SHA256 = "2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4"
 CHECKPOINT_URL = (
-    f"https://huggingface.co/{MODEL_REPOSITORY}/resolve/main/{CHECKPOINT_FILENAME}"
+    f"https://huggingface.co/{MODEL_REPOSITORY}/resolve/{MODEL_REVISION}/{CHECKPOINT_FILENAME}"
 )
 DEFAULT_CHECKPOINT = Path(__file__).resolve().parents[3] / "storage" / "models" / "plant2" / CHECKPOINT_FILENAME
 

@@ -52,6 +52,7 @@ class CompanionController:
         self._runtime = None
         self._worker = None
         self._stopping = False
+        self._models = None
         self._pairing_factory = pairing_factory
         self._credential_store_factory = credential_store_factory
         self._pairing_display = None
@@ -122,6 +123,9 @@ class CompanionController:
             return False
         if not self._close_pairing_client():
             return False
+        if self._models is not None and not self._models.close():
+            return False
+        self._models = None
         self._lease.release()
         self._owned = False
         return True
@@ -393,6 +397,27 @@ class CompanionController:
         request = AgentRegistration(package_path=str(Path(package_path).resolve()),
             python_executable=sys.executable, trusted_local_code=trusted_local_code)
         return self._running().registry().register(request)
+
+    def _model_manager(self):
+        self._require_open()
+        if self._models is None:
+            from .model_manager import ModelManager
+            self._models = ModelManager(self.profile)
+        return self._models
+
+    def model_status(self):
+        return self._model_manager().snapshot()
+
+    def prepare_model(self, action, *, repair=False):
+        self._require_open()
+        # The first managed asset phase never registers a model for execution.
+        # Conservatively exclude all local workers before deleting model bytes.
+        if (repair or action == "remove") and self._runtime is not None:
+            raise ConflictError("Stop the local runtime before repairing or removing model weights")
+        self._model_manager().start(action, repair=repair)
+
+    def pause_model_download(self):
+        self._model_manager().pause()
 
     def snapshot(self):
         self._require_open()

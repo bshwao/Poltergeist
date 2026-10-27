@@ -1,10 +1,12 @@
 # S0–S19 progress notes
 
-Updated October 26, 2026. Current checkpoint: **S6 reliability in progress**.
+Updated October 27, 2026. Current checkpoint: **S6 reliability open; S7 managed AI
+preparation in progress**.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Branch: `codex/s6-reliable-execution` (continues the preserved S5 branch).
-All earlier branch histories were fast-forwarded into GitHub `main` at `55db36e`.
+Branch: `codex/s7-managed-ai` (continues the preserved S6 history).
+All earlier branch histories were fast-forwarded into GitHub and local `main`
+at `2d9e784`; its branch and main five-job CI matrices pass.
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
 S2 desktop companion and S3 installer/setup flow. The latest changes add the
@@ -22,7 +24,7 @@ private prototype does not close independent-machine or release validation.
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime/compiled-profile proofs pass on this laptop. Public deployment, actual shortcut invocation, visual and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
 | **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
-| S7 — Managed AI installations | Pending | Supported environment/weight installation and lifecycle through the app. |
+| **S7 — Managed AI installations** | **In progress; managed weight preparation implemented** | Revision-pinned PlanT downloads, resume, progress, verification and owned repair/removal controls. Separate interpreter/dependency installation, compatibility/inference checks and fresh-machine app execution remain open. See [managed AI preparation](managed-ai.md). |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
 | S10 — Distribution and release | Pending | Signing, updates/rollback, supported-machine validation and external beta. |
@@ -38,6 +40,36 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Started S7 on `codex/s7-managed-ai`. The desktop now exposes PlanT weights in
+  **AI models**, reachable from **Manage AI…** beside the existing Agent selector.
+  Interrupted transfers retain owned partial bytes; resumes validate the server's
+  range and rehash the entire file before atomic publication. TLS and hostname
+  verification stay enabled, HTTP redirects are refused, downloads are capped at
+  the pinned size, and low disk space fails before transfer. Repair/removal retain
+  unrelated/imported files and require the local execution runtime to be stopped.
+  Background model work keeps the profile locked until it has actually stopped.
+- Private Runtime K completed the real HTTPS weight workflow through native Tk
+  callbacks: pause at 8,440,134 bytes, process exit, fresh process/profile reopen,
+  honored Range resume, full pinned hash verification and explicit recheck. All
+  176 shipped Python files match source and all 6,087 integrity files remain
+  unchanged. Both interpreters pass the desktop workflow batch and deterministic
+  close-poll regression; source transfers cover actual killed-process resumption,
+  corrupt bytes, strict TLS, capacity checks and owned Windows junction/hardlink
+  boundaries. The initial close-poll failure and a provenance-driver correction
+  remain recorded in [S7 validation](validation/s7-managed-weights.json).
+- The public model metadata pins PlanT weights to revision
+  `e81b261f8b92b20225d020fe9b7a0470c1434d96`, independently of the adapted source
+  revision. The fixed size and SHA-256 are unchanged. These controls neither
+  deserialize the pickle checkpoint nor register an unprepared agent. The app
+  distinguishes verified weights from a dependency environment and tested inference.
+- An experiment with the immutable core runtime showed a naive venv still imports
+  core site-packages ahead of its own environment. S7 therefore still needs an
+  independently verified model runtime and dependency capsule; installing model
+  packages into the Companion core is not an acceptable completion shortcut.
+- The previous S6 checkpoint `2d9e784` passes all five jobs on both its branch and
+  [main run 40422993339](https://github.com/bshwao/Poltergeist/actions/runs/40422993339).
+  It is merged into GitHub and local `main`. The S7 changes require their own
+  exact-commit matrix before merging.
 - Reproduced a coarse-clock rounding defect in enrollment: a ten-second budget
   can become `10.000000000000057` when subtraction uses a tied clock sample.
   The strict worker correctly refuses that value before HTTPS. Remaining lock,

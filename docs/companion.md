@@ -4,9 +4,16 @@ Status: private Windows x64 prototype, with S2 desktop execution and S3 installe
 and onboarding under validation. The companion executes local work and preserves
 it across restarts. See the [installer/setup guide](installer-onboarding.md) and
 [current progress](progress-notes.md). S4 source adds account pairing and an
-explicit consent-based relay connection; a hosted dashboard, managed model
-downloads and public release remain later milestones. The S1 independent-machine and
+explicit consent-based relay connection. S7 adds managed weight preparation;
+complete managed AI execution and public release remain later milestones. The S1 independent-machine and
 redistribution gates remain open.
+
+Open **AI models**, or choose **Manage AI…** beside the Agent selector, to download
+the official PlanT weights, pause/resume a transfer, check saved bytes, or repair
+and remove this app's managed weights. The app shows download size and licensing
+notices. A completed transfer means **weights verified**; it does not yet install
+PlanT dependencies or enable that model in the selector. See the
+[managed AI preparation scope](managed-ai.md).
 
 ## Open the application
 

@@ -133,11 +133,63 @@ def test_closed_window_releases_tk_variables_on_gui_thread(window):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None)
     references = [weakref.ref(desktop.executable), weakref.ref(desktop.message), weakref.ref(desktop.setup.map_name),
+        weakref.ref(desktop.models.status), weakref.ref(desktop.models.detail),
         weakref.ref(desktop.pairing.origin), weakref.ref(desktop.pairing.allow_remote_execution),
         *[weakref.ref(value) for value in desktop.pairing.permissions.values()]]
     desktop.request_close()
     pump_until(root, lambda: desktop._destroyed)
     assert all(reference() is None for reference in references)
+
+
+def test_model_progress_poll_does_not_reopen_controller_after_close_releases_profile(window):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    # Force the precise boundary between the background close releasing its
+    # profile and the main thread collecting its completed Future.
+    desktop._closing = True
+    assert controller.close()
+    assert not controller._owned and controller._models is None
+    desktop.models.sync_controls()
+    assert controller._models is None
+    assert all("disabled" in button.state() for button in desktop.models.buttons)
+    desktop._begin_close()
+    pump_until(root, lambda: desktop._destroyed)
+    assert not errors
+
+
+def test_model_controls_prepare_owned_weights_without_enabling_uninstalled_ai(window, monkeypatch):
+    import hashlib
+    import io
+    from email.message import Message
+    from companion.model_assets import AssetStore, ModelAsset
+
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    data = b"GUI transfer fixture, not a trained model"
+    asset = ModelAsset("gui-fixture", "weights.ckpt", "https://fixture.invalid/model", len(data), hashlib.sha256(data).hexdigest())
+    class Response(io.BytesIO):
+        status = 200
+        headers = Message()
+        def geturl(self):
+            return asset.url
+    def open_request(*args, **kwargs):
+        return Response(data)
+    # The already-created manager's test transfer uses real storage, verification
+    # and background execution. TLS is covered separately by the HTTPS suite.
+    controller._models._store = AssetStore(controller.profile, asset, _open=open_request)
+    desktop.models.buttons[0].invoke()
+    pump_until(root, lambda: desktop._future is None and controller.model_status()["state"] == "weights_ready")
+    desktop.models.sync_controls()
+    assert "Weights verified" in desktop.models.detail.get()
+    assert "environment" in desktop.models.status.get()
+    assert list(desktop._agent_ids) == ["Baseline controller"]
+    assert not controller.model_status()["busy"]
+    desktop._stop()
+    pump_until(root, lambda: desktop._future is None)
+    monkeypatch.setattr("companion.model_ui.messagebox.askyesno", lambda *args, **kwargs: True)
+    desktop.models.buttons[3].invoke()
+    pump_until(root, lambda: desktop._future is None and controller.model_status()["state"] == "absent")
+    assert not controller._models._store.path.exists()
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Native Windows protected enrollment")

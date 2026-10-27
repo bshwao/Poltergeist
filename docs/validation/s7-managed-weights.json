@@ -1,0 +1,190 @@
+{
+  "schema": "poltergeist-s7-managed-weights-validation-v1",
+  "recorded_date": "2026-10-27",
+  "status": "S7 in progress; verified weights only",
+  "source_base_commit": "2d9e784357985d157565be524abab54430857ce4",
+  "source_sha256": {
+    "companion/controller.py": "fd73a998e90502a02c689d3d56869e33dcb5b2cd71172022fdb80ed9f103295c",
+    "companion/ui.py": "27cdd42cb81db10c4c3efb4ea3aad159a372cd18fc00c5a03dd201bb7d23399c",
+    "companion/model_assets.py": "e3ba90f173219ded0614428b274736d943dfcbcc58b27b0cfad2f6f613a88248",
+    "companion/model_manager.py": "6beebde973af06d6932f95e1209efdea7cd88074e83f20bae527f0623399cd5c",
+    "companion/model_ui.py": "35155c7eddaa099f6d266ffe645651c124b5fab9b59484bc83194f4461bf0522",
+    "simulator/agents/reference_ai/checkpoint.py": "f14b3f6d47873891af97b05d026390153cf1dc73d98096ca55500fa0321c7418",
+    "tests/test_model_assets.py": "492e43a249e131b0df4477915292092ca1e64f4967b17a97ec3d816391d0692f",
+    "tests/test_model_manager.py": "56dc8fd0f6577a54ff44d7e8494212936355aba6ac927acfa3dfb5c77a31c364",
+    "tests/companion_ui_cases.py": "2cdb0938a747ffaf8c6b850eb2053003fc8ffb4f8737404af912e427bd6973c5"
+  },
+  "catalogue": {
+    "schema": "poltergeist-model-asset-v1",
+    "id": "plant2-e81b261f8b92",
+    "filename": "epoch=029_final_1.ckpt",
+    "size": 446559352,
+    "sha256": "2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4"
+  },
+  "source_regressions": [
+    {
+      "file": "s7-model-core312.xml",
+      "sha256": "b4faae36883d42176c6c224889b964e0293ef411de8506d7fae652ee5e830f8d",
+      "tests": 117,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 6,
+      "passed": 111,
+      "seconds": 76.792
+    },
+    {
+      "file": "s7-model-core314.xml",
+      "sha256": "e554cd9fc2446b5235924ec3d1d0d38f6d0fb74b730a04a9b232b8e2f3a6c4cd",
+      "tests": 116,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 8,
+      "passed": 108,
+      "seconds": 72.399
+    },
+    {
+      "file": "s7-model-crash314.xml",
+      "sha256": "36b5cbddb080045416eb6e79f33bf07b45b7f882b614628bf2d3342c8c971a2e",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1,
+      "seconds": 18.057
+    },
+    {
+      "file": "s7-assets-boundaries312.xml",
+      "sha256": "58c537fb293f068882d4f6799b5cdf6b42a9263009d0181528578cbccf03b67e",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 2,
+      "seconds": 10.979
+    },
+    {
+      "file": "s7-assets-boundaries314.xml",
+      "sha256": "2053a5031271f026834320ba9c759a71b857dde47eeaf237da9d7841db36411b",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 2,
+      "seconds": 8.828
+    },
+    {
+      "file": "s7-model-ui312.xml",
+      "sha256": "30b8b456991f7096cb384babd6c49c6fa63b8003cefb2ea49f4d62df95a94772",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 16,
+      "seconds": 102.216
+    },
+    {
+      "file": "s7-model-ui314.xml",
+      "sha256": "6fe1f22367764a4d3feedb78999dd957b92bdd5cb6fabf8383364dad04f3d54c",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 16,
+      "seconds": 77.036
+    },
+    {
+      "file": "s7-close-poll312.xml",
+      "sha256": "6082fe5aa364e3b82e5ae1a5249aee3cf0283e2216114298360c0c30475ae8cb",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1,
+      "seconds": 8.686
+    },
+    {
+      "file": "s7-close-poll314.xml",
+      "sha256": "198659c87f82debf1234cb40b6f57eec50d43ef43888b814fd4f0d954370d48a",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1,
+      "seconds": 10.868
+    }
+  ],
+  "coverage": [
+    "Real private-CA HTTPS: complete transfer, pause and new AssetStore resume, ignored Range restart, exact Content-Range/length/encoding checks, size cap, truncation and insecure redirect rejection.",
+    "Untrusted TLS and wrong hostname rejected before any authenticated HTTP; catalogue transfer carries no authorization and requests identity encoding.",
+    "Corrupt resumed prefix, corrupt completed file and full partial are rehashed before publication. Pause during verification leaves the full partial unpublished until another full verification.",
+    "Actual owned downloader process kill releases the OS writer lease. A fresh HTTPS listener resumes the retained prefix with Range and publishes verified fixture bytes.",
+    "Low disk space, oversized partial, mismatched/unowned marker, hardlinks and unknown files fail without altering unrelated bytes. Native Windows junction refused by inspect/download/remove; outside sentinel preserved.",
+    "Application background transfer, explicit repair/removal while execution stopped, no unprepared agent registration, pause/close retaining profile and transfer leases until I/O exits, then reopening.",
+    "Native Tk model controls and existing desktop workflows; deterministic poll after background close has released profile does not recreate or re-enter its model manager."
+  ],
+  "retained_failures": [
+    {
+      "file": "s7-model-ui312-first.xml",
+      "sha256": "22a2dae00518f1551a96a590d9bce04497e9fea1550c00801cad740a4a8cdf63",
+      "tests": 3,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 2,
+      "seconds": 199.442,
+      "finding": "Before close-poll guard, the background-action close case failed; the two later cases passed. Guard added; full 16-case desktop batches then passed on both interpreters, plus one deterministic boundary case each."
+    },
+    {
+      "file": "validation-evidence/s7-native-k-model-pause-20261027/receipt.json",
+      "sha256": "08fb382a7531a396b3e5594cf5a3d16330f23940f80770ec8ed4bd935131a16c",
+      "finding": "Private driver initially expected server coordinator modules deliberately pruned by build_portable. It failed before controller/profile construction. Driver now compares the exact shipped package set, explicitly excludes server/verify_coordinator, and asserts coordinator remains absent; product bytes unchanged."
+    }
+  ],
+  "native_runtime_k": {
+    "archive_sha256": "1108097ea3cbcf0e18be9608900b178a2004498816735a99909275bc8c0e8152",
+    "archive_bytes": 47970929,
+    "manifest_sha256": "277de897d86c8463d5b4a88d4287de6d67a33ca3f51ab58bcaf6fbedbf795951",
+    "python_files_matching_source": 176,
+    "integrity_files_before_and_after": 6087,
+    "pause_receipt": {
+      "file": "validation-evidence/s7-native-k-model-pause-b-20261027/receipt.json",
+      "sha256": "a0dd3a59f5e9ed80d16c2b3795a3bf8a3e65c759c6b830dee99a8c05b9b8e1a1"
+    },
+    "resume_receipt": {
+      "file": "validation-evidence/s7-native-k-model-resume-20261027/receipt.json",
+      "sha256": "12bced019c4701251b1edc7068fb1c1f6628442d219a8d5cdb048b0936107462"
+    },
+    "driver_sha256": "25ec0d0d4705fa5a5f1c3c2d5bf256c818382535de9c1d53a46061c2974dba6d",
+    "paused_and_resumed_bytes": 8440134,
+    "range_honored": true,
+    "requests": [
+      {
+        "range": "bytes=8440134-",
+        "has_authorization": false,
+        "status": 206,
+        "content_range": "bytes 8440134-446559351/446559352"
+      }
+    ],
+    "final_checkpoint_sha256": "2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4",
+    "progress_phases": [
+      "unchecked",
+      "starting",
+      "downloading",
+      "verifying",
+      "weights_ready",
+      "starting",
+      "verifying",
+      "weights_ready"
+    ],
+    "profile_released_at_both_process_exits": true,
+    "core_integrity_unchanged": true,
+    "scope": "Withdrawn native Tk callbacks and real HTTPS model weights only; no visual, installed shortcut, inference, CARLA or external-machine claim."
+  },
+  "limitations": [
+    "No managed interpreter/dependency install, environment compatibility or inference readiness claim; weights do not enable PlanT in Agent selector. S7 completion remains open.",
+    "No new CARLA, GPU performance, hosted-model policy, installed shortcut, physical sleep, visual UI or independent-machine acceptance claim.",
+    "Source regressions do not include real pretrained inference: missing optional Torch/NumPy and opt-in model cases retain explicit skips. Native symbolic-link creation is unavailable locally; actual Windows junction and hardlink checks pass.",
+    "Thread cancellation is cooperative between bounded HTTP reads/hash chunks; five-second socket timeouts do not bound every OS/DNS operation. The app retains its profile until I/O has actually returned.",
+    "Storage guards are routine ownership barriers, not isolation from hostile code executing as the same user. Initial ownership-marker interruption fails closed for manual inspection."
+  ]
+}

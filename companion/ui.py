@@ -67,6 +67,10 @@ class CompanionWindow:
             tabs.add(frame, text=label)
         self._build_execution(execution)
         self._build_settings(settings)
+        from .model_ui import ModelPanel
+        self.models = ModelPanel(self, tabs)
+        tabs.add(self.models.frame, text="AI models")
+        self._tabs = tabs
         from .pairing_ui import PairingPanel
         self.pairing = PairingPanel(self, tabs)
         tabs.add(self.pairing.frame, text="Connection")
@@ -134,6 +138,7 @@ class CompanionWindow:
         actions.pack(fill="x", pady=(0, 10))
         self.run_button = self._button(actions, "Run recipe", self._submit)
         self._button(actions, "Register trusted agent…", self._register_agent)
+        self._button(actions, "Manage AI…", lambda: self._tabs.select(self.models.frame))
         ttk.Label(frame, text="Recent local runs (latest 100)").pack(anchor="w")
         columns = ("name", "mode", "status", "progress")
         self.runs = ttk.Treeview(frame, columns=columns, show="headings", height=7, selectmode="browse")
@@ -221,16 +226,19 @@ class CompanionWindow:
         self._success = success
         self._future = self._executor.submit(action)
         self.pairing.sync_controls()
+        self.models.sync_controls()
 
     def _refresh_controls(self):
         busy = self._future is not None or self._closing
         for button in self._buttons:
             button.state(["disabled"] if busy else ["!disabled"])
         self.pairing.sync_controls()
+        self.models.sync_controls()
 
     def _pump(self):
         if self._destroyed:
             return
+        self.models.sync_controls()
         if self._future is not None and self._future.done():
             future, success = self._future, self._success
             self._future = self._success = None
@@ -319,7 +327,7 @@ class CompanionWindow:
             self._closing = False
             if not clean:
                 self._close_requested.clear()
-                self.message.set("The worker is still stopping. Keep this window open and retry Close after it returns. Its profile remains locked.")
+                self.message.set("Local work is still stopping. Keep this window open and retry Close after it returns. Its profile remains locked.")
                 self._apply_snapshot(snapshot)
                 return
             self._destroyed = True
@@ -333,6 +341,7 @@ class CompanionWindow:
             # can be collected later while another window/worker is running.
             self._release_variables(self.setup)
             self._release_variables(self.pairing)
+            self._release_variables(self.models)
             self._release_variables(self)
             self.root.destroy()
         self._run(close, closed)
