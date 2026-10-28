@@ -11,12 +11,13 @@ _owners = set()
 
 
 class WorkerLease:
-    def __init__(self, database):
+    def __init__(self, database, *, create_parents=True):
         path = database.file_path
         self._path = None if path is None else path.with_name(path.name + ".worker.lock")
         self._key = database if path is None else os.path.normcase(str(path))
         self._file = None
         self._owned = False
+        self._create_parents = create_parents
 
     def acquire(self):
         with _registry_lock:
@@ -25,7 +26,8 @@ class WorkerLease:
             _owners.add(self._key)
         try:
             if self._path is not None:
-                self._path.parent.mkdir(parents=True, exist_ok=True)
+                if self._create_parents:
+                    self._path.parent.mkdir(parents=True, exist_ok=True)
                 self._file = self._path.open("a+b")
                 if os.name == "nt":
                     import msvcrt

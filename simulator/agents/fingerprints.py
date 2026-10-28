@@ -2,7 +2,8 @@
 
 No agent module, interpreter, model loader, or dependency installer is run here.
 These hashes detect changes in the declared local execution inputs. They do not
-snapshot third-party site-packages, drivers, environment variables, or hardware.
+snapshot drivers, environment variables, or hardware. An explicitly pinned
+managed runtime manifest additionally verifies its complete file inventory.
 """
 
 import hashlib
@@ -109,8 +110,13 @@ def _canonical_file(value: str) -> Path:
     return path
 
 
-def _runtime_files() -> list[AgentExternalFileFingerprint]:
-    root = Path(__file__).resolve().parents[2]
+def _runtime_files(root=None) -> list[AgentExternalFileFingerprint]:
+    root = Path(__file__).resolve().parents[2] if root is None else Path(root)
+    if not root.is_absolute() or ".." in root.parts:
+        raise AgentFingerprintError("Runtime provenance requires an absolute local root")
+    for component in (root, *root.parents):
+        if _link(component):
+            raise AgentFingerprintError("Linked runtime provenance was refused")
     paths = []
     for package in _RUNTIME_PACKAGES:
         directory = root / package
@@ -120,7 +126,7 @@ def _runtime_files() -> list[AgentExternalFileFingerprint]:
     return sorted((_file(path) for path in paths), key=lambda item: item.path)
 
 
-def build_agent_snapshot(request: AgentRegistration, registration_id: UUID) -> AgentSnapshot:
+def build_agent_snapshot(request: AgentRegistration, registration_id: UUID, *, _framework_root=None) -> AgentSnapshot:
     """Resolve declarations and hash bytes without executing user code."""
     request = AgentRegistration.model_validate(request.model_dump(mode="python"))
     if request.package_path.startswith(("\\\\", "//")) or (
@@ -170,32 +176,75 @@ def build_agent_snapshot(request: AgentRegistration, registration_id: UUID) -> A
         configuration["checkpoint_path"] = str(checkpoint)
         model_paths.add(checkpoint)
     manifest = AgentManifest.model_validate(package.manifest.model_dump(mode="python") | {"configuration": configuration})
+    isolated = request.isolated_runtime
+    framework_root, framework_files = None, []
+    if isolated is not None:
+        prefix = Path(isolated.prefix)
+        if prefix != prefix.resolve() or ".." in prefix.parts:
+            raise AgentFingerprintError("Select the canonical independent runtime prefix")
+        runtime_files = _runtime_files(prefix / "Lib" / "site-packages")
+        framework_root = Path(__file__).resolve().parents[2] if _framework_root is None else Path(_framework_root)
+        framework_files = _runtime_files(framework_root)
+        if isolated.manifest_sha256 is not None:
+            from .runtime_manifest import verify_runtime_manifest
+            try:
+                verify_runtime_manifest(prefix, isolated.manifest_sha256)
+            except (ValueError, OSError, RuntimeError) as error:
+                raise AgentFingerprintError("The managed runtime seal is unavailable or changed") from error
+    else:
+        if _framework_root is not None:
+            raise AgentFingerprintError("Separate framework provenance requires an isolated runtime")
+        runtime_files = _runtime_files()
     return AgentSnapshot(
         registration_id=registration_id, package_path=str(directory), python_executable=str(executable),
         python_sha256=python_sha256, python_size_bytes=python_size_bytes,
         manifest=manifest, configuration=configuration, observation_mode=manifest.observation_mode,
         files=package_files, model_files=sorted((_file(path) for path in model_paths), key=lambda item: item.path),
-        runtime_files=_runtime_files(), package_sha256=package_sha256,
+        runtime_files=runtime_files, package_sha256=package_sha256,
+        isolated_runtime=isolated, framework_runtime_root=None if framework_root is None else str(framework_root),
+        framework_runtime_files=framework_files,
         process_options=request.process_options, agent_control_mode=request.agent_control_mode,
     )
 
 
-def verify_agent_snapshot(snapshot: AgentSnapshot) -> None:
+def _verify_worker_origin(snapshot):
+    prefix = Path(snapshot.isolated_runtime.prefix)
+    if (os.name != "nt" or sys.version_info[:2] != (3, 12) or not sys.flags.isolated
+            or not sys.flags.ignore_environment or Path(sys.prefix).resolve() != prefix
+            or Path(sys.base_prefix).resolve() != prefix
+            or Path(sys.executable).resolve() != prefix / "python.exe"):
+        raise AgentFingerprintError("Worker is not using its declared isolated Windows Python runtime")
+    site = prefix / "Lib" / "site-packages"
+    allowed = {Path(item.path).resolve() for item in snapshot.runtime_files}
+    for name, module in tuple(sys.modules.items()):
+        package = name.split(".", 1)[0]
+        if package in _RUNTIME_PACKAGES:
+            location = getattr(module, "__file__", None)
+            if (location is None or not Path(location).resolve().is_relative_to(site / package)
+                    or Path(location).resolve() not in allowed):
+                raise AgentFingerprintError("Worker imported framework code outside its isolated runtime")
+
+
+def verify_agent_snapshot(snapshot: AgentSnapshot, *, worker=False) -> None:
     """Reinspect the exact queued version; activation does not rewrite history."""
     snapshot = AgentSnapshot.model_validate(snapshot.model_dump(mode="python"))
     request = AgentRegistration(
         package_path=snapshot.package_path, python_executable=snapshot.python_executable,
         configuration=snapshot.configuration, model_files=[item.path for item in snapshot.model_files],
         process_options=snapshot.process_options, agent_control_mode=snapshot.agent_control_mode,
+        isolated_runtime=snapshot.isolated_runtime,
         trusted_local_code=True,
     )
     try:
-        current = build_agent_snapshot(request, snapshot.registration_id)
+        if worker and snapshot.isolated_runtime is not None:
+            _verify_worker_origin(snapshot)
+        current = build_agent_snapshot(request, snapshot.registration_id,
+            _framework_root=snapshot.framework_runtime_root if worker and snapshot.isolated_runtime is not None else None)
     except (ValueError, OSError, RuntimeError) as error:
         raise AgentFingerprintError(f"Registered agent inputs are unavailable or changed: {error}") from error
     expected = snapshot.model_dump(mode="json")
     actual = current.model_dump(mode="json")
     canonical = lambda value: json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
     if canonical(actual) != canonical(expected):
-        fields = [name for name in AgentSnapshot.model_fields if canonical(actual[name]) != canonical(expected[name])]
+        fields = [name for name in AgentSnapshot.model_fields if canonical(actual.get(name)) != canonical(expected.get(name))]
         raise AgentFingerprintError("Registered agent inputs changed; register a new version: " + ", ".join(fields))

@@ -61,6 +61,11 @@ class AgentRegistryService:
             self.verify(registered.snapshot)
         except ConflictError as error:
             issues.append(str(error))
-        return AgentReadiness(
-            agent_id=registered.id, ready=not issues, issues=issues, checked_at=datetime.now(UTC),
-        )
+        extra = {}
+        isolated = registered.snapshot.isolated_runtime
+        if isolated is not None and isolated.manifest_sha256 is not None:
+            extra["limitations"] = ["Agent code and the selected interpreter were not executed",
+                "The declared runtime inventory was checked against its pinned manifest",
+                "Dependency imports, inference, drivers and hardware compatibility were not tested"]
+        return AgentReadiness(agent_id=registered.id, ready=not issues, issues=issues,
+                              checked_at=datetime.now(UTC), **extra)

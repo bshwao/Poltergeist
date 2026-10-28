@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import struct
 import subprocess
@@ -202,12 +203,34 @@ def deterministic_zip(bundle, archive, epoch):
     with zipfile.ZipFile(archive, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipped:
         for path in sorted(p for p in bundle.rglob("*") if p.is_file()):
             info = zipfile.ZipInfo(bundle.name + "/" + path.relative_to(bundle).as_posix(), date_time=date)
-            info.compress_type = zipfile.ZIP_DEFLATED
+            info.compress_type = zipfile.ZIP_STORED if path.parent.name == "modelpacks" and path.suffix == ".zip" else zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            zipped.writestr(info, path.read_bytes())
+            info.file_size = path.stat().st_size
+            with path.open("rb") as source, zipped.open(info, "w", force_zip64=info.file_size >= zipfile.ZIP64_LIMIT) as output:
+                shutil.copyfileobj(source, output, length=1024 * 1024)
 
 
-def build(output, cache, *, offline=False):
+def embed_model_capsule(source, bundle):
+    """The publisher explicitly selects this verified data artifact at build time."""
+    from companion.model_capsule import CapsuleSpec, inspect_archive
+    from .build_model_capsule import inspect_capsule
+    descriptor = inspect_capsule(source)
+    spec = CapsuleSpec(descriptor["id"], descriptor["bytes"], descriptor["sha256"], descriptor["manifest_sha256"])
+    inspect_archive(source, spec)
+    if not re.fullmatch(r"plant2-cpu-win312-r[1-9][0-9]{0,3}", spec.id):
+        raise ValueError("This prototype supports the PlanT CPU model capsule family only")
+    directory = bundle / "modelpacks"
+    directory.mkdir()
+    filename = spec.id + ".zip"
+    shutil.copyfile(source, directory / filename)
+    if sha256(directory / filename) != spec.sha256:
+        raise ValueError("Model capsule changed during bundle copy")
+    write_json(directory / "catalog.json", {"schema": "poltergeist-bundled-models-v1", "capsules": [{
+        "id": spec.id, "filename": filename, "size": spec.size, "sha256": spec.sha256,
+        "manifest_sha256": spec.manifest_sha256, "target": spec.target}]})
+
+
+def build(output, cache, *, offline=False, model_capsule=None):
     if sys.platform != "win32" or platform.machine().lower() not in {"amd64", "x86_64"} or sys.version_info[:2] != (3, 12):
         raise ValueError("Build this prototype with Windows x64 Python 3.12; other targets are unvalidated")
     inputs = json.loads(INPUTS.read_text(encoding="utf-8"))
@@ -299,6 +322,8 @@ def build(output, cache, *, offline=False):
     for filename in ("Poltergeist.cmd", "Poltergeist Companion.vbs", "README-PORTABLE.txt", "DISTRIBUTION-NOTICES.md"):
         shutil.copy2(ROOT / "packaging" / "windows-x64" / filename, bundle / filename)
     shutil.copy2(INPUTS, bundle / "notices" / "inputs.json")
+    if model_capsule is not None:
+        embed_model_capsule(model_capsule, bundle)
     for entry in inputs["notices"]:
         shutil.copy2(files[entry["filename"]], bundle / "notices" / entry["filename"])
     write_json(bundle / "notices" / "python-packages.json", dependency_notices(site))
@@ -323,8 +348,9 @@ def main(argv=None):
     parser.add_argument("--output", type=Path, required=True, help="New build directory; existing directories are refused")
     parser.add_argument("--cache", type=Path, default=ROOT / "validation-evidence" / "portable-inputs")
     parser.add_argument("--offline", action="store_true", help="Require every hash-verified input in the cache")
+    parser.add_argument("--model-capsule", type=Path, help="Include a verified, separately installed PlanT CPU environment")
     args = parser.parse_args(argv)
-    archive = build(args.output, args.cache, offline=args.offline)
+    archive = build(args.output, args.cache, offline=args.offline, model_capsule=args.model_capsule)
     print(json.dumps({"archive": str(archive), "sha256": sha256(archive), "bytes": archive.stat().st_size}, indent=2))
     return 0
 

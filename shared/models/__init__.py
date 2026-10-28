@@ -28,7 +28,7 @@ from .remote import (CancelCommand, CommandRejected, ExecuteCommand, RemoteComma
                      RemoteContracts, ResultCommand, StatusCommand)
 from .readiness import ReadinessCheck, ReadinessReport, ReadinessStatus, WorkflowReadiness
 from .registry import (
-    AgentExecutionOptions, AgentExternalFileFingerprint, AgentFileFingerprint,
+    AgentExecutionOptions, AgentExternalFileFingerprint, AgentFileFingerprint, AgentIsolatedRuntime,
     AgentReadiness, AgentRegistration, AgentSnapshot, RegisteredAgent,
 )
 
@@ -70,7 +70,7 @@ __all__ = [
     "PairingClaimInput", "PairingCreateInput", "PairingCreated", "PairingDenyInput", "PairingStatus",
     "PasswordChangeInput", "PermissionScope",
     "ReadinessCheck", "ReadinessReport", "ReadinessStatus", "WorkflowReadiness",
-    "AgentExecutionOptions", "AgentExternalFileFingerprint", "AgentFileFingerprint",
+    "AgentExecutionOptions", "AgentExternalFileFingerprint", "AgentFileFingerprint", "AgentIsolatedRuntime",
     "AgentReadiness", "AgentRegistration", "AgentSnapshot", "RegisteredAgent",
     "AGENT_PROTOCOL_VERSION", "AgentContracts", "AgentDiagnostics", "AgentManifest", "AgentInputInfo", "AgentObservation",
     "AgentReset", "AgentSensorSpec", "AgentSensorFrame", "AgentStepResult",

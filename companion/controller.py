@@ -6,8 +6,10 @@ while the old worker can still own CARLA or the database.
 """
 
 import hashlib
+from contextlib import closing
 import json
 from pathlib import Path
+import sqlite3
 import sys
 from threading import RLock
 from uuid import UUID, uuid4
@@ -46,6 +48,7 @@ class CompanionController:
                  pairing_factory=PairingClient, credential_store_factory=WindowsCredentialStore,
                  relay_factory=None, _private_remote_execution=False):
         self.profile = profile_path(profile, bundle=bundle)
+        self._bundle = None if bundle is None else Path(bundle).resolve()
         self._factory = runtime_factory
         self._lease = instance_lease(self.profile)
         self._owned = False
@@ -119,6 +122,8 @@ class CompanionController:
     def close(self):
         if not self._owned:
             return True
+        if self._models is not None:
+            self._models.pause()
         if not self.stop():
             return False
         if not self._close_pairing_client():
@@ -386,6 +391,17 @@ class CompanionController:
         if mode not in {"test", "carla"}:
             raise ValueError("Choose Synthetic test or CARLA")
         runtime = self._running()
+        if agent_id is not None:
+            registered = runtime.registry().get(UUID(str(agent_id)))
+            snapshot = registered.snapshot
+            if (snapshot.isolated_runtime is not None and snapshot.manifest.agent_id == "poltergeist-reference-ai"
+                    and self._model_manager().manages(snapshot.isolated_runtime.prefix)):
+                if mode != "carla":
+                    raise ValueError("PlanT recipe runs require CARLA and its measured road raster")
+                request = self._model_manager().checked_registration(expected_prefix=snapshot.isolated_runtime.prefix)
+                if (request.package_path != snapshot.package_path or request.configuration != snapshot.configuration
+                        or request.isolated_runtime != snapshot.isolated_runtime):
+                    raise ConflictError("Choose Use PlanT CPU again to register the current managed version")
         recipe = validate_scenario(scenario)
         return runtime.worker().submit(recipe, mode=mode, agent_id=agent_id,
             options=SimulationOptions(carla_quality=self.config.carla_quality))
@@ -402,19 +418,47 @@ class CompanionController:
         self._require_open()
         if self._models is None:
             from .model_manager import ModelManager
-            self._models = ModelManager(self.profile)
+            self._models = ModelManager(self.profile, bundle=self._bundle)
         return self._models
 
     def model_status(self):
         return self._model_manager().snapshot()
 
-    def prepare_model(self, action, *, repair=False):
+    def _model_jobs_pending(self):
+        path = self.profile / "database/poltergeist.db"
+        if not path.exists():
+            return False
+        try:
+            with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=5.)) as connection:
+                rows = connection.execute("SELECT j.agent_snapshot FROM simulation_jobs j JOIN simulations s ON s.id=j.simulation_id WHERE s.status IN ('queued','running') AND j.agent_snapshot IS NOT NULL")
+                for (raw,) in rows:
+                    from shared.models.registry import AgentSnapshot
+                    saved = AgentSnapshot.model_validate_json(raw)
+                    if saved.isolated_runtime is not None and self._model_manager().manages(saved.isolated_runtime.prefix):
+                        return True
+                    for model in saved.model_files:
+                        if Path(model.path).is_relative_to(self.profile / "models"):
+                            return True
+        except (sqlite3.Error, ValueError, TypeError, AttributeError):
+            raise ConflictError("Saved model jobs could not be checked; keep their files until local recovery finishes") from None
+        return False
+
+    def prepare_model(self, action, *, repair=False, trusted_local_code=False):
         self._require_open()
-        # The first managed asset phase never registers a model for execution.
-        # Conservatively exclude all local workers before deleting model bytes.
-        if (repair or action == "remove") and self._runtime is not None:
-            raise ConflictError("Stop the local runtime before repairing or removing model weights")
-        self._model_manager().start(action, repair=repair)
+        environment = action in {"install_environment", "inspect_environment", "remove_environment"}
+        if (repair or action == "remove" or environment) and self._runtime is not None:
+            raise ConflictError("Stop the local runtime before installing, checking, repairing or removing model files")
+        if action in {"remove", "install_environment", "remove_environment"} and self._model_jobs_pending():
+            raise ConflictError("Finish or cancel saved model jobs before replacing or removing their files")
+        self._model_manager().start(action, repair=repair, trusted_local_code=trusted_local_code)
+
+    def use_managed_model(self, *, trusted_local_code=False):
+        if trusted_local_code is not True:
+            raise ValueError("Managed agent registration requires explicit trust for its local code")
+        runtime = self._running()
+        request = self._model_manager().checked_registration()
+        registered = runtime.registry().register(request)
+        return {"agent_id": str(registered.id), "snapshot": self.snapshot()}
 
     def pause_model_download(self):
         self._model_manager().pause()
@@ -437,8 +481,13 @@ class CompanionController:
                              "status": run.status.value, "progress": run.progress, "error": run.error,
                              "has_result": stored.result is not None})
             if not self._stopping:
-                agents = [{"id": str(agent.id), "name": agent.snapshot.manifest.name}
-                          for agent in self._runtime.registry().list(active=True, limit=100)]
+                for agent in self._runtime.registry().list(active=True, limit=100):
+                    selected = agent.snapshot
+                    if (selected.isolated_runtime is not None and selected.manifest.agent_id == "poltergeist-reference-ai"
+                            and self._model_manager().manages(selected.isolated_runtime.prefix)
+                            and not self._model_manager().matches(selected.isolated_runtime.prefix)):
+                        continue
+                    agents.append({"id": str(agent.id), "name": selected.manifest.name})
         try:
             pairing = self.pairing_status()
         except Exception:

@@ -336,6 +336,7 @@ class CompanionWindow:
             self._executor.shutdown(wait=True)
             self.setup.close()
             self.pairing.close()
+            self.models.close()
             # Python's cyclic GC can run on any worker thread. Release our Tk
             # variables here, on the GUI thread, before a closed window's cycles
             # can be collected later while another window/worker is running.

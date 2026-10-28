@@ -134,6 +134,7 @@ def test_closed_window_releases_tk_variables_on_gui_thread(window):
     pump_until(root, lambda: desktop._future is None)
     references = [weakref.ref(desktop.executable), weakref.ref(desktop.message), weakref.ref(desktop.setup.map_name),
         weakref.ref(desktop.models.status), weakref.ref(desktop.models.detail),
+        weakref.ref(desktop.models.environment_status), weakref.ref(desktop.models.environment_detail),
         weakref.ref(desktop.pairing.origin), weakref.ref(desktop.pairing.allow_remote_execution),
         *[weakref.ref(value) for value in desktop.pairing.permissions.values()]]
     desktop.request_close()

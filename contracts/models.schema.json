@@ -512,6 +512,49 @@
       "title": "AgentInputInfo",
       "type": "object"
     },
+    "AgentIsolatedRuntime": {
+      "additionalProperties": false,
+      "description": "An explicitly selected independent Windows SDK prefix.\n\nThis declaration selects import/fingerprint behavior. It does not assert\nthat dependencies import, a catalogue capsule is authentic, or inference\nworks; the local model manager must verify those separately.",
+      "properties": {
+        "manifest_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manifest Sha256"
+        },
+        "prefix": {
+          "minLength": 1,
+          "title": "Prefix",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "poltergeist-isolated-agent-runtime-v1",
+          "default": "poltergeist-isolated-agent-runtime-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "target": {
+          "const": "windows-x86_64-cpython312",
+          "default": "windows-x86_64-cpython312",
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "target",
+        "prefix"
+      ],
+      "title": "AgentIsolatedRuntime",
+      "type": "object"
+    },
     "AgentManifest": {
       "additionalProperties": false,
       "properties": {
@@ -877,6 +920,17 @@
           },
           "title": "Configuration",
           "type": "object"
+        },
+        "isolated_runtime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentIsolatedRuntime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "model_files": {
           "items": {
@@ -1448,6 +1502,38 @@
           "minItems": 1,
           "title": "Files",
           "type": "array"
+        },
+        "framework_runtime_files": {
+          "items": {
+            "$ref": "#/$defs/AgentExternalFileFingerprint"
+          },
+          "maxItems": 20000,
+          "title": "Framework Runtime Files",
+          "type": "array"
+        },
+        "framework_runtime_root": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Framework Runtime Root"
+        },
+        "isolated_runtime": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentIsolatedRuntime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "manifest": {
           "$ref": "#/$defs/AgentManifest"

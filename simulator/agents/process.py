@@ -170,6 +170,7 @@ class ProcessAgent(AutonomousAgent):
         self._process = None
         self._group = None
         self._bytecode_cache = None
+        self._runtime_use = None
         self._threads = []
         self._responses = Queue(maxsize=2)
         self._writes = Queue(maxsize=1)
@@ -245,13 +246,27 @@ class ProcessAgent(AutonomousAgent):
         else:
             environment.pop("VIRTUAL_ENV", None)
         try:
+            if self.snapshot is not None and self.snapshot.isolated_runtime is not None:
+                from .runtime_lease import runtime_use_lease
+                from .fingerprints import verify_agent_snapshot
+                self._runtime_use = runtime_use_lease(self.snapshot.isolated_runtime.prefix)
+                self._runtime_use.acquire()
+                verify_agent_snapshot(self.snapshot)
+                self._cancel_check()
             # Timestamp/size based .pyc files can contain different code from
             # the source bytes checked by a registered snapshot. A private,
             # initially empty prefix prevents reading old caches for package,
             # runtime and dependency imports; -B also prevents writing new ones.
             # -B alone would still read an existing stale cache.
             self._bytecode_cache = TemporaryDirectory(prefix="poltergeist-agent-cache-")
-            arguments = [str(self.python_executable), "-u", "-B", "-X",
+            isolated = self.snapshot is not None and self.snapshot.isolated_runtime is not None
+            if isolated:
+                environment.pop("TCL_LIBRARY", None)
+                environment.pop("TK_LIBRARY", None)
+                environment.update(HF_HOME=str(Path(self._bytecode_cache.name) / "hf"),
+                    TORCH_HOME=str(Path(self._bytecode_cache.name) / "torch"),
+                    HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1")
+            arguments = [str(self.python_executable), *(["-I"] if isolated else []), "-u", "-B", "-X",
                          f"pycache_prefix={self._bytecode_cache.name}", "-m", "simulator.agents.worker",
                          "--package", str(self.package.directory), "--max-message-bytes", str(self.options.max_message_bytes)]
             self._process = subprocess.Popen(
@@ -363,6 +378,9 @@ class ProcessAgent(AutonomousAgent):
             if self._bytecode_cache is not None:
                 self._bytecode_cache.cleanup()
                 self._bytecode_cache = None
+            if self._runtime_use is not None:
+                self._runtime_use.release()
+                self._runtime_use = None
             return
         deadline = monotonic() + self.options.terminate_timeout_s
         errors = []
@@ -407,6 +425,9 @@ class ProcessAgent(AutonomousAgent):
         if self._bytecode_cache is not None:
             self._bytecode_cache.cleanup()
             self._bytecode_cache = None
+        if self._runtime_use is not None:
+            self._runtime_use.release()
+            self._runtime_use = None
 
     def _stop_preserving(self, primary_error):
         try:

@@ -1,0 +1,30 @@
+{
+  "schema": "poltergeist-model-notices-v1",
+  "scope": "Pinned supplemental top-level upstream license texts; full transitive binary redistribution review remains open.",
+  "notices": [
+    {
+      "package": "antlr4-python3-runtime",
+      "filename": "antlr4-LICENSE-4.9.3.txt",
+      "url": "https://raw.githubusercontent.com/antlr/antlr4/4.9.3/LICENSE.txt",
+      "sha256": "b1b379fcaf3219593a4c433feb1b35c780bed23fafaae440b1ae2771a9521e3a"
+    },
+    {
+      "package": "tokenizers",
+      "filename": "tokenizers-LICENSE-0.21.4.txt",
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/v0.21.4/LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "package": "tqdm",
+      "filename": "tqdm-LICENCE-4.70.1.txt",
+      "url": "https://raw.githubusercontent.com/tqdm/tqdm/v4.70.1/LICENCE",
+      "sha256": "fcff87c3a47ce8028a8512aa182d4fcf0ad1c90544ee75cf9b343684cac194de"
+    },
+    {
+      "package": "tqdm",
+      "filename": "tqdm-MPL-2.0.txt",
+      "url": "https://www.mozilla.org/media/MPL/2.0/index.txt",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04"
+    }
+  ]
+}

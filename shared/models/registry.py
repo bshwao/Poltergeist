@@ -33,12 +33,29 @@ class AgentExecutionOptions(ContractModel):
     max_message_bytes: Annotated[int, Field(gt=0, le=64 * 1024 * 1024, strict=True)] = 4 * 1024 * 1024
 
 
+class AgentIsolatedRuntime(ContractModel):
+    """An explicitly selected independent Windows SDK prefix.
+
+    This declaration selects import/fingerprint behavior. It does not assert
+    that dependencies import, a catalogue capsule is authentic, or inference
+    works; the local model manager must verify those separately.
+    """
+
+    schema_version: Literal["poltergeist-isolated-agent-runtime-v1"] = "poltergeist-isolated-agent-runtime-v1"
+    target: Literal["windows-x86_64-cpython312"] = "windows-x86_64-cpython312"
+    prefix: NonEmptyString
+    manifest_sha256: SHA256 | None = Field(default=None, exclude_if=lambda value: value is None)
+
+    _absolute_prefix = field_validator("prefix")(_absolute_local)
+
+
 class AgentRegistration(ContractModel):
     package_path: NonEmptyString
     python_executable: NonEmptyString | None = None
     configuration: dict[str, JsonValue] = Field(default_factory=dict)
     model_files: list[NonEmptyString] = Field(default_factory=list, max_length=256)
     process_options: AgentExecutionOptions = Field(default_factory=AgentExecutionOptions)
+    isolated_runtime: AgentIsolatedRuntime | None = Field(default=None, exclude_if=lambda value: value is None)
     agent_control_mode: Literal["authoritative", "scripted"] = "authoritative"
     trusted_local_code: Literal[True]
 
@@ -50,6 +67,15 @@ class AgentRegistration(ContractModel):
         if value is not True:
             raise ValueError("trusted_local_code must explicitly be true for executable local Python packages")
         return value
+
+    @model_validator(mode="after")
+    def isolated_interpreter(self) -> Self:
+        if self.isolated_runtime is not None:
+            if self.python_executable is None or not Path(self.python_executable).is_absolute():
+                raise ValueError("An isolated runtime requires an explicit absolute interpreter")
+            if Path(self.python_executable) != Path(self.isolated_runtime.prefix) / "python.exe":
+                raise ValueError("The isolated interpreter must be python.exe inside its declared prefix")
+        return self
 
 
 class AgentFileFingerprint(ContractModel):
@@ -80,12 +106,22 @@ class AgentSnapshot(ContractModel):
     files: list[AgentFileFingerprint] = Field(min_length=1, max_length=20000)
     model_files: list[AgentExternalFileFingerprint] = Field(default_factory=list, max_length=256)
     runtime_files: list[AgentExternalFileFingerprint] = Field(default_factory=list, max_length=20000)
+    isolated_runtime: AgentIsolatedRuntime | None = Field(default=None, exclude_if=lambda value: value is None)
+    framework_runtime_root: NonEmptyString | None = Field(default=None, exclude_if=lambda value: value is None)
+    framework_runtime_files: list[AgentExternalFileFingerprint] = Field(
+        default_factory=list, max_length=20000, exclude_if=lambda value: not value,
+    )
     package_sha256: SHA256
     process_options: AgentExecutionOptions = Field(default_factory=AgentExecutionOptions)
     agent_control_mode: Literal["authoritative", "scripted"] = "authoritative"
 
     _json_configuration = field_validator("configuration", mode="before")(_require_json_object)
     _absolute_paths = field_validator("package_path", "python_executable")(_absolute_local)
+
+    @field_validator("framework_runtime_root")
+    @classmethod
+    def absolute_framework_root(cls, value):
+        return None if value is None else _absolute_local(value)
 
     @model_validator(mode="after")
     def consistent_snapshot(self) -> Self:
@@ -94,10 +130,18 @@ class AgentSnapshot(ContractModel):
             raise ValueError("Snapshot configuration must equal its effective manifest configuration")
         if self.observation_mode != self.manifest.observation_mode:
             raise ValueError("Snapshot observation mode must match its manifest")
-        for collection in (self.files, self.model_files, self.runtime_files):
+        for collection in (self.files, self.model_files, self.runtime_files, self.framework_runtime_files):
             paths = [item.path for item in collection]
             if paths != sorted(set(paths)):
                 raise ValueError("Fingerprint paths must be sorted and unique")
+        if self.isolated_runtime is None:
+            if self.framework_runtime_root is not None or self.framework_runtime_files:
+                raise ValueError("Separate framework provenance requires an isolated runtime")
+        else:
+            if Path(self.python_executable) != Path(self.isolated_runtime.prefix) / "python.exe":
+                raise ValueError("The isolated interpreter must match its declared prefix")
+            if self.framework_runtime_root is None or not self.framework_runtime_files or not self.runtime_files:
+                raise ValueError("An isolated snapshot requires worker and framework runtime provenance")
         return self
 
 

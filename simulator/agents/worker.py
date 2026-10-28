@@ -91,7 +91,7 @@ def serve(package_path: str | Path, input_stream, output_stream, *, max_message_
                         from shared.models.registry import AgentSnapshot
                         from .fingerprints import verify_agent_snapshot
                         snapshot = AgentSnapshot.model_validate(request.payload["snapshot"])
-                        verify_agent_snapshot(snapshot)
+                        verify_agent_snapshot(snapshot, worker=True)
                         if str(Path(package_path).resolve()) != snapshot.package_path:
                             raise AgentProtocolError("Worker package path does not match registered snapshot")
                     package = inspect_agent_package(package_path)
