@@ -129,6 +129,7 @@ class ModelPanel:
         self.status.set(value["message"] or ("Verifying every saved byte…" if value["state"] == "verifying" else "The transfer can be paused and resumed."))
         environment = value["environment"]
         self.environment_status.set(environment["message"] or {
+            "checking_road_raster": "Checking the companion's road raster backend…",
             "loading_model": "Loading the CPU model in its isolated worker…",
             "checking_inference": "Checking model inference with two synthetic scenes…",
             "checking_checkpoint": "Verifying the official model weights…",

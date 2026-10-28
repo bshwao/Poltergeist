@@ -100,6 +100,16 @@ def test_builder_refuses_cache_corruption_and_offline_missing_inputs(tmp_path):
         build_portable.fetch(entry, tmp_path, offline=True)
 
 
+def test_packaged_carla_road_raster_dependencies_are_pinned_runtime_inputs():
+    inputs = json.loads(build_portable.INPUTS.read_bytes())
+    runtime = {entry["name"]: entry for entry in inputs["wheels"] if entry["role"] == "runtime"}
+    assert "numpy" in runtime
+    backend = runtime["opencv-python-headless"]
+    assert backend["filename"].endswith("-win_amd64.whl")
+    assert backend["url"].startswith("https://files.pythonhosted.org/")
+    assert len(backend["sha256"]) == 64
+
+
 def test_builder_pruning_refuses_paths_outside_new_output(tmp_path):
     root = tmp_path / "output"
     root.mkdir()

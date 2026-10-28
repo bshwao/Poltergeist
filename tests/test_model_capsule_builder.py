@@ -246,3 +246,16 @@ def test_vendored_metadata_is_payload_and_does_not_replace_root_identity(tmp_pat
         "timm/_vendor/other-2.dist-info/WHEEL": b"Tag: cp310-cp310-linux_x86_64\n"})
     result = builder.build(tmp_path / "vendor", **inputs)
     assert "runtime/Lib/site-packages/timm/_vendor/other-2.dist-info/RECORD" in result["manifest"]["files"]
+
+
+def test_curated_inference_pack_omits_compiler_inputs_and_dependency_tests(tmp_path, inputs):
+    rewrite_package(inputs, "torch", files={"torch/include/ATen/Operators.h": b"compiler input",
+        "torch/include/README": b"compiler input", "torch/share/cmake/TorchConfig.cmake": b"compiler input",
+        "torch/lib/torch_cpu.pdb": b"debug symbols", "torch/lib/torch_cpu.dll": b"runtime fixture"})
+    rewrite_package(inputs, "numpy", files={"numpy/tests/test_fixture.py": b"dependency test"})
+    rewrite_package(inputs, "timm", files={"timm/layers/test_time_pool.py": b"runtime module"})
+    result = builder.build(tmp_path / "curated", **inputs)
+    files = result["manifest"]["files"]
+    assert "runtime/Lib/site-packages/torch/lib/torch_cpu.dll" in files
+    assert "runtime/Lib/site-packages/timm/layers/test_time_pool.py" in files
+    assert not any("/tests/" in name or "/torch/include/" in name or name.endswith((".h", ".pdb", ".cmake")) for name in files)

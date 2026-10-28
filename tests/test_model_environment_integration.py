@@ -16,7 +16,7 @@ from companion.controller import CompanionController
 from companion.model_assets import AssetStore, ModelAsset
 from companion.model_catalog import load_bundled_capsule
 from companion.model_capsule import CapsuleError
-from companion.model_readiness import ModelReadinessError
+from companion.model_readiness import ModelReadiness, ModelReadinessError
 from scripts import build_portable
 from simulator.agents.runtime_lease import runtime_use_lease
 from test_model_capsule import packed
@@ -30,6 +30,22 @@ def wait_for(check):
             return result
         Event().wait(.01)
     raise AssertionError("Owned environment fixture operation did not finish")
+
+
+def test_missing_parent_road_raster_backend_fails_before_checkpoint_or_worker(monkeypatch, tmp_path):
+    import builtins
+    original = builtins.__import__
+    def missing(name, *args, **kwargs):
+        if name == "cv2":
+            raise ModuleNotFoundError("cv2")
+        return original(name, *args, **kwargs)
+    monkeypatch.setattr(builtins, "__import__", missing)
+    probe = ModelReadiness()
+    with pytest.raises(ModelReadinessError, match="road rasters"):
+        probe.run(SimpleNamespace(), tmp_path / "not-read.ckpt")
+    assert probe.last_failure["stage"] == "road_raster"
+    assert probe.last_failure["type"] == "ModuleNotFoundError"
+    assert not probe.retained
 
 
 @pytest.fixture

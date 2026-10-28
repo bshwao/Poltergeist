@@ -16,10 +16,10 @@
       "version": "0.29.1+cpu"
     },
     {
-      "bytes": 482160,
+      "bytes": 483139,
       "filename": "poltergeist-0.1.0-py3-none-any.whl",
       "name": "poltergeist",
-      "sha256": "1124dbb5ad20879a2486a4fd1538a92b4c556f943f711c06ebeab5b39bc8dfe1",
+      "sha256": "5f9220b20b36bccdb17c29eae517b4c5200be5836af9cd3b079aaecf36d4409a",
       "version": "0.1.0"
     },
     {
@@ -365,7 +365,7 @@
   "runtime_inputs": "inputs.json",
   "schema": "poltergeist-model-cpu-inputs-v1",
   "scope": "Publisher inputs for a private Windows x64 CPU prototype; binary redistribution review and supported-machine validation remain open.",
-  "sdk_source_revision": "00ac4b27a122cd3558c11bfebfa57b3c3a204c16",
+  "sdk_source_revision": "17bd61e18f5af300d024b2774cc9efe409de49b7",
   "wheel_sources": {
     "annotated_doc-0.0.5-py3-none-any.whl": {
       "sha256": "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101",

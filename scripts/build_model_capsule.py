@@ -150,6 +150,15 @@ def _pruned(relative):
         return True
     if relative.lower().endswith((".pyc", ".pyo")) or (parts and lowered[0] == "scripts"):
         return True
+    # This curated environment runs prebuilt CPU inference; it cannot compile
+    # extensions. Upstream test suites, debug symbols and compiler headers
+    # create thousands of unnecessary file opens during every sealed check.
+    if any(part in {"test", "tests"} for part in lowered) or relative.lower().endswith((".h", ".hpp", ".cuh", ".inl", ".cmake", ".pdb")):
+        return True
+    if len(lowered) >= 4 and lowered[:4] == ["lib", "site-packages", "torch", "include"]:
+        return True
+    if len(lowered) >= 5 and lowered[:5] == ["lib", "site-packages", "torch", "share", "cmake"]:
+        return True
     if len(parts) >= 2 and lowered[:2] == ["lib", "ensurepip"]:
         return True
     if len(parts) >= 3 and lowered[:2] == ["lib", "site-packages"]:
@@ -444,6 +453,7 @@ def build(output, *, runtime_archive, runtime_spec, wheels_dir, packages_manifes
                     "python_executable": "runtime/python.exe", "agent_package": "agent", "sdk_wheel_sha256": sdk[0]["sha256"],
                     "source_revision": source_revision, "packages": installed,
                     "runtime_archive_sha256": runtime_spec["sha256"], "files": dict(sorted(writer.files.items())),
+                    "runtime_scope": "Curated prebuilt CPU inference; compiler headers, upstream tests and debug symbols omitted. Runtime extension compilation is unsupported.",
                     "notice_scope": "Collected upstream runtime and wheel/supplement license texts; redistribution and transitive binary license review is not performed by this builder."}
         raw = json_bytes(manifest)
         if len(raw) > MAX_MANIFEST:

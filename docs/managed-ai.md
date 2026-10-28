@@ -75,6 +75,8 @@ runtime archive, SDK and dependency wheels have independent hashes in
 [publisher inputs](../packaging/windows-x64/model-cpu-inputs.json). The publisher
 reconstructs it from those archives, checks ABI/dependency metadata and wheel
 records, and collects upstream notices. The app performs no pip or source build.
+Compiler headers, upstream test suites and debug symbols are omitted from this
+curated inference environment; runtime extension compilation is unsupported.
 The pack catalogue lives outside the SDK wheel, avoiding a circular SDK hash.
 The core bundle contains the model ZIP as data and keeps its own dependencies.
 

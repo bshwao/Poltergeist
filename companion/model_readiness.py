@@ -63,11 +63,22 @@ class ModelReadiness:
     def run(self, installed, checkpoint, *, cancelled=lambda: False, progress=lambda *args: None):
         if self.retained:
             raise ModelReadinessError("The previous model process is still stopping")
-        phase = "checkpoint"
+        phase = "road_raster"
         self.last_failure = None
         try:
             if cancelled():
                 raise DownloadPaused()
+            progress("checking_road_raster", 0, 1)
+            # CARLA builds the observed map in the companion, before sending it
+            # to the isolated model. Synthetic fixtures alone cannot detect a
+            # missing native raster backend in that parent environment.
+            import cv2
+            import numpy as np
+            raster = np.zeros((8, 8), dtype=np.uint8)
+            cv2.fillConvexPoly(raster, np.asarray([[1, 1], [6, 1], [6, 6], [1, 6]], dtype=np.int32), 1)
+            if int(raster[3, 3]) != 1 or int(raster[0, 0]) != 0:
+                raise ValueError("The road raster backend failed its measured fill check")
+            phase = "checkpoint"
             progress("checking_checkpoint", 0, 1)
             verify_checkpoint(checkpoint)
             if cancelled():
@@ -105,7 +116,8 @@ class ModelReadiness:
                 "device": "cpu", "torch_version": clear.diagnostics.metadata["torch_version"],
                 "parameter_count": clear.diagnostics.metadata["parameter_count"],
                 "inference_wall_times_s": [row.diagnostics.metadata["inference_wall_time_s"] for row in (clear, blocked)],
-                "scene_response_changed": True, "isolated_worker": True}
+                "scene_response_changed": True, "isolated_worker": True,
+                "road_raster_backend_checked": True, "opencv_version": cv2.__version__}
         except (SimulationCancelled, DownloadPaused):
             raise DownloadPaused() from None
         except ModelReadinessError:
@@ -115,7 +127,8 @@ class ModelReadiness:
             # the fixed actionable message, never raw worker/configuration text.
             self.last_failure = {"stage": phase, "type": type(error).__name__, "detail": str(error)[:4096],
                 "stderr_tail": "" if self._agent is None else self._agent.stderr_tail[-8192:]}
-            raise ModelReadinessError({"checkpoint": "PlanT weights need verification or repair before model checks",
+            raise ModelReadinessError({"road_raster": "The companion cannot build PlanT road rasters. Repair or update the companion.",
+                "checkpoint": "PlanT weights need verification or repair before model checks",
                 "worker": "The isolated PlanT worker could not load. Check or repair its environment.",
                 "inference": "The PlanT inference check failed. Check or repair its environment."}[phase]) from None
         finally:

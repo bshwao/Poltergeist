@@ -233,7 +233,8 @@ def embed_model_capsule(source, bundle):
 def build(output, cache, *, offline=False, model_capsule=None):
     if sys.platform != "win32" or platform.machine().lower() not in {"amd64", "x86_64"} or sys.version_info[:2] != (3, 12):
         raise ValueError("Build this prototype with Windows x64 Python 3.12; other targets are unvalidated")
-    inputs = json.loads(INPUTS.read_text(encoding="utf-8"))
+    input_bytes = INPUTS.read_bytes()
+    inputs = json.loads(input_bytes)
     if inputs["schema_version"] != "poltergeist-portable-inputs-v1":
         raise ValueError("Unsupported portable input lock")
     output = output.resolve()
@@ -321,7 +322,7 @@ def build(output, cache, *, offline=False, model_capsule=None):
     shutil.copy2(ROOT / "examples" / "scenarios" / "installation_check.json", bundle / "examples" / "scenarios")
     for filename in ("Poltergeist.cmd", "Poltergeist Companion.vbs", "README-PORTABLE.txt", "DISTRIBUTION-NOTICES.md"):
         shutil.copy2(ROOT / "packaging" / "windows-x64" / filename, bundle / filename)
-    shutil.copy2(INPUTS, bundle / "notices" / "inputs.json")
+    (bundle / "notices" / "inputs.json").write_bytes(input_bytes)
     if model_capsule is not None:
         embed_model_capsule(model_capsule, bundle)
     for entry in inputs["notices"]:
@@ -329,7 +330,7 @@ def build(output, cache, *, offline=False, model_capsule=None):
     write_json(bundle / "notices" / "python-packages.json", dependency_notices(site))
     write_json(bundle / "notices" / "native-imports.json", native_inventory(bundle))
     manifest = {"schema_version": "poltergeist-portable-v1", "prototype": "S1-S4-pairing-foundation-private-windows-x64",
-        "source_date_epoch": inputs["source_date_epoch"], "inputs_sha256": sha256(INPUTS),
+        "source_date_epoch": inputs["source_date_epoch"], "inputs_sha256": hashlib.sha256(input_bytes).hexdigest(),
         "project_wheel": {"filename": project_wheel.name, "sha256": sha256(project_wheel)},
         "runtime": inputs["runtime"], "remote_execution_enabled": False,
         "files": {p.relative_to(bundle).as_posix(): sha256(p) for p in sorted(bundle.rglob("*")) if p.is_file()}}
