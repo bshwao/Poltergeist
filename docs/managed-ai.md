@@ -1,9 +1,13 @@
 # Managed AI preparation
 
-S7 is in progress. **AI models** in the Companion prepares the official PlanT 2.0
-weights; **Manage AI…** beside the existing Agent selector opens those controls.
-The rule-based baseline remains available without downloads. Preparing weights
-does not change the selected agent or claim a usable model environment.
+**AI models** in the Companion installs a supported **PlanT 2.0 CPU pack** on
+Windows x64: its own Python 3.12.10 interpreter, pinned dependencies and official
+weights. **Manage AI…** beside the Agent selector opens these controls. Users need
+no manual Python or pip setup. The baseline remains available without downloads;
+**Enable teaching starter** adds the included trusted starter without downloads.
+S7's implementation and local evidence are described in the
+[environment validation record](validation/s7-environment.md). Independent-machine
+acceptance remains a release gate. CUDA installation is outside this CPU pack.
 
 The first catalogue entry is the [upstream PlanT model](https://huggingface.co/SimonGer/PlanT2/tree/e81b261f8b92b20225d020fe9b7a0470c1434d96),
 model revision `e81b261f8b92b20225d020fe9b7a0470c1434d96`, 446,559,352 bytes
@@ -11,8 +15,9 @@ model revision `e81b261f8b92b20225d020fe9b7a0470c1434d96`, 446,559,352 bytes
 `2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4`.
 The model card declares Apache-2.0; the adapted integration code has its existing
 MIT notice. The integration source revision and model revision are separate pins.
-Dependency redistribution and the eventual environment's complete notices still
-need review.
+The environment retains original dependency metadata/notices, CPython's license,
+the model's Apache-2.0 text, the adapted code's MIT text and ANTLR's BSD notice.
+Public release signing/redistribution review remains separate release work.
 
 PlanT consumes privileged structured simulator scene data and a supplied route.
 The original upstream checkpoint requires Python pickle. These download controls
@@ -55,19 +60,65 @@ requiring manual inspection; the app does not silently claim that directory.
 These safeguards protect routine file ownership, not hostile code running as
 the same local user. Custom agent code still requires explicit local trust.
 
-## Remaining S7 completion work
+## Install and run the CPU pack
 
-The app still needs a separately verified model interpreter/dependency capsule,
-supported CPU/GPU configurations, versioned package hashes and complete notices,
-environment repair/removal and use leases, actual import/inference readiness,
-trusted registration and execution through the Agent selector. The bundled core
-has no pip/ensurepip, and a naive venv over its isolated prefix still sees core
-site-packages; it must not be used to install conflicting model dependencies.
+1. Stop the local runtime and open **AI models**. Allow at least 3 GiB free disk
+   space. The environment download is about 296 MiB in addition to the weights.
+2. Choose **Install / resume AI**. The app verifies every archive, installs the
+   separate interpreter/dependencies, checks import locations and dependency
+   compatibility, and runs an actual pretrained inference in its SDK worker.
+3. After **AI ready**, choose **Enable PlanT for local runs…** and review the trust
+   notice. This starts the local runtime and registers the verified pack. Select
+   **Managed PlanT 2.0 (CPU)** in the Agent selector and choose **CARLA**.
+4. Run a compatible scenario and inspect the normal decision timeline, recorded
+   controls, provenance and reports. Synthetic execution is rejected before
+   queueing: it lacks the observed road raster this checkpoint requires.
 
-The existing manually prepared reference-AI CLI remains a separate developer
-workflow. Hosted remote execution remains subject to its existing baseline-only
-policy. S7 completes only when a fresh supported computer can prepare **and run**
-the reference AI through the app without manual Python/dependency installation.
+Weights alone never enable PlanT. **Check AI readiness** repeats integrity, imports
+and real inference after reopening. Existing registrations reacquire a verified
+environment use lease when submitted. Repeated enabling reuses an unchanged active
+registration; changed inputs require a new registration, preserving history.
+
+**Repair AI…** rebuilds the owned environment from verified downloads and repairs
+damaged assets. **Remove AI…** removes its interpreter, dependencies and cached
+environment assets. Weight removal remains separate. Stop the local runtime before
+preparation, readiness checks, repair or removal. An OS lease excludes mutation
+through execution until the worker stops. Missing or damaged packs fail explicitly
+without switching to the baseline. Interrupted assembly is never executable;
+retry rebuilds it from verified cached archives. App source/location changes
+require environment repair and a new readiness check.
+
+`companion/plant-cpu.lock.json` pins each HTTPS URL, version, size and SHA-256.
+The app executes no pip resolver, build hooks or setup scripts. The pure-Python
+ANTLR source archive is installed as data. The capsule's dependency search path
+excludes core/user/developer site-packages. A narrow import finder exposes only
+Poltergeist's six first-party runtime packages from the installed app. A manifest
+covers every installed file and first-party source and is fingerprinted in the
+agent registration. Original notices and the input lock are retained in the
+environment's `runtime/notices` and `runtime/site-packages/*.dist-info`.
+
+The supported profile explicitly permits 180 s cold load, 30 s reset and 15 s per
+decision. CPU inference may be slower than simulation; earlier manual CUDA
+throughput results do not apply. Windows/CARLA native prerequisites and drivers
+remain system requirements. Failed native imports fail readiness explicitly.
+
+Custom packages remain explicitly trusted local SDK code with a separately
+prepared compatible interpreter via the registry/API/CLI. This catalogue is not
+an arbitrary pip installer; never add custom dependencies to the core or managed
+pack. Hosted execution keeps its existing baseline-only policy. Process/file
+ownership checks do not sandbox hostile code running as the same local user.
+
+With an idle matching CARLA server already running, repeat acceptance using the
+bundled interpreter (or the development environment):
+
+```powershell
+runtime/python.exe -I -B -m scripts.validate_managed_ai --data-dir C:/YourWritableFolder/ai-check --prepare
+```
+
+The command calls the Companion's own actions and retains readiness, registration,
+CARLA controls, reports and persistence-reopen evidence in that profile. Omit
+`--prepare` to recheck an existing installation. It does not substitute synthetic
+road observations or another controller for a failed run.
 
 ## Validation
 
@@ -79,7 +130,9 @@ honored 206 Range response, and verified all 446,559,352 bytes. An explicit seco
 saved-file check also passed. The 176 shipped first-party Python files match
 source; all 6,087 integrity files remained unchanged before and after both runs.
 
-These are withdrawn native callbacks on the development computer, with synthetic
+The weight-only checks above are withdrawn native callbacks on the development computer, with synthetic
 model-byte fixtures for destructive/fault cases. They do not constitute visual
 inspection, an installed shortcut launch, learned inference or external-machine
 acceptance. The original ordinary user profile and imported files were not used.
+The new interpreter/inference/execution checks are recorded separately in
+[S7 environment validation](validation/s7-environment.md).

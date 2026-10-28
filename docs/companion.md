@@ -4,16 +4,17 @@ Status: private Windows x64 prototype, with S2 desktop execution and S3 installe
 and onboarding under validation. The companion executes local work and preserves
 it across restarts. See the [installer/setup guide](installer-onboarding.md) and
 [current progress](progress-notes.md). S4 source adds account pairing and an
-explicit consent-based relay connection. S7 adds managed weight preparation;
-complete managed AI execution and public release remain later milestones. The S1 independent-machine and
+explicit consent-based relay connection. S7 adds a managed PlanT CPU environment,
+verified inference and local agent selection. Public release and the S1 independent-machine and
 redistribution gates remain open.
 
 Open **AI models**, or choose **Manage AI…** beside the Agent selector, to download
-the official PlanT weights, pause/resume a transfer, check saved bytes, or repair
-and remove this app's managed weights. The app shows download size and licensing
-notices. A completed transfer means **weights verified**; it does not yet install
-PlanT dependencies or enable that model in the selector. See the
-[managed AI preparation scope](managed-ai.md).
+the official PlanT weights or **Install / resume AI** to prepare its separate CPU
+interpreter/dependencies and check real inference. After **AI ready**, explicitly
+enable the trusted pack, then select Managed PlanT for a CARLA run. The same tab
+offers readiness checks, pause/resume, owned repair/removal and the included
+teaching starter. Weights alone do not establish readiness. See
+[managed AI installations](managed-ai.md).
 
 ## Open the application
 
@@ -84,7 +85,7 @@ Restarting the app reopens the same database and finalized evidence.
 is explicit because selecting it executes that Python code with user permissions.
 The private core interpreter is used; registration does not install dependencies,
 prove inference works or sandbox the package. The bundled starter works with the
-core runtime. Managed environments/weights and richer model choices belong to S7.
+core runtime. Supported managed model choices use the separate S7 controls above.
 
 **Cancel selected** requests cooperative cancellation. **Stop local runtime**
 stops acceptance and requests cancellation of active work; waiting jobs stay

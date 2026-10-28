@@ -1,0 +1,87 @@
+{
+  "schema": "poltergeist-s7-environment-validation-v1",
+  "date": "2026-10-28",
+  "status": "CPU implementation locally validated; independent-machine acceptance open",
+  "source_sha256": {
+    "companion/controller.py": "a7f285c1ba6fb3f726c476bc3c03be9d27f573fa9fbcae22c090203f190efbb7",
+    "companion/model_assets.py": "3d0dee08b1ebbfc44734a918a42f48af0c8df5e895ae72b74d9f5dc674be2de6",
+    "companion/model_environment.py": "c91b9e07151a61737af7b3bc3f1cc6fa1aa0c0860ead727aaaca9cb43a75079d",
+    "companion/model_probe.py": "d1768d9b456c6fdaf6b511cee9f118b600e8309a59f5b6cf4677304b42874cf7",
+    "companion/model_manager.py": "117dd40921b0a1859429cfe8fc1b158dfe5de0ae3473664d6459af48c6dd2685",
+    "companion/model_ui.py": "dacd297f0f13922b0bff71f578fb51cc7332908357641a7fbb53482ff90e7eff",
+    "companion/plant-cpu.lock.json": "9537e379af3fb5b1e60e5b7e2ba36fb98912c6f499ad9e4263908f49ca3c22f7",
+    "companion/LICENSE.antlr": "b1b379fcaf3219593a4c433feb1b35c780bed23fafaae440b1ae2771a9521e3a",
+    "companion/LICENSE.plant-model": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "scripts/validate_managed_ai.py": "258df95875c7b1dc0454fc6f2b983de625498c21ed3eb07c074f0e4226da464f",
+    "scripts/build_portable.py": "7d7a09dc3a5974f77013fb739488eda11b4b1fa42539ed9e752264b13aa89298"
+  },
+  "all_listed_shipped_sources_match": true,
+  "regression": {
+    "tests": "124",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "373.288"
+  },
+  "source": {
+    "receipt": "validation-evidence\\s7-local-1\\managed-ai-carla-validation.json",
+    "sha256": "4634008b19807d4f22065a2f7668f734a0b5bc729fdb4a8b507afa9dc50e31d5",
+    "passed": true,
+    "closed": true,
+    "reopened": true,
+    "run_id": "c2f446df-f691-490a-822e-f4ecf6693cf7",
+    "applied_decisions": 4,
+    "all_controls_unchanged": true,
+    "input_source": "carla_ground_truth",
+    "checkpoint_sha256": "2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4",
+    "worker_python": "3.12.10",
+    "torch": "2.6.0+cpu",
+    "numpy": "2.2.4",
+    "inference_wall_time_s": [
+      0.1461063999995531,
+      0.06332649999967543,
+      0.0660585000005085,
+      0.06352400000105263
+    ],
+    "exports": 3
+  },
+  "packaged": {
+    "receipt": "validation-evidence\\s7-packaged-complete.json",
+    "sha256": "b072a84211a56236a882b1ec5b0d74428eda2a7d5fb2d9e11cf1cf0b98b0639f",
+    "passed": true,
+    "closed": true,
+    "reopened": true,
+    "run_id": "e2064faf-5e68-4d5a-9d46-87db52196043",
+    "applied_decisions": 4,
+    "all_controls_unchanged": true,
+    "input_source": "carla_ground_truth",
+    "checkpoint_sha256": "2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4",
+    "worker_python": "3.12.10",
+    "torch": "2.6.0+cpu",
+    "numpy": "2.2.4",
+    "inference_wall_time_s": [
+      0.05463890000100946,
+      0.04005980000147247,
+      0.04682749999847147,
+      0.04604839999956312
+    ],
+    "exports": 3
+  },
+  "archive": {
+    "archive": "C:\\Users\\erich\\OneDrive\\Documents\\GitHub\\Poltergeist\\validation-evidence\\s7-cpu-complete\\Poltergeist-S1-windows-x64.zip",
+    "build_python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "built_at": "2026-10-28T05:08:16.789621+00:00",
+    "bytes": 87526671,
+    "platform": "Windows-11-10.0.26300-SP0",
+    "scope": "Build evidence only. Relocation, live CARLA and external clean-machine gates require separate evidence.",
+    "sha256": "f6d88a5b3c85883e021b6d88bf92ff8d88bc7f9af17135ffea0375144153b24c"
+  },
+  "visual_review": {
+    "default_window": "860x740",
+    "controls_and_scroll_verified": true,
+    "installed_shortcut_verified": false
+  },
+  "independent_machine_verified": false,
+  "gpu_pack_verified": false,
+  "scope": "Same Windows development laptop, fresh private model environment and packaged profile outside checkout; no public-release, real-time or driving-safety claim."
+}

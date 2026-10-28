@@ -50,7 +50,7 @@ class ModelAsset:
     def __post_init__(self):
         if not re.fullmatch(r"[a-z0-9-]{1,80}", self.id):
             raise ValueError("Invalid model asset ID")
-        if not re.fullmatch(r"[a-zA-Z0-9_.=-]{1,120}", self.filename):
+        if not re.fullmatch(r"[a-zA-Z0-9_.=+-]{1,120}", self.filename):
             raise ValueError("Invalid model asset filename")
         if self.filename in {".", "..", "owner.json", "transfer", "transfer.worker.lock", "weights.part"}:
             raise ValueError("Reserved model asset filename")

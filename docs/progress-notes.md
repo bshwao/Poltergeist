@@ -1,7 +1,7 @@
 # S0–S19 progress notes
 
-Updated October 27, 2026. Current checkpoint: **S6 reliability open; S7 managed AI
-preparation in progress**.
+Updated October 28, 2026. Current checkpoint: **S6 reliability open; S7 managed CPU
+installation implemented, independent-machine acceptance open**.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
 Branch: `codex/s7-managed-ai` (continues the preserved S6 history).
@@ -24,7 +24,7 @@ private prototype does not close independent-machine or release validation.
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime/compiled-profile proofs pass on this laptop. Public deployment, actual shortcut invocation, visual and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
 | **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
-| **S7 — Managed AI installations** | **In progress; managed weight preparation implemented** | Revision-pinned PlanT downloads, resume, progress, verification and owned repair/removal controls. Separate interpreter/dependency installation, compatibility/inference checks and fresh-machine app execution remain open. See [managed AI preparation](managed-ai.md). |
+| **S7 — Managed AI installations** | **CPU implementation delivered; independent-machine gate open** | Separate pinned interpreter/dependencies, verified weights, actual import/inference checks, explicit local registration, starter choice, repair/removal and execution use leases. See [managed AI installations](managed-ai.md) and [environment validation](validation/s7-environment.md). |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
 | S10 — Distribution and release | Pending | Signing, updates/rollback, supported-machine validation and external beta. |
@@ -39,6 +39,21 @@ private prototype does not close independent-machine or release validation.
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
+
+- S7 now installs a Windows x64 PlanT CPU pack through the Companion, using a
+  separate Python interpreter and pinned, size/hash-verified package assets.
+  Imports and pretrained inference are checked before local registration. The
+  teaching starter needs no download. Environment repair/removal excludes active
+  workers; imported models, results and the immutable core are preserved.
+- The CPU catalogue and original notices ship in the wheel/portable package.
+  OpenCV is now a pinned core simulation dependency in the portable inputs so
+  CARLA can produce the checkpoint's required observed road raster. Synthetic
+  execution is rejected explicitly for this pack. Hosted policy is unchanged.
+- The combined model, worker, Companion, packaging and native GUI suite passed
+  124 checks. A visible native layout/scrolling review passed. Real inference
+  and private-package/CARLA acceptance are recorded with their limits in
+  [S7 environment validation](validation/s7-environment.md). No independent
+  computer or public release is claimed.
 
 - Started S7 on `codex/s7-managed-ai`. The desktop now exposes PlanT weights in
   **AI models**, reachable from **Manage AI…** beside the existing Agent selector.

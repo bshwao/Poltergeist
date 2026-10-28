@@ -37,6 +37,7 @@ poltergeist-companion = "scripts.companion:main"
 include = ["backend*", "shared*", "simulator*", "scenarios*", "evaluation*", "optimization*", "scripts*", "companion*", "coordinator*"]
 
 [tool.setuptools.package-data]
+companion = ["plant-cpu.lock.json", "LICENSE.plant-model", "LICENSE.antlr"]
 scenarios = ["templates/*.yaml"]
 simulator = ["agents/reference_ai/LICENSE.plant2"]
 

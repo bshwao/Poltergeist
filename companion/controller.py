@@ -46,6 +46,7 @@ class CompanionController:
                  pairing_factory=PairingClient, credential_store_factory=WindowsCredentialStore,
                  relay_factory=None, _private_remote_execution=False):
         self.profile = profile_path(profile, bundle=bundle)
+        self._bundle = Path(bundle) if bundle is not None else None
         self._factory = runtime_factory
         self._lease = instance_lease(self.profile)
         self._owned = False
@@ -53,6 +54,7 @@ class CompanionController:
         self._worker = None
         self._stopping = False
         self._models = None
+        self._model_use = None
         self._pairing_factory = pairing_factory
         self._credential_store_factory = credential_store_factory
         self._pairing_display = None
@@ -114,6 +116,9 @@ class CompanionController:
             self._runtime = None
             self._worker = None
             self._stopping = False
+            if self._model_use is not None:
+                self._model_use.__exit__(None, None, None)
+                self._model_use = None
         return clean
 
     def close(self):
@@ -386,6 +391,13 @@ class CompanionController:
         if mode not in {"test", "carla"}:
             raise ValueError("Choose Synthetic test or CARLA")
         runtime = self._running()
+        if agent_id is not None:
+            registered = runtime.registry().get(UUID(str(agent_id)))
+            environment = self._model_manager().environment
+            if Path(registered.snapshot.python_executable) == environment.python:
+                if mode != "carla":
+                    raise ValueError("Managed PlanT needs CARLA's observed road raster. Choose CARLA; synthetic test mode does not provide it.")
+                self._acquire_model_use()
         recipe = validate_scenario(scenario)
         return runtime.worker().submit(recipe, mode=mode, agent_id=agent_id,
             options=SimulationOptions(carla_quality=self.config.carla_quality))
@@ -397,6 +409,24 @@ class CompanionController:
         request = AgentRegistration(package_path=str(Path(package_path).resolve()),
             python_executable=sys.executable, trusted_local_code=trusted_local_code)
         return self._running().registry().register(request)
+
+    def enable_starter(self, *, trusted_local_code=False):
+        self._require_open()
+        if trusted_local_code is not True:
+            raise ValueError("Explicitly trust the supported starter before enabling it")
+        root = self._bundle if self._bundle is not None else Path(__file__).resolve().parents[1]
+        package = root / "examples" / "agents" / "starter"
+        if not (package / "agent.json").is_file():
+            raise ValueError("The supported starter is missing; repair the app installation")
+        self.start()
+        for registered in self._running().registry().list(active=True, limit=100):
+            if registered.snapshot.package_path == str(package):
+                try:
+                    self._running().registry().verify(registered.snapshot)
+                    return registered
+                except ConflictError:
+                    pass
+        return self.register_agent(package, trusted_local_code=True)
 
     def _model_manager(self):
         self._require_open()
@@ -410,11 +440,46 @@ class CompanionController:
 
     def prepare_model(self, action, *, repair=False):
         self._require_open()
-        # The first managed asset phase never registers a model for execution.
-        # Conservatively exclude all local workers before deleting model bytes.
-        if (repair or action == "remove") and self._runtime is not None:
-            raise ConflictError("Stop the local runtime before repairing or removing model weights")
+        if (repair or action in {"remove", "prepare", "check_environment", "remove_environment"}) and self._runtime is not None:
+            raise ConflictError("Stop the local runtime before preparing, checking, repairing or removing a model environment or weights")
         self._model_manager().start(action, repair=repair)
+
+    def _acquire_model_use(self):
+        if self._model_use is None:
+            context = self._model_manager().environment.use()
+            context.__enter__()
+            self._model_use = context
+
+    def enable_managed_model(self, *, trusted_local_code=False):
+        self._require_open()
+        if trusted_local_code is not True:
+            raise ValueError("Explicitly trust the supported local model before enabling it")
+        manager = self._model_manager()
+        if manager.snapshot()["busy"] or not manager.snapshot()["inference_ready"]:
+            raise ConflictError("Prepare or check the model environment and complete inference first")
+        acquired = self._model_use is None
+        self._acquire_model_use()
+        try:
+            self.start()
+            registry = self._running().registry()
+            for registered in registry.list(active=True, limit=100):
+                if (registered.snapshot.package_path == str(manager.environment.package)
+                        and registered.snapshot.python_executable == str(manager.environment.python)):
+                    try:
+                        registry.verify(registered.snapshot)
+                        return registered
+                    except ConflictError:
+                        pass  # Preserve history; register the newly prepared identity.
+            from shared.models.registry import AgentExecutionOptions
+            return registry.register(AgentRegistration(package_path=str(manager.environment.package),
+                python_executable=str(manager.environment.python), model_files=[str(manager.environment.receipt)],
+                process_options=AgentExecutionOptions(load_timeout_s=180., reset_timeout_s=30., step_timeout_s=15.),
+                trusted_local_code=True))
+        except BaseException:
+            if acquired and self._model_use is not None:
+                self._model_use.__exit__(None, None, None)
+                self._model_use = None
+            raise
 
     def pause_model_download(self):
         self._model_manager().pause()

@@ -281,6 +281,8 @@ def build(output, cache, *, offline=False):
                 site / "scripts" / "install_check.py", site / "scripts" / "remove_owned_profile.py",
                 site / "companion" / "setup_ui.py", site / "companion" / "onboarding.py",
                 site / "companion" / "install_guard.py",
+                site / "companion" / "plant-cpu.lock.json",
+                site / "cv2" / "__init__.py",
                 site / "shared" / "models" / "runner.py", site / "simulator" / "agents" / "worker.py",
                 site / "simulator" / "agents" / "reference_ai" / "LICENSE.plant2",
                 *[site / "scenarios" / "templates" / (name + ".yaml")

@@ -98,6 +98,14 @@
       "role": "runtime"
     },
     {
+      "name": "opencv-python",
+      "version": "4.11.0.86",
+      "filename": "opencv_python-4.11.0.86-cp37-abi3-win_amd64.whl",
+      "url": "https://files.pythonhosted.org/packages/a4/7d/f1c30a92854540bf789e9cd5dde7ef49bbe63f855b85a2e6b3db8135c591/opencv_python-4.11.0.86-cp37-abi3-win_amd64.whl",
+      "sha256": "085ad9b77c18853ea66283e98affefe2de8cc4c1f43eda4c100cf9b2721142ec",
+      "role": "runtime"
+    },
+    {
       "name": "opentelemetry-api",
       "version": "1.45.1",
       "filename": "opentelemetry_api-1.45.1-py3-none-any.whl",
@@ -111,6 +119,14 @@
       "filename": "packaging-26.3-py3-none-any.whl",
       "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
       "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "role": "build"
+    },
+    {
+      "name": "pip",
+      "version": "26.2.2",
+      "filename": "pip-26.2.2-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl",
+      "sha256": "fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70",
       "role": "build"
     },
     {
@@ -223,14 +239,6 @@
       "filename": "wheel-0.48.0-py3-none-any.whl",
       "url": "https://files.pythonhosted.org/packages/2e/29/69cfbb602cd91690c55d38ba9fe53e6a7e76a6fa647bf38f19c138d25449/wheel-0.48.0-py3-none-any.whl",
       "sha256": "3217dcc807155e45db462d7ef2431f5ddda0d7273b700d05a67b271ceb1287ab",
-      "role": "build"
-    },
-    {
-      "name": "pip",
-      "version": "26.2.2",
-      "filename": "pip-26.2.2-py3-none-any.whl",
-      "url": "https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl",
-      "sha256": "fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70",
       "role": "build"
     },
     {

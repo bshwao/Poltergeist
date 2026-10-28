@@ -1,15 +1,19 @@
 """One local model transfer at a time, independent of the simulation worker."""
 
 from concurrent.futures import ThreadPoolExecutor
+import logging
 from threading import Event, RLock
 
 from backend.persistence_errors import ConflictError
 from .model_assets import AssetError, AssetStore, DownloadPaused
+from .model_environment import ModelEnvironment
 
 
 class ModelManager:
     def __init__(self, profile):
         self._store = AssetStore(profile)
+        self.environment = ModelEnvironment(profile)
+        self._readiness = None
         self._lock = RLock()
         self._pause = Event()
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="companion-models")
@@ -20,14 +24,15 @@ class ModelManager:
 
     def snapshot(self):
         with self._lock:
-            return {**self._status, "busy": self._future is not None and not self._future.done()}
+            return {**self._status, "busy": self._future is not None and not self._future.done(),
+                    "inference_ready": self._readiness is not None}
 
     def _progress(self, state, count, total):
         with self._lock:
             self._status = {"state": state, "bytes": count, "total": total, "message": ""}
 
     def start(self, action, *, repair=False):
-        if action not in {"download", "inspect", "remove"} or (repair and action != "download"):
+        if action not in {"download", "inspect", "remove", "prepare", "check_environment", "remove_environment"} or (repair and action not in {"download", "prepare"}):
             raise ValueError("Unknown model action")
         with self._lock:
             if self._closed:
@@ -35,12 +40,33 @@ class ModelManager:
             if self._future is not None and not self._future.done():
                 raise ConflictError("Pause the current model action and wait for it to finish")
             self._pause.clear()
+            self._readiness = None
             self._status.update(state="starting", message="")
             self._future = self._executor.submit(self._work, action, repair)
 
     def _work(self, action, repair):
         try:
-            if action == "download":
+            if action in {"prepare", "check_environment"}:
+                if action == "prepare":
+                    self._store.download(cancelled=self._pause.is_set, progress=self._progress, repair=repair)
+                    self.environment.prepare(self._store.path, cancelled=self._pause.is_set, progress=self._progress, repair=repair)
+                else:
+                    state, _ = self._store.inspect(cancelled=self._pause.is_set, progress=self._progress)
+                    if state != "weights_ready":
+                        raise AssetError("Download and verify PlanT weights first")
+                self._progress("checking_environment", 0, 1)
+                from .model_probe import probe
+                with self.environment.use(self._pause.is_set):
+                    readiness = probe(self.environment, self._pause.is_set)
+                with self._lock:
+                    self._readiness = readiness
+                    self._status.update(state="ready", bytes=1, total=1,
+                        message="PlanT CPU environment and pretrained inference verified. Enable it for local runs.")
+                return
+            elif action == "remove_environment":
+                self.environment.remove()
+                state, count = "absent", 0
+            elif action == "download":
                 self._store.download(cancelled=self._pause.is_set, progress=self._progress, repair=repair)
                 state, count = "weights_ready", self._store.asset.size
             elif action == "inspect":
@@ -57,6 +83,7 @@ class ModelManager:
             with self._lock:
                 self._status.update(state="paused", message="Paused. Resume will check saved bytes and continue.")
         except Exception as error:
+            logging.getLogger(__name__).exception("Managed model preparation failed")
             with self._lock:
                 self._status.update(state="error", message=str(error) if isinstance(error, (AssetError, ConflictError))
                                     else "Model preparation failed. Check saved weights or retry the download.")

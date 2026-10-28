@@ -2,7 +2,7 @@
 
 Status: S0 locally validated; S1–S5 have private implementations with outstanding
 deployment, packaging and independent-machine gates. **S6 reliability remains
-open; S7 managed model preparation is in progress.** Public S5 deployment is
+open; S7's managed CPU pack is implemented, with independent-machine acceptance open.** Public S5 deployment is
 deferred at the user's request. S8–S19 remain planned; early S11 design work is
 already present in the S5 dashboard. See the dated
 [progress notes](progress-notes.md) for current work and validation.
@@ -100,7 +100,7 @@ its independent clean-machine completion gate remains open. S2 has a private
 desktop prototype; S3 has an installer/onboarding implementation under validation.
 S4 has private account/pairing, authenticated relay and normal desktop consent
 proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
-is deferred. S6 and S7 are in progress; S8 onward remain **planned**. Earlier phases may build
+is deferred. S6 remains in progress; S7 has an external acceptance gate; S8 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -248,12 +248,15 @@ mixups or false completion after disconnect/restart, and cancellations reconcile
 
 ### S7 — App-managed AI environments and model packs
 
-**Status: in progress.** The Companion's AI models controls can prepare the
-revision-pinned PlanT weights with resumable HTTPS transfer, whole-file size/hash
-verification, progress, pause, explicit repair and removal. A verified weight file
-is distinct from a prepared execution environment. Managed interpreter/dependency
-installation, compatibility/inference checks and the fresh-machine execution gate
-remain open. See [managed AI preparation](managed-ai.md).
+**Status: CPU implementation delivered; independent-machine acceptance open.**
+The Companion installs revision-pinned PlanT weights and a separate Windows x64
+CPU interpreter/dependency pack with verified downloads, progress, pause, repair,
+removal, import compatibility and actual pretrained inference checks. Explicit
+trusted registration makes the pack available for local CARLA runs in the Agent
+selector. Integrity manifests and use leases cover the environment through
+execution. CUDA installation and independent-machine acceptance are not claimed.
+See [managed AI installations](managed-ai.md) and
+[environment validation](validation/s7-environment.md).
 
 - Provide managed baseline/starter and reference AI choices, starting with PlanT.
 - Keep agent dependency environments separate from the companion's core runtime.

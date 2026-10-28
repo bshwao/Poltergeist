@@ -73,6 +73,11 @@ be launched through the dashboard or API. The included sensor pilot is a
 rule-based teaching example. PlanT is the trained reference model and uses
 structured state rather than camera-based perception.
 
+The private Windows Companion also provides [managed AI installation](docs/managed-ai.md):
+a separate, pinned PlanT CPU interpreter/dependency pack, verified weights and
+real inference checks before explicit local registration. Independent-machine
+and public-release validation remain separate gates.
+
 ## Where the project is going
 
 The longer-term goal is a workspace where users can connect their own autonomous
