@@ -23,6 +23,11 @@ import tarfile
 import urllib.request
 import zipfile
 
+from packaging.markers import default_environment
+from packaging.requirements import Requirement
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "poltergeist-model-capsule-v1"
 TARGET = "windows-x86_64-cpython312"
@@ -173,18 +178,24 @@ def _wheel_target(name):
 
 
 def _wheel_record(archive, entries):
-    records = [name for name in entries if name.endswith(".dist-info/RECORD")]
-    metadata = [name for name in entries if name.endswith(".dist-info/METADATA")]
+    records = [name for name in entries if name.count("/") == 1 and name.endswith(".dist-info/RECORD")]
+    metadata = [name for name in entries if name.count("/") == 1 and name.endswith(".dist-info/METADATA")]
     if len(records) != 1 or len(metadata) != 1 or records[0].split("/")[0] != metadata[0].split("/")[0]:
         raise ValueError("Wheel has no unique distribution metadata/RECORD")
     if entries[records[0]].file_size > MAX_MANIFEST or entries[metadata[0]].file_size > MAX_MANIFEST:
         raise ValueError("Oversized wheel metadata")
     rows = {}
     for row in csv.reader(io.StringIO(archive.read(records[0]).decode("utf-8"))):
-        if len(row) != 3 or row[0] in rows:
+        if len(row) != 3:
             raise ValueError("Invalid wheel RECORD")
-        safe_name(row[0])
-        rows[row[0]] = row[1:]
+        # Some upstream Windows wheels use native separators in RECORD while
+        # their ZIP members use '/'. Normalize only this metadata reference;
+        # archive names remain strict, and aliases/escapes still fail closed.
+        name = row[0].replace("\\", "/")
+        safe_name(name)
+        if name in rows:
+            raise ValueError("Duplicate wheel RECORD path alias")
+        rows[name] = row[1:]
     if set(rows) != set(entries) or rows[records[0]] != ["", ""]:
         raise ValueError("Wheel RECORD does not describe its exact payload")
     for name in entries:
@@ -205,7 +216,7 @@ def _wheel_record(archive, entries):
 
 
 def _wheel_compatible(archive, entries):
-    paths = [name for name in entries if name.endswith(".dist-info/WHEEL")]
+    paths = [name for name in entries if name.count("/") == 1 and name.endswith(".dist-info/WHEEL")]
     if len(paths) != 1 or entries[paths[0]].file_size > MAX_MANIFEST:
         raise ValueError("Wheel has no bounded ABI declaration")
     headers = BytesParser().parsebytes(archive.read(paths[0]))
@@ -342,6 +353,39 @@ def _package_payload(writer, path, package, supplements):
                 "notice_files": sorted(notice_files), "record_rebuilt": True}
 
 
+def _dependency_closure(checked, python_version):
+    """Validate the supplied pinned graph without resolving or downloading code."""
+    environment = {**default_environment(), "os_name": "nt", "sys_platform": "win32",
+                   "platform_system": "Windows", "platform_machine": "AMD64",
+                   "platform_python_implementation": "CPython", "implementation_name": "cpython",
+                   "python_version": "3.12", "python_full_version": python_version,
+                   "implementation_version": python_version}
+    metadata = {}
+    for name, item, path in checked:
+        with zipfile.ZipFile(path) as archive:
+            entries = _zip_entries(archive)
+            _, headers, _ = _wheel_record(archive, entries)
+        if headers.get("Requires-Python") and Version(python_version) not in SpecifierSet(headers["Requires-Python"]):
+            raise ValueError("Wheel requires a different Python version: " + name)
+        metadata[name] = headers
+    versions = {name: Version(item["version"]) for name, item, _ in checked}
+    extras = {name: {""} for name in versions}
+    pending = list(versions)
+    while pending:
+        name = pending.pop()
+        for raw in metadata[name].get_all("Requires-Dist", []):
+            requirement = Requirement(raw)
+            if requirement.marker and not any(requirement.marker.evaluate({**environment, "extra": extra}) for extra in extras[name]):
+                continue
+            target = _canonical_name(requirement.name)
+            if requirement.url or target not in versions or versions[target] not in requirement.specifier:
+                raise ValueError("Pinned dependency graph is incomplete or incompatible: " + name + " -> " + raw)
+            added = requirement.extras - extras[target]
+            if added:
+                extras[target].update(added)
+                pending.append(target)
+
+
 def build(output, *, runtime_archive, runtime_spec, wheels_dir, packages_manifest,
           source_revision, capsule_id="plant2-cpu-win312-r1", supplemental_notices=(),
           source_date_epoch=EPOCH, tested_prefix=None):
@@ -377,6 +421,7 @@ def build(output, *, runtime_archive, runtime_spec, wheels_dir, packages_manifes
     required = {"torch", "torchvision", "transformers", "timm", "omegaconf", "numpy", "scipy"}
     if not required <= set(versions) or not all(versions[name].endswith("+cpu") for name in ("torch", "torchvision")):
         raise ValueError("The PlanT capsule requires its supported CPU dependency family")
+    _dependency_closure(checked, runtime_spec["version"])
     output = Path(output).absolute()
     for item in (output, *output.parents):
         if item.is_symlink() or item.is_junction():

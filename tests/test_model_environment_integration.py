@@ -138,6 +138,34 @@ def test_running_runtime_blocks_environment_mutations_and_checks(managed):
     assert not (controller.profile / "model-environments").exists()
 
 
+@pytest.mark.parametrize("action,repair,blocked", [("install_environment", False, True),
+    ("inspect_environment", False, True), ("remove_environment", False, True),
+    ("download", True, True), ("remove", False, True), ("download", False, False)])
+def test_runtime_admission_waits_for_model_mutations_but_allows_weight_download(managed, monkeypatch, action, repair, blocked):
+    controller, manager = managed
+    entered, release = Event(), Event()
+    def work(*args):
+        entered.set()
+        assert release.wait(15)
+    monkeypatch.setattr(manager, "_work", work)
+    controller.prepare_model(action, repair=repair, trusted_local_code=True)
+    assert entered.wait(5)
+    try:
+        assert controller.model_status()["execution_blocked"] is blocked
+        if blocked:
+            with pytest.raises(ConflictError, match="model preparation"):
+                controller.start()
+            assert controller._runtime is None
+        else:
+            controller.start()
+            assert controller._runtime is not None
+            assert controller.stop()
+    finally:
+        release.set()
+        settled(controller)
+    assert not controller.model_status()["execution_blocked"]
+
+
 def test_weights_cannot_be_removed_while_another_process_owns_environment(managed):
     controller, manager = managed
     controller.prepare_model("install_environment", trusted_local_code=True)

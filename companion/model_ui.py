@@ -116,6 +116,8 @@ class ModelPanel:
         value = self.app.controller.model_status()
         busy = value["busy"]
         blocked = self.app._closing or self.app._future is not None
+        if not blocked:
+            self.app.start_button.state(["disabled"] if value["execution_blocked"] else ["!disabled"])
         for button in self.buttons:
             button.state(["disabled"] if busy or blocked else ["!disabled"])
         self.pause_button.state(["!disabled"] if busy and not self.app._closing else ["disabled"])

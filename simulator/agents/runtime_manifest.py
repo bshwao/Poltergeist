@@ -15,11 +15,13 @@ import stat
 
 def _plain(path):
     for item in (path, *path.parents):
-        if item.is_symlink() or item.is_junction() or (item.exists() and getattr(item.stat(), "st_file_attributes", 0) & 0x400):
+        try:
+            info = item.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
             raise ValueError("Linked managed runtime inputs were refused")
-    if path.exists() and not path.is_dir():
-        info = path.stat()
-        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        if item == path and not stat.S_ISDIR(info.st_mode) and (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1):
             raise ValueError("Managed runtime inputs must be ordinary unlinked files")
 
 

@@ -95,6 +95,8 @@ class CompanionController:
         if self._stopping:
             raise ConflictError("The previous worker is still stopping; retry Stop before restarting")
         if self._runtime is None:
+            if self._models is not None and self._models.execution_blocked:
+                raise ConflictError("Wait for model preparation to finish or stop before starting the local runtime")
             runtime = self._factory(local_settings(self.profile, self.config))
             try:
                 worker = runtime.worker()
@@ -394,13 +396,12 @@ class CompanionController:
         if agent_id is not None:
             registered = runtime.registry().get(UUID(str(agent_id)))
             snapshot = registered.snapshot
-            if (snapshot.isolated_runtime is not None and snapshot.manifest.agent_id == "poltergeist-reference-ai"
-                    and self._model_manager().manages(snapshot.isolated_runtime.prefix)):
-                if mode != "carla":
+            if snapshot.isolated_runtime is not None and self._model_manager().manages(snapshot.isolated_runtime.prefix):
+                if snapshot.manifest.agent_id == "poltergeist-reference-ai" and mode != "carla":
                     raise ValueError("PlanT recipe runs require CARLA and its measured road raster")
                 request = self._model_manager().checked_registration(expected_prefix=snapshot.isolated_runtime.prefix)
-                if (request.package_path != snapshot.package_path or request.configuration != snapshot.configuration
-                        or request.isolated_runtime != snapshot.isolated_runtime):
+                if request.isolated_runtime != snapshot.isolated_runtime or (snapshot.manifest.agent_id == "poltergeist-reference-ai"
+                        and (request.package_path != snapshot.package_path or request.configuration != snapshot.configuration)):
                     raise ConflictError("Choose Use PlanT CPU again to register the current managed version")
         recipe = validate_scenario(scenario)
         return runtime.worker().submit(recipe, mode=mode, agent_id=agent_id,
@@ -515,7 +516,8 @@ class CompanionController:
         return {"schema_version": "poltergeist-companion-diagnostics-v1", "profile": str(self.profile),
                 "python": sys.executable, "hosted_pairing_available": self.config.coordinator_origin is not None,
                 "remote_execution_enabled": snapshot["relay"]["remote_execution_enabled"],
-                "relay": snapshot["relay"], "runtime": snapshot["queue"], "readiness": report.model_dump(mode="json")}
+                "relay": snapshot["relay"], "runtime": snapshot["queue"], "readiness": report.model_dump(mode="json"),
+                "models": self.model_status()}
 
     def import_report(self, path):
         """Archive an explicit export; never restore its queue, paths or code trust."""

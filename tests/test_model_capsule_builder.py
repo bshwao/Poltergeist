@@ -19,11 +19,14 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def wheel(path, name, version, *, files=None, tag="py3-none-any", license=True, bad_record=False):
+def wheel(path, name, version, *, files=None, tag="py3-none-any", license=True, bad_record=False, requires=(), python_requires=None, native_record=False):
     package = name.replace("-", "_")
     dist = f"{package}-{version}.dist-info"
+    dependencies = "".join("Requires-Dist: " + value + "\n" for value in requires)
+    if python_requires:
+        dependencies += "Requires-Python: " + python_requires + "\n"
     payload = {f"{package}/__init__.py": b"fixture only; never executed\n",
-               f"{dist}/METADATA": f"Metadata-Version: 2.1\nName: {name}\nVersion: {version}\nLicense: MIT\n\n".encode(),
+               f"{dist}/METADATA": f"Metadata-Version: 2.1\nName: {name}\nVersion: {version}\nLicense: MIT\n{dependencies}\n".encode(),
                f"{dist}/WHEEL": f"Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: {tag}\n".encode(),
                **(files or {})}
     if license:
@@ -32,8 +35,8 @@ def wheel(path, name, version, *, files=None, tag="py3-none-any", license=True, 
     output = csv.writer(record, lineterminator="\n")
     for entry, data in sorted(payload.items()):
         token = base64.urlsafe_b64encode(bytes.fromhex(digest(data))).rstrip(b"=").decode()
-        output.writerow([entry, "sha256=" + token, str(len(data) + int(bad_record))])
-    output.writerow([f"{dist}/RECORD", "", ""])
+        output.writerow([entry.replace("/", "\\") if native_record else entry, "sha256=" + token, str(len(data) + int(bad_record))])
+    output.writerow([f"{dist}\\RECORD" if native_record else f"{dist}/RECORD", "", ""])
     payload[f"{dist}/RECORD"] = record.getvalue().encode()
     with zipfile.ZipFile(path, "x") as archive:
         for entry, data in payload.items():
@@ -207,3 +210,39 @@ def test_existing_output_is_never_overwritten(tmp_path, inputs):
     with pytest.raises(FileExistsError):
         builder.build(output, **inputs)
     assert sentinel.read_bytes() == b"preserve"
+
+
+@pytest.mark.parametrize("requirement", ["missing>=1", "numpy>=2", "numpy @ https://example.invalid/code.whl",
+                                          "missing; sys_platform == 'win32'"])
+def test_incomplete_or_incompatible_transitive_graph_is_rejected(tmp_path, inputs, requirement):
+    rewrite_package(inputs, "timm", requires=[requirement])
+    with pytest.raises(ValueError, match="dependency graph"):
+        builder.build(tmp_path / "bad-graph", **inputs)
+
+
+def test_target_markers_and_transitive_extras_are_evaluated(tmp_path, inputs):
+    rewrite_package(inputs, "timm", requires=["scipy[accelerated]", "missing; sys_platform == 'linux'"])
+    rewrite_package(inputs, "scipy", requires=["missing; extra == 'accelerated'"])
+    with pytest.raises(ValueError, match="dependency graph"):
+        builder.build(tmp_path / "bad-extra", **inputs)
+    rewrite_package(inputs, "scipy", requires=["numpy>=1; extra == 'accelerated'"], python_requires=">=3.12,<3.13")
+    builder.build(tmp_path / "valid-graph", **inputs)
+    rewrite_package(inputs, "scipy", python_requires=">=3.13")
+    with pytest.raises(ValueError, match="Python version"):
+        builder.build(tmp_path / "bad-python", **inputs)
+
+
+def test_windows_record_references_are_normalized_without_weakening_archive_paths(tmp_path, inputs):
+    rewrite_package(inputs, "torchvision", native_record=True)
+    builder.build(tmp_path / "native-record", **inputs)
+    rewrite_package(inputs, "torchvision", files={"../escape.py": b"no"}, native_record=True)
+    with pytest.raises(ValueError, match="Unsafe"):
+        builder.build(tmp_path / "unsafe-record", **inputs)
+
+
+def test_vendored_metadata_is_payload_and_does_not_replace_root_identity(tmp_path, inputs):
+    rewrite_package(inputs, "timm", files={"timm/_vendor/other-2.dist-info/METADATA": b"Name: other\n",
+        "timm/_vendor/other-2.dist-info/RECORD": b"vendored record\n",
+        "timm/_vendor/other-2.dist-info/WHEEL": b"Tag: cp310-cp310-linux_x86_64\n"})
+    result = builder.build(tmp_path / "vendor", **inputs)
+    assert "runtime/Lib/site-packages/timm/_vendor/other-2.dist-info/RECORD" in result["manifest"]["files"]

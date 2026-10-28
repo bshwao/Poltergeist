@@ -87,13 +87,16 @@ def _no_aliases(names):
 
 def _plain(path, *, directory=False):
     for component in (path, *path.parents):
-        if component.is_symlink() or component.is_junction():
-            raise CapsuleError("Linked capsule storage was refused")
-        if component.exists() and getattr(component.stat(), "st_file_attributes", 0) & 0x400:
+        try:
+            info = component.lstat()
+        except FileNotFoundError:
+            continue
+        # One non-following query covers symlinks, junctions and other Windows
+        # reparse points. Repeating several stat calls for every ancestor made
+        # full model inventories needlessly expensive.
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
             raise CapsuleError("Reparse points in capsule storage were refused")
-    if path.exists():
-        info = path.stat()
-        if (not (stat.S_ISDIR(info.st_mode) if directory else stat.S_ISREG(info.st_mode))
+        if component == path and (not (stat.S_ISDIR(info.st_mode) if directory else stat.S_ISREG(info.st_mode))
                 or (not directory and info.st_nlink != 1)):
             raise CapsuleError("Capsule storage must contain ordinary unlinked files")
 
@@ -380,13 +383,15 @@ class CapsuleStore:
             result.append(path)
         return result
 
-    def _tree(self, root, manifest, *, partial=False):
+    def _tree(self, root, manifest, *, partial=False, cancelled=lambda: False):
         expected = set(manifest["files"]) | {"capsule.json", ".installation.json"}
         optional = {".runtime-use.worker.lock"}
+        allowed = expected | optional
         directories = {str(parent) for name in expected for parent in PurePosixPath(name).parents if str(parent) != "."}
         found, folders = set(), []
         _plain(root, directory=True)
         for parent, child_dirs, files in os.walk(root, followlinks=False):
+            _pause(cancelled)
             base = Path(parent)
             for name in child_dirs:
                 path = base / name
@@ -396,10 +401,11 @@ class CapsuleStore:
                     raise CapsuleError("Model generation contains an unrecognized directory")
                 folders.append(path)
             for name in files:
+                _pause(cancelled)
                 path = base / name
                 _plain(path)
                 relative = path.relative_to(root).as_posix()
-                if relative not in expected | optional:
+                if relative not in allowed:
                     raise CapsuleError("Model generation contains unrecognized files")
                 found.add(relative)
                 if len(found) > MAX_FILES + 3:
@@ -409,7 +415,7 @@ class CapsuleStore:
         return found, folders
 
     def _verify(self, root, manifest, generation, cancelled, progress):
-        self._tree(root, manifest)
+        self._tree(root, manifest, cancelled=cancelled)
         if _json(_read(root / ".installation.json", 8192)) != self._installation(generation):
             raise CapsuleError("Model generation ownership changed")
         if hashlib.sha256(_read(root / "capsule.json", MAX_MANIFEST_BYTES)).hexdigest() != self.spec.manifest_sha256:

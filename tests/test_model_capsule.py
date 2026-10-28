@@ -17,6 +17,7 @@ from companion.model_assets import DownloadPaused
 from companion.model_capsule import CapsuleError, CapsuleSpec, CapsuleStore, inspect_archive
 from scripts import build_model_capsule as builder
 from simulator.agents.runtime_lease import runtime_use_lease
+from simulator.agents.runtime_manifest import verify_runtime_manifest
 from test_model_capsule_builder import runtime, wheel
 
 
@@ -147,6 +148,9 @@ def test_unrecognized_or_aliased_storage_is_preserved(tmp_path, packed, change):
         os.link(sentinel, path)
     elif change == "owner":
         (installed.root / ".installation.json").write_text('{}')
+    if change == "hardlink":
+        with pytest.raises(ValueError, match="ordinary unlinked"):
+            verify_runtime_manifest(installed.interpreter.parent, spec.manifest_sha256)
     before = {p.relative_to(installed.root).as_posix(): p.read_bytes() for p in installed.root.rglob("*") if p.is_file()}
     for action in (store.inspect, lambda: store.install(source, repair=True)):
         with pytest.raises(CapsuleError):
@@ -204,3 +208,45 @@ def test_real_process_exit_releases_generation_lease(tmp_path, packed):
         child.stderr.close()
     store.remove()
     assert store.inspect() is None
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows junction boundary")
+def test_junction_inside_generation_never_reaches_external_files(tmp_path, packed):
+    source, spec, _ = packed
+    store = CapsuleStore(tmp_path / "profile", spec)
+    installed = store.install(source)
+    outside = tmp_path / "external-user-files"
+    outside.mkdir()
+    sentinel = outside / "keep.txt"
+    sentinel.write_bytes(b"preserve external data")
+    junction = installed.root / "runtime/unrecognized"
+    created = subprocess.run(["cmd.exe", "/c", "mklink", "/J", str(junction), str(outside)],
+        capture_output=True, text=True, timeout=10)
+    assert created.returncode == 0, created.stderr
+    assert junction.is_junction()
+    active = (store.directory / "active.json").read_bytes()
+    try:
+        with pytest.raises(ValueError, match="Linked"):
+            verify_runtime_manifest(installed.interpreter.parent, spec.manifest_sha256)
+        for action in (store.inspect, store.remove, lambda: store.install(source, repair=True)):
+            with pytest.raises(CapsuleError):
+                action()
+            assert sentinel.read_bytes() == b"preserve external data"
+            assert (store.directory / "active.json").read_bytes() == active
+    finally:
+        # Remove only the verified junction entry; never recurse into its target.
+        assert junction.is_junction() and junction.parent == installed.root / "runtime"
+        junction.rmdir()
+    store.remove()
+    assert sentinel.read_bytes() == b"preserve external data"
+
+
+def test_inventory_walk_can_pause_without_deactivating_generation(tmp_path, packed):
+    source, spec, _ = packed
+    store = CapsuleStore(tmp_path / "profile", spec)
+    installed = store.install(source)
+    active = (store.directory / "active.json").read_bytes()
+    with pytest.raises(DownloadPaused):
+        store._tree(installed.root, installed.manifest, cancelled=lambda: True)
+    assert (store.directory / "active.json").read_bytes() == active
+    assert store.inspect().generation == installed.generation

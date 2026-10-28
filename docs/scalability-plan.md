@@ -248,12 +248,13 @@ mixups or false completion after disconnect/restart, and cancellations reconcile
 
 ### S7 — App-managed AI environments and model packs
 
-**Status: in progress.** The Companion's AI models controls can prepare the
-revision-pinned PlanT weights with resumable HTTPS transfer, whole-file size/hash
-verification, progress, pause, explicit repair and removal. A verified weight file
-is distinct from a prepared execution environment. Managed interpreter/dependency
-installation, compatibility/inference checks and the fresh-machine execution gate
-remain open. See [managed AI preparation](managed-ai.md).
+**Status: in progress.** The Companion prepares revision-pinned PlanT weights
+with resumable HTTPS transfer and, in model-pack builds, installs a separate
+hash-verified CPU interpreter/dependency generation. Environment checks execute
+two synthetic inference fixtures before trusted registration through the Agent
+selector. Repair/removal respect active workers and saved model jobs. Live packaged
+CARLA execution, fresh-machine acceptance, native hardware/path coverage and full
+redistribution review remain open. See [managed AI preparation](managed-ai.md).
 
 - Provide managed baseline/starter and reference AI choices, starting with PlanT.
 - Keep agent dependency environments separate from the companion's core runtime.

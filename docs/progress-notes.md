@@ -5,8 +5,8 @@ preparation in progress**.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
 Branch: `codex/s7-managed-ai` (continues the preserved S6 history).
-All earlier branch histories were fast-forwarded into GitHub and local `main`
-at `2d9e784`; its branch and main five-job CI matrices pass.
+All earlier branch histories were fast-forwarded into GitHub and local `main`.
+The managed-weight checkpoint `ddc4c53` passed all five branch and main CI jobs.
 
 This branch includes the earlier S0 collision presets, S1 private runtime and
 S2 desktop companion and S3 installer/setup flow. The latest changes add the
@@ -24,7 +24,7 @@ private prototype does not close independent-machine or release validation.
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime/compiled-profile proofs pass on this laptop. Public deployment, actual shortcut invocation, visual and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
 | **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
-| **S7 — Managed AI installations** | **In progress; managed weight preparation implemented** | Revision-pinned PlanT downloads, resume, progress, verification and owned repair/removal controls. Separate interpreter/dependency installation, compatibility/inference checks and fresh-machine app execution remain open. See [managed AI preparation](managed-ai.md). |
+| **S7 — Managed AI installations** | **In progress; managed CPU runtime implemented, packaged acceptance under validation** | Revision-pinned weights and independent, sealed interpreter/dependency generations; CPU inference checks, trusted selection and owned repair/removal. Live packaged CARLA, fresh-machine/hardware acceptance and redistribution review remain open. See [managed AI preparation](managed-ai.md). |
 | S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
 | S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
 | S10 — Distribution and release | Pending | Signing, updates/rollback, supported-machine validation and external beta. |
@@ -40,6 +40,15 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Added a publisher-built CPU model pack containing an independent CPython runtime
+  and 50 pinned wheels, including the SDK. The builder verifies wheel records, target
+  ABI, transitive requirements and notices before constructing a deterministic ZIP.
+  The desktop installs immutable generations outside its core runtime, measures
+  inference in an isolated SDK worker, and exposes check/repair/remove/selection.
+  Runtime leases and saved queued/running snapshots protect referenced files;
+  failed process cleanup retains profile ownership. Complete runtime bytes and
+  both parent/child SDK provenance are checked separately. The first real packaged
+  model acceptance is being validated; this implementation does not close S7.
 - Started S7 on `codex/s7-managed-ai`. The desktop now exposes PlanT weights in
   **AI models**, reachable from **Manage AI…** beside the existing Agent selector.
   Interrupted transfers retain owned partial bytes; resumes validate the server's

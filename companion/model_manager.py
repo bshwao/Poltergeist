@@ -24,6 +24,7 @@ class ModelManager:
         self._probe = ModelReadiness()
         self._ready = None
         self._external = False
+        self._blocks_execution = False
         self._lock = RLock()
         self._pause = Event()
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="companion-models")
@@ -39,10 +40,15 @@ class ModelManager:
     def _busy(self):
         return self._external or (self._future is not None and not self._future.done()) or self._probe.retained
 
+    @property
+    def execution_blocked(self):
+        with self._lock:
+            return self._probe.retained or (self._blocks_execution and self._busy())
+
     def snapshot(self):
         with self._lock:
             return {**self._status, "busy": self._busy(), "environment": deepcopy(self._environment),
-                    "model_process_retained": self._probe.retained}
+                    "model_process_retained": self._probe.retained, "execution_blocked": self.execution_blocked}
 
     def _progress(self, state, count, total):
         with self._lock:
@@ -61,6 +67,7 @@ class ModelManager:
             if self._busy():
                 raise ConflictError("Pause the current model action and wait for it to finish")
             self._pause.clear()
+            self._blocks_execution = environment or repair or action == "remove"
             if environment:
                 self._ready = None
                 self._environment.update(state="starting", message="", readiness=None)
