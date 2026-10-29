@@ -13,7 +13,7 @@ def main(argv=None):
     parser.add_argument("--data-dir", type=Path)
     parser.add_argument("--development", action="store_true", help="Use the source environment instead of a verified bundle")
     args = parser.parse_args(argv)
-    logger = handler = controller = root = None
+    logger = handler = controller = root = pending_update = None
     try:
         from companion.profile import configure_gui_environment, prepare_logs, profile_path
         bundle = None
@@ -43,6 +43,7 @@ def main(argv=None):
             startup_check=(lambda: verify_bundle(bundle)) if bundle is not None else None)
         logger.info("Companion opened with real interpreter %s", sys.executable)
         root.mainloop()
+        pending_update = window._pending_update
         return 0
     except Exception as error:
         if logger:
@@ -59,11 +60,19 @@ def main(argv=None):
             print(f"Companion startup failed: {type(error).__name__}: {error}", file=sys.stderr)
         return 1
     finally:
+        closed = True
         if controller is not None:
-            controller.close()
+            closed = controller.close()
         if logger and handler:
             logging.getLogger().removeHandler(handler)
             handler.close()
+        if pending_update is not None and closed:
+            from companion.update_lifecycle import launch_update_helper
+            try:
+                launch_update_helper(pending_update)
+            except Exception as error:
+                from scripts.update_companion import notify_failure
+                notify_failure(error, controller.profile)
 
 
 if __name__ == "__main__":

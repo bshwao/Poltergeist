@@ -1,7 +1,9 @@
 # S0–S19 progress notes
 
-Updated October 28, 2026. Current checkpoint: **S6 reliability open; S7 managed CPU
-installation implemented, independent-machine acceptance open**.
+Updated October 29, 2026. Current checkpoint: **S8 live recording review locally
+validated; S9 private capacity target met; S10 native update tooling validated
+with signing/external acceptance deferred**.
+S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
 Branch: `codex/s7-managed-ai` (continues the preserved S6 history).
@@ -25,9 +27,9 @@ private prototype does not close independent-machine or release validation.
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
 | **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | **S7 — Managed AI installations** | **CPU implementation delivered; independent-machine gate open** | Separate pinned interpreter/dependencies, verified weights, actual import/inference checks, explicit local registration, starter choice, repair/removal and execution use leases. See [managed AI installations](managed-ai.md) and [environment validation](validation/s7-environment.md). |
-| S8 — Evidence delivery | Pending | Authorized bounded telemetry/recording transfer and retention. |
-| S9 — Multi-user capacity | Pending | Monitoring, quotas, device routing and load tests. |
-| S10 — Distribution and release | Pending | Signing, updates/rollback, supported-machine validation and external beta. |
+| S8 — Evidence delivery | Private implementation; live review locally validated | Explicit evidence/capture approval, negotiated pull-only pages/chunks, hashes, versioned cursors, disk budgets, ZIP export and tombstones. Website camera/LiDAR review: 60 simulated seconds, 2,402 samples, 303 MB captured, 2.13 MB reviewed. Representative hardware/production-duration gates remain. See [checkpoint](evidence-capacity-release.md). |
+| S9 — Multi-user capacity | Provisional simulated target met | Monitoring, quotas, bounded request windows, single-process generation routing and atomic authenticated reply persistence. 25 owners/devices, 500 commands, p95 1.56 s (Python 3.12) / 1.39 s (Python 3.14), all ownership checks pass. 100 configured connections and physical-PC/provider targets remain unvalidated. |
+| S10 — Distribution and release | Private tooling; signing and external acceptance deferred | Pinned publisher verification, installer/uninstaller signing adapter, signed metadata, explicit bounded HTTPS delivery, staged cohorts, native update/rollback review, closed-process helper, backups and compatible rollback. Publisher/feed configuration is unset; actual signed acceptance, deployed delivery and [external beta](private-beta.md) remain open. |
 | S11 — Visual design and usability | Planned; early dashboard design present | Consistent visual system, responsive layouts and accessibility across principal workflows. |
 | S12 — Guided experimentation and adoption | Planned | First-run guidance, galleries, saved suites, comparisons, replay highlights and tester feedback. |
 | S13 — Failure Discovery Agent | Planned | Budgeted search, confirmation and reproducible failure evidence. |
@@ -39,6 +41,45 @@ private prototype does not close independent-machine or release validation.
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
+
+- S8–S10 work adds bounded evidence transport without persisting recordings in
+  coordinator SQL, local evidence export/removal and quotas, aggregate operations
+  monitoring, capacity limits, a disposable multi-user benchmark and signed
+  installer/update tooling. Existing approvals do not gain evidence access.
+- The final 25-device benchmark preserves the two-second target: 500 commands,
+  p95 1.56 s on Python 3.12 and 1.39 s on Python 3.14. Reply authentication,
+  activity and receipt persistence share one explicitly FULL-durability commit.
+  Failed persistence rolls back activity too. The earlier 2.36 s Python 3.12
+  failure and 2.38 s contended run remain recorded beside passing isolated runs.
+- The owner deferred signing/tester details. The installed release policy keeps
+  publisher pins empty and the feed unset, so update delivery stays disabled.
+  Native metadata review, bounded download, cached candidate recovery, closed-app
+  helper, backups and compatible rollback have local fixture/bundle proofs.
+  See the [implementation and
+  acceptance scope](evidence-capacity-release.md) and [beta record](private-beta.md).
+- The initial [validation receipt](validation/s8-s10-checkpoint-20261029.json) records
+  3,300 passing full-suite tests, ten optional skips and one corrected capability
+  assertion with a passing final rerun. Python 3.12 workflow/deadline checks, real
+  HTTPS/WSS Chromium review, private runtime/SDK/synthetic/desktop checks and an
+  unsigned validation-only installer compile also pass. Phase completion gates
+  remain separate from these local proofs.
+- The [recording/update follow-up](validation/s8-s10-followup-20261029.json)
+  records the 60-second live CARLA recording review, 340 frontend tests, a broad
+  3,338-test Python pass (ten optional skips), and subsequent focused native
+  update/cache/recovery checks. The fresh bundle verifies 6,280 files and 194
+  matching first-party modules. Its validation-only installer is **NotSigned**;
+  that checkpoint claimed no signed release, native installation or external beta.
+- A later [native installer lifecycle](validation/s10-native-lifecycle-20261029.json)
+  passed install, first-run baseline/SDK execution, running-app repair refusal,
+  closed-app repair and data-preserving uninstall/reinstall on this laptop.
+  It exposed and fixed an ownership-marker deletion that blocked reinstall after
+  a retained repair copy. The fixed cycle preserves every profile byte and
+  reopens both results. Validation registration/active runtime were removed;
+  the profile and recovery evidence remain. The artifact is still unsigned and
+  real signed upgrade/rollback plus independent beta gates remain open.
+- The goal is blocked on the owner's deferred signing identity, independent test
+  PCs and deployment configuration. The [release gate audit](validation/s8-s10-release-gates-20261029.json)
+  preserves the local validation scope; the overall goal is not complete.
 
 - S7 now installs a Windows x64 PlanT CPU pack through the Companion, using a
   separate Python interpreter and pinned, size/hash-verified package assets.

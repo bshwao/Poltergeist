@@ -134,7 +134,9 @@ def test_closed_window_releases_tk_variables_on_gui_thread(window):
     pump_until(root, lambda: desktop._future is None)
     references = [weakref.ref(desktop.executable), weakref.ref(desktop.message), weakref.ref(desktop.setup.map_name),
         weakref.ref(desktop.models.status), weakref.ref(desktop.models.detail),
+        weakref.ref(desktop.updates.status), weakref.ref(desktop.updates.candidate), weakref.ref(desktop.updates.progress),
         weakref.ref(desktop.pairing.origin), weakref.ref(desktop.pairing.allow_remote_execution),
+        weakref.ref(desktop.pairing.allow_raw_capture), weakref.ref(desktop.pairing.allow_evidence_read),
         *[weakref.ref(value) for value in desktop.pairing.permissions.values()]]
     desktop.request_close()
     pump_until(root, lambda: desktop._destroyed)
@@ -241,6 +243,8 @@ def test_pairing_controls_review_real_account_preserve_origin_and_revoke(window)
         assert panel._displayed["state"] == "paired" and not panel.code.get()
         devices = api.get("/v1/devices", headers=headers).json()
         assert len(devices) == 1 and set(devices[0]["policy"]["scopes"]) == {"status:read", "run:execute:test"}
+        assert devices[0]["policy"]["allow_raw_capture"] is False
+        assert not devices[0]["policy"].get("allow_evidence_read", False)
         assert "Run synthetic experiments" in panel.approved_permissions.get()
         assert "Read experiment results" not in panel.approved_permissions.get()
         assert controller.config.coordinator_origin == origin
@@ -255,6 +259,112 @@ def test_pairing_controls_review_real_account_preserve_origin_and_revoke(window)
         pump_until(root, lambda: desktop._future is None)
         assert panel._displayed["state"] == "unpaired"
         assert api.get("/v1/devices", headers=headers).json()[0]["revoked_at"] is not None
+
+
+def test_evidence_capture_permissions_are_explicit_before_background_approval(window, monkeypatch):
+    from shared.models.coordination import PermissionScope
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    panel = desktop.pairing
+    assert panel.allow_raw_capture.get() is False and panel.allow_evidence_read.get() is False
+    scopes = [PermissionScope.RESULT, PermissionScope.EXECUTE_CARLA]
+    for scope, value in panel.permissions.items():
+        value.set(scope in scopes)
+    panel._displayed = {"state": "attempt", "claim": {"state": "claimed", "requested_scopes": scopes,
+        "claimed_account": {"username": "fixture-owner"}}}
+    panel.sync_controls()
+    panel.evidence_control.invoke()
+    panel.capture_control.invoke()
+    accepted = []
+    monkeypatch.setattr(controller, "approve_pairing", lambda claim, policy: accepted.append(policy))
+    panel.approve()
+    pump_until(root, lambda: desktop._future is None)
+    assert len(accepted) == 1
+    assert accepted[0].allow_evidence_read is True and accepted[0].allow_raw_capture is True
+    assert set(accepted[0].scopes) == set(scopes)
+    assert errors == []
+
+
+def test_update_controls_stay_disabled_without_a_release_identity(window):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    panel = desktop.updates
+    assert "disabled" in panel.status.get()
+    for button in (panel.check_button, panel.download_button, panel.install_button, panel.rollback_button):
+        assert button.instate(["disabled"])
+        button.invoke()
+    assert desktop._future is None and desktop._pending_update is None
+    assert not (controller.profile / "updates").exists() and errors == []
+
+
+def test_update_actions_remain_visible_at_minimum_window_size(window):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    panel = desktop.updates
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    desktop._tabs.select(panel.frame)
+    root.geometry("700x600")
+    root.update()
+    root.update_idletasks()
+    left, top = panel.frame.winfo_rootx(), panel.frame.winfo_rooty()
+    right, bottom = left + panel.frame.winfo_width(), top + panel.frame.winfo_height()
+    try:
+        for button in (panel.check_button, panel.download_button, panel.install_button,
+                       panel.local_button, panel.rollback_button, panel.cache_button, panel.clear_button, panel.cancel_button):
+            assert button.winfo_ismapped()
+            assert left <= button.winfo_rootx() and top <= button.winfo_rooty()
+            assert button.winfo_rootx() + button.winfo_width() <= right
+            assert button.winfo_rooty() + button.winfo_height() <= bottom
+    finally:
+        root.withdraw()
+    assert errors == []
+
+
+def test_native_update_review_cancel_retry_and_close_handoff(window, monkeypatch):
+    from threading import get_ident
+    from companion.update_delivery import DownloadCancelled
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    panel = desktop.updates
+    panel._status = {"enabled": True, "feed_enabled": True, "current_version": "0.1.0"}
+    release = {"version": "0.2.0", "installer_bytes": 1048576, "channel": "private-beta", "expires_at": "2026-11-01T00:00:00Z"}
+    view = {"candidate": release, "downloaded": False, "rollback": False, "from_feed": True}
+    main_thread = get_ident()
+    calls = []
+    def check(cancel):
+        calls.append(("check", get_ident()))
+        return view
+    attempts = []
+    def download(cancel):
+        attempts.append(1)
+        calls.append(("download", get_ident()))
+        if len(attempts) == 1:
+            assert cancel.wait(10)
+            raise DownloadCancelled("Cancelled fixture transfer")
+        controller.update_progress = (1048576, 1048576)
+        return {**view, "downloaded": True}
+    monkeypatch.setattr(controller, "check_updates", check)
+    monkeypatch.setattr(controller, "download_checked_update", download)
+    monkeypatch.setattr(controller, "prepare_update_install", lambda: ["fixture helper arguments; never executed"])
+    panel.sync_controls()
+    panel.check_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert "0.2.0" in panel.candidate.get() and "1.0 MiB" in panel.candidate.get()
+    assert panel.download_button.instate(["!disabled"]) and panel.install_button.instate(["disabled"])
+    panel.download_button.invoke()
+    pump_until(root, lambda: len(attempts) == 1)
+    assert panel.cancel_button.instate(["!disabled"])
+    panel.cancel_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert panel.install_button.instate(["disabled"]) and not desktop._destroyed
+    panel.download_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert panel.install_button.instate(["!disabled"])
+    panel.install_button.invoke()
+    pump_until(root, lambda: desktop._destroyed)
+    assert desktop._pending_update == ["fixture helper arguments; never executed"]
+    assert not controller._owned and all(thread != main_thread for _, thread in calls) and errors == []
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Native Windows protected enrollment")

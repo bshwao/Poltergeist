@@ -37,7 +37,8 @@ class PersistenceService:
     @classmethod
     def from_settings(cls, settings: Settings | None = None):
         settings = get_settings() if settings is None else settings
-        return cls(Database(settings.database_url), ArtifactStore(settings.storage_dir))
+        return cls(Database(settings.database_url), ArtifactStore(settings.storage_dir,
+            quota_bytes=settings.artifact_quota_bytes, min_free_bytes=settings.artifact_min_free_bytes))
 
     def initialize(self) -> None:
         """Explicit, repeatable schema migration and storage initialization."""

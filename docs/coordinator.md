@@ -121,7 +121,8 @@ outcomes across restarts while preserving the original schema migration.
 null, measured coverage, accepted scenario identity and a bounded runtime and
 provenance subset. It omits local snapshots, paths, diagnostics and exception
 strings. Evidence is explicitly `local_only` or `missing`; downloads and raw
-telemetry transfer are still S8 work. Local Stop/Unpair disables admission before
+telemetry transfer are covered by the private [S8 implementation](evidence-capacity-release.md),
+which requires additional explicit local consent. Local Stop/Unpair disables admission before
 joining the relay, and retains runtime/profile ownership if shutdown is blocked.
 Revocation denies new commands/results; accepted local work may finish locally.
 
@@ -170,7 +171,9 @@ status polling does not initiate a network connection.
 
 The current approval policy records scopes for status, synthetic/CARLA execution,
 cancellation and result reads. Bounds are at most 120 seconds, 10,000 ticks and
-10 waiting runs, with no map reload, graphics change or raw capture. The preview
+10 waiting runs, with no map reload or graphics change. Raw capture is default-off
+and requires its own local pairing approval; only CARLA requests may enable it.
+Evidence reads require a separate default-off approval. The preview
 UI approves only the baseline controller. Permission controls become read-only
 after approval is saved; changing a pairing policy requires revocation and a
 fresh pairing. A grant authorizes only its stated operation and limits, and the

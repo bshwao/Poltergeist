@@ -3,7 +3,9 @@
 Status: S0 locally validated; S1–S5 have private implementations with outstanding
 deployment, packaging and independent-machine gates. **S6 reliability remains
 open; S7's managed CPU pack is implemented, with independent-machine acceptance open.** Public S5 deployment is
-deferred at the user's request. S8–S19 remain planned; early S11 design work is
+deferred at the user's request. S8–S10 now have private implementations with
+outstanding product, signing and external acceptance gates; S11–S19 remain
+planned. See the [S8–S10 checkpoint](evidence-capacity-release.md). Early S11 design work is
 already present in the S5 dashboard. See the dated
 [progress notes](progress-notes.md) for current work and validation.
 This roadmap records the proposed hosted dashboard/backend and
@@ -100,7 +102,8 @@ its independent clean-machine completion gate remains open. S2 has a private
 desktop prototype; S3 has an installer/onboarding implementation under validation.
 S4 has private account/pairing, authenticated relay and normal desktop consent
 proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
-is deferred. S6 remains in progress; S7 has an external acceptance gate; S8 onward remain **planned**. Earlier phases may build
+is deferred. S6 remains in progress; S7 has an external acceptance gate; S8–S10
+have private implementations described below. S11 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -271,6 +274,14 @@ AI through the app without manual interpreter or dependency installation.
 
 ### S8 — Results, recordings and bandwidth management
 
+**Status: private bounded-delivery implementation; product gates open.** Explicit
+local consent, telemetry pages, recording sample chunks, integrity/version checks,
+per-device/global transfer limits, disk budgets and evidence export/removal are
+implemented. Website recording selection/rendering passes a sixty-second live
+CARLA run: 2,402 samples, 303 MB local evidence, 2.13 MB transferred and bounded
+retained browser heap. Representative hardware and production-duration transfer
+acceptance remain open. Cloud sharing remains disabled. See [scope](evidence-capacity-release.md).
+
 - Send summaries/progress first; page telemetry and retrieve sensor samples only
   when the user requests them. Keep AI observations local during execution.
 - Stream large evidence with authorization, integrity checks, cancellation,
@@ -285,6 +296,13 @@ uploads, memory growth or inaccessible evidence being presented as a valid zero.
 
 ### S9 — Multi-user service capacity and operations
 
+**Status: provisional simulated target met; hosted/physical gates open.** The
+private single-process service has monitoring, limits and generation-safe routing.
+25 simulated owners/devices complete 500 commands with p95 1.56 s on Python 3.12
+and 1.39 s on Python 3.14, with correct
+isolation. The configured 100-device ceiling, representative physical execution,
+provider costs and agreed production targets remain unvalidated.
+
 - Measure and agree on initial connected-device, active-run and transfer targets.
 - Add hosted monitoring, request limits, per-user/device quotas and routing.
   Expand relay instances and shared connection routing when measurements require it.
@@ -298,6 +316,18 @@ uploads, memory growth or inaccessible evidence being presented as a valid zero.
 routing, bounded resource use and no interference between users' devices.
 
 ### S10 — Signed releases, updates and external beta
+
+**Status: private tooling; blocked on deferred signing/external acceptance.** The signing
+adapter, trusted publisher policy, signed metadata, explicit HTTPS delivery,
+staged cohorts, native update/rollback review, safe-point helper, migration backup
+and compatible rollback paths are implemented. Signing/tester details are
+deferred by the owner; publisher pins/feed remain unset. Actual signed installed
+acceptance, deployed delivery, external PCs and public distribution remain open.
+See [release scope](evidence-capacity-release.md)
+and [beta record](private-beta.md). The local unsigned
+[native lifecycle](validation/s10-native-lifecycle-20261029.json) now passes,
+including repair refusal while running and reinstall after retained recovery
+copies. It does not satisfy the external completion gate below.
 
 - Automate repeatable builds and signed installer/update distribution, version
   negotiation, integrity checks, migration backups and rollback procedures.

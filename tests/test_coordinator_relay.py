@@ -65,6 +65,43 @@ def accepted(command, simulation_id=None):
         accepted_at=datetime.fromtimestamp(1800000000., timezone.utc))
 
 
+def test_reply_activity_and_receipt_roll_back_together_on_a_failed_commit(setup, monkeypatch):
+    import coordinator.commands as commands
+    service, pairing, store, now, alice, bob, device, credential, identity = setup
+    request = StatusCommand(request_id=uuid4())
+    service.admit(alice, device, request, connected=True)
+    with store.transaction(write=False) as connection:
+        before = connection.execute("SELECT last_seen_at FROM devices WHERE id=?", (str(device),)).fetchone()[0]
+    now[0] += 5
+    reply = DeviceStatusReply(request_id=request.request_id, accepting=True, active=False, waiting_remote_runs=0)
+    original = commands.audit
+    def interrupt(*args, **kwargs):
+        raise RuntimeError("Interrupted receipt persistence fixture")
+    monkeypatch.setattr(commands, "audit", interrupt)
+    with pytest.raises(RuntimeError, match="Interrupted receipt"):
+        service.reply(credential, identity, reply)
+    with store.transaction(write=False) as connection:
+        assert connection.execute("SELECT last_seen_at FROM devices WHERE id=?", (str(device),)).fetchone()[0] == before
+    assert service.get(alice, device, request.request_id).status == "queued"
+    monkeypatch.setattr(commands, "audit", original)
+    assert service.reply(credential, identity, reply).status == "completed"
+    with store.transaction(write=False) as connection:
+        assert connection.execute("SELECT last_seen_at FROM devices WHERE id=?", (str(device),)).fetchone()[0] == now[0]
+
+
+def test_durable_reply_rechecks_all_current_grants_without_a_prior_authenticate_call(setup):
+    service, pairing, store, now, alice, bob, device, credential, identity = setup
+    request = StatusCommand(request_id=uuid4())
+    service.admit(alice, device, request, connected=True)
+    with store.transaction() as connection:
+        connection.execute("DELETE FROM device_grants WHERE device_id=? AND scope='run:cancel'", (str(device),))
+    with pytest.raises(AuthError) as error:
+        service.reply(credential, identity, DeviceStatusReply(request_id=request.request_id,
+            accepting=True, active=False, waiting_remote_runs=0))
+    assert error.value.code == "permission_denied"
+    assert service.get(alice, device, request.request_id).status == "queued"
+
+
 def test_schema_one_upgrades_atomically_and_drift_is_rejected(tmp_path):
     target = tmp_path / "legacy.db"
     connection = sqlite3.connect(target)

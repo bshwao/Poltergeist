@@ -19,6 +19,7 @@ from shared.models.remote import (CancelAccepted, CancelCommand, CommandRejected
     DeviceStatusReply, ExecuteAccepted, ExecuteCommand, ResultCommand,
     RunResultReply, canonical_json, command_scope, parse_message, payload_digest)
 from shared.models.runtime import SimulationOptions
+from shared.models.evidence import EvidenceRequest
 
 from .hosted_projection import HostedProjectionError, project_hosted_run
 
@@ -45,6 +46,8 @@ class RemoteService:
         except Exception:
             raise RemoteDenied("permission_denied") from None
         if binding != expected or command_scope(command) not in policy.scopes:
+            raise RemoteDenied("permission_denied")
+        if isinstance(command, EvidenceRequest) and not policy.allow_evidence_read:
             raise RemoteDenied("permission_denied")
         return policy
 
@@ -83,6 +86,8 @@ class RemoteService:
                     return self._cancel(binding, command)
                 if isinstance(command, ResultCommand):
                     return self._result(binding, command)
+                if isinstance(command, EvidenceRequest):
+                    return self._evidence(binding, command)
                 status = self.worker.status()
                 with self.database.session(write=False) as session:
                     waiting = RemoteReceiptRepository(session).count_waiting(binding)
@@ -104,6 +109,17 @@ class RemoteService:
                 code = "device_unavailable"
             return CommandRejected(request_id=command.request_id, code=code)
 
+    def _evidence(self, binding, command):
+        from .evidence import read_evidence
+        with self.database.session(write=False) as session:
+            receipt = RemoteReceiptRepository(session).execution_for_run(binding, command.simulation_id)
+            if receipt is None:
+                raise RemoteDenied("run_not_found")
+            stored = SimulationRepository(session).get(command.simulation_id)
+            if receipt.scenario_sha256 != payload_digest(stored.simulation.scenario):
+                raise RemoteDenied("result_unavailable")
+        return read_evidence(self.worker.persistence.artifacts, stored.result, command)
+
     def _execute(self, binding, command, policy):
         digest = payload_digest(command)
         existing = self._lookup(binding, command, digest)
@@ -112,6 +128,8 @@ class RemoteService:
         ticks = ceil(command.scenario.duration_s / command.scenario.fixed_delta_seconds - 1e-9)
         if (command.scenario.duration_s > policy.max_duration_s or ticks > policy.max_ticks
                 or ticks > command.options.max_ticks or command.options.max_ticks > policy.max_ticks):
+            raise RemoteDenied("policy_denied")
+        if (command.options.camera or command.options.lidar) and (not policy.allow_raw_capture or command.mode != "carla"):
             raise RemoteDenied("policy_denied")
         scenario_digest = payload_digest(command.scenario)
         accepted = []
@@ -136,7 +154,10 @@ class RemoteService:
 
         try:
             self.worker.submit(command.scenario, mode=command.mode,
-                options=SimulationOptions(max_ticks=command.options.max_ticks),
+                options=SimulationOptions(max_ticks=command.options.max_ticks,
+                    camera=command.options.camera, lidar=command.options.lidar,
+                    camera_width=320 if command.options.camera else 640,
+                    camera_height=180 if command.options.camera else 360),
                 evaluation_settings=command.evaluation_settings, on_created=record)
         except (ConflictError, RemoteDenied):
             # Queue checks precede the hook. A concurrent acceptance must still

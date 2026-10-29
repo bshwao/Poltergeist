@@ -65,6 +65,11 @@ class CompanionController:
         self._relay_execution = False
         self._relay_approval = None
         self._relay_factory = relay_factory
+        self._update_offer = None
+        self._update_installer = None
+        self._update_from_feed = False
+        self._update_rollback = False
+        self.update_progress = (0, None)
         # Compatibility for the earlier private acceptance driver. Ordinary
         # builds need a fresh explicit local consent action below; saved config
         # and environment variables cannot enable hosted requests.
@@ -522,6 +527,170 @@ class CompanionController:
         with path.open("xb") as stream:
             stream.write(report.content)
         return path
+
+    def maintain_evidence(self, simulation_id, *, export=None, delete=False):
+        from scripts.manage_evidence import export_evidence
+        runtime = self._running()
+        with self._remote_lock, self._worker.queue_snapshot() as waiting:
+            status = self._worker.status()
+            if status["active_id"] is not None or waiting:
+                raise ConflictError("Finish or cancel active and queued work before evidence maintenance")
+            stored = runtime.persistence().get_simulation(UUID(str(simulation_id)))
+            if stored.result is None:
+                raise ValueError("Only finalized evidence can be exported or removed")
+            artifacts = runtime.persistence().artifacts
+            if export is not None:
+                if Path(export).resolve().is_relative_to(self.profile):
+                    raise ValueError("Save evidence exports outside the Companion profile")
+                export_evidence(artifacts, stored.result, export)
+            if delete:
+                for ref in stored.result.artifacts:
+                    try:
+                        artifacts.delete_evidence(ref, stored.simulation.id)
+                    except FileNotFoundError:
+                        continue
+            return artifacts.capacity()
+
+    def _installed_update_context(self):
+        import configparser
+        from importlib.metadata import version
+        from .updates import _plain
+        if self._bundle is None or self._bundle.parent.name != "versions":
+            raise ValueError("Signed updates require an installed Companion")
+        install = _plain(self._bundle.parent.parent)
+        ini = configparser.ConfigParser()
+        ini.read(_plain(install / "installation.ini"), encoding="utf-8-sig")
+        current = version("poltergeist")
+        if (ini.get("Installation", "AppId", fallback="") != "Poltergeist.Private.Companion"
+                or ini.get("Installation", "Build", fallback="") != self._bundle.name
+                or ini.get("Installation", "Version", fallback="") != current
+                or Path(ini.get("Installation", "Profile", fallback="")).resolve() != self.profile):
+            raise ValueError("This runtime does not own the installed Companion/profile")
+        return install, current
+
+    def update_status(self):
+        from .updates import load_policy
+        from .update_delivery import delivery_origin
+        policy = load_policy()
+        try:
+            if not policy.get("publishers_sha256"):
+                raise ValueError("Signed updates are disabled in this private build. Release signing configuration is deferred.")
+            _, current = self._installed_update_context()
+            feed = policy.get("feed_url")
+            if feed is not None:
+                delivery_origin(feed)
+            return {"enabled": True, "feed_enabled": feed is not None, "current_version": current,
+                    "message": "Updates are checked only when requested. Installation requires an idle, closed Companion."}
+        except ValueError as error:
+            return {"enabled": False, "feed_enabled": False, "current_version": None, "message": str(error)}
+
+    def _update_view(self):
+        offer = self._update_offer
+        return {"candidate": offer.release.model_dump(mode="json") if offer is not None else None,
+                "downloaded": self._update_installer is not None, "rollback": self._update_rollback,
+                "from_feed": self._update_from_feed}
+
+    def check_updates(self, cancel):
+        from .update_delivery import check_update
+        self._require_open()
+        _, current = self._installed_update_context()
+        # Keep the selected candidate reachable until it is cleared explicitly.
+        if self._update_offer is not None:
+            raise ConflictError("Clear the selected candidate before checking again")
+        self._update_offer = check_update(self.profile, current_version=current, cancel=cancel)
+        self._update_from_feed, self._update_rollback = True, False
+        self._update_installer = None
+        return self._update_view()
+
+    def download_checked_update(self, cancel):
+        from .update_delivery import download_update
+        self._require_open()
+        _, current = self._installed_update_context()
+        if self._update_offer is None or not self._update_from_feed:
+            raise ValueError("Check for a release before downloading")
+        self.update_progress = (0, self._update_offer.release.installer_bytes)
+        def progress(received, total):
+            # Immutable progress snapshots; the GUI alone touches Tk objects.
+            self.update_progress = (received, total)
+        self._update_installer = download_update(self.profile, self._update_offer.manifest,
+            current_version=current, cancel=cancel, progress=progress)
+        return self._update_view()
+
+    def select_signed_rollback(self, installer, manifest):
+        return self._select_signed_candidate(installer, manifest, rollback=True)
+
+    def select_signed_update(self, installer, manifest):
+        return self._select_signed_candidate(installer, manifest, rollback=False)
+
+    def _select_signed_candidate(self, installer, manifest, *, rollback):
+        import re
+        from .update_delivery import UpdateOffer
+        from .updates import load_policy, verify_release, _plain
+        self._require_open()
+        _, current = self._installed_update_context()
+        if self._update_offer is not None:
+            raise ConflictError("Clear the selected candidate before selecting another release")
+        installer, manifest = _plain(installer), _plain(manifest)
+        release = verify_release(installer, manifest, load_policy(), current_version=current, rollback=rollback)
+        self._update_offer, self._update_installer = UpdateOffer(manifest, release), installer
+        self._update_from_feed = (manifest.parent.parent == self.profile / "updates/downloads"
+            and re.fullmatch(r"[0-9a-f]{32}", manifest.parent.name) is not None
+            and installer == manifest.parent / "Setup.exe")
+        self._update_rollback = rollback
+        return self._update_view()
+
+    def remove_cached_update(self, manifest):
+        from .update_delivery import remove_download
+        from .updates import _plain
+        self._require_open()
+        manifest = _plain(manifest)
+        remove_download(self.profile, manifest)
+        if self._update_offer is not None and self._update_offer.manifest == manifest:
+            self._update_offer = self._update_installer = None
+            self._update_from_feed = self._update_rollback = False
+            self.update_progress = (0, None)
+        return self._update_view()
+
+    def clear_update(self):
+        from .update_delivery import remove_download
+        self._require_open()
+        if self._update_offer is not None and self._update_from_feed:
+            remove_download(self.profile, self._update_offer.manifest)
+        self._update_offer = self._update_installer = None
+        self._update_from_feed = self._update_rollback = False
+        self.update_progress = (0, None)
+        return self._update_view()
+
+    def prepare_update_install(self):
+        import os
+        import sqlite3
+        from .updates import verify_release, load_policy, check_profile_state, _plain
+        self._require_open()
+        install, current = self._installed_update_context()
+        if self._update_offer is None or self._update_installer is None:
+            raise ValueError("Download and verify a candidate before installation")
+        release = verify_release(self._update_installer, self._update_offer.manifest, load_policy(),
+                                 current_version=current, rollback=self._update_rollback)
+        queue = self.snapshot()["queue"]
+        if queue["active_id"] is not None or queue["pending"]:
+            raise ConflictError("Finish or cancel queued and active work before updating")
+        if not self.disconnect_relay():
+            raise ConflictError("The connection is still stopping; keep the Companion open and retry")
+        database = _plain(self.profile / "database/poltergeist.db")
+        if not database.is_file():
+            raise ValueError("Start the local runtime once to initialize this profile before updating")
+        source = sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)
+        try:
+            check_profile_state(source, release)
+        finally:
+            source.close()
+        # The helper waits for this whole process (including the install mutex)
+        # to exit, then independently acquires both leases and rechecks durable
+        # queued work before backing up or executing an installer.
+        return [str(self._bundle / "runtime/python.exe"), "-I", "-B", "-m", "scripts.update_companion",
+            "--data-dir", str(self.profile), "--installer", str(self._update_installer),
+            "--manifest", str(self._update_offer.manifest), "--install-root", str(install),
+            "--wait-for-pid", str(os.getpid()), "--notify", *(["--rollback"] if self._update_rollback else [])]
 
     def diagnostics(self, *, check_carla=False):
         from backend.services.readiness_service import collect_readiness

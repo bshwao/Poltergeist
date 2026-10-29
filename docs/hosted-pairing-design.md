@@ -236,7 +236,9 @@ start shells, or access arbitrary local runs/files.
 Device-local policy caps duration, ticks, queue capacity and sensor recording,
 and controls map reload and graphics changes. Start with a visible local policy
 of at most 120 simulated seconds, 10,000 ticks, ten waiting remote runs, no map
-reload and no raw capture. Local approval can lower those bounds; expansion needs
+reload and default-off raw capture. The S8 implementation permits optional
+CARLA camera/LiDAR capture after a separate local pairing approval. Local
+approval can lower those bounds; expansion needs
 another explicit local action. Reject options exceeding policy rather than silently
 changing the requested experiment. Resolve approved agents through the existing
 registry fingerprint verification immediately before queue acceptance and again

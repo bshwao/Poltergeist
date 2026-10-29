@@ -59,8 +59,12 @@ fragment recovers only the current account's public claim status.
 Request identities survive uncertain delivery in the open page. Retry uses the
 same body and UUID, while durable history recovers admitted runs after reload.
 Reloading before a request reaches the coordinator cannot recover an unadmitted
-recipe. Results are versioned summaries; telemetry/recording downloads stay
-local until S8. Current remote execution supports the baseline controller only.
+recipe. Results are versioned summaries. The [S8 checkpoint](evidence-capacity-release.md)
+adds requested telemetry pages, recording discovery, paged sample selection and
+verified camera/LiDAR previews with separate local evidence consent. Preview
+storage is limited to one sample up to 4 MiB. Complete recording exports remain
+local. CARLA camera/LiDAR capture needs its own default-off local approval;
+synthetic requests cannot enable capture. Current remote execution supports the baseline controller only.
 
 ## Validation
 

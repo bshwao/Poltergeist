@@ -49,6 +49,8 @@ class Settings(BaseSettings):
         ]
     )
     storage_dir: Path = Path("storage")
+    artifact_quota_bytes: int = Field(default=20 * 1024**3, ge=1024, le=2**50)
+    artifact_min_free_bytes: int = Field(default=512 * 1024**2, ge=0, le=2**50)
     simulation_queue_size: int = Field(default=100, ge=1, le=1000)
     simulation_progress_interval_s: float = Field(default=0.25, gt=0, le=60, allow_inf_nan=False)
     simulation_shutdown_timeout_s: float = Field(default=15.0, gt=0, le=60, allow_inf_nan=False)

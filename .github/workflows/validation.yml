@@ -42,6 +42,8 @@ jobs:
           subprocess.run([sys.executable, '-m', 'scripts.validate_installation', '--mode', 'test', '--sensors', '--duration', '.15', '--seeds', '7', '--output', 'validation-evidence/installation'], check=True)
       - name: Build wheel
         run: python -m pip wheel --no-deps . --wheel-dir validation-wheel
+      - name: Small isolated multi-user capacity check
+        run: python -m scripts.load_coordinator --users 3 --rounds 5 --output validation-evidence/capacity.json
       - name: Test non-editable core and coordinator wheel workflows outside the checkout
         shell: python
         run: |

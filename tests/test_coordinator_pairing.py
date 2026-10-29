@@ -285,7 +285,7 @@ def test_guessing_limit_survives_restart_and_wrong_purpose_credentials_fail(setu
 def test_policy_and_pairing_inputs_reject_paths_unknown_fields_and_unbounded_work():
     from pydantic import ValidationError
     for change in ({"max_duration_s": 121.}, {"max_ticks": 10001}, {"max_waiting_runs": 11},
-                   {"allow_map_reload": True}, {"allow_raw_capture": True}, {"python_executable": "C:/private/python.exe"},
+                   {"allow_map_reload": True}, {"allow_raw_capture": "true"}, {"python_executable": "C:/private/python.exe"},
                    {"scopes": ["status:read", "status:read"]}):
         with pytest.raises(ValidationError):
             DevicePolicy.model_validate({"scopes": ["status:read"], **change})

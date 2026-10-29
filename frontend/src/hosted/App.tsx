@@ -7,6 +7,8 @@ import { createHostedClient, HostedError } from "./client";
 import type { HostedCommand } from "./client";
 import { mergeRuns, metric, terminal } from "./workflow";
 import type { HostedRun } from "./workflow";
+import { EvidencePanel } from "./EvidencePanel";
+import { RecordingPanel } from "./RecordingPanel";
 
 type Client = ReturnType<typeof createHostedClient>;
 type Pending = { device: string; command: HostedCommand; uncertain: boolean };
@@ -85,7 +87,7 @@ function ConnectComputer({ claim, busy, onClaim }: { claim: PairingStatus | null
   </section>;
 }
 
-function Composer({ target, presets, blocked, onExecute }: { target: BrowserDeviceView; presets: BrowserScenarioPreset[]; blocked: boolean; onExecute: (recipe: Scenario, mode: "test" | "carla") => void }) {
+function Composer({ target, presets, blocked, onExecute }: { target: BrowserDeviceView; presets: BrowserScenarioPreset[]; blocked: boolean; onExecute: (recipe: Scenario, mode: "test" | "carla", capture: { camera: boolean; lidar: boolean }) => void }) {
   const [presetId, setPresetId] = useState("");
   const [source, setSource] = useState("");
   const [name, setName] = useState("");
@@ -95,6 +97,9 @@ function Composer({ target, presets, blocked, onExecute }: { target: BrowserDevi
   const [mode, setMode] = useState<"test" | "carla">("test");
   const [error, setError] = useState("");
   const [advanced, setAdvanced] = useState(false);
+  const [camera, setCamera] = useState(false);
+  const [lidar, setLidar] = useState(false);
+  const captureAllowed = mode === "carla" && target.device.policy.allow_raw_capture && target.connection.recordings_supported;
   const scopes = target.device.policy.scopes;
   function load(recipe: Scenario, identifier = "") {
     setPresetId(identifier); setSource(JSON.stringify(recipe, null, 2)); setName(recipe.name);
@@ -123,7 +128,8 @@ function Composer({ target, presets, blocked, onExecute }: { target: BrowserDevi
       if (!name.trim() || name.trim().length > 128 || !map.trim() || map.trim().length > 64 || !Array.isArray(recipe.actors)
           || !Number.isFinite(recipe.fixed_delta_seconds) || recipe.fixed_delta_seconds <= 0
           || Math.ceil(seconds.value! / recipe.fixed_delta_seconds - 1e-9) > Math.min(10000, limit.max_ticks)) throw new Error();
-      onExecute({ ...recipe, name: name.trim(), map: map.trim(), duration_s: seconds.value!, seed: seedValue.value! }, mode);
+      onExecute({ ...recipe, name: name.trim(), map: map.trim(), duration_s: seconds.value!, seed: seedValue.value! }, mode,
+        { camera: captureAllowed && camera, lidar: captureAllowed && lidar });
     } catch { setError("Check the scenario JSON, name, map and tick budget. The companion accepts only a bounded baseline experiment."); }
   }
   const allowed = scopes.includes(`run:execute:${mode}`);
@@ -136,6 +142,9 @@ function Composer({ target, presets, blocked, onExecute }: { target: BrowserDevi
         <div className="hosted-fields three"><label>Duration (simulated seconds)<input value={duration} onChange={event => setDuration(event.target.value)} inputMode="decimal" required /></label><label>Seed<input value={seed} onChange={event => setSeed(event.target.value)} inputMode="numeric" required /></label><label>Controller<select value="baseline" onChange={() => {}}><option value="baseline">Baseline controller</option></select></label></div>
         <div className="hosted-mode-options"><label><input type="radio" name="mode" value="test" checked={mode === "test"} onChange={() => setMode("test")} disabled={!scopes.includes("run:execute:test")} /> Synthetic check</label><label><input type="radio" name="mode" value="carla" checked={mode === "carla"} onChange={() => setMode("carla")} disabled={!scopes.includes("run:execute:carla")} /> CARLA experiment</label></div>
         <p className="hosted-muted">Synthetic runs check the workflow. CARLA setup is checked on your computer when a live run starts. Remote runs do not reload maps or change graphics.</p>
+        <div className="hosted-mode-options"><label><input type="checkbox" checked={camera} disabled={!captureAllowed} onChange={event => setCamera(event.target.checked)} /> Save camera recording</label>
+          <label><input type="checkbox" checked={lidar} disabled={!captureAllowed} onChange={event => setLidar(event.target.checked)} /> Save LiDAR recording</label></div>
+        <p className="hosted-muted">Camera capture is 320 × 180 pixels. CARLA recordings use the computer's storage budget. Enable capture in its local pairing approval to save them. Sensor data stays local during execution.</p>
         <div className="hosted-advanced-actions"><button type="button" className="hosted-text-button" onClick={() => setAdvanced(!advanced)}>{advanced ? "Hide recipe JSON" : "Edit recipe JSON"}</button><label className="hosted-file-label">Import JSON<input type="file" accept=".json,application/json" onChange={event => { void importRecipe(event.target.files?.[0]); event.target.value = ""; }} /></label></div>
         {advanced && <label>Scenario JSON<small className="hosted-muted">The name, map, duration and seed fields above take precedence when submitting.</small><textarea className="hosted-json" aria-label="Scenario JSON" value={source} onChange={event => {
           setSource(event.target.value); setPresetId("");
@@ -275,7 +284,7 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
       else if (resolved.operation === "cancel") setNotice("Cancellation requested. The final experiment result confirms its outcome.");
       else {
         if (resolved.reply?.kind === "accepted") setSelectedRun(resolved.reply.simulation_id);
-        setNotice("Your computer accepted the experiment. Waiting for its measured result.");
+        setNotice("Your computer accepted the experiment.");
       }
     }
   }
@@ -410,15 +419,19 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
             {!selected.device.revoked_at && <button className="hosted-danger-link" onClick={() => setRevokeTarget(selected)}>Revoke computer access</button>}</>}
         </section>
         {pending && <section className="hosted-card hosted-pending" role="status"><strong>{pending.uncertain ? "Delivery is unconfirmed" : "Waiting for your computer"}</strong><p>The original request identity is preserved. An acceptance acknowledgement confirms queueing, not completion.</p><code>{pending.command.request_id}</code>{pending.uncertain && <button onClick={() => { void retryPending(); }}>Retry original request</button>}</section>}
-        {selected && !selected.device.revoked_at && <div className="hosted-experiment-grid"><Composer key={key} target={selected} presets={presets} blocked={pending !== null || availabilityUnknown} onExecute={(recipe, mode) => { void send({ kind: "execute", request_id: crypto.randomUUID(), scenario: recipe, mode, agent_id: null, options: { max_ticks: Math.min(10000, selected.device.policy.max_ticks) } }); }} />
+        {selected && !selected.device.revoked_at && <div className="hosted-experiment-grid"><Composer key={key} target={selected} presets={presets} blocked={pending !== null || availabilityUnknown} onExecute={(recipe, mode, capture) => { void send({ kind: "execute", request_id: crypto.randomUUID(), scenario: recipe, mode, agent_id: null, options: { max_ticks: Math.min(10000, selected.device.policy.max_ticks), ...(capture.camera ? { camera: true } : {}), ...(capture.lidar ? { lidar: true } : {}) } }); }} />
           <section className="hosted-card hosted-run-list" aria-labelledby="runs-title"><div className="hosted-section-heading"><div><p className="hosted-eyebrow">DURABLE READBACK</p><h2 id="runs-title">Recent experiments</h2></div><span className="hosted-count">{runs.length}</span></div>
             {!runs.length ? <div className="hosted-empty"><Icon name="experiments" size={35} /><h3>Your next experiment starts here</h3><p>Choose a recipe and send an approved request. Existing receipts reappear when this page reloads.</p></div> : <ul>{runs.map(run => <li key={run.id}><button aria-pressed={run.id === activeRun?.id} onClick={() => setSelectedRun(run.id)}><span><strong>{run.summary?.scenario.name ?? `Experiment ${short(run.id)}`}</strong><small>{when(run.acceptedAt)}</small></span><span className="hosted-status" data-state={run.summary?.status ?? "queued"}>{run.summary ? readable(run.summary.status) : "Accepted"}</span></button></li>)}</ul>}
             {older && <button className="hosted-text-button" onClick={() => { const context = key, target = selected; void client.history(target.device.device_id, undefined, older).then(page => { if (context === scope.current) { paginated.current = true; ingest(page.items, context, target); setOlder(page.next_before); } }).catch(error => failed(error, context)); }}>Load earlier receipts</button>}
           </section></div>}
         {activeRun && selected && <RunDetail run={activeRun} canRead={live && scopes.includes("result:read")} canCancel={live && scopes.includes("run:cancel") && pending === null}
           onRead={() => { void refreshResult(activeRun); }} onCancel={() => { void send({ kind: "cancel", request_id: crypto.randomUUID(), simulation_id: activeRun.id }); }} />}
+        {activeRun && selected && terminal(activeRun) && <EvidencePanel key={`${key}:${activeRun.id}`} client={client} device={selected.device.device_id}
+          run={activeRun.id} enabled={live && scopes.includes("result:read") && selected.connection.evidence_supported === true && selected.device.policy.allow_evidence_read === true} />}
+        {activeRun && selected && terminal(activeRun) && <RecordingPanel key={`recordings:${key}:${activeRun.id}`} client={client} device={selected.device.device_id}
+          run={activeRun.id} synthetic={activeRun.summary?.mode === "test"} enabled={live && scopes.includes("result:read") && selected.connection.recordings_supported === true && selected.device.policy.allow_evidence_read === true} />}
         <ConnectComputer claim={claim} busy={claimBusy} onClaim={claimCode} />
-        <footer className="hosted-footer">A completed experiment is an observation, not a driving-safety guarantee. Recording downloads remain local to your companion.</footer>
+        <footer className="hosted-footer">A completed experiment is an observation, not a driving-safety guarantee. Evidence stays on your computer until requested.</footer>
       </main>
     </div>
     {revokeTarget && <RevokeDialog target={revokeTarget} onClose={() => setRevokeTarget(null)} onRevoke={() => { void revoke(); }} />}

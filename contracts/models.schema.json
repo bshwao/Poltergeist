@@ -2650,6 +2650,11 @@
           "title": "Carla Readiness",
           "type": "string"
         },
+        "evidence_supported": {
+          "default": false,
+          "title": "Evidence Supported",
+          "type": "boolean"
+        },
         "last_seen_at": {
           "anyOf": [
             {
@@ -2688,6 +2693,11 @@
           "default": null,
           "title": "Protocol Version"
         },
+        "recordings_supported": {
+          "default": false,
+          "title": "Recordings Supported",
+          "type": "boolean"
+        },
         "remote_requests_enabled": {
           "default": false,
           "title": "Remote Requests Enabled",
@@ -2712,7 +2722,9 @@
         "protocol_compatible",
         "remote_requests_enabled",
         "baseline_only",
-        "carla_readiness"
+        "carla_readiness",
+        "evidence_supported",
+        "recordings_supported"
       ],
       "title": "BrowserConnectionView",
       "type": "object"
@@ -2849,6 +2861,36 @@
       "title": "BrowserSession",
       "type": "object"
     },
+    "CameraFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "const": "bgra8",
+          "default": "bgra8",
+          "title": "Encoding",
+          "type": "string"
+        },
+        "height": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Height",
+          "type": "integer"
+        },
+        "width": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "encoding",
+        "width",
+        "height"
+      ],
+      "title": "CameraFormat",
+      "type": "object"
+    },
     "CancelAccepted": {
       "additionalProperties": false,
       "properties": {
@@ -2930,6 +2972,11 @@
           "title": "Device Id",
           "type": "string"
         },
+        "evidence_supported": {
+          "default": false,
+          "title": "Evidence Supported",
+          "type": "boolean"
+        },
         "kind": {
           "const": "ready",
           "default": "ready",
@@ -2947,6 +2994,11 @@
           "default": "poltergeist-relay-v1",
           "title": "Protocol Version",
           "type": "string"
+        },
+        "recordings_supported": {
+          "default": false,
+          "title": "Recordings Supported",
+          "type": "boolean"
         },
         "remote_execution_enabled": {
           "default": false,
@@ -4053,6 +4105,11 @@
     "DevicePolicy": {
       "additionalProperties": false,
       "properties": {
+        "allow_evidence_read": {
+          "default": false,
+          "title": "Allow Evidence Read",
+          "type": "boolean"
+        },
         "allow_graphics_change": {
           "const": false,
           "default": false,
@@ -4066,7 +4123,6 @@
           "type": "boolean"
         },
         "allow_raw_capture": {
-          "const": false,
           "default": false,
           "title": "Allow Raw Capture",
           "type": "boolean"
@@ -4717,6 +4773,524 @@
         "responses"
       ],
       "title": "EventBehavior",
+      "type": "object"
+    },
+    "EvidenceFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "collisions": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Collisions"
+        },
+        "control": {
+          "$ref": "#/$defs/ControlInput"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "speed_mps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Speed Mps"
+        },
+        "time_s": {
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "traffic_violations": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Traffic Violations"
+        }
+      },
+      "required": [
+        "frame",
+        "time_s",
+        "speed_mps",
+        "control",
+        "collisions",
+        "traffic_violations"
+      ],
+      "title": "EvidenceFrame",
+      "type": "object"
+    },
+    "EvidenceRecording": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_index": {
+          "maximum": 64,
+          "minimum": 0,
+          "title": "Artifact Index",
+          "type": "integer"
+        },
+        "sample_count": {
+          "anyOf": [
+            {
+              "maximum": 1000001,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Count"
+        },
+        "state": {
+          "enum": [
+            "available",
+            "missing",
+            "deleted",
+            "limit_exceeded"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "total_bytes": {
+          "anyOf": [
+            {
+              "maximum": 1099511627776,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Bytes"
+        }
+      },
+      "required": [
+        "artifact_index",
+        "state",
+        "sample_count",
+        "total_bytes"
+      ],
+      "title": "EvidenceRecording",
+      "type": "object"
+    },
+    "EvidenceReply": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_index": {
+          "default": 0,
+          "maximum": 64,
+          "minimum": 0,
+          "title": "Artifact Index",
+          "type": "integer"
+        },
+        "data_base64": {
+          "anyOf": [
+            {
+              "maxLength": 87384,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Base64"
+        },
+        "frame": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frame"
+        },
+        "frames": {
+          "items": {
+            "$ref": "#/$defs/EvidenceFrame"
+          },
+          "maxItems": 100,
+          "title": "Frames",
+          "type": "array"
+        },
+        "kind": {
+          "const": "evidence",
+          "default": "evidence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "next_offset": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Offset"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "recordings": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRecording"
+          },
+          "maxItems": 64,
+          "title": "Recordings",
+          "type": "array"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "resource": {
+          "enum": [
+            "telemetry",
+            "recordings",
+            "samples",
+            "sample"
+          ],
+          "title": "Resource",
+          "type": "string"
+        },
+        "sample": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceSample"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sample_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Sha256"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSample"
+          },
+          "maxItems": 100,
+          "title": "Samples",
+          "type": "array"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "available",
+            "missing",
+            "deleted",
+            "changed",
+            "limit_exceeded"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "timestamp": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timestamp"
+        },
+        "total_bytes": {
+          "anyOf": [
+            {
+              "maximum": 1099511627776,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Bytes"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "simulation_id",
+        "state",
+        "resource",
+        "offset",
+        "next_offset",
+        "version",
+        "frames",
+        "data_base64",
+        "sha256",
+        "sample_sha256",
+        "total_bytes",
+        "frame",
+        "timestamp"
+      ],
+      "title": "EvidenceReply",
+      "type": "object"
+    },
+    "EvidenceRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_index": {
+          "default": 0,
+          "maximum": 64,
+          "minimum": 0,
+          "title": "Artifact Index",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "evidence",
+          "default": "evidence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "default": 25,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 1099511627776,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "resource": {
+          "default": "telemetry",
+          "enum": [
+            "telemetry",
+            "recordings",
+            "samples",
+            "sample"
+          ],
+          "title": "Resource",
+          "type": "string"
+        },
+        "sample_cursor": {
+          "anyOf": [
+            {
+              "maximum": 1099511627776,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Cursor"
+        },
+        "sample_index": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Sample Index",
+          "type": "integer"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "simulation_id",
+        "resource",
+        "artifact_index",
+        "sample_index",
+        "offset",
+        "limit",
+        "version"
+      ],
+      "title": "EvidenceRequest",
+      "type": "object"
+    },
+    "EvidenceSample": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_length": {
+          "maximum": 67108864,
+          "minimum": 0,
+          "title": "Byte Length",
+          "type": "integer"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "index_offset": {
+          "anyOf": [
+            {
+              "maximum": 1099511627776,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Index Offset"
+        },
+        "kind": {
+          "enum": [
+            "camera",
+            "lidar"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "metadata": {
+          "discriminator": {
+            "mapping": {
+              "bgra8": "#/$defs/CameraFormat",
+              "float32_xyzi": "#/$defs/LidarFormat"
+            },
+            "propertyName": "encoding"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CameraFormat"
+            },
+            {
+              "$ref": "#/$defs/LidarFormat"
+            }
+          ],
+          "title": "Metadata"
+        },
+        "sample_index": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Sample Index",
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "timestamp": {
+          "minimum": 0,
+          "title": "Timestamp",
+          "type": "number"
+        }
+      },
+      "required": [
+        "sample_index",
+        "index_offset",
+        "kind",
+        "frame",
+        "timestamp",
+        "byte_length",
+        "sha256",
+        "metadata"
+      ],
+      "title": "EvidenceSample",
       "type": "object"
     },
     "EvidenceSpan": {
@@ -5826,6 +6400,29 @@
       "type": "object"
     },
     "JsonValue": {},
+    "LidarFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Channels",
+          "type": "integer"
+        },
+        "encoding": {
+          "const": "float32_xyzi",
+          "default": "float32_xyzi",
+          "title": "Encoding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "encoding",
+        "channels"
+      ],
+      "title": "LidarFormat",
+      "type": "object"
+    },
     "MinimizeRequest": {
       "additionalProperties": false,
       "properties": {
@@ -7078,6 +7675,7 @@
           "discriminator": {
             "mapping": {
               "cancel": "#/$defs/CancelCommand",
+              "evidence": "#/$defs/EvidenceRequest",
               "execute": "#/$defs/ExecuteCommand",
               "result": "#/$defs/ResultCommand",
               "status": "#/$defs/StatusCommand"
@@ -7096,6 +7694,9 @@
             },
             {
               "$ref": "#/$defs/ResultCommand"
+            },
+            {
+              "$ref": "#/$defs/EvidenceRequest"
             }
           ],
           "title": "Command"
@@ -7276,6 +7877,7 @@
             "mapping": {
               "accepted": "#/$defs/ExecuteAccepted",
               "cancel_requested": "#/$defs/CancelAccepted",
+              "evidence": "#/$defs/EvidenceReply",
               "rejected": "#/$defs/CommandRejected",
               "result": "#/$defs/RunResultReply",
               "status": "#/$defs/DeviceStatusReply"
@@ -7297,6 +7899,9 @@
             },
             {
               "$ref": "#/$defs/CommandRejected"
+            },
+            {
+              "$ref": "#/$defs/EvidenceReply"
             }
           ],
           "title": "Reply"
@@ -7338,6 +7943,7 @@
                 "mapping": {
                   "accepted": "#/$defs/ExecuteAccepted",
                   "cancel_requested": "#/$defs/CancelAccepted",
+                  "evidence": "#/$defs/EvidenceReply",
                   "rejected": "#/$defs/CommandRejected",
                   "result": "#/$defs/RunResultReply",
                   "status": "#/$defs/DeviceStatusReply"
@@ -7359,6 +7965,9 @@
                 },
                 {
                   "$ref": "#/$defs/CommandRejected"
+                },
+                {
+                  "$ref": "#/$defs/EvidenceReply"
                 }
               ]
             },
@@ -7422,6 +8031,7 @@
           "discriminator": {
             "mapping": {
               "cancel": "#/$defs/CancelCommand",
+              "evidence": "#/$defs/EvidenceRequest",
               "execute": "#/$defs/ExecuteCommand",
               "result": "#/$defs/ResultCommand",
               "status": "#/$defs/StatusCommand"
@@ -7440,6 +8050,9 @@
             },
             {
               "$ref": "#/$defs/ResultCommand"
+            },
+            {
+              "$ref": "#/$defs/EvidenceRequest"
             }
           ],
           "title": "Command"
@@ -7483,6 +8096,7 @@
             "mapping": {
               "accepted": "#/$defs/ExecuteAccepted",
               "cancel_requested": "#/$defs/CancelAccepted",
+              "evidence": "#/$defs/EvidenceReply",
               "rejected": "#/$defs/CommandRejected",
               "result": "#/$defs/RunResultReply",
               "status": "#/$defs/DeviceStatusReply"
@@ -7504,6 +8118,9 @@
             },
             {
               "$ref": "#/$defs/CommandRejected"
+            },
+            {
+              "$ref": "#/$defs/EvidenceReply"
             }
           ],
           "title": "Reply"
@@ -7524,6 +8141,16 @@
     "RemoteRunOptions": {
       "additionalProperties": false,
       "properties": {
+        "camera": {
+          "default": false,
+          "title": "Camera",
+          "type": "boolean"
+        },
+        "lidar": {
+          "default": false,
+          "title": "Lidar",
+          "type": "boolean"
+        },
         "max_ticks": {
           "default": 10000,
           "maximum": 10000,
@@ -8631,6 +9258,11 @@
           "title": "Device Id",
           "type": "string"
         },
+        "evidence_supported": {
+          "default": false,
+          "title": "Evidence Supported",
+          "type": "boolean"
+        },
         "heartbeat_s": {
           "const": 30,
           "default": 30,
@@ -8668,6 +9300,11 @@
           "default": "poltergeist-relay-v1",
           "title": "Protocol Version",
           "type": "string"
+        },
+        "recordings_supported": {
+          "default": false,
+          "title": "Recordings Supported",
+          "type": "boolean"
         }
       },
       "required": [

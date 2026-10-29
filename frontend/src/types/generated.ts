@@ -829,7 +829,8 @@ export type Unit3 = string;
 export type Parameters3 = ParameterInfo[];
 export type CreatedAt6 = string;
 export type Operation = "execute" | "cancel" | "status" | "result";
-export type Reply = (ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected) | null;
+export type Reply =
+  (ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply) | null;
 export type AcceptedAt = string;
 export type Kind8 = "accepted";
 export type RequestId = string;
@@ -935,8 +936,57 @@ export type Code1 =
   | "result_unavailable";
 export type Kind12 = "rejected";
 export type RequestId4 = string;
+export type ArtifactIndex = number;
+export type DataBase642 = string | null;
+export type Frame7 = number | null;
+export type Collisions1 = number | null;
+export type Frame8 = number;
+export type SpeedMps2 = number | null;
+export type TimeS5 = number;
+export type TrafficViolations1 = number | null;
+/**
+ * @maxItems 100
+ */
+export type Frames1 = EvidenceFrame[];
+export type Kind13 = "evidence";
+export type NextOffset = number | null;
+export type Offset2 = number;
+export type ArtifactIndex1 = number;
+export type SampleCount = number | null;
+export type State1 = "available" | "missing" | "deleted" | "limit_exceeded";
+export type TotalBytes = number | null;
+/**
+ * @maxItems 64
+ */
+export type Recordings = EvidenceRecording[];
 export type RequestId5 = string;
-export type SimulationId8 = string | null;
+export type Resource = "telemetry" | "recordings" | "samples" | "sample";
+export type ByteLength1 = number;
+export type Frame9 = number;
+export type IndexOffset = number | null;
+export type Kind14 = "camera" | "lidar";
+export type Metadata1 = CameraFormat | LidarFormat;
+export type Encoding1 = "bgra8";
+export type Height2 = number;
+export type Width2 = number;
+export type Channels1 = number;
+export type Encoding2 = "float32_xyzi";
+export type SampleIndex1 = number;
+export type Sha2564 = string;
+export type Timestamp = number;
+export type SampleSha256 = string | null;
+/**
+ * @maxItems 100
+ */
+export type Samples = EvidenceSample[];
+export type Sha2565 = string | null;
+export type SimulationId8 = string;
+export type State2 = "available" | "missing" | "deleted" | "changed" | "limit_exceeded";
+export type Timestamp1 = number | null;
+export type TotalBytes1 = number | null;
+export type Version2 = string | null;
+export type RequestId6 = string;
+export type SimulationId9 = string | null;
 export type Status4 = "queued" | "accepted" | "completed" | "rejected";
 export type UpdatedAt3 = string;
 /**
@@ -946,20 +996,23 @@ export type Items = RemoteCommandView[];
 export type NextBefore = string | null;
 export type BaselineOnly = true;
 export type CarlaReadiness = "unknown";
+export type EvidenceSupported = boolean;
 export type LastSeenAt = string | null;
 export type ProtocolCompatible = boolean | null;
 export type ProtocolVersion5 = "poltergeist-relay-v1" | null;
+export type RecordingsSupported = boolean;
 export type RemoteRequestsEnabled = boolean;
-export type State1 = "offline" | "connecting" | "connected" | "paused" | "revoked";
+export type State3 = "offline" | "connecting" | "connected" | "paused" | "revoked";
 export type CreatedAt8 = string;
 export type DeviceId1 = string;
 export type DisplayName = string;
 export type AccountId = string;
 export type Username = string;
 export type OwnershipGeneration1 = number;
+export type AllowEvidenceRead = boolean;
 export type AllowGraphicsChange = false;
 export type AllowMapReload1 = false;
-export type AllowRawCapture = false;
+export type AllowRawCapture = boolean;
 export type AgentId5 = string;
 export type PackageDigest = string;
 /**
@@ -1098,7 +1151,7 @@ export type Username1 = string;
 export type Credential = string;
 export type ExpectedAccountId = string;
 export type ExpectedRevision1 = number;
-export type RequestId6 = string;
+export type RequestId7 = string;
 export type Credential1 = string;
 export type DeviceId2 = string;
 export type OwnerId = string;
@@ -1140,7 +1193,7 @@ export type DeviceId6 = string;
 export type ExpiresAt2 = string;
 export type RequestedScopes1 = PermissionScope[];
 export type Revision5 = number;
-export type State2 = "pending" | "claimed" | "approved" | "denied" | "expired" | "cancelled";
+export type State4 = "pending" | "claimed" | "approved" | "denied" | "expired" | "cancelled";
 export type Request1 = SearchRequest | ComparisonRequest | ReproductionRequest | MinimizeRequest;
 export type ExpectedRevision3 = number;
 export type Detail = string;
@@ -1158,64 +1211,82 @@ export type CarlaConnectionRequested = boolean;
 export type CheckedAt1 = string;
 export type SchemaVersion4 = "poltergeist-readiness-v1";
 export type Scope = "local_core";
-export type Command = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand;
+export type Command = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest;
 export type AgentId6 = null;
-export type Kind13 = "execute";
+export type Kind15 = "execute";
 export type Mode9 = "test" | "carla";
+export type Camera1 = boolean;
+export type Lidar1 = boolean;
 export type MaxTicks2 = number;
-export type RequestId7 = string;
-export type Kind14 = "cancel";
 export type RequestId8 = string;
-export type SimulationId9 = string;
-export type Kind15 = "status";
+export type Kind16 = "cancel";
 export type RequestId9 = string;
-export type Kind16 = "result";
-export type RequestId10 = string;
 export type SimulationId10 = string;
+export type Kind17 = "status";
+export type RequestId10 = string;
+export type Kind18 = "result";
+export type RequestId11 = string;
+export type SimulationId11 = string;
+export type ArtifactIndex2 = number;
+export type Kind19 = "evidence";
+export type Limit2 = number;
+export type Offset3 = number;
+export type RequestId12 = string;
+export type Resource1 = "telemetry" | "recordings" | "samples" | "sample";
+export type SampleCursor = number | null;
+export type SampleIndex2 = number;
+export type SimulationId12 = string;
+export type Version3 = string | null;
 export type Envelope = ServerHello | ClientReady | RelayCommand | RelayReply | RelayPing | RelayPong;
 export type ConnectionGeneration = number;
 export type DeadTimeoutS = 90;
 export type DeviceId7 = string;
+export type EvidenceSupported1 = boolean;
 export type HeartbeatS = 30;
-export type Kind17 = "hello";
+export type Kind20 = "hello";
 export type OwnerId3 = string;
 export type OwnershipGeneration3 = number;
 export type PolicyRevision1 = number;
 export type ProtocolVersion7 = "poltergeist-relay-v1";
+export type RecordingsSupported1 = boolean;
 export type ConnectionGeneration1 = number;
 export type DeviceId8 = string;
-export type Kind18 = "ready";
+export type EvidenceSupported2 = boolean;
+export type Kind21 = "ready";
 export type OwnershipGeneration4 = number;
 export type ProtocolVersion8 = "poltergeist-relay-v1";
+export type RecordingsSupported2 = boolean;
 export type RemoteExecutionEnabled1 = boolean;
-export type Command1 = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand;
+export type Command1 = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest;
 export type ConnectionGeneration2 = number;
 export type DeviceId9 = string;
-export type Kind19 = "command";
+export type Kind22 = "command";
 export type OwnershipGeneration5 = number;
 export type ProtocolVersion9 = "poltergeist-relay-v1";
 export type ConnectionGeneration3 = number;
 export type DeviceId10 = string;
-export type Kind20 = "reply";
+export type Kind23 = "reply";
 export type OwnershipGeneration6 = number;
 export type ProtocolVersion10 = "poltergeist-relay-v1";
-export type Reply1 = ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected;
+export type Reply1 =
+  ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply;
 export type ConnectionGeneration4 = number;
 export type DeviceId11 = string;
-export type Kind21 = "ping";
+export type Kind24 = "ping";
 export type Nonce = string;
 export type OwnershipGeneration7 = number;
 export type ProtocolVersion11 = "poltergeist-relay-v1";
 export type ConnectionGeneration5 = number;
 export type DeviceId12 = string;
-export type Kind22 = "pong";
+export type Kind25 = "pong";
 export type Nonce1 = string;
 export type OwnershipGeneration8 = number;
 export type ProtocolVersion12 = "poltergeist-relay-v1";
-export type Reply2 = ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected;
+export type Reply2 =
+  ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply;
 export type ProtocolVersion13 = "poltergeist-runner-v1";
-export type RequestId11 = string;
-export type SimulationId11 = string;
+export type RequestId13 = string;
+export type SimulationId13 = string;
 export type CheckedAt2 = string;
 export type ExecutionModes = ("test" | "carla")[];
 export type ImplementationVersion = string;
@@ -1228,7 +1299,7 @@ export type SdkProtocols = ("1.0" | "1.1" | "1.2" | "1.3")[];
 export type AgentId7 = string | null;
 export type Mode10 = "test" | "carla";
 export type ProtocolVersion15 = "poltergeist-runner-v1";
-export type RequestId12 = string;
+export type RequestId14 = string;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -2630,8 +2701,8 @@ export interface RemoteCommandView {
   created_at: CreatedAt6;
   operation: Operation;
   reply: Reply;
-  request_id: RequestId5;
-  simulation_id: SimulationId8;
+  request_id: RequestId6;
+  simulation_id: SimulationId9;
   status: Status4;
   updated_at: UpdatedAt3;
 }
@@ -2830,6 +2901,84 @@ export interface CommandRejected {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EvidenceReply".
+ */
+export interface EvidenceReply {
+  artifact_index?: ArtifactIndex;
+  data_base64: DataBase642;
+  frame: Frame7;
+  frames: Frames1;
+  kind: Kind13;
+  next_offset: NextOffset;
+  offset: Offset2;
+  recordings?: Recordings;
+  request_id: RequestId5;
+  resource: Resource;
+  sample?: EvidenceSample | null;
+  sample_sha256: SampleSha256;
+  samples?: Samples;
+  sha256: Sha2565;
+  simulation_id: SimulationId8;
+  state: State2;
+  timestamp: Timestamp1;
+  total_bytes: TotalBytes1;
+  version: Version2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EvidenceFrame".
+ */
+export interface EvidenceFrame {
+  collisions: Collisions1;
+  control: ControlInput;
+  frame: Frame8;
+  speed_mps: SpeedMps2;
+  time_s: TimeS5;
+  traffic_violations: TrafficViolations1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EvidenceRecording".
+ */
+export interface EvidenceRecording {
+  artifact_index: ArtifactIndex1;
+  sample_count: SampleCount;
+  state: State1;
+  total_bytes: TotalBytes;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EvidenceSample".
+ */
+export interface EvidenceSample {
+  byte_length: ByteLength1;
+  frame: Frame9;
+  index_offset: IndexOffset;
+  kind: Kind14;
+  metadata: Metadata1;
+  sample_index: SampleIndex1;
+  sha256: Sha2564;
+  timestamp: Timestamp;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CameraFormat".
+ */
+export interface CameraFormat {
+  encoding: Encoding1;
+  height: Height2;
+  width: Width2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "LidarFormat".
+ */
+export interface LidarFormat {
+  channels: Channels1;
+  encoding: Encoding2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "BrowserDeviceView".
  */
 export interface BrowserDeviceView {
@@ -2843,11 +2992,13 @@ export interface BrowserDeviceView {
 export interface BrowserConnectionView {
   baseline_only: BaselineOnly;
   carla_readiness: CarlaReadiness;
+  evidence_supported: EvidenceSupported;
   last_seen_at: LastSeenAt;
   protocol_compatible: ProtocolCompatible;
   protocol_version: ProtocolVersion5;
+  recordings_supported: RecordingsSupported;
   remote_requests_enabled: RemoteRequestsEnabled;
-  state: State1;
+  state: State3;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -2876,6 +3027,7 @@ export interface AccountIdentity {
  * via the `definition` "DevicePolicy".
  */
 export interface DevicePolicy {
+  allow_evidence_read?: AllowEvidenceRead;
   allow_graphics_change: AllowGraphicsChange;
   allow_map_reload: AllowMapReload1;
   allow_raw_capture: AllowRawCapture;
@@ -2942,7 +3094,7 @@ export interface PairingApproveInput {
   expected_account_id: ExpectedAccountId;
   expected_revision: ExpectedRevision1;
   policy: DevicePolicy;
-  request_id: RequestId6;
+  request_id: RequestId7;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -3042,7 +3194,7 @@ export interface PairingStatus {
   expires_at: ExpiresAt2;
   requested_scopes: RequestedScopes1;
   revision: Revision5;
-  state: State2;
+  state: State4;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -3111,10 +3263,10 @@ export interface RemoteContracts {
 export interface ExecuteCommand {
   agent_id: AgentId6;
   evaluation_settings: EvaluationSettings;
-  kind: Kind13;
+  kind: Kind15;
   mode: Mode9;
   options: RemoteRunOptions;
-  request_id: RequestId7;
+  request_id: RequestId8;
   scenario: Scenario;
 }
 /**
@@ -3122,6 +3274,8 @@ export interface ExecuteCommand {
  * via the `definition` "RemoteRunOptions".
  */
 export interface RemoteRunOptions {
+  camera?: Camera1;
+  lidar?: Lidar1;
   max_ticks: MaxTicks2;
 }
 /**
@@ -3129,26 +3283,42 @@ export interface RemoteRunOptions {
  * via the `definition` "CancelCommand".
  */
 export interface CancelCommand {
-  kind: Kind14;
-  request_id: RequestId8;
-  simulation_id: SimulationId9;
+  kind: Kind16;
+  request_id: RequestId9;
+  simulation_id: SimulationId10;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "StatusCommand".
  */
 export interface StatusCommand {
-  kind: Kind15;
-  request_id: RequestId9;
+  kind: Kind17;
+  request_id: RequestId10;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "ResultCommand".
  */
 export interface ResultCommand {
-  kind: Kind16;
-  request_id: RequestId10;
-  simulation_id: SimulationId10;
+  kind: Kind18;
+  request_id: RequestId11;
+  simulation_id: SimulationId11;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "EvidenceRequest".
+ */
+export interface EvidenceRequest {
+  artifact_index: ArtifactIndex2;
+  kind: Kind19;
+  limit: Limit2;
+  offset: Offset3;
+  request_id: RequestId12;
+  resource: Resource1;
+  sample_cursor?: SampleCursor;
+  sample_index: SampleIndex2;
+  simulation_id: SimulationId12;
+  version: Version3;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -3158,13 +3328,15 @@ export interface ServerHello {
   connection_generation: ConnectionGeneration;
   dead_timeout_s: DeadTimeoutS;
   device_id: DeviceId7;
+  evidence_supported?: EvidenceSupported1;
   heartbeat_s: HeartbeatS;
-  kind: Kind17;
+  kind: Kind20;
   owner_id: OwnerId3;
   ownership_generation: OwnershipGeneration3;
   policy: DevicePolicy;
   policy_revision: PolicyRevision1;
   protocol_version: ProtocolVersion7;
+  recordings_supported?: RecordingsSupported1;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -3173,9 +3345,11 @@ export interface ServerHello {
 export interface ClientReady {
   connection_generation: ConnectionGeneration1;
   device_id: DeviceId8;
-  kind: Kind18;
+  evidence_supported?: EvidenceSupported2;
+  kind: Kind21;
   ownership_generation: OwnershipGeneration4;
   protocol_version: ProtocolVersion8;
+  recordings_supported?: RecordingsSupported2;
   remote_execution_enabled: RemoteExecutionEnabled1;
 }
 /**
@@ -3186,7 +3360,7 @@ export interface RelayCommand {
   command: Command1;
   connection_generation: ConnectionGeneration2;
   device_id: DeviceId9;
-  kind: Kind19;
+  kind: Kind22;
   ownership_generation: OwnershipGeneration5;
   protocol_version: ProtocolVersion9;
 }
@@ -3197,7 +3371,7 @@ export interface RelayCommand {
 export interface RelayReply {
   connection_generation: ConnectionGeneration3;
   device_id: DeviceId10;
-  kind: Kind20;
+  kind: Kind23;
   ownership_generation: OwnershipGeneration6;
   protocol_version: ProtocolVersion10;
   reply: Reply1;
@@ -3209,7 +3383,7 @@ export interface RelayReply {
 export interface RelayPing {
   connection_generation: ConnectionGeneration4;
   device_id: DeviceId11;
-  kind: Kind21;
+  kind: Kind24;
   nonce: Nonce;
   ownership_generation: OwnershipGeneration7;
   protocol_version: ProtocolVersion11;
@@ -3221,7 +3395,7 @@ export interface RelayPing {
 export interface RelayPong {
   connection_generation: ConnectionGeneration5;
   device_id: DeviceId12;
-  kind: Kind22;
+  kind: Kind25;
   nonce: Nonce1;
   ownership_generation: OwnershipGeneration8;
   protocol_version: ProtocolVersion12;
@@ -3243,8 +3417,8 @@ export interface RunnerContracts {
  */
 export interface RunnerCancelRequest {
   protocol_version: ProtocolVersion13;
-  request_id: RequestId11;
-  simulation_id: SimulationId11;
+  request_id: RequestId13;
+  simulation_id: SimulationId13;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -3273,6 +3447,6 @@ export interface RunnerExecuteRequest {
   mode: Mode10;
   options: SimulationOptions;
   protocol_version: ProtocolVersion15;
-  request_id: RequestId12;
+  request_id: RequestId14;
   scenario: Scenario;
 }

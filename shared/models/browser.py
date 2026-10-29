@@ -19,6 +19,8 @@ class BrowserConnectionView(ContractModel):
     remote_requests_enabled: bool = False
     baseline_only: Literal[True] = True
     carla_readiness: Literal["unknown"] = "unknown"
+    evidence_supported: bool = False
+    recordings_supported: bool = False
 
 
 class BrowserDeviceView(ContractModel):

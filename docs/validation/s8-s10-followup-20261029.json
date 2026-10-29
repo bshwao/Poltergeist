@@ -1,0 +1,430 @@
+{
+  "changed_source_sha256": {
+    ".github/workflows/validation.yml": "6b82c845ffd7746bf6e8df39c9cac5988381db9c774d60aeda4bdb2b1daa9f21",
+    "README.md": "0f1b826ed34d19691ce12785ba763a0280cc398c3e18e2dff6e03fa0fe7b128d",
+    "backend/config.py": "112bf60146403d205efb916184e51003e44fb1e0afc4b7a0c8e242c765c72632",
+    "backend/decision_storage.py": "fd8c53670afd6f168797c69a868e43806a2b9b00654ce91ad98ad0971ffa55b6",
+    "backend/services/persistence_service.py": "b0da14ee2dda5bdd0826f4944363bba2287da5a35c96d91e3fadb4f5dd716689",
+    "backend/storage.py": "4665132d8b153a95b0c45bd515d286baecec932b73ecbb8e37ffcfb725972ad6",
+    "companion/controller.py": "7e5a29cf97635300252a57dc9174990f2a620f229def7e10cbf01fbb52a9474b",
+    "companion/evidence.py": "f75c065148bff836b6744d4cf10651a6adce62819224be772d38310923b89361",
+    "companion/pairing_ui.py": "0521a33e350e36db72d4de2a7ede7991719aca4a716e1de2ba76b34e64a66342",
+    "companion/recording_evidence.py": "3e696bae2bb49931fa62d73f0b46859d7986caf54f43f4989a7df64380bb5fed",
+    "companion/relay_client.py": "a38ddf6e7d6df37c30ee20eab285d38e36dc189351ae00c9838150e05e9cd2b7",
+    "companion/release-policy.json": "881ce687e1a445539019b76d3525a41db78becf9b15b0d846f0a0558400c5811",
+    "companion/remote_service.py": "2554a991b64de27ac363fe71a176bbb8de41948429e6927e641060d9194a375d",
+    "companion/signatures.py": "92c6525c42ce1ee02630fd1c7f21fbe8db6d8dd84b8acda3de64aea305a84bc6",
+    "companion/ui.py": "e53a26e7a556113f60a7b1d7c6e1a25d1f3a3232cbbeac27213f36227ed066d4",
+    "companion/update_delivery.py": "afddfe50f0214190d400a08de4457bad98c62fbc68349256ef41eb6836a6d2d5",
+    "companion/update_lifecycle.py": "04e83ad6a79f2c93c274cc661fcd12d3af7d00e8192ff422e20154a12d2ec9c4",
+    "companion/update_ui.py": "f2d5eb295230d122ed2095dbc3c2b0f1ca4a75a2628d07c89bf780c5550f89ab",
+    "companion/updates.py": "015732c365fdd4c8ec84882f9cddf739b4cdd0640ba69e47b2e9637d0ac123b9",
+    "contracts/models.schema.json": "7ee24b94b14839b9118cbe3fffb52591eba4b72cdad3a65334709b238acedcdb",
+    "coordinator/__main__.py": "e5456b329a9cee93920b87aa031d036d8c5840fba02f8e9a52c41507487da1bd",
+    "coordinator/app.py": "89f3ecb12d9a92e9e8bd2cb682527b09e42035e425d3b8933d74556b36811db0",
+    "coordinator/commands.py": "61f0b70aa7f329bdef9ebc82769b462fe463e0cd6c9b7e2bfa6b3e86bdc49a82",
+    "coordinator/limits.py": "098f51aa155ffc5ce2a325c1d82fc6aa47658f8e4e07da1cfc48cf83f14acc40",
+    "coordinator/pairing.py": "08fd4e47f596326b0394ec3c2dc16bb2e02251b99a1dc9529dbfde654b806c1e",
+    "coordinator/relay.py": "40ad46fad8600bbd41213c7dbad78b2f6dc4bd74fa8171cb3b36f4a50667821c",
+    "coordinator/settings.py": "ce6c2b0957371a1b427428f0f02c36ed04879f1aa1be63a6be4f8142f1e39988",
+    "coordinator/store.py": "c322f4f03f08f5371b7c6a90c5bb0058ac4247ac89cb00acb59a80819ba2dc0a",
+    "docs/companion.md": "214689b435050acb3291d81ce7c9d494640971ad8b487fc257aa09013c2789c3",
+    "docs/coordinator.md": "76c78ea3e8dfc6c24024955a539f7c602576dde15dbb6497bc007100a2603617",
+    "docs/evidence-capacity-release.md": "ad4a954d3bb876d571ccb449ff96c24617ed35c2d0c4344fb472ddf4b5b83906",
+    "docs/hosted-dashboard.md": "64b43c6bd7ba74dd9214a33294fda1ab2ba2aa618d67446718a37e1da937a1ea",
+    "docs/hosted-pairing-design.md": "dc3939c5a246b3cf2441c1fad20346a3596cfb78dbe3a8ba6d8d98ea938a12b0",
+    "docs/installer-onboarding.md": "d66977cf74beb967be392b7515d529045369ccdcb19325ee73cff8d4fbd4202f",
+    "docs/private-beta.md": "ef511dadea58c077bed44230636de5bf1fe1589fa8daf04d959877932d3c6860",
+    "docs/progress-notes.md": "f9cb7b42458554582bd4ef3fc6f78445bb33309bd6b98490fd17561726262cd4",
+    "docs/scalability-plan.md": "2bbeecf1abfd312092af52f927c719cb44d85db29864f9710ccc0319acc53a93",
+    "frontend/hosted-e2e/carla.spec.ts": "c7188494571f8c161b5f98daf016eecd0a5833009b7131a514e12927a0f24510",
+    "frontend/hosted-e2e/workspace.spec.ts": "22fa599de05b39c89b608a10e46c619e5155c188d2885286ae6976bcb8e9e07d",
+    "frontend/src/hosted/App.tsx": "6f7acbe155d0aa0d9b08de69390308dd10c7cc733574c027e2427f08024f901f",
+    "frontend/src/hosted/EvidencePanel.tsx": "1840ae1033c1375cf56f16972922a61097d2c521e3f768adf93367cf6e0305cf",
+    "frontend/src/hosted/RecordingPanel.tsx": "a3233ff640a810683b2f0ff76e19f8a7f49dd2b12f9dc61a48dec964a4993a04",
+    "frontend/src/hosted/client.ts": "15290d01b236e6e2816c0463da32a72fc7752a5e4e5c99649bdf31cb010f9f72",
+    "frontend/src/hosted/hosted.css": "c6c1563f9f2f4ea8872740130d5cf31cab931bd0f48500fc413c1f871091498f",
+    "frontend/src/types/generated.ts": "023a6049b7b25d1207cfbaced1ff7d74f72edc63b8fc945b3a43f6e7145fb8ef",
+    "frontend/tests/hosted-client.test.mjs": "eb2acdc51055917df86b4cdef08f0d3d5fa2484356ed03401e603b4160fbfc8a",
+    "frontend/tests/hosted-recordings-client.test.mjs": "23f68922183179eaf7c0b34499f9157b5503ea69020b9852c27ff25ec2c28ea2",
+    "packaging/windows-x64/DISTRIBUTION-NOTICES.md": "05e94a9c00b066d1ce72077fef0a8698d1466a3970568d430e29c3b95075a0d8",
+    "packaging/windows-x64/companion.iss": "5750a7cc8f63df4ac6fca3d445d94d1817b5cce04a1cad5c001465ea7274fb6f",
+    "packaging/windows-x64/inputs.json": "b2d92f27c94a96b6337d162724c91da70fefb0acfac7df181469f22963b9ef0a",
+    "pyproject.toml": "90d5530b3d70bad14a735243fd689fb344511a1ade0731c8f43f679ffffe245b",
+    "requirements.lock": "36c0a2c7040821a3653a88ada537573f23a795d7b0a75b40257d1284a4256911",
+    "scripts/build_installer.py": "0a23a64176f5e36ec9f919ccb8ddad3c54254af63df15ad9765a6b18caeb0b0f",
+    "scripts/build_release.py": "2bb9a8831671501ead2f338e54b8b553a52fb2bd9c17b6f2e4702e13c63193bc",
+    "scripts/companion.py": "97132f30ad98096a9a37a70fee5f910606f0f21cc0f0a7afa0c2acf93f617a09",
+    "scripts/download_update.py": "df9135f510ad6a8ee422c86e65a52b1a07a90cde864e2dcc5fe6a5ebaa90edc3",
+    "scripts/load_coordinator.py": "ca1ceb9fb0fd88d4a7b69b360789138ebe09c80254ce2fde2db4d0f0deffbdf4",
+    "scripts/manage_evidence.py": "14fae2b7dabb0489ba6b1cb7456affa54f73b3e940952682bde7e73c2b0a6d1f",
+    "scripts/release.py": "93e9c91e37ec2f362a000d2ceafd4fbf0285e51d706964b83dff73c5afc0fc4a",
+    "scripts/update_companion.py": "f0b24afdaf06a68e2bbb7d853b93bb4267587a946ad1fc24986bd3e29df40b3f",
+    "scripts/update_probe.py": "d0f96a4f6b448e72cac317a2b9df77e034762722d3d30e75652d71654982238a",
+    "shared/models/browser.py": "72276abe1d05fac3198b2288ee146ebf04b21604a009533249f31f27dc22b659",
+    "shared/models/coordination.py": "9ccaaa9894e8700db895ffc9cfb9ce2f2fc35654b1d7589eee232bf592c6a033",
+    "shared/models/evidence.py": "714959acf1b7a3439f2ebe8499fdc7c64c667812b4b73784a52b8ad7f2a995f5",
+    "shared/models/remote.py": "75a00efd1138cc8683785a2425a7fbaa8c84b6953d4dc7bc1d98436ac43b4821",
+    "tests/companion_ui_cases.py": "9bb02b577227a43f32ebd9e663fbc2109f3f2a357601f69a245d5c8eb01449b6",
+    "tests/hosted_browser_server.py": "1d986a4b5249a3f364b3ce258428f2905cac91cb621b0988772ee66f5b4d4b55",
+    "tests/test_capacity.py": "c078babe2ea3fb62151bb24d96739857a4a68de9ab12e02b35d7e6a5fe26212a",
+    "tests/test_coordinator_browser.py": "f7203f3ba1b0dbef7210ca93f0c47224fef9b414e16447edeabb2c2d03687eb7",
+    "tests/test_coordinator_pairing.py": "36d13758e4a20fa247d58ca7652a57b6c290c9fb8cd7315a35e10f06d81ecf45",
+    "tests/test_coordinator_relay.py": "0c6f57f3589833d955ee1f55a6f66fd3ea4067498bff59cf9b43842f51b71845",
+    "tests/test_evidence_delivery.py": "bdde3863b6aedb525df967e90b109d42efd4d58774dfeb5bb314e9825a1797e6",
+    "tests/test_evidence_maintenance.py": "780f4d5aa0d8e6f5f3e5cff018e8c90c73c0fa9c42ff601747790a1d2ab48edb",
+    "tests/test_recording_evidence.py": "6d2e944a7588a177d4c8a6361549b4fc398e010f7253aacde259f6cbe040c0df",
+    "tests/test_release_build.py": "522e840b238e07322e307e06c00eade5d32955dc2f9b145581986cede0c6c198",
+    "tests/test_remote_contracts.py": "50c8f15bc9318e3baee925799769903700ed0a1b58abd8e0e6e40f3bd3e94377",
+    "tests/test_update_delivery.py": "9186ebc1eb8e00b096d9118532bb5cbde24e61065bcdf20ce8cc3c4375287ac1",
+    "tests/test_update_lifecycle.py": "7811d7ba592d31c7a66a15ca3b86a1b36920e1f6ec02035a18d8776aada5946c",
+    "tests/test_updates.py": "929def8ee46a304dfb8b334388f0205d0c72eda62d5c6a3234adc0e512c9f935"
+  },
+  "goal_complete": false,
+  "installer": {
+    "artifact": "validation-evidence/s8-s10-installer-current/Poltergeist-Companion-Private-Setup.exe",
+    "build_id": "private-f459962989492a0d",
+    "bundle_manifest_sha256": "f459962989492a0df70eb31f237e8a245f6a75d3be64aad2e49a8d0afa8e9578",
+    "bytes": 58913974,
+    "compiler_version": "7.1.0",
+    "native_install_performed": false,
+    "native_signature": {
+      "publisher_sha256": "",
+      "status": "NotSigned",
+      "timestamp_present": false
+    },
+    "sha256": "9cf96253195dd9d35a1a45c8b1923dda807aebcb473157048f69c11fd009ccaa",
+    "validation_only": true
+  },
+  "owner_deferrals": [
+    "Production signing identity/service and public certificate pin",
+    "Independent external tester/PC profiles"
+  ],
+  "portable": {
+    "archive": "validation-evidence/s8-s10-portable-current/Poltergeist-S1-windows-x64.zip",
+    "archive_bytes": 87865213,
+    "archive_sha256": "05d15faec8ea4b942640aa404e759adaff64b0312e9dc29da5ab144e9f35318a",
+    "coordinator_excluded": true,
+    "httpx": "0.28.1",
+    "integrity_before_and_after": true,
+    "manifest_file_count": 6280,
+    "matching_firstparty_modules": 194,
+    "native_callbacks": "passed",
+    "native_carla_map": "Carla/Maps/Town10HD_Opt",
+    "native_carla_server": "0.9.16",
+    "profile_lease_released": true,
+    "reopened_saved_result": true,
+    "runtime_python": "3.12.15 (main, Oct 14 2026, 01:08:45) [MSC v.1944 64 bit (AMD64)]",
+    "source_differences": [],
+    "synthetic_telemetry_frames_reviewed": 11
+  },
+  "recorded_at": "2026-10-29T16:19:23.467180+00:00",
+  "remaining_gates": [
+    "Real configured signer and timestamped signed installer/metadata",
+    "Actual signed install/upgrade/compatible rollback and injected failure recovery",
+    "Independent Windows/CARLA/hardware and no-developer-tools beta testing",
+    "Deployed delivery/hosting, representative physical multi-user execution and agreed provider targets/costs"
+  ],
+  "retained_failed_attempts": [
+    "validation-evidence/s8-live-capture-failed-20261029",
+    "validation-evidence/s8-live-capture-review-failed-20261029",
+    "validation-evidence/s8-live-capture-preview-failed-20261029",
+    "validation-evidence/s8-live-capture-response-failed-20261029",
+    "validation-evidence/s10-native-updates-1.xml",
+    "docs/validation/s9-capacity-current-20261029.json",
+    "docs/validation/s9-capacity-atomic-py312-20261029.json"
+  ],
+  "s10": {
+    "external_beta_performed": false,
+    "feed_configured": false,
+    "implemented": [
+      "Pinned publisher verification and conditional installer/uninstaller signing",
+      "Signed data-only metadata, explicit bounded HTTPS check/download and local staged cohorts",
+      "Native update/rollback review, cancellation, cached-candidate recovery/removal",
+      "Whole-process exit wait, profile/worker leases and durable-queue refusal",
+      "SQLite WAL/config/installation-marker backups, exact activation identity checks and compatible rollback",
+      "Failure receipts and preserved backups; no automatic destructive database rewind"
+    ],
+    "public_distribution_performed": false,
+    "publishers_configured": false,
+    "real_signed_install_upgrade_rollback_proven": false,
+    "update_delivery_enabled": false
+  },
+  "s8": {
+    "artifact_free_reserve_bytes": 536870912,
+    "artifact_quota_bytes": 21474836480,
+    "browser_heap_after_explicit_gc": {
+      "after": {
+        "backingStorageSize": 442524,
+        "embedderHeapUsedSize": 2263912,
+        "totalSize": 5382144,
+        "usedSize": 5009352
+      },
+      "before": {
+        "backingStorageSize": 211410,
+        "embedderHeapUsedSize": 1562504,
+        "totalSize": 4788224,
+        "usedSize": 3969100
+      }
+    },
+    "browser_preview_limit_bytes": 4194304,
+    "chunk_limit_bytes": 65536,
+    "duration_simulated_s": 60,
+    "evidence_requests_during_execution": 0,
+    "first_native_frame": 235053,
+    "followup_coordinator_change": "Authenticated device activity and durable replies now share one transaction; final evidence/security/browser regressions cover transport",
+    "heap_scope": "Retained JavaScript heap; excludes native RSS and transient peaks",
+    "http_json_response_body_bytes": 2132058,
+    "last_native_frame": 236253,
+    "network_overhead_included": false,
+    "preview_scope": "Selected first-page camera/LiDAR plus a late camera sample; entire recording was not transferred",
+    "proof": "validation-evidence/s8-live-recordings-passed-20261029/carla-website-launches-a-m-9bbb3-lready-running-CARLA-server-hosted-chromium/carla-recording-evidence.json",
+    "proof_sha256": "14788b8b8ed93b298c7245683dc73a5fd3a533061949a2c9d15ff20fbe619786",
+    "raw_sensor_bytes": 302839504,
+    "sample_metadata_pages_reviewed": 97,
+    "saved_samples": 2402,
+    "scope": "Private single-laptop live CARLA 0.9.16 review; source recording transport/client unchanged since proof"
+  },
+  "s9": {
+    "capacity_measurements": {
+      "s9-capacity-atomic-isolated-py312-20261029.json": {
+        "commands_per_s": 13.787018143715848,
+        "completed_commands": 500,
+        "connected_devices": 25,
+        "cross_owner_denials": 25,
+        "database_bytes": 4976336,
+        "elapsed_s": 36.266000000000076,
+        "http_payload_bytes": 308500,
+        "latency_max_s": 1.6880000000001019,
+        "latency_p50_s": 1.4369999999998981,
+        "latency_p95_s": 1.5630000000001019,
+        "max_connections": 100,
+        "passed": true,
+        "provisional_targets": {
+          "p95_latency_s": 2.0,
+          "python_peak_bytes": 134217728
+        },
+        "python_peak_bytes": 17435153,
+        "rounds_per_device": 20,
+        "routed_commands": 500,
+        "schema_version": "poltergeist-capacity-v1",
+        "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+        "transport": "loopback HTTP/WS fixture",
+        "users": 25
+      },
+      "s9-capacity-atomic-py312-20261029.json": {
+        "commands_per_s": 10.28594939312896,
+        "completed_commands": 500,
+        "connected_devices": 25,
+        "cross_owner_denials": 25,
+        "database_bytes": 4980432,
+        "elapsed_s": 48.61000000000013,
+        "http_payload_bytes": 308500,
+        "latency_max_s": 2.7660000000000764,
+        "latency_p50_s": 1.75,
+        "latency_p95_s": 2.375,
+        "max_connections": 100,
+        "passed": false,
+        "provisional_targets": {
+          "p95_latency_s": 2.0,
+          "python_peak_bytes": 134217728
+        },
+        "python_peak_bytes": 17276868,
+        "rounds_per_device": 20,
+        "routed_commands": 500,
+        "schema_version": "poltergeist-capacity-v1",
+        "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+        "transport": "loopback HTTP/WS fixture",
+        "users": 25
+      },
+      "s9-capacity-atomic-py314-20261029.json": {
+        "commands_per_s": 15.37728945466024,
+        "completed_commands": 500,
+        "connected_devices": 25,
+        "cross_owner_denials": 25,
+        "database_bytes": 4963904,
+        "elapsed_s": 32.515483399999994,
+        "http_payload_bytes": 308500,
+        "latency_max_s": 1.6193696000000273,
+        "latency_p50_s": 1.2598826000000827,
+        "latency_p95_s": 1.3889958000004299,
+        "max_connections": 100,
+        "passed": true,
+        "provisional_targets": {
+          "p95_latency_s": 2.0,
+          "python_peak_bytes": 134217728
+        },
+        "python_peak_bytes": 24146751,
+        "rounds_per_device": 20,
+        "routed_commands": 500,
+        "schema_version": "poltergeist-capacity-v1",
+        "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+        "transport": "loopback HTTP/WS fixture",
+        "users": 25
+      },
+      "s9-capacity-current-20261029.json": {
+        "commands_per_s": 9.219308920602629,
+        "completed_commands": 500,
+        "connected_devices": 25,
+        "cross_owner_denials": 25,
+        "database_bytes": 4963928,
+        "elapsed_s": 54.234000000004016,
+        "http_payload_bytes": 308500,
+        "latency_max_s": 2.5780000000013388,
+        "latency_p50_s": 2.077999999997701,
+        "latency_p95_s": 2.3590000000040163,
+        "max_connections": 100,
+        "passed": false,
+        "provisional_targets": {
+          "p95_latency_s": 2.0,
+          "python_peak_bytes": 134217728
+        },
+        "python_peak_bytes": 17247061,
+        "rounds_per_device": 20,
+        "routed_commands": 500,
+        "schema_version": "poltergeist-capacity-v1",
+        "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+        "transport": "loopback HTTP/WS fixture",
+        "users": 25
+      },
+      "s9-capacity-py314-current-20261029.json": {
+        "commands_per_s": 15.228684015798684,
+        "completed_commands": 500,
+        "connected_devices": 25,
+        "cross_owner_denials": 25,
+        "database_bytes": 4951616,
+        "elapsed_s": 32.83277790000011,
+        "http_payload_bytes": 308500,
+        "latency_max_s": 1.687379799999917,
+        "latency_p50_s": 1.2193058999999948,
+        "latency_p95_s": 1.5655669000000216,
+        "max_connections": 100,
+        "passed": true,
+        "provisional_targets": {
+          "p95_latency_s": 2.0,
+          "python_peak_bytes": 134217728
+        },
+        "python_peak_bytes": 24121448,
+        "rounds_per_device": 20,
+        "routed_commands": 500,
+        "schema_version": "poltergeist-capacity-v1",
+        "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+        "transport": "loopback HTTP/WS fixture",
+        "users": 25
+      }
+    },
+    "durability": "Explicit SQLite synchronous=FULL; credential/grants, activity and receipt persist atomically; per-operation path checks retained",
+    "limits_of_proof": [
+      "Configured 100-device ceiling unvalidated",
+      "Control-plane fixture excludes TLS costs, native RSS, physical CARLA/AI execution, WAN/sleep and provider costs",
+      "Production service targets remain provisional"
+    ],
+    "measurement_conditions": "Final passing benchmarks ran without competing regression jobs. The first atomic Python 3.12 run overlapped coordinator regression I/O and failed.",
+    "runtime_profiles": {
+      "py312": {
+        "python": "3.12.10",
+        "sqlite": "3.49.1"
+      },
+      "py314": {
+        "python": "3.14.0",
+        "sqlite": "3.50.4"
+      }
+    }
+  },
+  "schema_version": "poltergeist-s8-s10-followup-v1",
+  "validation": {
+    "browser": {
+      "coverage": [
+        "Lost response/idempotent execution",
+        "Cancellation/reload",
+        "Responsive layouts",
+        "Pause/revocation",
+        "Owner-scoped telemetry and recording review"
+      ],
+      "final_https_wss_two_account_workflow": "passed",
+      "fixture_note": "Windows Python 3.12 proactor logged connection-reset callback errors on disconnect; browser assertions passed",
+      "live_carla_recording_review": "passed"
+    },
+    "contracts_and_hosted_build": "passed",
+    "frontend": {
+      "command": "npm --prefix frontend test",
+      "failed": 0,
+      "passed": 340
+    },
+    "python_reports": {
+      "s10-cache-ui.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 13,
+        "report": "validation-evidence/s10-cache-ui.xml",
+        "report_sha256": "a3265bdd0dc9e0fa57a8721e8632a62fa551adb7ee830d3c0524a8c2c0a96d45",
+        "skipped": 0,
+        "tests": 13
+      },
+      "s10-current-py314.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 54,
+        "report": "validation-evidence/s10-current-py314.xml",
+        "report_sha256": "7d81546f8a78f1bdc88f417f6d03fa008fee4b556c59b5d3ced62fdc252e02c2",
+        "skipped": 0,
+        "tests": 54
+      },
+      "s8-s10-final-py314.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 107,
+        "report": "validation-evidence/s8-s10-final-py314.xml",
+        "report_sha256": "259b03ecf57ff97f4ed869b608c07f807748cd80101533ff727777ff352f2ca5",
+        "skipped": 0,
+        "tests": 107
+      },
+      "s8-s10-full-2.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 3338,
+        "report": "validation-evidence/s8-s10-full-2.xml",
+        "report_sha256": "969e88531797588a000bfd5b089a0e90d99c7d9580bb4a1fb575ba9b06f701d7",
+        "skipped": 10,
+        "tests": 3348
+      },
+      "s8-s10-ui-final.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 20,
+        "report": "validation-evidence/s8-s10-ui-final.xml",
+        "report_sha256": "22e25199df15a0689eb15a8b15f2a6e22ed64c7b53b06aa6af93043ea49c1932",
+        "skipped": 0,
+        "tests": 20
+      },
+      "s8-s9-final-py312-2.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 209,
+        "report": "validation-evidence/s8-s9-final-py312-2.xml",
+        "report_sha256": "7a78453e7bef104f905283d3a91a38cb104b26daf20ebbd698f89d54996b84b9",
+        "skipped": 0,
+        "tests": 209
+      },
+      "s9-atomic-reply-py312.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 52,
+        "report": "validation-evidence/s9-atomic-reply-py312.xml",
+        "report_sha256": "9e002ce85f57ec81d3f54c4d067603f21bc329e3e65db6e39af539201adec5ab",
+        "skipped": 0,
+        "tests": 52
+      },
+      "s9-coordinator-current-py314.xml": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 173,
+        "report": "validation-evidence/s9-coordinator-current-py314.xml",
+        "report_sha256": "b766e21dfa6de29fe5a99bd1dd3c6cd1f7534bb61b2f1fc33f779050bdbedc0e",
+        "skipped": 0,
+        "tests": 173
+      }
+    },
+    "scope_note": "Broad run began before final helper/layout/cache/coordinator changes; subsequent focused runs and current bundle/browser proofs cover final changes. Counts overlap."
+  }
+}

@@ -35,5 +35,7 @@ machine, not a supported OS/hardware matrix. Linux, macOS, Windows ARM64, other
 Python ABIs and clean-machine native loading remain unvalidated. A suitable GPU,
 driver and a separately installed matching CARLA server are required for live tests.
 The portable archive contains no installer. The separate private S3 installer
-adds per-user setup, repair and uninstall. Signing, updates, hosted transport
-and secure pairing remain unimplemented.
+adds per-user setup, repair and uninstall. Signed-build/update tooling, hosted
+transport and approved pairing are private implementations. A production signer,
+actual signed upgrade/rollback, deployed delivery and independent-PC acceptance
+remain open release gates.

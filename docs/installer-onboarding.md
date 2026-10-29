@@ -52,7 +52,17 @@ of both damaged and unexpected files. The preserved copy is not recursively
 deleted. A failed repair attempts to put that copy back and records any inability
 to do so in the setup log. Recovery copies are retained for deliberate inspection;
 they consume disk space and may remain after uninstall. This prototype mechanism
-does not establish the signed update/rollback workflow required by S10.
+retains `installation.ini` while `recovery/` remains, so selecting the same
+previously owned folder for reinstall succeeds. Other nonempty folders still
+require a matching ownership marker. Cleanup uses an Inno
+[conditional check](https://jrsoftware.org/ishelp/topic_scriptcheck.htm).
+The [native lifecycle receipt](validation/s10-native-lifecycle-20261029.json)
+records the original failure and successful fixed uninstall/reinstall, with every
+profile file preserved. It covers this development laptop and an unsigned build.
+This local recovery mechanism
+does not establish the signed update/rollback workflow required by S10. The
+separate [S10 tooling checkpoint](evidence-capacity-release.md) now adds a signing
+adapter and backed-up offline updater; actual signed external acceptance remains open.
 
 Close the companion before repair or uninstall. Setup checks the packaged-app
 mutex and refuses an in-use application rather than terminating it. Settings,
@@ -110,3 +120,10 @@ Start menu shortcut's target/arguments are verified, without actually invoking i
 External clean-machine/native support testing, visual onboarding inspection,
 redistribution terms, code signing and external beta remain open. CARLA and model
 weights are separate installations. Public hosting remains deferred.
+
+Current S10 source adds the native Updates tab, signed metadata/installer
+verification, explicit bounded delivery, cached candidate recovery, idle-profile
+backups and compatible rollback. Publisher pins/feed are unset; the owner
+deferred real signing and tester details. See the
+[release workflow and evidence](evidence-capacity-release.md). A compiled unsigned
+validation artifact does not establish signed installation or external acceptance.

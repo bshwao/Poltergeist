@@ -19,13 +19,20 @@
 #ifndef MaxInstallPath
   #define MaxInstallPath 111
 #endif
+#ifndef ReleaseVersion
+  #define ReleaseVersion "0.1.0"
+#endif
 #define RuntimeDir "{app}\versions\" + BuildId
 
 [Setup]
 AppId={#AppIdentity}
 AppName={#ProductName}
-AppVersion=0.1.0
-AppVerName={#ProductName} 0.1.0 (prototype)
+AppVersion={#ReleaseVersion}
+AppVerName={#ProductName} {#ReleaseVersion} (prototype)
+#ifdef SignedBuild
+SignTool=poltergeist
+SignedUninstaller=yes
+#endif
 DefaultDirName={code:DefaultInstallFolder}
 DefaultGroupName={#ProductName}
 PrivilegesRequired=lowest
@@ -71,7 +78,7 @@ Name: "{userstartup}\{#ProductName}"; Filename: "{#RuntimeDir}\runtime\pythonw.e
 Filename: "{#RuntimeDir}\runtime\pythonw.exe"; Parameters: "-I -B -m scripts.companion --data-dir ""{#ProfileDir}"""; Description: "Open Poltergeist Companion and first-run setup"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: files; Name: "{app}\installation.ini"
+Type: files; Name: "{app}\installation.ini"; Check: ShouldDeleteInstallationMarker
 Type: files; Name: "{app}\last-setup-check.json"
 Type: dirifempty; Name: "{app}\versions"
 
@@ -94,6 +101,13 @@ end;
 function ShouldCopyRepair(): Boolean;
 begin
   Result := CompareText(ExpandConstant('{srcexe}'), ExpandConstant('{app}\maintenance\Repair.exe')) <> 0;
+end;
+
+function ShouldDeleteInstallationMarker(): Boolean;
+begin
+  { Recovery copies are intentionally retained. Keep their ownership marker so
+    reinstall can reuse this folder without accepting an arbitrary nonempty one. }
+  Result := not DirExists(ExpandConstant('{app}\recovery'));
 end;
 
 function PlainDirectoryChain(Folder: String): Boolean;
@@ -216,6 +230,7 @@ begin
   if CurStep = ssPostInstall then begin
     SetIniString('Installation', 'AppId', '{#AppIdentity}', ExpandConstant('{app}\installation.ini'));
     SetIniString('Installation', 'Build', '{#BuildId}', ExpandConstant('{app}\installation.ini'));
+    SetIniString('Installation', 'Version', '{#ReleaseVersion}', ExpandConstant('{app}\installation.ini'));
     DataFolder := ExpandConstant('{#ProfileDir}');
     SetIniString('Installation', 'Profile', DataFolder, ExpandConstant('{app}\installation.ini'));
     if not DirExists(DataFolder) then begin

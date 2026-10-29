@@ -1,6 +1,6 @@
 """Explicit constructor-only configuration; never read the local backend .env."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from shared.origins import service_origin
@@ -14,8 +14,20 @@ class CoordinatorSettings:
     max_http_body_bytes: int = 32768
     pairing_ttl_s: int = 300
     hosted_assets_dir: Path | None = None
+    max_connections: int = 100
+    max_transfers: int = 8
+    max_devices_per_account: int = 5
+    max_commands_per_account: int = 10000
+    monitor_token: str | None = field(default=None, repr=False)
 
     def __post_init__(self):
+        import re
+        for value, maximum in ((self.max_connections, 1000), (self.max_transfers, 32),
+                               (self.max_devices_per_account, 100), (self.max_commands_per_account, 100000)):
+            if type(value) is not int or not 1 <= value <= maximum:
+                raise ValueError("Invalid coordinator capacity limit")
+        if self.monitor_token is not None and not re.fullmatch(r"[A-Za-z0-9_-]{43,128}", self.monitor_token):
+            raise ValueError("Use a high-entropy monitoring token")
         path = Path(self.database_path)
         if not path.is_absolute():
             raise ValueError("Coordinator database path must be absolute")

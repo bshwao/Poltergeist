@@ -130,13 +130,20 @@ def _sample_header(kind: Any, frame: Any, timestamp: Any, length: int, metadata:
 
 
 class ArtifactStore:
-    def __init__(self, root: Path | str):
+    def __init__(self, root: Path | str, *, quota_bytes=20 * 1024**3, min_free_bytes=512 * 1024**2):
+        if type(quota_bytes) is not int or quota_bytes < 1024 or type(min_free_bytes) is not int or min_free_bytes < 0:
+            raise ValueError("Invalid artifact storage budget")
         self.root = Path(root).absolute()
+        self.quota_bytes, self.min_free_bytes = quota_bytes, min_free_bytes
+        self._budget_lock = Lock()
+        self._used_bytes = 0
         self._initialized = False
         self._canonical_root: Path | None = None
         self._publish_lock = Lock()
 
     def initialize(self) -> None:
+        if self._initialized:
+            return
         if _linked(self.root):
             raise ArtifactError("The artifact root must not be a symlink or junction")
         self.root.mkdir(parents=True, exist_ok=True)
@@ -144,6 +151,29 @@ class ArtifactStore:
             raise ArtifactError("Artifact storage must be a directory")
         self._canonical_root = self.root.resolve(strict=True)
         self._initialized = True
+        for namespace, _, _ in _LAYOUT.values():
+            directory = self.root / namespace
+            if not directory.exists():
+                continue
+            for parent, directories, files in os.walk(directory, followlinks=False):
+                for name in (*directories, *files):
+                    path = self._contained(Path(parent) / name, exists=True)
+                    if path.is_file():
+                        self._used_bytes += path.stat().st_size
+
+    def _write_bytes(self, stream, data):
+        """Reserve before writing; every writer shares the same profile budget."""
+        with self._budget_lock:
+            if (self._used_bytes + len(data) > self.quota_bytes or
+                    shutil.disk_usage(self.root).free < self.min_free_bytes + len(data)):
+                raise ArtifactError("Evidence storage limit reached; export or remove old evidence locally")
+            self._used_bytes += len(data)
+        stream.write(data)
+
+    def capacity(self):
+        with self._budget_lock:
+            return {"used_bytes": self._used_bytes, "quota_bytes": self.quota_bytes,
+                    "min_free_bytes": self.min_free_bytes}
 
     def _contained(self, path: Path, *, exists: bool = False) -> Path:
         if not self._initialized or self._canonical_root is None:
@@ -230,10 +260,15 @@ class ArtifactStore:
         if not directory.exists():
             return
         # No links may be traversed, even during rollback/removal.
+        removed = 0
         for parent, directories, files in os.walk(directory, followlinks=False):
             for name in (*directories, *files):
-                self._contained(Path(parent) / name, exists=True)
+                path = self._contained(Path(parent) / name, exists=True)
+                if path.is_file():
+                    removed += path.stat().st_size
         shutil.rmtree(directory)
+        with self._budget_lock:
+            self._used_bytes = max(0, self._used_bytes - removed)
 
     def _publish(self, stage: Path, final: Path) -> None:
         with self._publish_lock:
@@ -271,7 +306,7 @@ class ArtifactStore:
         try:
             with (stage / _LAYOUT[kind][1]).open("xb") as output:
                 for chunk in content:
-                    output.write(chunk)
+                    self._write_bytes(output, chunk)
                 output.flush()
                 os.fsync(output.fileno())
             self._publish(stage, final)
@@ -304,6 +339,36 @@ class ArtifactStore:
         # Validation permits only a generated UUID artifact directory, never a run
         # or namespace directory. Removal is for a just-created transaction rollback.
         self._discard(self.validate_reference(ref).parent)
+
+    def delete_evidence(self, ref: ArtifactReference, simulation_id) -> None:
+        """Explicit offline retention only. Keep a tombstone beside the saved reference."""
+        try:
+            directory = self.validate_reference(ref, simulation_id).parent
+        except FileNotFoundError:
+            # validate_reference checked generated layout and run ownership
+            # before checking existence. Resume an interrupted owned deletion.
+            directory = self._contained(self.root.joinpath(*_parts(ref.path)).parent, exists=True)
+            if not (directory / ".deleted").is_file():
+                raise
+        paths = []
+        for path in directory.iterdir():
+            self._contained(path, exists=True)
+            if not path.is_file() or path.stat().st_nlink != 1:
+                raise ArtifactError("Retention requires ordinary artifact files")
+            paths.append((path, path.stat().st_size))
+        marker = directory / ".deleted"
+        marker_added = 0
+        if not marker.exists():
+            with marker.open("xb") as stream:
+                stream.write(b"poltergeist-evidence-deleted-v1\n")
+            marker_added = marker.stat().st_size
+        removed = 0
+        for path, size in paths:
+            if path != marker:
+                path.unlink()
+                removed += size
+        with self._budget_lock:
+            self._used_bytes = max(0, self._used_bytes - removed) + marker_added
 
     def capture(self, simulation_id: UUID | str) -> "CaptureWriter":
         return CaptureWriter(self, _uuid(simulation_id))
@@ -399,7 +464,7 @@ class CaptureWriter:
             self._store._contained(self._stage, exists=True)
             filename = f"{self._count:08d}-{sample.kind}.bin"
             with self._store._contained(self._stage / filename).open("xb") as output:
-                output.write(sample.data)
+                self._store._write_bytes(output, sample.data)
                 output.flush()
                 os.fsync(output.fileno())
             entry = {
@@ -409,8 +474,8 @@ class CaptureWriter:
             }
             # Spool metadata as well as bytes, keeping capture memory bounded by
             # one callback/sample rather than the length of the run.
-            with self._store._contained(self._stage / ".samples.jsonl").open("ab") as manifest:
-                manifest.write((_json(entry) + "\n").encode("utf-8"))
+            with self._store._contained(self._stage / "samples.ndjson").open("ab") as manifest:
+                self._store._write_bytes(manifest, (_json(entry) + "\n").encode("utf-8"))
             self._last[stream] = sample.frame, sample.timestamp
             if stream[1] is not None:
                 self._agent_samples[stream[1]] = (sample.frame, entry["sha256"], self._count)
@@ -442,16 +507,16 @@ class CaptureWriter:
             }
             self._store._contained(self._stage, exists=True)
             with self._store._contained(self._stage / "manifest.json").open("xb") as target:
-                target.write((_json(header)[:-1] + ',"samples":[').encode("utf-8"))
-                with self._store._contained(self._stage / ".samples.jsonl", exists=True).open("rb") as source:
+                self._store._write_bytes(target, (_json(header)[:-1] + ',"samples":[').encode("utf-8"))
+                with self._store._contained(self._stage / "samples.ndjson", exists=True).open("rb") as source:
                     for index, line in enumerate(source):
                         if index:
-                            target.write(b",")
-                        target.write(line.rstrip(b"\n"))
-                target.write(b"]}")
+                            self._store._write_bytes(target, b",")
+                        self._store._write_bytes(target, line.rstrip(b"\n"))
+                self._store._write_bytes(target, b"]}")
                 target.flush()
                 os.fsync(target.fileno())
-            (self._stage / ".samples.jsonl").unlink()
+            # Keep the bounded line index for on-demand remote sample lookup.
             self._store._publish(self._stage, self._final)
             self._closed = True
             return self._ref

@@ -152,6 +152,18 @@ fieldset > label, fieldset > div { margin-bottom: 17px; }
 .hosted-claim-state { margin-top: 17px; font-size: 11px; color: #42653b; }
 .hosted-claim-state p { margin-top: 5px; color: #6a7c62; line-height: 1.7; }
 .hosted-footer { padding: 25px 0 6px; color: #919b8e; font-size: 10px; }
+.hosted-evidence-review { padding: 22px; margin-top: 18px; border: 1px solid var(--border); border-radius: 12px; background: white; font-size: 13px; }
+.hosted-evidence-review p { margin-bottom: 12px; line-height: 1.6; color: var(--muted); }
+.hosted-table-scroll { overflow-x: auto; margin-top: 18px; }
+.hosted-evidence-review table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+.hosted-evidence-review caption { text-align: left; font-weight: 600; padding-bottom: 12px; }
+.hosted-evidence-review th, .hosted-evidence-review td { padding: 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.hosted-evidence-review h2 { font-size: 18px; margin-bottom: 12px; }
+.hosted-evidence-review label { display: block; margin: 16px 0; }
+.hosted-evidence-review label select { display: block; width: 100%; margin-top: 7px; }
+.hosted-sample-preview { margin: 18px 0 0; }
+.hosted-sample-preview canvas { display: block; max-width: 100%; height: auto; border-radius: 8px; background: #10251e; }
+.hosted-sample-preview figcaption { margin-top: 10px; font-size: 12px; color: var(--muted); }
 .hosted-modal { width: min(440px, calc(100% - 40px)); padding: 28px; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 20px 100px #172f2933; color: var(--ink); }
 .hosted-modal::backdrop { background: #14251dcc; }
 .hosted-modal h2 { margin-bottom: 15px; }

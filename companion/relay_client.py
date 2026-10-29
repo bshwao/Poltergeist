@@ -107,7 +107,8 @@ class RelayClient:
                 binding, policy, credential = self.enrollment()
                 uri = "wss" + self.origin[5:] + "/v1/device/connect"
                 connector = self._connector(uri, ssl=self._context, proxy=None, compression=None,
-                        additional_headers={"Authorization": "Bearer " + credential},
+                        additional_headers={"Authorization": "Bearer " + credential,
+                                            "X-Poltergeist-Evidence": "v1", "X-Poltergeist-Recordings": "v1"},
                         open_timeout=10, close_timeout=2, ping_interval=None, ping_timeout=None,
                         max_size=MAX_RELAY_BYTES, max_queue=4, logger=self._logger)
                 with self._lock:
@@ -143,7 +144,14 @@ class RelayClient:
             raise RelayClientError("The relay doesn't match the locally approved device")
         fields = dict(device_id=hello.device_id, ownership_generation=hello.ownership_generation,
                       connection_generation=hello.connection_generation)
-        self._send(socket, ClientReady(**fields, remote_execution_enabled=self.enabled))
+        ready = ClientReady(**fields, remote_execution_enabled=self.enabled,
+                            evidence_supported=hello.evidence_supported, recordings_supported=hello.recordings_supported)
+        excluded = set()
+        if not hello.evidence_supported:
+            excluded.add("evidence_supported")
+        if not hello.recordings_supported:
+            excluded.add("recordings_supported")
+        self._send(socket, ready.model_dump(mode="json", exclude=excluded))
         self._state_is("connected")
         last_message = monotonic()
         while not self._stop.is_set():
@@ -174,6 +182,9 @@ class RelayClient:
                     break
                 if monotonic() - last_message >= hello.dead_timeout_s:
                     raise RelayClientError("The relay heartbeat expired")
-                self._send(socket, RelayReply(**fields, reply=reply))
+                response = RelayReply(**fields, reply=reply)
+                if reply.kind == "evidence" and not hello.recordings_supported:
+                    response = response.model_dump(mode="json", exclude={"reply": {"recordings", "samples", "sample", "artifact_index"}})
+                self._send(socket, response)
             else:
                 raise RelayClientError("The coordinator sent an unsupported relay message")

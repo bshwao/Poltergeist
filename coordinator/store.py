@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 from pathlib import Path
 import sqlite3
+import stat
 from threading import RLock
 
 
@@ -107,17 +108,24 @@ class Store:
         self._initialized = False
         self._closed = False
         self._lock = RLock()
+        self._anchor = None
 
     def _plain_path(self):
         for part in (self.path, *self.path.parents):
-            if part.is_symlink() or getattr(part, "is_junction", lambda: False)():
+            try:
+                info = part.lstat()
+            except FileNotFoundError:
+                continue
+            if (stat.S_ISLNK(info.st_mode) or getattr(info, "st_reparse_tag", None)
+                    in (getattr(stat, "IO_REPARSE_TAG_SYMLINK", -1), getattr(stat, "IO_REPARSE_TAG_MOUNT_POINT", -2))):
                 raise StoreError("Coordinator database must use an ordinary local path")
 
     def _connect(self):
-        connection = sqlite3.connect(self.path, timeout=5, isolation_level=None)
+        connection = sqlite3.connect(self.path, timeout=5, isolation_level=None, check_same_thread=False)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys=ON")
         connection.execute("PRAGMA busy_timeout=5000")
+        connection.execute("PRAGMA synchronous=FULL")
         return connection
 
     def initialize(self):
@@ -155,6 +163,10 @@ class Store:
                 _verify_schema(connection, SCHEMA_VERSION)
                 connection.commit()
                 connection.execute("PRAGMA journal_mode=WAL")
+                # One bounded connection, protected for each complete short
+                # transaction. This avoids connection/checkpoint churn while
+                # retaining SQLite FULL durability and per-operation path checks.
+                self._anchor = self._connect()
                 self._initialized = True
             except BaseException:
                 if connection.in_transaction:
@@ -169,18 +181,19 @@ class Store:
             if self._closed or not self._initialized:
                 raise StoreError("Initialize the coordinator store before use")
             self._plain_path()
-            connection = self._connect()
-        try:
-            connection.execute("BEGIN IMMEDIATE" if write else "BEGIN")
-            yield connection
-            connection.commit()
-        except BaseException:
-            connection.rollback()
-            raise
-        finally:
-            connection.close()
+            connection = self._anchor
+            try:
+                connection.execute("BEGIN IMMEDIATE" if write else "BEGIN")
+                yield connection
+                connection.commit()
+            except BaseException:
+                connection.rollback()
+                raise
 
     def close(self):
         with self._lock:
+            if self._anchor is not None:
+                self._anchor.close()
+                self._anchor = None
             self._closed = True
             self._initialized = False

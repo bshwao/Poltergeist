@@ -14,6 +14,33 @@ const response = (value, status = 200) => new Response(JSON.stringify(value), { 
 const accepted = { request_id: request, operation: "execute", status: "accepted", created_at: timestamp, updated_at: timestamp,
   simulation_id: simulation, reply: { kind: "accepted", request_id: request, simulation_id: simulation, accepted_at: timestamp } };
 
+test("evidence is pulled per page, checked against its hash and bound to the requested run", async () => {
+  const frames = [{ frame: 123, time_s: 2.5, speed_mps: null, collisions: null, traffic_violations: 0,
+    control: { brake: 0, throttle: 0, steer: 0, hand_brake: false, reverse: false } }];
+  const bytes = new TextEncoder().encode(JSON.stringify(frames));
+  const digest = Buffer.from(await crypto.subtle.digest("SHA-256", bytes)).toString("hex");
+  let corrupt = false, wrongRun = false, calls = 0;
+  const client = createHostedClient(async (url, options) => {
+    if (url.endsWith("login")) return response(session());
+    calls++;
+    assert.equal(url, `/v1/devices/${device}/evidence`);
+    const body = JSON.parse(options.body);
+    return response({ kind: "evidence", request_id: body.request_id, simulation_id: wrongRun ? device : simulation,
+      resource: "telemetry", offset: 0, next_offset: 1500, version: "a".repeat(64), state: "available", total_bytes: 2000,
+      data_base64: Buffer.from(bytes).toString("base64"), sha256: corrupt ? "0".repeat(64) : digest, frames: [] });
+  });
+  await client.login("alice", "private password");
+  assert.equal(calls, 0);
+  const page = await client.evidence(device, { simulation_id: simulation });
+  assert.equal(page.frames[0].frame, 123);
+  assert.equal(page.frames[0].collisions, null);
+  assert.equal(page.frames[0].traffic_violations, 0);
+  corrupt = true;
+  await assert.rejects(client.evidence(device, { simulation_id: simulation }), error => error.code === "invalid_response");
+  corrupt = false; wrongRun = true;
+  await assert.rejects(client.evidence(device, { simulation_id: simulation }), error => error.code === "invalid_response");
+});
+
 test("hosted requests are fixed same-origin URLs with memory-only CSRF and no redirects", async () => {
   const seen = [];
   const client = createHostedClient(async (url, options) => { seen.push([url, options]); return response(url.endsWith("login") ? session() : accepted); });

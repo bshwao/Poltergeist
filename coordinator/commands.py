@@ -6,6 +6,7 @@ import time
 from uuid import uuid4
 
 from shared.models.coordination import DevicePolicy
+from shared.models.evidence import EvidenceRequest
 from shared.models.browser import BrowserCommandPage
 from shared.models.remote import (COMMAND_ADAPTER, REPLY_ADAPTER, CancelAccepted,
     CommandRejected, ExecuteAccepted, ExecuteCommand, RunResultReply,
@@ -24,8 +25,9 @@ def _stored(adapter, value):
 
 
 class CommandService:
-    def __init__(self, store, *, now=time.time):
+    def __init__(self, store, *, now=time.time, max_commands_per_account=10000):
         self.store, self.now = store, now
+        self.max_commands_per_account = max_commands_per_account
 
     def _owner(self, connection, owner_id, device_id, *, scope=None):
         row = connection.execute("SELECT d.* FROM devices d JOIN accounts a ON a.id=d.owner_id "
@@ -67,13 +69,16 @@ class CommandService:
 
     def authenticate(self, credential, expected):
         with self.store.transaction() as connection:
-            row = self._credential(connection, credential, expected=expected)
-            grants = {item[0] for item in connection.execute("SELECT scope FROM device_grants WHERE device_id=? AND ownership_generation=?",
-                (row["id"], row["ownership_generation"]))}
-            if grants != set(expected["policy"].scopes):
-                raise AuthError(403, "permission_denied")
-            connection.execute("UPDATE devices SET last_seen_at=? WHERE id=?", (self.now(), row["id"]))
-            return dict(row)
+            return self._authenticate(connection, credential, expected)
+
+    def _authenticate(self, connection, credential, expected):
+        row = self._credential(connection, credential, expected=expected)
+        grants = {item[0] for item in connection.execute("SELECT scope FROM device_grants WHERE device_id=? AND ownership_generation=?",
+            (row["id"], row["ownership_generation"]))}
+        if grants != set(expected["policy"].scopes):
+            raise AuthError(403, "permission_denied")
+        connection.execute("UPDATE devices SET last_seen_at=? WHERE id=?", (self.now(), row["id"]))
+        return dict(row)
 
     def connection_current(self, credential, expected):
         """Recheck a displayed connection without manufacturing device activity."""
@@ -152,6 +157,8 @@ class CommandService:
     def admit(self, owner_id, device_id, command, *, connected):
         # Validate again for direct callers; normalized defaults are part of the digest.
         command = parse_message(canonical_json(command), relay=False)
+        if isinstance(command, EvidenceRequest):
+            raise AuthError(400, "use_evidence_endpoint")
         digest, payload = payload_digest(command), canonical_json(command)
         now = self.now()
         with self.store.transaction() as connection:
@@ -164,6 +171,8 @@ class CommandService:
                 return self._view(existing)
             if isinstance(command, ExecuteCommand):
                 policy = _stored(DevicePolicy, row["policy_json"])
+                if (command.options.camera or command.options.lidar) and (not policy.allow_raw_capture or command.mode != "carla"):
+                    raise AuthError(403, "policy_denied")
                 if (command.scenario.duration_s > policy.max_duration_s or command.options.max_ticks > policy.max_ticks or
                         ceil(command.scenario.duration_s / command.scenario.fixed_delta_seconds - 1e-9)
                         > min(policy.max_ticks, command.options.max_ticks)):
@@ -172,6 +181,10 @@ class CommandService:
                 raise AuthError(404, "resource_not_found")
             if not connected:
                 raise AuthError(503, "device_unavailable", retry_after=3)
+            if (connection.execute("SELECT count(*) FROM commands WHERE owner_id=?", (str(owner_id),)).fetchone()[0]
+                    >= self.max_commands_per_account or
+                    connection.execute("SELECT count(*) FROM commands").fetchone()[0] >= 100000):
+                raise AuthError(429, "command_storage_full", retry_after=60)
             count = connection.execute("SELECT count(*) FROM commands WHERE device_id=? AND ownership_generation=? AND status='queued'",
                 (row["id"], row["ownership_generation"])).fetchone()[0]
             if count >= 32:
@@ -182,6 +195,15 @@ class CommandService:
                 (identifier, row["id"], str(owner_id), row["ownership_generation"], str(command.request_id), command.kind, digest, payload, now, now))
             audit(connection, now, "command_admit", "allowed", account_id=str(owner_id), device_id=row["id"], command_id=identifier)
             return self._view(connection.execute("SELECT * FROM commands WHERE id=?", (identifier,)).fetchone())
+
+    def authorize_evidence(self, owner_id, device_id, command):
+        with self.store.transaction(write=False) as connection:
+            row = self._owner(connection, owner_id, device_id, scope=command_scope(command))
+            if not _stored(DevicePolicy, row["policy_json"]).allow_evidence_read:
+                raise AuthError(403, "permission_denied")
+            if self._execution(connection, row, command.simulation_id) is None:
+                raise AuthError(404, "resource_not_found")
+            return row["ownership_generation"]
 
     def get(self, owner_id, device_id, request_id):
         with self.store.transaction(write=False) as connection:
@@ -228,7 +250,10 @@ class CommandService:
         reply = REPLY_ADAPTER.validate_json(canonical_json(reply))
         now = self.now()
         with self.store.transaction() as connection:
-            row = self._credential(connection, credential, expected=expected)
+            # Validate current credentials/grants and update device activity in
+            # the same durable transaction as this receipt. A failed receipt
+            # also rolls back the activity update.
+            row = self._authenticate(connection, credential, expected)
             stored = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND request_id=?",
                 (row["id"], row["ownership_generation"], str(reply.request_id))).fetchone()
             if stored is None or stored["owner_id"] != row["owner_id"]:

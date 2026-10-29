@@ -40,6 +40,7 @@ class CompanionWindow:
         self._recipe = installation_recipe()
         self._agent_ids = {"Baseline controller": None}
         self._last_diagnostics = None
+        self._pending_update = None
         self._imports = {}
         root.title("Poltergeist Companion — private prototype")
         root.geometry("860x740")
@@ -77,6 +78,9 @@ class CompanionWindow:
         from .setup_ui import SetupPanel
         self.setup = SetupPanel(self, tabs)
         tabs.insert(0, self.setup.frame, text="Setup")
+        from .update_ui import UpdatePanel
+        self.updates = UpdatePanel(self, tabs)
+        tabs.add(self.updates.frame, text="Updates")
         if not controller.config.setup_completed:
             tabs.select(self.setup.frame)
         self._build_diagnostics(diagnostics)
@@ -154,6 +158,11 @@ class CompanionWindow:
         self._button(controls, "Cancel selected", self._cancel)
         self._button(controls, "Export HTML", lambda: self._export("html"))
         self._button(controls, "Export JSON", lambda: self._export("json"))
+        evidence = ttk.Frame(frame)
+        evidence.pack(fill="x", pady=(8, 0))
+        self._button(evidence, "Export evidence…", self._export_evidence)
+        self._button(evidence, "Remove evidence…", self._remove_evidence)
+        ttk.Label(evidence, text="Evidence budget: 20 GiB · free-disk reserve: 512 MiB").pack(side="left")
 
     def _build_settings(self, frame):
         ttk.Label(frame, text="CARLA configuration", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 8))
@@ -227,6 +236,7 @@ class CompanionWindow:
         self._future = self._executor.submit(action)
         self.pairing.sync_controls()
         self.models.sync_controls()
+        self.updates.sync_controls()
 
     def _refresh_controls(self):
         busy = self._future is not None or self._closing
@@ -234,11 +244,13 @@ class CompanionWindow:
             button.state(["disabled"] if busy else ["!disabled"])
         self.pairing.sync_controls()
         self.models.sync_controls()
+        self.updates.sync_controls()
 
     def _pump(self):
         if self._destroyed:
             return
         self.models.sync_controls()
+        self.updates.sync_controls()
         if self._future is not None and self._future.done():
             future, success = self._future, self._success
             self._future = self._success = None
@@ -255,6 +267,7 @@ class CompanionWindow:
                     messagebox.showerror("Poltergeist Companion", str(error), parent=self.root)
                 else:
                     self._closing = False
+                    self._pending_update = None
                     self._close_requested.clear()
                     messagebox.showerror("Could not close safely", str(error), parent=self.root)
             if self._destroyed:
@@ -312,6 +325,7 @@ class CompanionWindow:
         if self._closing:
             return
         self._closing = True
+        self.updates.close()
         self.pairing.reset_consent()
         self._close_requested.set()
         self.message.set("Waiting for the local worker to stop safely…")
@@ -326,6 +340,7 @@ class CompanionWindow:
             clean, snapshot = result
             self._closing = False
             if not clean:
+                self._pending_update = None
                 self._close_requested.clear()
                 self.message.set("Local work is still stopping. Keep this window open and retry Close after it returns. Its profile remains locked.")
                 self._apply_snapshot(snapshot)
@@ -342,6 +357,7 @@ class CompanionWindow:
             self._release_variables(self.setup)
             self._release_variables(self.pairing)
             self._release_variables(self.models)
+            self._release_variables(self.updates)
             self._release_variables(self)
             self.root.destroy()
         self._run(close, closed)
@@ -400,6 +416,21 @@ class CompanionWindow:
         selected = self._selected()
         if selected:
             self._run(lambda: self.controller.export(selected, format=format), lambda path: self.message.set(f"Export saved: {path}"))
+
+    def _export_evidence(self):
+        selected = self._selected()
+        if selected:
+            path = filedialog.asksaveasfilename(parent=self.root, title="Export selected run evidence", defaultextension=".zip",
+                filetypes=[("Evidence archive", "*.zip")], initialfile=f"{selected}-evidence.zip")
+            if path:
+                self._run(lambda: self.controller.maintain_evidence(selected, export=path),
+                    lambda _: self.message.set(f"Evidence exported: {path}"))
+
+    def _remove_evidence(self):
+        selected = self._selected()
+        if selected and messagebox.askokcancel("Remove selected evidence", "Remove this run's local telemetry and recordings? Its saved summary remains. Export evidence first if you need to keep it.", parent=self.root):
+            self._run(lambda: self.controller.maintain_evidence(selected, delete=True),
+                lambda _: self.message.set("Local evidence removed. The measured summary is retained."))
 
     def _register_agent(self):
         path = filedialog.askdirectory(parent=self.root, title="Select a trusted agent folder containing agent.json")

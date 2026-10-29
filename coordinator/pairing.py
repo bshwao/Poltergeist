@@ -28,8 +28,9 @@ def canonical(value):
 
 
 class PairingService:
-    def __init__(self, store, auth, *, now=time.time, ttl_s=300):
+    def __init__(self, store, auth, *, now=time.time, ttl_s=300, max_devices_per_account=5):
         self.store, self.auth, self.now, self.ttl_s = store, auth, now, ttl_s
+        self.max_devices_per_account = max_devices_per_account
 
     def _expire(self, connection, now):
         connection.execute("UPDATE pairing_attempts SET state='expired',revision=revision+1,terminal_at=?,code_hash=NULL "
@@ -132,6 +133,9 @@ class PairingService:
             account = connection.execute("SELECT id FROM accounts WHERE id=? AND disabled_at IS NULL", (row["claimed_account_id"],)).fetchone()
             if account is None:
                 raise AuthError(409, "pairing_changed")
+            if connection.execute("SELECT count(*) FROM devices WHERE owner_id=? AND revoked_at IS NULL",
+                    (row["claimed_account_id"],)).fetchone()[0] >= self.max_devices_per_account:
+                raise AuthError(429, "device_quota", retry_after=60)
             connection.execute("INSERT INTO devices(id,owner_id,display_name,policy_json,created_at) VALUES (?,?,?,?,?)",
                 (row["device_id"], row["claimed_account_id"], row["display_name"], request.policy.model_dump_json(), now))
             try:

@@ -68,7 +68,15 @@ class PairingPanel:
             control = ttk.Checkbutton(body, text=label, variable=variable)
             control.pack(anchor="w")
             self.permission_controls[scope] = control
-        ttk.Label(body, text="Remote experiments are limited to the baseline controller, 120 seconds and 10 waiting runs. Map reloads, graphics changes and raw recordings are disabled.",
+        self.allow_evidence_read = tk.BooleanVar(value=False)
+        self.evidence_control = ttk.Checkbutton(body,
+            text="Allow requested telemetry pages and recording samples", variable=self.allow_evidence_read)
+        self.evidence_control.pack(anchor="w")
+        self.allow_raw_capture = tk.BooleanVar(value=False)
+        self.capture_control = ttk.Checkbutton(body,
+            text="Allow remote experiments to save camera and LiDAR recordings locally", variable=self.allow_raw_capture)
+        self.capture_control.pack(anchor="w")
+        ttk.Label(body, text="Remote experiments are limited to the baseline controller, 120 seconds and 10 waiting runs. Recordings use the local storage budget and are transferred only when requested. Map reloads and graphics changes are disabled.",
             wraplength=740).pack(anchor="w", pady=8)
         actions = ttk.Frame(body)
         actions.pack(fill="x", pady=(0, 8))
@@ -143,6 +151,8 @@ class PairingPanel:
         editable = self._displayed.get("state") in {"unpaired", "attempt"} and not busy
         for control in self.permission_controls.values():
             control.state(["!disabled"] if editable else ["disabled"])
+        self.evidence_control.state(["!disabled"] if editable else ["disabled"])
+        self.capture_control.state(["!disabled"] if editable else ["disabled"])
 
     def show_connection(self, relay, queue):
         previous_owned = self._relay.get("owned") is True
@@ -232,7 +242,8 @@ class PairingPanel:
         if not scopes or not set(scopes).issubset(set(claim["requested_scopes"])):
             self.app.message.set("Select at least one permission from this pairing request.")
             return
-        policy = DevicePolicy(scopes=scopes)
+        policy = DevicePolicy(scopes=scopes, allow_evidence_read=self.allow_evidence_read.get(),
+                              allow_raw_capture=self.allow_raw_capture.get())
         self._run(lambda: self.app.controller.approve_pairing(claim, policy))
 
     def deny(self):
@@ -301,5 +312,7 @@ class PairingPanel:
                 variable.set(scope in selected)
             self.approved_permissions.set("Approved permissions: " + ", ".join(label for scope, label, _ in PERMISSIONS if scope in selected))
             policy = status["policy"]
+            self.allow_evidence_read.set(policy.get("allow_evidence_read", False))
+            self.allow_raw_capture.set(policy.get("allow_raw_capture", False))
             self.approved_limits.set(f"Approved limits: {policy['max_duration_s']:g} simulated seconds, {policy['max_ticks']} ticks and {policy['max_waiting_runs']} waiting remote runs. Baseline controller only.")
         self.sync_controls()

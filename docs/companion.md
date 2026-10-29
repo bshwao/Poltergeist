@@ -166,9 +166,14 @@ hardware mouse automation could not be verified because the Windows input helper
 returned `SendInput sent 0 of 1 events; GetLastError=87` twice. That limitation is
 separate from the tested Tk callbacks. Independent no-developer-tools testing,
 broader Windows/display/hardware coverage, signing, release licensing and safe
-updates are still required. Website connection status explicitly remains
+updates are still required for release. The [S8–S10 tooling checkpoint](evidence-capacity-release.md)
+adds bounded recording review, local evidence export/removal, storage budgets,
+and native update/rollback review with explicit downloads and a closed-process
+helper. Publisher/feed configuration remains unset and actual signed acceptance
+is deferred. Website connection status explicitly remains
 unavailable in the delivered S3 installer. Current source and S4 private builds
 add a [Connection preview](coordinator.md) with pairing, approved permissions,
 Connect/Disconnect and consent for each connection session. Normal startup and
 reopening keep requests disabled; an unchecked connection pauses every remote
-operation. The hosted dashboard and public deployment remain pending.
+operation. The hosted dashboard passes local HTTPS/WSS acceptance; public
+deployment remains deferred.

@@ -51,7 +51,7 @@ def test_execute_cannot_register_select_or_run_custom_code(field, value):
     assert str(error.value) == "Invalid remote protocol message"
 
 
-@pytest.mark.parametrize("options", [{"allow_map_reload": True}, {"camera": True}, {"lidar": True},
+@pytest.mark.parametrize("options", [{"allow_map_reload": True}, {"camera": "true"}, {"lidar": 1},
     {"carla_quality": "Epic"}, {"no_rendering_mode": False}, {"max_ticks": 10001},
     {"max_ticks": True}, {"max_ticks": "100"}, {"interpreter": SENTINEL}])
 def test_unsafe_local_options_and_coerced_tick_counts_are_not_wire_fields(options):
@@ -244,7 +244,8 @@ def test_handshake_failures_and_verbose_root_logging_do_not_retain_credentials(c
     assert SENTINEL not in caplog.text + json.dumps(client.snapshot())
     uri, options = calls[0]
     assert uri == "wss://coordinator.example/v1/device/connect" and SENTINEL not in uri
-    assert options["additional_headers"] == {"Authorization": "Bearer " + SENTINEL}
+    assert options["additional_headers"] == {"Authorization": "Bearer " + SENTINEL,
+                                             "X-Poltergeist-Evidence": "v1", "X-Poltergeist-Recordings": "v1"}
     assert options["proxy"] is None and options["compression"] is None
     assert options["max_size"] == MAX_RELAY_BYTES and options["max_queue"] == 4
     assert options["open_timeout"] == 10 and options["close_timeout"] == 2

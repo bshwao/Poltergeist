@@ -1,0 +1,70 @@
+{
+  "schema_version": "poltergeist-s8-s10-release-gates-v1",
+  "goal_complete": false,
+  "requested_goal_status": "blocked",
+  "reason": "Production signing identity, independent beta test PCs and deployment configuration remain deferred by the owner.",
+  "user_direction": "Skip for now",
+  "recent_goal_turns": [
+    {
+      "id": "01a18876-c04e-7830-807d-04835b5e7bb4",
+      "status_at_audit": "inProgress",
+      "external_gate_observed": true
+    },
+    {
+      "id": "01a1885f-1785-7751-8626-05bc4184538f",
+      "status_at_audit": "completed",
+      "external_gate_observed": true
+    },
+    {
+      "id": "01a1860d-07f6-77c1-a504-effffb7c73a1",
+      "status_at_audit": "failed",
+      "external_gate_observed": true
+    }
+  ],
+  "repeated_external_gate_goal_turns": 3,
+  "local_validation": {
+    "s8": "Live CARLA telemetry, paged recording metadata and selected camera/LiDAR transfers passed with explicit bounded reads, memory and storage controls.",
+    "s9": "Monitoring, account/device/transfer limits and owner/generation routing implemented; 25-account, 25-device, 500-command local load target passed.",
+    "s10": "Unsigned installed first-run baseline/SDK runs, evidence review/export, running-app repair refusal, closed-app repair and data-preserving uninstall/reinstall passed on the development laptop."
+  },
+  "capacity_reports": [
+    "docs/validation/s9-capacity-atomic-isolated-py312-20261029.json",
+    "docs/validation/s9-capacity-atomic-py314-20261029.json"
+  ],
+  "native_lifecycle": "docs/validation/s10-native-lifecycle-20261029.json",
+  "external_requirements": [
+    "Real publisher/service configuration and timestamped signed installer plus metadata.",
+    "Actual signed installed upgrade, compatible rollback and failure recovery.",
+    "Independent Windows/CARLA/hardware and no-developer-tools beta acceptance.",
+    "Deployed delivery and agreed production capacity/provider targets."
+  ],
+  "scope_limits": [
+    "The native lifecycle used an unsigned validation build on the development laptop.",
+    "The legacy pre-fix fixture needed a one-time hash-verified marker restoration before applying the fix; the fixed uninstall/reinstall cycle had no manual intervention.",
+    "The validation registration and active runtime were removed; profile and recovery evidence were retained.",
+    "Local load measurements do not establish WAN performance or production provider capacity.",
+    "No release was published and no external testers were contacted."
+  ],
+  "recorded_at": "2026-10-29T17:01:05.747258+00:00",
+  "source_sha256": {
+    "packaging/windows-x64/companion.iss": "70ebcfbff413b5d7c39f2dc36a07c43c0b98f8523990667ef6a1ab916b9b5cbf",
+    "companion/release-policy.json": "881ce687e1a445539019b76d3525a41db78becf9b15b0d846f0a0558400c5811",
+    "docs/evidence-capacity-release.md": "2b9954616a72e1772f5c15eb07f526b34de71088070dba2942ccb24c21fb0edb",
+    "docs/installer-onboarding.md": "fd3889766064e306106cef7e595fdce70699151476fb12fa5d11fbe4bbfc038b",
+    "docs/progress-notes.md": "984487da833a41aef5ad34871d0c530427abcf3b316be565e917d66f6e4dbf49",
+    "docs/scalability-plan.md": "965643d0c64393cfe7231bece98afca7e89a35304defa34c6c225dc4331ec255",
+    "docs/private-beta.md": "48d29e86d098c9169e3451a88310a391af110cd3827203d9bd4a63bdecc91595",
+    "docs/validation/s10-native-lifecycle-20261029.json": "b51dfdd68c6d8fd882b4fe85b10ac9491023b1784e26e6314c3c4e754e27accb"
+  },
+  "release_policy": {
+    "publishers_configured": false,
+    "feed_configured": false,
+    "channel": "private-beta"
+  },
+  "current_installer_build_tests": {
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

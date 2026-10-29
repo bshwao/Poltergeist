@@ -1,0 +1,7 @@
+{
+  "schema_version": "poltergeist-release-policy-v1",
+  "channel": "private-beta",
+  "publishers_sha256": [],
+  "feed_url": null,
+  "max_installer_bytes": 4294967296
+}

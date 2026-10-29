@@ -1,0 +1,25 @@
+{
+  "schema_version": "poltergeist-capacity-v1",
+  "transport": "loopback HTTP/WS fixture",
+  "users": 25,
+  "connected_devices": 25,
+  "rounds_per_device": 20,
+  "completed_commands": 500,
+  "routed_commands": 500,
+  "cross_owner_denials": 25,
+  "elapsed_s": 106.31989450000401,
+  "commands_per_s": 4.702788714674479,
+  "latency_p50_s": 4.213570699997945,
+  "latency_p95_s": 5.38072590000229,
+  "latency_max_s": 6.887001000002783,
+  "http_payload_bytes": 308500,
+  "max_connections": 100,
+  "passed": false,
+  "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+  "python_peak_bytes": 24293500,
+  "database_bytes": 856064,
+  "provisional_targets": {
+    "p95_latency_s": 2.0,
+    "python_peak_bytes": 134217728
+  }
+}

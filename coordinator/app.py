@@ -1,6 +1,7 @@
 """Isolated account, pairing and outbound-device relay ASGI factory."""
 
 from contextlib import asynccontextmanager
+import asyncio
 import hmac
 import re
 import sqlite3
@@ -24,6 +25,8 @@ from .pairing import PairingService, timestamp
 from .relay import RelayHub
 from .settings import CoordinatorSettings, service_origin
 from .store import Store, StoreError
+from shared.models.evidence import EvidenceRequest
+from .limits import RequestLimits
 
 COOKIE = "__Host-poltergeist-session"
 
@@ -39,8 +42,20 @@ def failure(status, code, *, retry_after=None):
 class RequestBoundary:
     def __init__(self, app, *, settings):
         self.app, self.settings = app, settings
+        self.active_http = 0
 
     async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self._guarded(scope, receive, send)
+        if self.active_http >= 64:
+            return await failure(503, "service_busy", retry_after=1)(scope, receive, send)
+        self.active_http += 1
+        try:
+            return await self._guarded(scope, receive, send)
+        finally:
+            self.active_http -= 1
+
+    async def _guarded(self, scope, receive, send):
         if scope["type"] == "websocket":
             raw = scope["headers"]
             headers = {key.lower(): value for key, value in raw}
@@ -83,8 +98,18 @@ class RequestBoundary:
             await failure(403, "cross_origin_denied")(scope, receive, send)
             return
         body = bytearray()
+        body_deadline = time.monotonic() + 10
         while True:
-            message = await receive()
+            try:
+                remaining = body_deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError
+                message = await asyncio.wait_for(receive(), timeout=remaining)
+                if time.monotonic() >= body_deadline:
+                    raise TimeoutError
+            except TimeoutError:
+                await failure(408, "request_timeout")(scope, receive, send)
+                return
             if message["type"] == "http.disconnect":
                 return
             body.extend(message.get("body", b""))
@@ -118,9 +143,12 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
     async def lifespan(app):
         store.initialize()
         app.state.auth = AuthService(store, now=now)
-        app.state.pairing = PairingService(store, app.state.auth, now=now, ttl_s=settings.pairing_ttl_s)
-        app.state.commands = CommandService(store, now=now)
-        app.state.relay = RelayHub(app.state.commands)
+        app.state.pairing = PairingService(store, app.state.auth, now=now, ttl_s=settings.pairing_ttl_s,
+            max_devices_per_account=settings.max_devices_per_account)
+        app.state.commands = CommandService(store, now=now, max_commands_per_account=settings.max_commands_per_account)
+        app.state.limits = RequestLimits()
+        app.state.relay = RelayHub(app.state.commands, max_connections=settings.max_connections,
+            max_transfers=settings.max_transfers)
         try:
             yield
         finally:
@@ -157,6 +185,7 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
         if not authenticated:
             return None
         account = request.app.state.auth.session(request.cookies.get(COOKIE))
+        request.app.state.limits.consume("browser:" + str(account["account_id"]), 1200)
         if write:
             supplied = request.headers.get("x-csrf-token", "")
             if not re.fullmatch(r"[A-Za-z0-9_-]{43}", supplied) or not hmac.compare_digest(supplied, account["csrf_token"]):
@@ -318,6 +347,39 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
             connected=request.app.state.relay.available(device_id))
         request.app.state.relay.notify(device_id)
         return result
+
+    @app.post("/v1/devices/{device_id}/evidence")
+    async def evidence(device_id: UUID, request: Request):
+        account = browser(request, write=True)
+        try:
+            body = parse_message(await request.body(), relay=False)
+            if not isinstance(body, EvidenceRequest):
+                raise ValueError
+        except ValueError:
+            raise AuthError(400, "invalid_request") from None
+        # Worst case < 8 MiB/min of sample payload per account, independent of
+        # how many computers it pairs. No evidence is written to coordinator SQL.
+        request.app.state.limits.consume("evidence:" + str(account["account_id"]), 120)
+        result = await request.app.state.relay.evidence(account["account_id"], device_id, body)
+        browser(request, write=True)
+        return result
+
+    @app.get("/v1/operations")
+    def operations(request: Request):
+        supplied = request.headers.get("authorization", "")
+        if settings.monitor_token is None or not hmac.compare_digest(supplied, "Bearer " + settings.monitor_token):
+            raise AuthError(404, "resource_not_found")
+        with store.transaction(write=False) as connection:
+            queued = connection.execute("SELECT count(*) FROM commands WHERE status='queued'").fetchone()[0]
+            commands = connection.execute("SELECT count(*) FROM commands").fetchone()[0]
+        relay = app.state.relay
+        return {"schema_version": "poltergeist-operations-v1", "routing": "single_process",
+            "connected_devices": len(relay.connections), "max_connections": settings.max_connections,
+            "inflight_transfers": relay.transfer_count, "max_transfers": settings.max_transfers,
+            "evidence_bytes_since_start": relay.evidence_bytes, "capacity_refusals_since_start": relay.capacity_refusals,
+            "queued_commands": queued, "retained_commands": commands,
+            "database_bytes": sum(path.stat().st_size for path in
+                (store.path, store.path.with_name(store.path.name + "-wal")) if path.exists())}
 
     @app.get("/v1/devices/{device_id}/commands/{request_id}")
     def command_status(device_id: UUID, request_id: UUID, request: Request):

@@ -1,6 +1,7 @@
 import type {
   BrowserCommandPage, BrowserDeviceView, BrowserScenarioPreset, BrowserSession, CancelCommand,
   ExecuteCommand, PairingStatus, RemoteCommandView, ResultCommand, StatusCommand,
+  EvidenceReply, EvidenceRequest, EvidenceSample,
 } from "../types/generated";
 
 export type HostedCommand = Pick<ExecuteCommand, "kind" | "request_id" | "scenario" | "mode" | "agent_id" | "options">
@@ -23,6 +24,10 @@ const messages: Record<string, string> = {
   invalid_response: "The service returned an unexpected response. Refresh before continuing.",
   network_error: "The connection was interrupted. A submitted request may have arrived; retry its original request.",
   request_cancelled: "The request was cancelled.", stale_response: "The account context changed.",
+  evidence_unavailable: "Evidence review needs a connected, updated companion with local evidence permission.",
+  transfer_busy: "Another evidence request is in progress. Try again shortly.",
+  evidence_timeout: "The computer did not return evidence in time. Try again when it is connected.",
+  command_storage_full: "The service has reached its receipt storage limit. Contact the operator.",
 };
 
 export class HostedError extends Error {
@@ -40,6 +45,33 @@ function date(value: unknown): boolean { return typeof value === "string" && Num
 function integer(value: unknown, minimum = 0, maximum = Number.MAX_SAFE_INTEGER): boolean { return Number.isSafeInteger(value) && Number(value) >= minimum && Number(value) <= maximum; }
 function scopes(value: unknown): boolean { return Array.isArray(value) && value.length > 0 && value.length <= 5 && new Set(value).size === value.length && value.every(scope => SCOPES.has(String(scope))); }
 function invalid(): never { throw new HostedError("invalid_response"); }
+const DIGEST = /^[0-9a-f]{64}$/;
+export const MAX_SAMPLE_VIEW_BYTES = 4 * 1024 * 1024;
+
+function validSample(value: unknown): value is EvidenceSample {
+  if (!object(value) || !integer(value.sample_index, 0, 1000000)
+      || (value.index_offset !== null && !integer(value.index_offset)) || !integer(value.frame)
+      || typeof value.timestamp !== "number" || !Number.isFinite(value.timestamp) || value.timestamp < 0
+      || !integer(value.byte_length, 0, 64 * 1024 * 1024) || typeof value.sha256 !== "string" || !DIGEST.test(value.sha256)
+      || !object(value.metadata)) return false;
+  const format = value.metadata;
+  return value.kind === "camera" ? format.encoding === "bgra8" && integer(format.width, 1, 4096)
+      && integer(format.height, 1, 4096) && value.byte_length === Number(format.width) * Number(format.height) * 4
+    : value.kind === "lidar" && format.encoding === "float32_xyzi" && integer(format.channels, 1, 4096)
+      && Number(value.byte_length) % 16 === 0;
+}
+
+function rawChunk(value: EvidenceReply): Uint8Array<ArrayBuffer> {
+  if (typeof value.data_base64 !== "string" || value.data_base64.length > 87384) invalid();
+  try { return Uint8Array.from(atob(value.data_base64), c => c.charCodeAt(0)); } catch { invalid(); }
+}
+
+function sampleIdentity(value: EvidenceSample): string {
+  const metadata = value.metadata;
+  return JSON.stringify([value.sample_index, value.index_offset, value.kind, value.frame, value.timestamp,
+    value.byte_length, value.sha256, metadata.encoding,
+    metadata.encoding === "bgra8" ? [metadata.width, metadata.height] : metadata.channels]);
+}
 function pathId(value: string): string { if (!id(value)) throw new HostedError("invalid_request", 400); return value; }
 
 function session(value: unknown): BrowserSession {
@@ -194,7 +226,7 @@ export function createHostedClient(fetcher: typeof fetch = (...args) => fetch(..
             || !object(row.device.policy) || !scopes(row.device.policy.scopes)
             || typeof row.device.policy.max_duration_s !== "number" || !Number.isFinite(row.device.policy.max_duration_s) || row.device.policy.max_duration_s <= 0 || row.device.policy.max_duration_s > 120
             || !integer(row.device.policy.max_ticks, 1, 10000) || !integer(row.device.policy.max_waiting_runs, 0, 10)
-            || row.device.policy.allow_map_reload !== false || row.device.policy.allow_graphics_change !== false || row.device.policy.allow_raw_capture !== false
+            || row.device.policy.allow_map_reload !== false || row.device.policy.allow_graphics_change !== false || typeof row.device.policy.allow_raw_capture !== "boolean"
             || !["offline", "connecting", "connected", "paused", "revoked"].includes(String(row.connection.state))
             || typeof row.connection.remote_requests_enabled !== "boolean"
             || (row.connection.remote_requests_enabled && (row.connection.state !== "connected" || row.device.revoked_at !== null || row.connection.protocol_compatible !== true))
@@ -220,6 +252,83 @@ export function createHostedClient(fetcher: typeof fetch = (...args) => fetch(..
     async send(device: string, value: HostedCommand, signal?: AbortSignal) {
       pathId(value.request_id);
       return command(await request(`/v1/devices/${pathId(device)}/commands`, { body: value, signal }), device, value.request_id);
+    },
+    async evidence(device: string, input: Pick<EvidenceRequest, "simulation_id"> & Partial<EvidenceRequest>, signal?: AbortSignal): Promise<EvidenceReply> {
+      const observed = epoch;
+      const body = { kind: "evidence", request_id: crypto.randomUUID(), resource: "telemetry", offset: 0, ...input };
+      pathId(body.simulation_id);
+      const value = await request(`/v1/devices/${pathId(device)}/evidence`, { body, signal });
+      if (object(value) && value.kind === "rejected" && value.request_id === body.request_id && typeof value.code === "string") throw new HostedError(value.code);
+      if (!object(value) || value.kind !== "evidence" || value.request_id !== body.request_id || value.simulation_id !== body.simulation_id
+          || value.resource !== body.resource || value.offset !== body.offset || (value.artifact_index ?? 0) !== (body.artifact_index ?? 0)
+          || !["available", "missing", "deleted", "changed", "limit_exceeded"].includes(String(value.state))) invalid();
+      if (value.state === "available") {
+        if (typeof value.version !== "string" || !DIGEST.test(value.version) || (body.version != null && body.version !== value.version)
+            || !integer(value.total_bytes) || (value.next_offset !== null && (!integer(value.next_offset) || Number(value.next_offset) <= body.offset || Number(value.next_offset) > Number(value.total_bytes)))
+            || typeof value.data_base64 !== "string" || value.data_base64.length > 87384 || typeof value.sha256 !== "string") invalid();
+        const bytes = rawChunk(value as unknown as EvidenceReply);
+        if (bytes.byteLength > 65536) invalid();
+        const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))).map(b => b.toString(16).padStart(2, "0")).join("");
+        if (digest !== value.sha256) invalid();
+        if (body.resource !== "sample") {
+          let frames: unknown;
+          try { frames = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); } catch { invalid(); }
+          if (!Array.isArray(frames) || frames.length > (body.resource === "recordings" ? 64 : body.limit ?? 25)) invalid();
+          if (body.resource === "telemetry") for (const row of frames) {
+            if (!object(row) || !integer(row.frame) || typeof row.time_s !== "number" || !Number.isFinite(row.time_s) || row.time_s < 0
+                || (row.speed_mps !== null && (typeof row.speed_mps !== "number" || !Number.isFinite(row.speed_mps) || row.speed_mps < 0))
+                || (row.collisions !== null && !integer(row.collisions)) || (row.traffic_violations !== null && !integer(row.traffic_violations))
+                || !object(row.control)) invalid();
+          }
+          if (body.resource === "telemetry") value.frames = frames;
+          else if (body.resource === "recordings") {
+            for (const row of frames) {
+              if (!object(row) || !integer(row.artifact_index, 0, 64) || !["available", "missing", "deleted", "limit_exceeded"].includes(String(row.state))
+                  || (row.state === "available" && (!integer(row.sample_count, 0, 1000001) || !integer(row.total_bytes)))) invalid();
+            }
+            value.recordings = frames;
+          } else {
+            if (frames.some(row => !validSample(row))) invalid();
+            for (let i = 0; i < frames.length; i++) if (frames[i].sample_index !== (body.sample_index ?? 0) + i) invalid();
+            value.samples = frames;
+          }
+        } else {
+          if (bytes.byteLength !== Math.min(65536, Number(value.total_bytes) - body.offset)
+              || value.next_offset !== (body.offset + bytes.byteLength < Number(value.total_bytes) ? body.offset + bytes.byteLength : null)) invalid();
+          if (value.sample !== undefined && (!validSample(value.sample) || value.sample.sample_index !== (body.sample_index ?? 0)
+              || value.sample.byte_length !== value.total_bytes || value.sample.sha256 !== value.sample_sha256
+              || value.sample.frame !== value.frame || value.sample.timestamp !== value.timestamp)) invalid();
+        }
+      }
+      if (epoch !== observed) throw new HostedError("stale_response");
+      if (signal?.aborted) throw new HostedError("request_cancelled");
+      return value as unknown as EvidenceReply;
+    },
+    async sample(device: string, simulationId: string, artifactIndex: number, selected: EvidenceSample,
+                 signal?: AbortSignal, progress?: (received: number, total: number) => void): Promise<ArrayBuffer> {
+      if (!validSample(selected) || selected.byte_length > MAX_SAMPLE_VIEW_BYTES) throw new Error("This sample exceeds the 4 MiB browser preview limit. Use a local evidence export.");
+      const observed = epoch;
+      const output = new Uint8Array(selected.byte_length);
+      let offset = 0, version: string | null = null;
+      for (;;) {
+        if (signal?.aborted) throw new HostedError("request_cancelled");
+        const reply = await this.evidence(device, { simulation_id: simulationId, resource: "sample", artifact_index: artifactIndex,
+          sample_index: selected.sample_index, sample_cursor: selected.index_offset, offset, version }, signal);
+        if (reply.state !== "available") throw new Error(reply.state === "deleted" ? "This recording was removed on the computer."
+          : reply.state === "changed" ? "The recording changed. Reload its sample list." : "The recorded sample is unavailable on the computer.");
+        if (!reply.sample || sampleIdentity(reply.sample) !== sampleIdentity(selected) || reply.total_bytes !== output.byteLength
+            || reply.sample_sha256 !== selected.sha256) invalid();
+        const chunk = rawChunk(reply);
+        output.set(chunk, offset); offset += chunk.byteLength;
+        progress?.(offset, output.byteLength);
+        if (reply.next_offset === null) break;
+        version = reply.version;
+      }
+      const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", output))).map(b => b.toString(16).padStart(2, "0")).join("");
+      if (digest !== selected.sha256) throw new Error("The recorded sample checksum does not match its saved identity.");
+      if (epoch !== observed) throw new HostedError("stale_response");
+      if (signal?.aborted) throw new HostedError("request_cancelled");
+      return output.buffer;
     },
     async command(device: string, requestId: string, signal?: AbortSignal) {
       return command(await request(`/v1/devices/${pathId(device)}/commands/${pathId(requestId)}`, { signal }), device, requestId);

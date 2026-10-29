@@ -126,7 +126,8 @@ def main():
                     elif self.path == "/approve":
                         controller = controllers[name]
                         displayed = controller.pairing_status(refresh=True)
-                        approved = controller.approve_pairing(displayed["claim"], DevicePolicy(scopes=scopes))
+                        approved = controller.approve_pairing(displayed["claim"], DevicePolicy(scopes=scopes,
+                            allow_evidence_read=True, allow_raw_capture=live_carla))
                         controller.connect_relay(allow_remote_execution=True, displayed_status=controller.pairing_status())
                         answer = {"device_id": approved["device_id"]}
                     elif self.path in ("/disconnect", "/pause", "/connect"):

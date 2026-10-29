@@ -25,7 +25,7 @@ def test_device_list_is_owner_scoped_and_never_claims_carla_readiness(web):
     assert value["device"]["device_id"] == str(device)
     assert value["connection"] == {"state": "offline", "last_seen_at": None,
         "protocol_version": None, "protocol_compatible": None, "remote_requests_enabled": False,
-        "baseline_only": True, "carla_readiness": "unknown"}
+        "baseline_only": True, "carla_readiness": "unknown", "evidence_supported": False, "recordings_supported": False}
     assert credential not in json.dumps(value) and "token_hash" not in json.dumps(value)
 
 

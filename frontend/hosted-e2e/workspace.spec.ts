@@ -88,6 +88,12 @@ test("two isolated accounts pair, execute once across a lost response, cancel, r
     await expect(result.getByText("Evidence stays on your computer", { exact: true })).toBeVisible();
     await expect(result.getByText("Not measured", { exact: true })).toBeVisible();
     await expect(result.locator(".hosted-metrics > div").first()).toHaveText("Collisions0");
+    const evidence = page.getByRole("region", { name: "Telemetry evidence", exact: true });
+    await expect(evidence.getByRole("button", { name: "Read telemetry", exact: true })).toBeEnabled();
+    await evidence.getByRole("button", { name: "Read telemetry", exact: true }).click();
+    await expect(evidence.getByRole("table")).toBeVisible();
+    expect(await evidence.locator("tbody tr").count()).toBeGreaterThan(0);
+    expect(await evidence.locator("tbody tr").count()).toBeLessThanOrEqual(100);
 
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 1000 });
@@ -109,6 +115,7 @@ test("two isolated accounts pair, execute once across a lost response, cancel, r
     await expect(computer.getByText("paused", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Run experiment", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "Refresh result", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Read telemetry", exact: true })).toBeDisabled();
     await control(request, "disconnect");
     await expect(computer.getByText("offline", { exact: true })).toBeVisible();
     await page.reload();

@@ -16,11 +16,12 @@ dependencies = [
     "PyYAML>=6,<7",
     "sqlalchemy>=2,<3",
     "websockets>=17.2,<18",
+    "httpx>=0.28,<1",
 ]
 
 [project.optional-dependencies]
 coordinator = ["argon2-cffi>=25.1,<26"]
-dev = ["pytest>=8.4,<10", "httpx>=0.28,<1", "httpx2>=2,<3"]
+dev = ["pytest>=8.4,<10", "httpx2>=2,<3"]
 simulation = ["carla==0.9.16", "numpy>=2,<3", "opencv-python>=4.10,<5"]
 optimization = ["optuna>=4,<5", "scipy>=1.15,<2"]
 
@@ -37,7 +38,7 @@ poltergeist-companion = "scripts.companion:main"
 include = ["backend*", "shared*", "simulator*", "scenarios*", "evaluation*", "optimization*", "scripts*", "companion*", "coordinator*"]
 
 [tool.setuptools.package-data]
-companion = ["plant-cpu.lock.json", "LICENSE.plant-model", "LICENSE.antlr"]
+companion = ["plant-cpu.lock.json", "release-policy.json", "LICENSE.plant-model", "LICENSE.antlr"]
 scenarios = ["templates/*.yaml"]
 simulator = ["agents/reference_ai/LICENSE.plant2"]
 

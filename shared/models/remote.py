@@ -6,11 +6,12 @@ from math import ceil, isfinite
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, ConfigDict, Field, TypeAdapter, field_validator
+from pydantic import AwareDatetime, ConfigDict, Field, StrictBool, TypeAdapter, field_validator
 
 from .base import ContractModel
 from .coordination import DevicePolicy, PermissionScope
 from .evaluation import EvaluationSettings
+from .evidence import EvidenceRequest, EvidenceReply
 from .hosted import HostedRunSummaryV1
 from .scenario import Scenario
 
@@ -26,6 +27,8 @@ class _RemoteModel(ContractModel):
 class RemoteRunOptions(_RemoteModel):
     # Unsafe local options aren't part of this wire contract.
     max_ticks: Annotated[int, Field(ge=1, le=10000, strict=True)] = 10000
+    camera: StrictBool = Field(default=False, exclude_if=lambda value: not value)
+    lidar: StrictBool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class ExecuteCommand(_RemoteModel):
@@ -73,7 +76,7 @@ class ResultCommand(_RemoteModel):
     simulation_id: UUID
 
 
-RemoteCommand = Annotated[ExecuteCommand | CancelCommand | StatusCommand | ResultCommand,
+RemoteCommand = Annotated[ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest,
                           Field(discriminator="kind")]
 COMMAND_ADAPTER = TypeAdapter(RemoteCommand)
 
@@ -118,7 +121,7 @@ class CommandRejected(_RemoteModel):
     code: RemoteErrorCode
 
 
-RemoteReply = Annotated[ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected,
+RemoteReply = Annotated[ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply,
                        Field(discriminator="kind")]
 REPLY_ADAPTER = TypeAdapter(RemoteReply)
 
@@ -137,11 +140,15 @@ class ServerHello(_Envelope):
     policy: DevicePolicy
     heartbeat_s: Literal[30] = 30
     dead_timeout_s: Literal[90] = 90
+    evidence_supported: bool = Field(default=False, exclude_if=lambda value: not value)
+    recordings_supported: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class ClientReady(_Envelope):
     kind: Literal["ready"] = "ready"
     remote_execution_enabled: bool = False
+    evidence_supported: bool = Field(default=False, exclude_if=lambda value: not value)
+    recordings_supported: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class RelayCommand(_Envelope):
@@ -212,7 +219,7 @@ def command_scope(command: RemoteCommand) -> PermissionScope:
     if isinstance(command, ExecuteCommand):
         return PermissionScope.EXECUTE_TEST if command.mode == "test" else PermissionScope.EXECUTE_CARLA
     return {"cancel": PermissionScope.CANCEL, "status": PermissionScope.STATUS,
-            "result": PermissionScope.RESULT}[command.kind]
+            "result": PermissionScope.RESULT, "evidence": PermissionScope.RESULT}[command.kind]
 
 
 class RemoteCommandView(_RemoteModel):

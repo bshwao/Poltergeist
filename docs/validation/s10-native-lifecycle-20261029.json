@@ -1,0 +1,157 @@
+{
+  "artifact": "validation-evidence/s10-installer-retention-fix/Poltergeist-Companion-Private-Setup.exe",
+  "build_tests": {
+    "passed": 8,
+    "report": "validation-evidence/s10-retention-build-tests.xml"
+  },
+  "cleanup": {
+    "active_runtime_removed": true,
+    "exit_code": 0,
+    "ownership_marker_retained": true,
+    "profile_bytes_preserved": true,
+    "profile_files": 10,
+    "profile_retained_for_evidence": true,
+    "retained_runtime_count": 1,
+    "validation_registration_removed": true
+  },
+  "driver_sha256": "7559b618e7690536c4ba9d51bf45338d68ba0f7af260a4057b7eebf3e83fca7f",
+  "fix": {
+    "behavior": "Retain installation.ini whenever recovery remains; other nonempty folders still require an existing matching owner marker.",
+    "file": "packaging/windows-x64/companion.iss",
+    "problem": "Uninstall removed installation.ini while retaining a repaired runtime in recovery, so same-folder reinstall rejected the formerly owned nonempty folder.",
+    "source_sha256": "70ebcfbff413b5d7c39f2dc36a07c43c0b98f8523990667ef6a1ab916b9b5cbf"
+  },
+  "goal_complete": false,
+  "installer": {
+    "build_id": "private-f459962989492a0d",
+    "bundle_manifest_sha256": "f459962989492a0df70eb31f237e8a245f6a75d3be64aad2e49a8d0afa8e9578",
+    "bytes": 58914004,
+    "compiler_version": "7.1.0",
+    "installer_sha256": "566014a89d321ed277260ba0692a3645ee3b83d781160ffd1680d50e27ee994a",
+    "signed": false,
+    "validation_only": true,
+    "version": "0.1.0"
+  },
+  "legacy_fixture_recovery_note": "The pre-fix uninstaller left the test folder without a marker. Only that fixture was recovered once using a byte-for-byte hash-matched original marker and a verified retained bundle. No such recovery occurred between the fixed uninstall and reinstall.",
+  "native_logs": [
+    "validation-evidence/s10-native-current/blocked-repair.log",
+    "validation-evidence/s10-native-current/cleanup-uninstall.log",
+    "validation-evidence/s10-native-current/fixed-install.log",
+    "validation-evidence/s10-native-current/fixed-reinstall.log",
+    "validation-evidence/s10-native-current/fixed-uninstall.log",
+    "validation-evidence/s10-native-current/install.log",
+    "validation-evidence/s10-native-current/reinstall.log",
+    "validation-evidence/s10-native-current/repair.log",
+    "validation-evidence/s10-native-current/uninstall.log"
+  ],
+  "native_signature": {
+    "publisher_sha256": "",
+    "status": "NotSigned",
+    "timestamp_present": false
+  },
+  "open_gates": [
+    "Real publisher/service and timestamped signed installer/metadata",
+    "Actual signed upgrade/compatible rollback and failure recovery",
+    "Independent Windows/CARLA/hardware and no-developer-tools external beta",
+    "Deployed delivery and agreed production capacity/provider targets"
+  ],
+  "phases": {
+    "blocked-repair-result.json": {
+      "app_changed_files": [],
+      "blocked": true,
+      "exit_code": 1,
+      "runtime_preserved": true,
+      "timed_out": false
+    },
+    "cleanup-result.json": {
+      "active_runtime_removed": true,
+      "exit_code": 0,
+      "ownership_marker_retained": true,
+      "profile_bytes_preserved": true,
+      "profile_files": 10,
+      "profile_retained_for_evidence": true,
+      "retained_runtime_count": 1,
+      "validation_registration_removed": true
+    },
+    "fixed-install-result.json": {
+      "exit_code": 0,
+      "installer_sha256": "566014a89d321ed277260ba0692a3645ee3b83d781160ffd1680d50e27ee994a",
+      "legacy_fixture_marker_restored_once": true,
+      "profile_bytes_preserved": true
+    },
+    "fixed-reinstall-result.json": {
+      "exit_code": 0,
+      "installed_runtime_check": true,
+      "no_manual_recovery_between_uninstall_and_reinstall": true,
+      "profile_bytes_preserved": true,
+      "same_install_folder": true
+    },
+    "fixed-uninstall-result.json": {
+      "exit_code": 0,
+      "ownership_marker_preserved": true,
+      "profile_bytes_preserved": true,
+      "profile_files": 10,
+      "retained_runtime_count": 1,
+      "validation_registration_removed": true
+    },
+    "install-result.json": {
+      "exit_code": 0,
+      "installer_sha256": "9cf96253195dd9d35a1a45c8b1923dda807aebcb473157048f69c11fd009ccaa",
+      "signed": false,
+      "state": "installed",
+      "validation_only": true
+    },
+    "legacy-fixture-recovery.json": {
+      "ownership_marker_matches_original_sha256": true,
+      "retained_bundle_integrity_verified": true,
+      "scope": "One-time recovery of this owned pre-fix test fixture; not a product migration"
+    },
+    "reinstall-result.json": {
+      "exit_code": 1,
+      "installed_marker_exists": false,
+      "profile_bytes_preserved": true,
+      "same_install_folder": true
+    },
+    "repair-result.json": {
+      "exit_code": 0,
+      "profile_bytes_preserved": true,
+      "profile_files": 10,
+      "recovery_bundle_identities": [
+        "f459962989492a0df70eb31f237e8a245f6a75d3be64aad2e49a8d0afa8e9578"
+      ],
+      "retained_runtime_count": 1
+    },
+    "uninstall-result.json": {
+      "exit_code": 0,
+      "profile_bytes_preserved": true,
+      "profile_files": 10,
+      "remaining_app_children": [
+        "recovery",
+        "unins000.exe"
+      ],
+      "validation_registration_removed": true
+    }
+  },
+  "recorded_at": "2026-10-29T16:56:08.504807+00:00",
+  "schema_version": "poltergeist-s10-native-lifecycle-v1",
+  "scope": "Same Windows development laptop/account, unsigned validation namespace and workspace-owned app/profile; no independent-machine or signed-update claim",
+  "workflow": {
+    "baseline_and_sdk_runs_completed": true,
+    "bundle_integrity_after": true,
+    "external_clean_machine_verified": false,
+    "hardware_mouse_verified": false,
+    "initial_profile_only_installer_owner_marker": true,
+    "installed_module_paths_verified": true,
+    "native_install": true,
+    "normal_synthetic_setup_callback": true,
+    "profile_lease_released": true,
+    "reopen_after_fixed_reinstall": true,
+    "reopen_after_repair": true,
+    "saved_result_ids": [
+      "ae912f14-38e0-4268-bf60-63a94acbc71b",
+      "9b39bbfd-f4ac-4262-8809-98496b92bec9"
+    ],
+    "telemetry_frames_reviewed": 11,
+    "updates_disabled_without_publisher": true
+  }
+}

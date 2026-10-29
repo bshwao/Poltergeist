@@ -62,7 +62,7 @@ class DecisionWriter:
     def _append(self, record):
         line = (_json(record.model_dump(mode="json")) + "\n").encode("utf-8")
         with self.store._contained(self.stage / ".records").open("ab") as stream:
-            stream.write(line)
+            self.store._write_bytes(stream, line)
         self.digest.update(line)
         self.total += 1
         self.applied += record.status == "applied"
@@ -79,13 +79,16 @@ class DecisionWriter:
                 "reset": None if self.context is None else self.context.model_dump(mode="json"),
                 "recording_artifact_index": recording_artifact_index}
             with self.store._contained(self.stage / "timeline.ndjson").open("xb") as target:
-                target.write((_json(header) + "\n").encode("utf-8"))
+                self.store._write_bytes(target, (_json(header) + "\n").encode("utf-8"))
                 spool = self.store._contained(self.stage / ".records")
                 if spool.exists():
                     with spool.open("rb") as source:
                         for chunk in iter(lambda: source.read(1024 * 1024), b""):
-                            target.write(chunk)
+                            self.store._write_bytes(target, chunk)
+                    size = spool.stat().st_size
                     spool.unlink()
+                    with self.store._budget_lock:
+                        self.store._used_bytes = max(0, self.store._used_bytes - size)
                 target.flush()
                 os.fsync(target.fileno())
             self.store._publish(self.stage, self.final)

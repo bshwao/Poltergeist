@@ -1,0 +1,70 @@
+{
+  "schema_version": "poltergeist-local-application-acceptance-v1",
+  "recorded_at": "2026-10-29T17:23:57.691700+00:00",
+  "requested_scope": "Verify the app works locally; signing, hosting and external beta deferred by the owner.",
+  "result": "passed_within_exercised_scope",
+  "tests": {
+    "desktop_controller_and_native_gui": 37,
+    "frontend_unit": 340,
+    "main_dashboard_browser": 6,
+    "connected_two_account_browser": 1,
+    "live_carla_browser": 1,
+    "typecheck": "passed",
+    "hosted_build": "passed",
+    "generated_contracts": "passed"
+  },
+  "packaged_desktop": {
+    "fresh_setup": true,
+    "baseline_and_starter_agent_runs": true,
+    "export": "passed",
+    "saved_results_after_reopen": true,
+    "telemetry_frames_reviewed": 11,
+    "core_bundle_integrity": true,
+    "profile_lease_released": true
+  },
+  "live_carla": {
+    "server_version": "0.9.16",
+    "map": "Town10HD_Opt",
+    "graphics": "Low",
+    "measured_duration_s": 10.000000149011612,
+    "sample_count": 402,
+    "raw_recording_bytes": 50643648,
+    "metadata_pages_reviewed": 17,
+    "review_response_body_bytes": 896621,
+    "evidence_requests_during_run": 0,
+    "camera_lidar_previews": "passed",
+    "sample_hashes": "passed",
+    "completed_result_after_reload": "passed"
+  },
+  "harness_change": {
+    "path": "frontend/hosted-e2e/carla.spec.ts",
+    "sha256": "f0ba0b5378c31d03a8f016983f25372c5ade116804d92016176a5ddfe1edbf51",
+    "reason": "CDP lost a response body although the UI displayed the next page. Observe cloned native fetch responses inside the browser; retain metadata and byte counts without raw chunks. Existing acceptance assertions remain."
+  },
+  "retained_failed_attempts": [
+    {
+      "log": "validation-evidence/app-working-carla-20261029.log",
+      "cause": "CDP response-body observation failed while application advanced to the next page.",
+      "trace": "validation-evidence/app-working-carla-observer-failure-20261029"
+    },
+    {
+      "log": "validation-evidence/app-working-carla-rerun-20261029.log",
+      "cause": "Concurrent Playwright suites had overlapping output folders; artifact cleanup removed active trace files. Final run used its own output folder."
+    }
+  ],
+  "evidence": {
+    "desktop_xml": "validation-evidence/app-working-desktop-20261029.xml",
+    "frontend_log": "validation-evidence/app-working-frontend-20261029.log",
+    "main_browser_log": "validation-evidence/app-working-local-dashboard-20261029.log",
+    "connected_browser": "validation-evidence/app-working-browser-20261029",
+    "packaged_native": "validation-evidence/app-working-packaged-20261029",
+    "carla_log": "validation-evidence/app-working-carla-final-20261029.log",
+    "carla_recordings": "validation-evidence/app-working-carla-final-20261029/carla-website-launches-a-m-9bbb3-lready-running-CARLA-server-hosted-chromium/carla-recording-evidence.json"
+  },
+  "limits": [
+    "Automated callbacks and browser checks on this development PC; no independent-machine or hardware-mouse acceptance.",
+    "A short baseline CARLA run, not long-duration or every-model coverage.",
+    "Windows Proactor connection-reset callbacks appear in fixture logs during disconnects; browser acceptance passed.",
+    "Signing, public hosting, signed upgrades/rollback and external beta remain deferred. The full S8-S10 release goal is not claimed complete."
+  ]
+}

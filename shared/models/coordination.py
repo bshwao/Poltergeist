@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, ConfigDict, Field, SecretStr, field_validator
+from pydantic import AwareDatetime, ConfigDict, Field, SecretStr, StrictBool, field_validator
 
 from .base import ContractModel
 
@@ -55,7 +55,8 @@ class DevicePolicy(ContractModel):
     max_ticks: Annotated[int, Field(ge=1, le=10000, strict=True)] = 10000
     max_waiting_runs: Annotated[int, Field(ge=0, le=10, strict=True)] = 10
     allow_map_reload: Literal[False] = False
-    allow_raw_capture: Literal[False] = False
+    allow_raw_capture: StrictBool = False
+    allow_evidence_read: bool = Field(default=False, exclude_if=lambda value: not value)
     allow_graphics_change: Literal[False] = False
     approved_agents: list[ApprovedAgent] = Field(default_factory=list, max_length=100)
 
