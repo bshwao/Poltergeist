@@ -117,7 +117,7 @@ def main():
                     raise ValueError()
                 body = json.loads(self.rfile.read(length))
                 name = body.get("name")
-                if name not in ("alice", "bob"):
+                if name not in ("alice", "bob", "lab"):
                     raise ValueError()
                 with mutex:
                     if self.path == "/new" and name not in controllers:

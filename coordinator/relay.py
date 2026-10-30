@@ -14,6 +14,7 @@ from shared.models.browser import BrowserConnectionView
 
 from .auth import AuthError
 from shared.models.evidence import EvidenceReply
+from shared.models.lab import LabCommand, LabReply
 
 
 @dataclass(eq=False)
@@ -30,6 +31,7 @@ class DeviceConnection:
     send_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     evidence_supported: bool = False
     recordings_supported: bool = False
+    lab_supported: bool = False
     transfers: dict = field(default_factory=dict)
 
     def envelope(self):
@@ -93,6 +95,7 @@ class RelayHub:
             protocol_compatible=True if current.ready else None,
             evidence_supported=current.evidence_supported,
             recordings_supported=current.recordings_supported,
+            lab_supported=current.lab_supported,
             remote_requests_enabled=current.ready and current.enabled)
 
     def notify(self, device_id):
@@ -143,6 +146,7 @@ class RelayHub:
                 current.ready, current.enabled = True, message.remote_execution_enabled
                 current.evidence_supported = current.evidence_supported and message.evidence_supported
                 current.recordings_supported = current.recordings_supported and message.recordings_supported
+                current.lab_supported = current.lab_supported and message.lab_supported
                 current.wake.set()
             elif isinstance(message, RelayPong):
                 if current.ping is None or message.nonce != current.ping[0]:
@@ -152,6 +156,13 @@ class RelayHub:
                 pending = current.transfers.get(message.reply.request_id)
                 if pending is not None:
                     command, future = pending
+                    if isinstance(command, LabCommand):
+                        if not isinstance(message.reply, LabReply) and message.reply.kind != "rejected":
+                            raise ValueError("Invalid experiment reply")
+                        if not future.done():
+                            future.set_result(message.reply)
+                        current.last_received = self.monotonic()
+                        continue
                     if not isinstance(message.reply, EvidenceReply) and message.reply.kind != "rejected":
                         raise ValueError("Invalid evidence reply")
                     if isinstance(message.reply, EvidenceReply) and (
@@ -222,6 +233,7 @@ class RelayHub:
         current.evidence_supported = getattr(socket, "headers", {}).get("x-poltergeist-evidence") == "v1"
         current.recordings_supported = (current.evidence_supported
             and getattr(socket, "headers", {}).get("x-poltergeist-recordings") == "v1")
+        current.lab_supported = getattr(socket, "headers", {}).get("x-poltergeist-lab") == "v1"
         previous = self.connections.get(identity["id"])
         self.connections[identity["id"]] = current
         if previous is not None:
@@ -233,7 +245,8 @@ class RelayHub:
             await socket.accept()
             await current.send(ServerHello(**current.envelope(), owner_id=identity["owner_id"],
                 policy_revision=identity["policy_revision"], policy=identity["policy"],
-                evidence_supported=current.evidence_supported, recordings_supported=current.recordings_supported))
+                evidence_supported=current.evidence_supported, recordings_supported=current.recordings_supported,
+                lab_supported=current.lab_supported))
             tasks = [asyncio.create_task(self._receive(current)), asyncio.create_task(self._deliver(current)),
                 asyncio.create_task(self._heartbeat(current))]
             await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -279,6 +292,34 @@ class RelayHub:
             return reply
         except TimeoutError:
             raise AuthError(504, "evidence_timeout", retry_after=1) from None
+        finally:
+            current.transfers.pop(command.request_id, None)
+            self.transfer_count -= 1
+            if not future.done():
+                future.cancel()
+
+    async def lab(self, owner_id, device_id, command):
+        generation = self.commands.authorize_lab(owner_id, device_id, command)
+        current = self.connections.get(str(device_id))
+        if not self.available(device_id) or not current.lab_supported:
+            raise AuthError(503, "lab_unavailable", retry_after=3)
+        if generation != current.identity["ownership_generation"]:
+            raise AuthError(403, "permission_denied")
+        if current.transfers or self.transfer_count >= self.max_transfers:
+            self.capacity_refusals += 1
+            raise AuthError(429, "transfer_busy", retry_after=1)
+        future = asyncio.get_running_loop().create_future()
+        current.transfers[command.request_id] = command, future
+        self.transfer_count += 1
+        try:
+            self._require_live(current)
+            await current.send(RelayCommand(**current.envelope(), command=command))
+            result = await asyncio.wait_for(future, timeout=10)
+            self._require_live(current)
+            self.commands.authorize_lab(owner_id, device_id, command)
+            return result
+        except TimeoutError:
+            raise AuthError(504, "lab_timeout", retry_after=1) from None
         finally:
             current.transfers.pop(command.request_id, None)
             self.transfer_count -= 1

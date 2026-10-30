@@ -14,7 +14,8 @@ from .simulation_job import SimulationJobRecord
 from .optimization import OptimizationOperationRecord, OptimizationTrialRecord
 from .agent_registration import AgentRegistrationRecord
 from .remote_receipt import RemoteCommandReceiptRecord, RemoteProjectionRecord
+from .experiment_document import ExperimentDocumentRecord
 
 __all__ = ["Base", "ScenarioRecord", "SimulationRecord", "FailureRecord", "SimulationJobRecord",
            "OptimizationOperationRecord", "OptimizationTrialRecord", "AgentRegistrationRecord",
-           "RemoteCommandReceiptRecord", "RemoteProjectionRecord"]
+           "RemoteCommandReceiptRecord", "RemoteProjectionRecord", "ExperimentDocumentRecord"]

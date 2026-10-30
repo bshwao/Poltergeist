@@ -7,11 +7,37 @@ const finite = (v: unknown): v is number => typeof v === "number" && Number.isFi
 const nullableNumber = (v: unknown) => v === null || finite(v);
 const timestamp = (v: unknown) => typeof v === "string" && /^\d{4}-\d\d-\d\dT/.test(v) && Number.isFinite(Date.parse(v));
 const counts = (v: unknown) => object(v) && Object.values(v).every(integer);
+const bounded = (v: unknown, minimum: number, maximum: number) => finite(v) && v >= minimum && v <= maximum;
+const templates = ["intersection", "pedestrian_crossing", "sudden_braking", "occluded_pedestrian"];
+export const sameJson = (a: unknown, b: unknown): boolean => {
+  if (a === b) return true;
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((item, i) => sameJson(item, b[i]));
+  return object(a) && object(b) && Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => Object.prototype.hasOwnProperty.call(b, key) && sameJson(a[key], b[key]));
+};
+export const isDiscoveryBudget = (v: unknown): v is Record<string, number> => object(v)
+  && [["max_executions", 3, 200], ["max_search_trials", 1, 100], ["confirmation_repeats", 2, 10], ["required_successes", 2, 10], ["max_candidates", 1, 20]].every(([key, low, high]) => integer(v[key]) && bounded(v[key], Number(low), Number(high)))
+  && Number(v.required_successes) <= Number(v.confirmation_repeats) && Number(v.max_executions) >= 1 + Number(v.confirmation_repeats)
+  && bounded(v.max_wall_time_s, 1, 7200) && bounded(v.max_simulated_time_s, Number.MIN_VALUE, 36000);
+export const isDiscoveryGoal = (v: unknown): v is Record<string, unknown> => object(v)
+  && typeof v.description === "string" && v.description.trim().length > 0 && v.description.length <= 500
+  && templates.includes(String(v.template)) && ["collision", "near_miss", "hard_braking", "traffic_violation"].includes(String(v.failure_kind))
+  && (v.agent_id === null || id(v.agent_id)) && integer(v.seed) && v.seed <= 2147483647
+  && bounded(v.duration_s, Number.MIN_VALUE, 120) && bounded(v.minimum_severity, 0, 100)
+  && object(v.parameters) && Object.values(v.parameters).every(p => typeof p === "boolean" || typeof p === "string" || finite(p))
+  && object(v.ranges) && Object.values(v.ranges).every(r => Array.isArray(r) && r.length === 2 && r.every(finite) && r[0] <= r[1])
+  && (v.driving_task === null || object(v.driving_task));
 type Checks = { scenario: (v: unknown) => boolean; options: (v: unknown) => boolean; evaluation: (v: unknown) => boolean; snapshot: (v: unknown) => boolean; failure: (v: unknown) => boolean };
 
 export function experimentContracts(check: Checks) {
   const snapshot = (v: unknown) => v === null || check.snapshot(v);
   const execution = (v: unknown) => object(v) && ["carla", "test"].includes(String(v.mode)) && check.options(v.options) && check.evaluation(v.evaluation_settings);
+  const suite = (r: unknown) => object(r) && execution(r) && typeof r.name === "string" && r.name.trim().length > 0 && r.name.length <= 128
+    && Array.isArray(r.cases) && r.cases.length >= 1 && r.cases.length <= 20
+    && r.cases.every(c => object(c) && typeof c.name === "string" && c.name.trim().length > 0 && c.name.length <= 128 && check.scenario(c.scenario))
+    && new Set(r.cases.map(c => String(c.name).toLocaleLowerCase())).size === r.cases.length
+    && Array.isArray(r.agents) && r.agents.length > 0 && r.agents.length <= 8 && r.agents.every(a => a === null || id(a)) && new Set(r.agents).size === r.agents.length
+    && Array.isArray(r.seeds) && r.seeds.length > 0 && r.seeds.length <= 20 && r.seeds.every(s => integer(s) && s <= 2147483647) && new Set(r.seeds).size === r.seeds.length
+    && integer(r.repeats) && r.repeats >= 1 && r.repeats <= 10 && r.cases.length * r.agents.length * r.seeds.length * r.repeats <= 200;
   function record(v: unknown): v is OptimizationRecord {
     if (!object(v) || !id(v.id) || !integer(v.revision) || v.revision < 1 || !timestamp(v.created_at)
       || !["queued", "running", "completed", "failed", "cancelled", "interrupted"].includes(String(v.status))
@@ -23,12 +49,12 @@ export function experimentContracts(check: Checks) {
       || (v.status === "failed" ? typeof v.error !== "string" : v.error !== null)
       || !(v.engine_version === null || typeof v.engine_version === "string")) return false;
     const r = v.request;
-    if (r.kind === "compare") {
-      if (!execution(r) || !check.scenario(r.scenario) || !Array.isArray(r.agents) || !r.agents.length || r.agents.length > 8
+    if (r.kind === "compare" || r.kind === "suite") {
+      if (!execution(r) || (r.kind === "suite" ? !suite(r) : !check.scenario(r.scenario)) || !Array.isArray(r.agents) || !r.agents.length || r.agents.length > 8
         || !r.agents.every(a => a === null || id(a)) || new Set(r.agents).size !== r.agents.length
         || !Array.isArray(r.seeds) || !r.seeds.length || r.seeds.length > 20 || !r.seeds.every(s => integer(s) && s <= 2147483647)
         || new Set(r.seeds).size !== r.seeds.length || !integer(r.repeats) || r.repeats < 1 || r.repeats > 10
-        || r.agents.length * r.seeds.length * r.repeats > 200 || v.agent_snapshot !== null || v.source_failure !== null
+        || r.agents.length * r.seeds.length * r.repeats * (r.kind === "suite" && Array.isArray(r.cases) ? r.cases.length : 1) > 200 || v.agent_snapshot !== null || v.source_failure !== null
         || v.comparison_agents.length !== r.agents.length) return false;
       if (!v.comparison_agents.every((a, i) => object(a) && a.agent_id === (r.agents as unknown[])[i] && snapshot(a.snapshot)
         && (a.agent_id === null ? a.snapshot === null : object(a.snapshot) && a.snapshot.registration_id === a.agent_id))) return false;
@@ -39,6 +65,17 @@ export function experimentContracts(check: Checks) {
           || !["random", "optuna"].includes(String(r.strategy)) || !integer(r.trials) || r.trials < 1 || r.trials > 1000
           || !integer(r.seed) || !object(r.parameters) || !object(r.ranges) || v.source_failure !== null
           || !((r.agent_id ?? null) === null ? v.agent_snapshot === null : object(v.agent_snapshot) && v.agent_snapshot.registration_id === r.agent_id)) return false;
+      } else if (r.kind === "discover") {
+        if (!execution(r) || !isDiscoveryBudget(r.budget) || !isDiscoveryGoal(r.goal) || !object(r.search)
+          || !Array.isArray(r.scenarios) || r.scenarios.length !== r.budget.max_search_trials
+          || !r.scenarios.every((scene, index) => check.scenario(scene) && object(scene) && scene.template === (r.goal as Record<string, unknown>).template
+            && scene.duration_s === (r.goal as Record<string, unknown>).duration_s && scene.seed === (Number((r.goal as Record<string, unknown>).seed) + index) % 2147483648)
+          || !id(r.plan_id) || r.plan_id !== v.id || typeof r.plan_digest !== "string" || !/^[0-9a-f]{64}$/.test(r.plan_digest)
+          || !timestamp(r.approved_at) || !timestamp(r.deadline_at) || Math.abs(Date.parse(String(r.deadline_at)) - Date.parse(String(r.approved_at)) - r.budget.max_wall_time_s * 1000) > 1
+          || r.search.kind !== "search" || r.search.strategy !== "random" || r.search.trials !== r.budget.max_search_trials
+          || v.source_failure !== null || !((r.goal.agent_id === null) ? v.agent_snapshot === null : object(v.agent_snapshot) && v.agent_snapshot.registration_id === r.goal.agent_id)
+          || !["mode", "options", "evaluation_settings"].every(key => sameJson(r[key], (r.search as Record<string, unknown>)[key]))
+          || !["template", "seed", "agent_id", "parameters", "ranges", "failure_kind", "minimum_severity", "driving_task", "duration_s"].every(key => sameJson((r.goal as Record<string, unknown>)[key], (r.search as Record<string, unknown>)[key]))) return false;
       } else if (r.kind === "reproduce" || r.kind === "minimize") {
         if (!id(r.failure_id) || !check.failure(v.source_failure) || !object(v.source_failure) || v.source_failure.id !== r.failure_id
           || !integer(r.repeats) || r.repeats < 1 || r.repeats > (r.kind === "reproduce" ? 20 : 10)) return false;
@@ -56,7 +93,7 @@ export function experimentContracts(check: Checks) {
     if (!object(v) || !record(v.operation) || (owner && v.operation.id.toLowerCase() !== owner.toLowerCase()) || !Array.isArray(v.trials)) return false;
     return v.trials.every((t, i) => object(t) && t.operation_id === (v.operation as OptimizationRecord).id && t.number === i
       && id(t.simulation_id) && integer(t.candidate_index) && integer(t.repeat_index) && integer(t.agent_index)
-      && ["search", "compare", "reproduce", "minimize_baseline", "minimize_candidate"].includes(String(t.role)) && check.scenario(t.scenario)
+      && ["search", "compare", "suite", "discovery_search", "discovery_confirm", "reproduce", "minimize_baseline", "minimize_candidate"].includes(String(t.role)) && check.scenario(t.scenario)
       && typeof t.assessed === "boolean" && (t.matches === null || typeof t.matches === "boolean") && nullableNumber(t.score)
       && (t.failure_id === null || id(t.failure_id)) && (t.reason === null || typeof t.reason === "string"));
   }
@@ -80,5 +117,5 @@ export function experimentContracts(check: Checks) {
         && Array.isArray(p.pairs) && p.pairs.every(pair => object(pair) && integer(pair.seed) && integer(pair.repeat_index)
           && [pair.reference_simulation_id, pair.compared_simulation_id].every(x => x === null || id(x)) && nullableNumber(pair.severity_difference) && typeof pair.reason === "string"));
   }
-  return { record, view, comparison };
+  return { record, view, comparison, suite, execution, distribution };
 }

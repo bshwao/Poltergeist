@@ -50,6 +50,11 @@ results can be interpreted in context.
 - An Experiments page for registered agent/version comparisons, matched seeds,
   repeated trials and source-aware search/reproduction/minimization, with
   frozen settings, explicit unknowns and downloadable comparison evidence.
+- A guided first experiment, illustrated gallery, reusable suites, matched
+  comparisons and frame-linked replay highlights in both dashboards.
+- A Failure Discovery Agent with reviewed plans, explicit execution/time budgets,
+  exact confirmation repeats and complete positive/negative/unknown evidence.
+  See [guided experimentation and discovery](docs/guided-experimentation.md).
 - A Python agent SDK and external worker for trusted local packages, with
   command-line execution and a persistent registry for queued experiments.
 - An Agents page for registering local packages, inspecting their saved

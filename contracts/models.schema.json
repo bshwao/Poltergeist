@@ -2655,6 +2655,11 @@
           "title": "Evidence Supported",
           "type": "boolean"
         },
+        "lab_supported": {
+          "default": false,
+          "title": "Lab Supported",
+          "type": "boolean"
+        },
         "last_seen_at": {
           "anyOf": [
             {
@@ -2724,7 +2729,8 @@
         "baseline_only",
         "carla_readiness",
         "evidence_supported",
-        "recordings_supported"
+        "recordings_supported",
+        "lab_supported"
       ],
       "title": "BrowserConnectionView",
       "type": "object"
@@ -2982,6 +2988,11 @@
           "default": "ready",
           "title": "Kind",
           "type": "string"
+        },
+        "lab_supported": {
+          "default": false,
+          "title": "Lab Supported",
+          "type": "boolean"
         },
         "ownership_generation": {
           "maximum": 9223372036854775807,
@@ -4280,6 +4291,665 @@
       "title": "DeviceView",
       "type": "object"
     },
+    "DiscoveryApproval": {
+      "additionalProperties": false,
+      "properties": {
+        "approve": {
+          "const": true,
+          "title": "Approve",
+          "type": "boolean"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "digest",
+        "approve"
+      ],
+      "title": "DiscoveryApproval",
+      "type": "object"
+    },
+    "DiscoveryBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "confirmation_repeats": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 2,
+          "title": "Confirmation Repeats",
+          "type": "integer"
+        },
+        "max_candidates": {
+          "default": 3,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Candidates",
+          "type": "integer"
+        },
+        "max_executions": {
+          "default": 12,
+          "maximum": 200,
+          "minimum": 3,
+          "title": "Max Executions",
+          "type": "integer"
+        },
+        "max_search_trials": {
+          "default": 6,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Max Search Trials",
+          "type": "integer"
+        },
+        "max_simulated_time_s": {
+          "default": 360.0,
+          "exclusiveMinimum": 0,
+          "maximum": 36000,
+          "title": "Max Simulated Time S",
+          "type": "number"
+        },
+        "max_wall_time_s": {
+          "default": 300.0,
+          "maximum": 7200,
+          "minimum": 1,
+          "title": "Max Wall Time S",
+          "type": "number"
+        },
+        "required_successes": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 2,
+          "title": "Required Successes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_executions",
+        "max_search_trials",
+        "confirmation_repeats",
+        "required_successes",
+        "max_candidates",
+        "max_wall_time_s",
+        "max_simulated_time_s"
+      ],
+      "title": "DiscoveryBudget",
+      "type": "object"
+    },
+    "DiscoveryCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_index": {
+          "minimum": 0,
+          "title": "Candidate Index",
+          "type": "integer"
+        },
+        "confirmation_simulation_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Confirmation Simulation Ids",
+          "type": "array"
+        },
+        "failure_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Failure Id"
+        },
+        "matching_confirmations": {
+          "minimum": 0,
+          "title": "Matching Confirmations",
+          "type": "integer"
+        },
+        "negative_confirmations": {
+          "minimum": 0,
+          "title": "Negative Confirmations",
+          "type": "integer"
+        },
+        "pending_confirmations": {
+          "minimum": 0,
+          "title": "Pending Confirmations",
+          "type": "integer"
+        },
+        "reproduction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReproductionRequest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "required_successes": {
+          "minimum": 0,
+          "title": "Required Successes",
+          "type": "integer"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "search_simulation_id": {
+          "format": "uuid",
+          "title": "Search Simulation Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "not_reproduced",
+            "inconclusive",
+            "pending"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unknown_confirmations": {
+          "minimum": 0,
+          "title": "Unknown Confirmations",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "candidate_index",
+        "scenario",
+        "search_simulation_id",
+        "failure_id",
+        "confirmation_simulation_ids",
+        "status",
+        "required_successes",
+        "matching_confirmations",
+        "negative_confirmations",
+        "unknown_confirmations",
+        "pending_confirmations",
+        "reproduction"
+      ],
+      "title": "DiscoveryCandidate",
+      "type": "object"
+    },
+    "DiscoveryGoal": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Id"
+        },
+        "description": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "driving_task": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrivingTask"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "duration_s": {
+          "default": 8.0,
+          "exclusiveMinimum": 0,
+          "maximum": 120,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "failure_kind": {
+          "$ref": "#/$defs/FailureKind",
+          "default": "collision"
+        },
+        "minimum_severity": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Minimum Severity",
+          "type": "number"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "ranges": {
+          "additionalProperties": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Ranges",
+          "type": "object"
+        },
+        "seed": {
+          "default": 0,
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "template": {
+          "$ref": "#/$defs/ScenarioTemplate",
+          "default": "sudden_braking"
+        }
+      },
+      "required": [
+        "description",
+        "failure_kind",
+        "template",
+        "agent_id",
+        "seed",
+        "parameters",
+        "ranges",
+        "minimum_severity",
+        "driving_task",
+        "duration_s"
+      ],
+      "title": "DiscoveryGoal",
+      "type": "object"
+    },
+    "DiscoveryPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_snapshot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentSnapshot"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "approved_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Approved At"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "deadline_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadline At"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "maximum_executions": {
+          "minimum": 0,
+          "title": "Maximum Executions",
+          "type": "integer"
+        },
+        "operation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operation Id"
+        },
+        "per_run_duration_s": {
+          "exclusiveMinimum": 0,
+          "title": "Per Run Duration S",
+          "type": "number"
+        },
+        "proposal": {
+          "$ref": "#/$defs/DiscoveryProposal"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "scenarios": {
+          "items": {
+            "$ref": "#/$defs/Scenario"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "poltergeist-discovery-plan-v1",
+          "default": "poltergeist-discovery-plan-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "search": {
+          "$ref": "#/$defs/SearchRequest"
+        },
+        "steps": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "revision",
+        "proposal",
+        "search",
+        "scenarios",
+        "agent_snapshot",
+        "digest",
+        "maximum_executions",
+        "per_run_duration_s",
+        "steps",
+        "limitations",
+        "created_at",
+        "expires_at",
+        "operation_id",
+        "approved_at",
+        "deadline_at"
+      ],
+      "title": "DiscoveryPlan",
+      "type": "object"
+    },
+    "DiscoveryProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "budget": {
+          "$ref": "#/$defs/DiscoveryBudget"
+        },
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "goal": {
+          "$ref": "#/$defs/DiscoveryGoal"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        }
+      },
+      "required": [
+        "mode",
+        "options",
+        "evaluation_settings",
+        "goal",
+        "budget"
+      ],
+      "title": "DiscoveryProposal",
+      "type": "object"
+    },
+    "DiscoveryReport": {
+      "additionalProperties": false,
+      "properties": {
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryCandidate"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "confirmed_failures": {
+          "minimum": 0,
+          "title": "Confirmed Failures",
+          "type": "integer"
+        },
+        "evidence": {
+          "$ref": "#/$defs/OptimizationView"
+        },
+        "executions_used": {
+          "minimum": 0,
+          "title": "Executions Used",
+          "type": "integer"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "negative_trials": {
+          "minimum": 0,
+          "title": "Negative Trials",
+          "type": "integer"
+        },
+        "plan": {
+          "$ref": "#/$defs/DiscoveryPlan"
+        },
+        "schema_version": {
+          "const": "poltergeist-discovery-report-v1",
+          "default": "poltergeist-discovery-report-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "simulated_time_reserved_s": {
+          "minimum": 0,
+          "title": "Simulated Time Reserved S",
+          "type": "number"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "unassessed_trials": {
+          "minimum": 0,
+          "title": "Unassessed Trials",
+          "type": "integer"
+        },
+        "unknown_trials": {
+          "minimum": 0,
+          "title": "Unknown Trials",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "plan",
+        "evidence",
+        "candidates",
+        "confirmed_failures",
+        "executions_used",
+        "simulated_time_reserved_s",
+        "negative_trials",
+        "unknown_trials",
+        "unassessed_trials",
+        "summary",
+        "limitations"
+      ],
+      "title": "DiscoveryReport",
+      "type": "object"
+    },
+    "DiscoveryRequest": {
+      "additionalProperties": false,
+      "description": "Internal approved plan, admitted only through discovery approval.",
+      "properties": {
+        "approved_at": {
+          "format": "date-time",
+          "title": "Approved At",
+          "type": "string"
+        },
+        "budget": {
+          "$ref": "#/$defs/DiscoveryBudget"
+        },
+        "deadline_at": {
+          "format": "date-time",
+          "title": "Deadline At",
+          "type": "string"
+        },
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "goal": {
+          "$ref": "#/$defs/DiscoveryGoal"
+        },
+        "kind": {
+          "const": "discover",
+          "default": "discover",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        },
+        "plan_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Plan Digest",
+          "type": "string"
+        },
+        "plan_id": {
+          "format": "uuid",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "scenarios": {
+          "items": {
+            "$ref": "#/$defs/Scenario"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "search": {
+          "$ref": "#/$defs/SearchRequest"
+        }
+      },
+      "required": [
+        "mode",
+        "options",
+        "evaluation_settings",
+        "kind",
+        "plan_id",
+        "plan_digest",
+        "goal",
+        "budget",
+        "search",
+        "scenarios",
+        "approved_at",
+        "deadline_at"
+      ],
+      "title": "DiscoveryRequest",
+      "type": "object"
+    },
     "DrivingOutcome": {
       "additionalProperties": false,
       "description": "Navigation measurements separate from execution and safety outcomes.",
@@ -5447,6 +6117,67 @@
       "title": "ExecutionSpec",
       "type": "object"
     },
+    "ExperimentationContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "approval": {
+          "$ref": "#/$defs/DiscoveryApproval"
+        },
+        "discovery_report": {
+          "$ref": "#/$defs/DiscoveryReport"
+        },
+        "feedback": {
+          "$ref": "#/$defs/GuidanceFeedback"
+        },
+        "gallery": {
+          "$ref": "#/$defs/GalleryScenario"
+        },
+        "highlights": {
+          "$ref": "#/$defs/ReplayHighlights"
+        },
+        "plan": {
+          "$ref": "#/$defs/DiscoveryPlan"
+        },
+        "proposal": {
+          "$ref": "#/$defs/DiscoveryProposal"
+        },
+        "saved_feedback": {
+          "$ref": "#/$defs/SavedFeedback"
+        },
+        "suite": {
+          "$ref": "#/$defs/SavedSuite"
+        },
+        "suite_launch": {
+          "$ref": "#/$defs/SuiteLaunch"
+        },
+        "suite_report": {
+          "$ref": "#/$defs/SuiteReport"
+        },
+        "suite_save": {
+          "$ref": "#/$defs/SuiteSave"
+        },
+        "suite_update": {
+          "$ref": "#/$defs/SuiteUpdate"
+        }
+      },
+      "required": [
+        "gallery",
+        "suite",
+        "suite_save",
+        "suite_update",
+        "suite_launch",
+        "suite_report",
+        "proposal",
+        "plan",
+        "approval",
+        "discovery_report",
+        "highlights",
+        "feedback",
+        "saved_feedback"
+      ],
+      "title": "ExperimentationContracts",
+      "type": "object"
+    },
     "FailureKind": {
       "enum": [
         "collision",
@@ -5516,6 +6247,110 @@
         "created_at"
       ],
       "title": "FailureReport",
+      "type": "object"
+    },
+    "GalleryScenario": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "family": {
+          "$ref": "#/$defs/ScenarioTemplate"
+        },
+        "id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "learning_goal": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Learning Goal",
+          "type": "string"
+        },
+        "level": {
+          "enum": [
+            "starter",
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        },
+        "title": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "family",
+        "level",
+        "learning_goal",
+        "scenario"
+      ],
+      "title": "GalleryScenario",
+      "type": "object"
+    },
+    "GuidanceFeedback": {
+      "additionalProperties": false,
+      "properties": {
+        "confusing_step": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Confusing Step",
+          "type": "string"
+        },
+        "consent_to_save": {
+          "const": true,
+          "title": "Consent To Save",
+          "type": "boolean"
+        },
+        "could_explain_outcome": {
+          "title": "Could Explain Outcome",
+          "type": "boolean"
+        },
+        "reason_to_return": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Reason To Return",
+          "type": "string"
+        },
+        "simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Simulation Id"
+        }
+      },
+      "required": [
+        "simulation_id",
+        "could_explain_outcome",
+        "confusing_step",
+        "reason_to_return",
+        "consent_to_save"
+      ],
+      "title": "GuidanceFeedback",
       "type": "object"
     },
     "HostedCoverageV1": {
@@ -6400,6 +7235,970 @@
       "type": "object"
     },
     "JsonValue": {},
+    "LabApprove": {
+      "additionalProperties": false,
+      "properties": {
+        "approval": {
+          "$ref": "#/$defs/DiscoveryApproval"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "plan_approve",
+          "default": "plan_approve",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "approval"
+      ],
+      "title": "LabApprove",
+      "type": "object"
+    },
+    "LabCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "discriminator": {
+            "mapping": {
+              "discovery_report": "#/$defs/LabIdentity",
+              "feedback": "#/$defs/LabFeedback",
+              "feedbacks": "#/$defs/LabPage",
+              "frame_get": "#/$defs/LabFrame",
+              "gallery": "#/$defs/LabGallery",
+              "highlights": "#/$defs/LabIdentity",
+              "operation_cancel": "#/$defs/LabIdentity",
+              "operation_get": "#/$defs/LabIdentity",
+              "operation_resume": "#/$defs/LabIdentity",
+              "plan_approve": "#/$defs/LabApprove",
+              "plan_get": "#/$defs/LabIdentity",
+              "plan_propose": "#/$defs/LabPropose",
+              "plans": "#/$defs/LabPage",
+              "run_cancel": "#/$defs/LabIdentity",
+              "run_get": "#/$defs/LabIdentity",
+              "run_launch": "#/$defs/LabLaunch",
+              "suite_delete": "#/$defs/LabIdentity",
+              "suite_get": "#/$defs/LabIdentity",
+              "suite_report": "#/$defs/LabIdentity",
+              "suite_run": "#/$defs/LabSuiteRun",
+              "suite_runs": "#/$defs/LabSuiteRuns",
+              "suite_save": "#/$defs/LabSuiteSave",
+              "suite_update": "#/$defs/LabSuiteUpdate",
+              "suites": "#/$defs/LabPage"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LabGallery"
+            },
+            {
+              "$ref": "#/$defs/LabPage"
+            },
+            {
+              "$ref": "#/$defs/LabIdentity"
+            },
+            {
+              "$ref": "#/$defs/LabSuiteRuns"
+            },
+            {
+              "$ref": "#/$defs/LabSuiteSave"
+            },
+            {
+              "$ref": "#/$defs/LabSuiteUpdate"
+            },
+            {
+              "$ref": "#/$defs/LabSuiteRun"
+            },
+            {
+              "$ref": "#/$defs/LabPropose"
+            },
+            {
+              "$ref": "#/$defs/LabApprove"
+            },
+            {
+              "$ref": "#/$defs/LabFeedback"
+            },
+            {
+              "$ref": "#/$defs/LabLaunch"
+            },
+            {
+              "$ref": "#/$defs/LabFrame"
+            }
+          ],
+          "title": "Action"
+        },
+        "kind": {
+          "const": "lab",
+          "default": "lab",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "test",
+                "carla"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mode"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "action",
+        "mode"
+      ],
+      "title": "LabCommand",
+      "type": "object"
+    },
+    "LabDeletedResult": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "deleted",
+          "default": "deleted",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "LabDeletedResult",
+      "type": "object"
+    },
+    "LabDiscoveryResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "discovery",
+          "default": "discovery",
+          "title": "Kind",
+          "type": "string"
+        },
+        "report": {
+          "$ref": "#/$defs/DiscoveryReport"
+        }
+      },
+      "required": [
+        "kind",
+        "report"
+      ],
+      "title": "LabDiscoveryResult",
+      "type": "object"
+    },
+    "LabFeedback": {
+      "additionalProperties": false,
+      "properties": {
+        "feedback": {
+          "$ref": "#/$defs/GuidanceFeedback"
+        },
+        "kind": {
+          "const": "feedback",
+          "default": "feedback",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "feedback"
+      ],
+      "title": "LabFeedback",
+      "type": "object"
+    },
+    "LabFeedbackResult": {
+      "additionalProperties": false,
+      "properties": {
+        "feedback": {
+          "$ref": "#/$defs/SavedFeedback"
+        },
+        "kind": {
+          "const": "feedback",
+          "default": "feedback",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "feedback"
+      ],
+      "title": "LabFeedbackResult",
+      "type": "object"
+    },
+    "LabFeedbacksResult": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/SavedFeedback"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "const": "feedbacks",
+          "default": "feedbacks",
+          "title": "Kind",
+          "type": "string"
+        },
+        "next_offset": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Offset"
+        },
+        "snapshot_at": {
+          "format": "date-time",
+          "title": "Snapshot At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "items",
+        "next_offset",
+        "snapshot_at"
+      ],
+      "title": "LabFeedbacksResult",
+      "type": "object"
+    },
+    "LabFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "frame_get",
+          "default": "frame_get",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "frame"
+      ],
+      "title": "LabFrame",
+      "type": "object"
+    },
+    "LabFrameResult": {
+      "additionalProperties": false,
+      "properties": {
+        "frame": {
+          "$ref": "#/$defs/EvidenceFrame"
+        },
+        "kind": {
+          "const": "frame",
+          "default": "frame",
+          "title": "Kind",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "simulation_id",
+        "frame"
+      ],
+      "title": "LabFrameResult",
+      "type": "object"
+    },
+    "LabGallery": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "gallery",
+          "default": "gallery",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "LabGallery",
+      "type": "object"
+    },
+    "LabGalleryResult": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/GalleryScenario"
+          },
+          "maxItems": 32,
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "const": "gallery",
+          "default": "gallery",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "items"
+      ],
+      "title": "LabGalleryResult",
+      "type": "object"
+    },
+    "LabHighlightsResult": {
+      "additionalProperties": false,
+      "properties": {
+        "highlights": {
+          "$ref": "#/$defs/ReplayHighlights"
+        },
+        "kind": {
+          "const": "highlights",
+          "default": "highlights",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "highlights"
+      ],
+      "title": "LabHighlightsResult",
+      "type": "object"
+    },
+    "LabIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "suite_get",
+            "suite_delete",
+            "plan_get",
+            "discovery_report",
+            "suite_report",
+            "operation_get",
+            "operation_cancel",
+            "operation_resume",
+            "run_get",
+            "run_cancel",
+            "highlights"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "expected_revision"
+      ],
+      "title": "LabIdentity",
+      "type": "object"
+    },
+    "LabLaunch": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "run_launch",
+          "default": "run_launch",
+          "title": "Kind",
+          "type": "string"
+        },
+        "launch": {
+          "$ref": "#/$defs/SimulationLaunch"
+        }
+      },
+      "required": [
+        "kind",
+        "launch"
+      ],
+      "title": "LabLaunch",
+      "type": "object"
+    },
+    "LabOperationResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "operation",
+          "default": "operation",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/OptimizationRecord"
+        }
+      },
+      "required": [
+        "kind",
+        "operation"
+      ],
+      "title": "LabOperationResult",
+      "type": "object"
+    },
+    "LabPage": {
+      "additionalProperties": false,
+      "properties": {
+        "before": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Before"
+        },
+        "kind": {
+          "enum": [
+            "suites",
+            "plans",
+            "feedbacks"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "default": 11,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "limit",
+        "offset",
+        "before"
+      ],
+      "title": "LabPage",
+      "type": "object"
+    },
+    "LabPlanResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "plan",
+          "default": "plan",
+          "title": "Kind",
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/$defs/DiscoveryPlan"
+        }
+      },
+      "required": [
+        "kind",
+        "plan"
+      ],
+      "title": "LabPlanResult",
+      "type": "object"
+    },
+    "LabPlansResult": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/DiscoveryPlan"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "const": "plans",
+          "default": "plans",
+          "title": "Kind",
+          "type": "string"
+        },
+        "next_offset": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Offset"
+        },
+        "snapshot_at": {
+          "format": "date-time",
+          "title": "Snapshot At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "items",
+        "next_offset",
+        "snapshot_at"
+      ],
+      "title": "LabPlansResult",
+      "type": "object"
+    },
+    "LabPropose": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "plan_propose",
+          "default": "plan_propose",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposal": {
+          "$ref": "#/$defs/DiscoveryProposal"
+        }
+      },
+      "required": [
+        "kind",
+        "proposal"
+      ],
+      "title": "LabPropose",
+      "type": "object"
+    },
+    "LabReply": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "lab",
+          "default": "lab",
+          "title": "Kind",
+          "type": "string"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "result": {
+          "discriminator": {
+            "mapping": {
+              "deleted": "#/$defs/LabDeletedResult",
+              "discovery": "#/$defs/LabDiscoveryResult",
+              "feedback": "#/$defs/LabFeedbackResult",
+              "feedbacks": "#/$defs/LabFeedbacksResult",
+              "frame": "#/$defs/LabFrameResult",
+              "gallery": "#/$defs/LabGalleryResult",
+              "highlights": "#/$defs/LabHighlightsResult",
+              "operation": "#/$defs/LabOperationResult",
+              "plan": "#/$defs/LabPlanResult",
+              "plans": "#/$defs/LabPlansResult",
+              "run": "#/$defs/LabRunResult",
+              "suite": "#/$defs/LabSuiteResult",
+              "suite_report": "#/$defs/LabSuiteReportResult",
+              "suite_runs": "#/$defs/LabSuiteRunsResult",
+              "suites": "#/$defs/LabSuitesResult"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LabGalleryResult"
+            },
+            {
+              "$ref": "#/$defs/LabSuitesResult"
+            },
+            {
+              "$ref": "#/$defs/LabPlansResult"
+            },
+            {
+              "$ref": "#/$defs/LabFeedbacksResult"
+            },
+            {
+              "$ref": "#/$defs/LabSuiteResult"
+            },
+            {
+              "$ref": "#/$defs/LabPlanResult"
+            },
+            {
+              "$ref": "#/$defs/LabOperationResult"
+            },
+            {
+              "$ref": "#/$defs/LabSuiteRunsResult"
+            },
+            {
+              "$ref": "#/$defs/LabDiscoveryResult"
+            },
+            {
+              "$ref": "#/$defs/LabSuiteReportResult"
+            },
+            {
+              "$ref": "#/$defs/LabRunResult"
+            },
+            {
+              "$ref": "#/$defs/LabHighlightsResult"
+            },
+            {
+              "$ref": "#/$defs/LabFrameResult"
+            },
+            {
+              "$ref": "#/$defs/LabFeedbackResult"
+            },
+            {
+              "$ref": "#/$defs/LabDeletedResult"
+            }
+          ],
+          "title": "Result"
+        }
+      },
+      "required": [
+        "kind",
+        "request_id",
+        "result"
+      ],
+      "title": "LabReply",
+      "type": "object"
+    },
+    "LabRunResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "run",
+          "default": "run",
+          "title": "Kind",
+          "type": "string"
+        },
+        "record": {
+          "$ref": "#/$defs/SimulationRecord"
+        }
+      },
+      "required": [
+        "kind",
+        "record"
+      ],
+      "title": "LabRunResult",
+      "type": "object"
+    },
+    "LabSuiteReportResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "suite_report",
+          "default": "suite_report",
+          "title": "Kind",
+          "type": "string"
+        },
+        "report": {
+          "$ref": "#/$defs/SuiteReport"
+        }
+      },
+      "required": [
+        "kind",
+        "report"
+      ],
+      "title": "LabSuiteReportResult",
+      "type": "object"
+    },
+    "LabSuiteResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "suite",
+          "default": "suite",
+          "title": "Kind",
+          "type": "string"
+        },
+        "suite": {
+          "$ref": "#/$defs/SavedSuite"
+        }
+      },
+      "required": [
+        "kind",
+        "suite"
+      ],
+      "title": "LabSuiteResult",
+      "type": "object"
+    },
+    "LabSuiteRun": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "suite_run",
+          "default": "suite_run",
+          "title": "Kind",
+          "type": "string"
+        },
+        "launch": {
+          "$ref": "#/$defs/SuiteLaunch"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "launch"
+      ],
+      "title": "LabSuiteRun",
+      "type": "object"
+    },
+    "LabSuiteRuns": {
+      "additionalProperties": false,
+      "properties": {
+        "before": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Before"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "suite_runs",
+          "default": "suite_runs",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "default": 11,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "limit",
+        "offset",
+        "before"
+      ],
+      "title": "LabSuiteRuns",
+      "type": "object"
+    },
+    "LabSuiteRunsResult": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/OptimizationRecord"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "const": "suite_runs",
+          "default": "suite_runs",
+          "title": "Kind",
+          "type": "string"
+        },
+        "next_offset": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Offset"
+        },
+        "snapshot_at": {
+          "format": "date-time",
+          "title": "Snapshot At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "items",
+        "next_offset",
+        "snapshot_at"
+      ],
+      "title": "LabSuiteRunsResult",
+      "type": "object"
+    },
+    "LabSuiteSave": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "suite_save",
+          "default": "suite_save",
+          "title": "Kind",
+          "type": "string"
+        },
+        "save": {
+          "$ref": "#/$defs/SuiteSave"
+        }
+      },
+      "required": [
+        "kind",
+        "save"
+      ],
+      "title": "LabSuiteSave",
+      "type": "object"
+    },
+    "LabSuiteUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "suite_update",
+          "default": "suite_update",
+          "title": "Kind",
+          "type": "string"
+        },
+        "save": {
+          "$ref": "#/$defs/SuiteUpdate"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "save"
+      ],
+      "title": "LabSuiteUpdate",
+      "type": "object"
+    },
+    "LabSuitesResult": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/SavedSuite"
+          },
+          "maxItems": 20,
+          "title": "Items",
+          "type": "array"
+        },
+        "kind": {
+          "const": "suites",
+          "default": "suites",
+          "title": "Kind",
+          "type": "string"
+        },
+        "next_offset": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Offset"
+        },
+        "snapshot_at": {
+          "format": "date-time",
+          "title": "Snapshot At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "items",
+        "next_offset",
+        "snapshot_at"
+      ],
+      "title": "LabSuitesResult",
+      "type": "object"
+    },
     "LidarFormat": {
       "additionalProperties": false,
       "properties": {
@@ -6582,9 +8381,11 @@
           "discriminator": {
             "mapping": {
               "compare": "#/$defs/ComparisonRequest",
+              "discover": "#/$defs/DiscoveryRequest",
               "minimize": "#/$defs/MinimizeRequest",
               "reproduce": "#/$defs/ReproductionRequest",
-              "search": "#/$defs/SearchRequest"
+              "search": "#/$defs/SearchRequest",
+              "suite": "#/$defs/SuiteRequest"
             },
             "propertyName": "kind"
           },
@@ -6594,6 +8395,12 @@
             },
             {
               "$ref": "#/$defs/ComparisonRequest"
+            },
+            {
+              "$ref": "#/$defs/SuiteRequest"
+            },
+            {
+              "$ref": "#/$defs/DiscoveryRequest"
             },
             {
               "$ref": "#/$defs/ReproductionRequest"
@@ -6664,6 +8471,17 @@
           "default": null,
           "title": "Best Simulation Id"
         },
+        "budget_exhausted": {
+          "default": false,
+          "title": "Budget Exhausted",
+          "type": "boolean"
+        },
+        "confirmed_failures": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Confirmed Failures",
+          "type": "integer"
+        },
         "reproduced": {
           "anyOf": [
             {
@@ -6675,6 +8493,18 @@
           ],
           "default": null,
           "title": "Reproduced"
+        },
+        "stop_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stop Reason"
         },
         "successes": {
           "default": 0,
@@ -6708,7 +8538,10 @@
         "best_failure_id",
         "best_scenario",
         "reproduced",
-        "summary"
+        "summary",
+        "confirmed_failures",
+        "budget_exhausted",
+        "stop_reason"
       ],
       "title": "OptimizationOutcome",
       "type": "object"
@@ -6807,9 +8640,11 @@
           "discriminator": {
             "mapping": {
               "compare": "#/$defs/ComparisonRequest",
+              "discover": "#/$defs/DiscoveryRequest",
               "minimize": "#/$defs/MinimizeRequest",
               "reproduce": "#/$defs/ReproductionRequest",
-              "search": "#/$defs/SearchRequest"
+              "search": "#/$defs/SearchRequest",
+              "suite": "#/$defs/SuiteRequest"
             },
             "propertyName": "kind"
           },
@@ -6819,6 +8654,12 @@
             },
             {
               "$ref": "#/$defs/ComparisonRequest"
+            },
+            {
+              "$ref": "#/$defs/SuiteRequest"
+            },
+            {
+              "$ref": "#/$defs/DiscoveryRequest"
             },
             {
               "$ref": "#/$defs/ReproductionRequest"
@@ -6988,6 +8829,9 @@
           "enum": [
             "search",
             "compare",
+            "suite",
+            "discovery_search",
+            "discovery_confirm",
             "reproduce",
             "minimize_baseline",
             "minimize_candidate"
@@ -7677,6 +9521,7 @@
               "cancel": "#/$defs/CancelCommand",
               "evidence": "#/$defs/EvidenceRequest",
               "execute": "#/$defs/ExecuteCommand",
+              "lab": "#/$defs/LabCommand",
               "result": "#/$defs/ResultCommand",
               "status": "#/$defs/StatusCommand"
             },
@@ -7697,6 +9542,9 @@
             },
             {
               "$ref": "#/$defs/EvidenceRequest"
+            },
+            {
+              "$ref": "#/$defs/LabCommand"
             }
           ],
           "title": "Command"
@@ -7878,6 +9726,7 @@
               "accepted": "#/$defs/ExecuteAccepted",
               "cancel_requested": "#/$defs/CancelAccepted",
               "evidence": "#/$defs/EvidenceReply",
+              "lab": "#/$defs/LabReply",
               "rejected": "#/$defs/CommandRejected",
               "result": "#/$defs/RunResultReply",
               "status": "#/$defs/DeviceStatusReply"
@@ -7902,6 +9751,9 @@
             },
             {
               "$ref": "#/$defs/EvidenceReply"
+            },
+            {
+              "$ref": "#/$defs/LabReply"
             }
           ],
           "title": "Reply"
@@ -7944,6 +9796,7 @@
                   "accepted": "#/$defs/ExecuteAccepted",
                   "cancel_requested": "#/$defs/CancelAccepted",
                   "evidence": "#/$defs/EvidenceReply",
+                  "lab": "#/$defs/LabReply",
                   "rejected": "#/$defs/CommandRejected",
                   "result": "#/$defs/RunResultReply",
                   "status": "#/$defs/DeviceStatusReply"
@@ -7968,6 +9821,9 @@
                 },
                 {
                   "$ref": "#/$defs/EvidenceReply"
+                },
+                {
+                  "$ref": "#/$defs/LabReply"
                 }
               ]
             },
@@ -8033,6 +9889,7 @@
               "cancel": "#/$defs/CancelCommand",
               "evidence": "#/$defs/EvidenceRequest",
               "execute": "#/$defs/ExecuteCommand",
+              "lab": "#/$defs/LabCommand",
               "result": "#/$defs/ResultCommand",
               "status": "#/$defs/StatusCommand"
             },
@@ -8053,6 +9910,9 @@
             },
             {
               "$ref": "#/$defs/EvidenceRequest"
+            },
+            {
+              "$ref": "#/$defs/LabCommand"
             }
           ],
           "title": "Command"
@@ -8097,6 +9957,7 @@
               "accepted": "#/$defs/ExecuteAccepted",
               "cancel_requested": "#/$defs/CancelAccepted",
               "evidence": "#/$defs/EvidenceReply",
+              "lab": "#/$defs/LabReply",
               "rejected": "#/$defs/CommandRejected",
               "result": "#/$defs/RunResultReply",
               "status": "#/$defs/DeviceStatusReply"
@@ -8121,6 +9982,9 @@
             },
             {
               "$ref": "#/$defs/EvidenceReply"
+            },
+            {
+              "$ref": "#/$defs/LabReply"
             }
           ],
           "title": "Reply"
@@ -8163,6 +10027,115 @@
         "max_ticks"
       ],
       "title": "RemoteRunOptions",
+      "type": "object"
+    },
+    "ReplayHighlight": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "frame": {
+          "minimum": 0,
+          "title": "Frame",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "collision",
+            "near_miss",
+            "hard_braking",
+            "traffic_violation",
+            "finish"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "const": "telemetry",
+          "default": "telemetry",
+          "title": "Source",
+          "type": "string"
+        },
+        "time_s": {
+          "minimum": 0,
+          "title": "Time S",
+          "type": "number"
+        },
+        "title": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "frame",
+        "time_s",
+        "title",
+        "description",
+        "source"
+      ],
+      "title": "ReplayHighlight",
+      "type": "object"
+    },
+    "ReplayHighlights": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage_complete": {
+          "title": "Coverage Complete",
+          "type": "boolean"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "highlights": {
+          "items": {
+            "$ref": "#/$defs/ReplayHighlight"
+          },
+          "maxItems": 12,
+          "title": "Highlights",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "test",
+            "carla"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "total_frames": {
+          "minimum": 0,
+          "title": "Total Frames",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "simulation_id",
+        "mode",
+        "highlights",
+        "total_frames",
+        "coverage_complete",
+        "explanation",
+        "limitations"
+      ],
+      "title": "ReplayHighlights",
       "type": "object"
     },
     "ReproductionRequest": {
@@ -8742,6 +10715,76 @@
       "title": "SafetyMetrics",
       "type": "object"
     },
+    "SavedFeedback": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "feedback": {
+          "$ref": "#/$defs/GuidanceFeedback"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "feedback",
+        "created_at"
+      ],
+      "title": "SavedFeedback",
+      "type": "object"
+    },
+    "SavedSuite": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "definition": {
+          "$ref": "#/$defs/SuiteRequest"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "definition",
+        "description",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "SavedSuite",
+      "type": "object"
+    },
     "Scenario": {
       "additionalProperties": false,
       "properties": {
@@ -9110,6 +11153,20 @@
           ],
           "default": null
         },
+        "duration_s": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 120,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration S"
+        },
         "evaluation_settings": {
           "$ref": "#/$defs/EvaluationSettings"
         },
@@ -9233,7 +11290,8 @@
         "minimum_severity",
         "failure_kind",
         "agent_id",
-        "driving_task"
+        "driving_task",
+        "duration_s"
       ],
       "title": "SearchRequest",
       "type": "object"
@@ -9274,6 +11332,11 @@
           "default": "hello",
           "title": "Kind",
           "type": "string"
+        },
+        "lab_supported": {
+          "default": false,
+          "title": "Lab Supported",
+          "type": "boolean"
         },
         "owner_id": {
           "format": "uuid",
@@ -10032,6 +12095,304 @@
       "title": "StoppingEpisode",
       "type": "object"
     },
+    "SuiteCase": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "scenario": {
+          "$ref": "#/$defs/Scenario"
+        }
+      },
+      "required": [
+        "name",
+        "scenario"
+      ],
+      "title": "SuiteCase",
+      "type": "object"
+    },
+    "SuiteCaseComparison": {
+      "additionalProperties": false,
+      "properties": {
+        "case_index": {
+          "minimum": 0,
+          "title": "Case Index",
+          "type": "integer"
+        },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/ComparisonGroup"
+          },
+          "title": "Groups",
+          "type": "array"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "paired_comparisons": {
+          "items": {
+            "$ref": "#/$defs/PairedComparison"
+          },
+          "title": "Paired Comparisons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "case_index",
+        "name",
+        "groups",
+        "paired_comparisons",
+        "notes"
+      ],
+      "title": "SuiteCaseComparison",
+      "type": "object"
+    },
+    "SuiteLaunch": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "request_id"
+      ],
+      "title": "SuiteLaunch",
+      "type": "object"
+    },
+    "SuiteReport": {
+      "additionalProperties": false,
+      "properties": {
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/SuiteCaseComparison"
+          },
+          "title": "Cases",
+          "type": "array"
+        },
+        "evidence": {
+          "$ref": "#/$defs/OptimizationView"
+        },
+        "schema_version": {
+          "const": "poltergeist-suite-report-v1",
+          "default": "poltergeist-suite-report-v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "evidence",
+        "cases"
+      ],
+      "title": "SuiteReport",
+      "type": "object"
+    },
+    "SuiteRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "agents": {
+          "items": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Agents",
+          "type": "array"
+        },
+        "cases": {
+          "items": {
+            "$ref": "#/$defs/SuiteCase"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Cases",
+          "type": "array"
+        },
+        "evaluation_settings": {
+          "$ref": "#/$defs/EvaluationSettings"
+        },
+        "failure_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FailureKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "suite",
+          "default": "suite",
+          "title": "Kind",
+          "type": "string"
+        },
+        "minimum_severity": {
+          "default": 0.0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Minimum Severity",
+          "type": "number"
+        },
+        "mode": {
+          "default": "carla",
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "options": {
+          "$ref": "#/$defs/SimulationOptions"
+        },
+        "repeats": {
+          "default": 1,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Repeats",
+          "type": "integer"
+        },
+        "seeds": {
+          "items": {
+            "maximum": 2147483647,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Seeds",
+          "type": "array"
+        },
+        "suite_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Suite Id"
+        },
+        "suite_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Suite Revision"
+        }
+      },
+      "required": [
+        "mode",
+        "options",
+        "evaluation_settings",
+        "kind",
+        "name",
+        "suite_id",
+        "suite_revision",
+        "cases",
+        "agents",
+        "seeds",
+        "repeats",
+        "failure_kind",
+        "minimum_severity"
+      ],
+      "title": "SuiteRequest",
+      "type": "object"
+    },
+    "SuiteSave": {
+      "additionalProperties": false,
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/SuiteRequest"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "definition",
+        "description"
+      ],
+      "title": "SuiteSave",
+      "type": "object"
+    },
+    "SuiteUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/SuiteRequest"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Description",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "definition",
+        "description",
+        "expected_revision"
+      ],
+      "title": "SuiteUpdate",
+      "type": "object"
+    },
     "TelemetryFrame": {
       "additionalProperties": false,
       "properties": {
@@ -10387,6 +12748,9 @@
     "coordination": {
       "$ref": "#/$defs/CoordinationContracts"
     },
+    "experimentation": {
+      "$ref": "#/$defs/ExperimentationContracts"
+    },
     "failure": {
       "$ref": "#/$defs/FailureReport"
     },
@@ -10432,7 +12796,8 @@
     "runner",
     "coordination",
     "remote",
-    "browser"
+    "browser",
+    "experimentation"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

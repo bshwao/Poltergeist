@@ -8,7 +8,7 @@ parent link are either both durable or neither is visible to the worker.
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 
 from shared.models.optimization import ExecutionSpec, OptimizationRecord, OptimizationTrial
 
@@ -57,7 +57,7 @@ class OptimizationRepository:
             value = OptimizationRecord.model_validate(value.model_dump(mode="python"))
         except (ValueError, TypeError) as error:
             raise PersistenceError(f"Invalid optimization operation: {error}") from error
-        if value.request.kind in {"search", "compare"}:
+        if value.request.kind in {"search", "compare", "suite", "discover"}:
             requested = ExecutionSpec(mode=value.request.mode, options=value.request.options,
                                       evaluation_settings=value.request.evaluation_settings)
             if _canonical(requested) != _canonical(value.execution):
@@ -79,7 +79,7 @@ class OptimizationRepository:
             if source_run.simulation.agent == "custom" and value.agent_snapshot is None:
                 raise PersistenceError("Legacy custom-agent sources have no reproducible registered snapshot")
         from backend.agent_repository import AgentRepository
-        snapshots = [item.snapshot for item in value.comparison_agents] if value.request.kind == "compare" else [value.agent_snapshot]
+        snapshots = [item.snapshot for item in value.comparison_agents] if value.request.kind in {"compare", "suite"} else [value.agent_snapshot]
         for snapshot in snapshots:
             if snapshot is not None:
                 registered = AgentRepository(self.session).get(snapshot.registration_id)
@@ -97,9 +97,15 @@ class OptimizationRepository:
     def get(self, operation_id):
         return self._stored(self._row(operation_id))
 
-    def list(self, *, limit=50, offset=0):
+    def list(self, *, limit=50, offset=0, suite_id=None, created_before=None):
         _page(limit, offset)
-        rows = self.session.scalars(select(OptimizationOperationRecord).order_by(
+        query = select(OptimizationOperationRecord)
+        if suite_id is not None:
+            query = query.where(func.json_extract(OptimizationOperationRecord.payload, "$.request.kind") == "suite",
+                func.json_extract(OptimizationOperationRecord.payload, "$.request.suite_id") == _id(suite_id))
+        if created_before is not None:
+            query = query.where(OptimizationOperationRecord.created_at <= _timestamp(created_before))
+        rows = self.session.scalars(query.order_by(
             OptimizationOperationRecord.created_at.desc(), OptimizationOperationRecord.id.desc(),
         ).limit(limit).offset(offset))
         return [self._stored(row) for row in rows]
@@ -211,26 +217,41 @@ class OptimizationRepository:
         if value.number != len(existing):
             raise ConflictError("Optimization trial numbers must be consecutive")
         request = parent.request
-        budget = request.trial_budget if request.kind == "compare" else request.trials if request.kind == "search" else request.repeats if request.kind == "reproduce" else request.max_trials
+        budget = request.trial_budget if request.kind in {"compare", "suite"} else request.budget.max_executions if request.kind == "discover" else request.trials if request.kind == "search" else request.repeats if request.kind == "reproduce" else request.max_trials
         if len(existing) >= budget:
             raise ConflictError("Optimization trial budget has been exhausted")
         roles = {"search": {"search"}, "compare": {"compare"}, "reproduce": {"reproduce"},
-                 "minimize": {"minimize_baseline", "minimize_candidate"}}
+                 "minimize": {"minimize_baseline", "minimize_candidate"}, "suite": {"suite"},
+                 "discover": {"discovery_search", "discovery_confirm"}}
         if value.role not in roles[request.kind]:
             raise PersistenceError("Optimization trial role must match its parent request")
         if request.kind == "search" and (value.repeat_index != 0 or value.candidate_index != value.number):
             raise PersistenceError("Search trials must enumerate one execution per candidate")
-        if request.kind == "compare":
+        if request.kind in {"compare", "suite"}:
             agents = len(request.agents)
             if (value.agent_index != value.number % agents
                     or value.repeat_index != (value.number // agents) % request.repeats
                     or value.candidate_index != value.number // (agents * request.repeats)):
                 raise PersistenceError("Comparison trials must preserve the seed/repeat/agent plan")
-            expected = request.scenario.model_copy(update={"seed": request.seeds[value.candidate_index]})
+            case_index, seed_index = divmod(value.candidate_index, len(request.seeds))
+            scenario = request.cases[case_index].scenario if request.kind == "suite" else request.scenario
+            expected = scenario.model_copy(update={"seed": request.seeds[seed_index]})
             if _canonical(value.scenario) != _canonical(expected):
                 raise PersistenceError("Comparison trial must preserve its paired scenario and seed")
         elif value.agent_index != 0:
             raise PersistenceError("Single-agent experiments require agent index zero")
+        if request.kind == "discover":
+            from optimization.discovery import candidates
+            from backend.experiment_repository import ExperimentRepository
+            plan = ExperimentRepository(self.session, "discovery").get(request.plan_id)
+            if plan.operation_id != parent.id or plan.digest != request.plan_digest or datetime.now(UTC) >= request.deadline_at:
+                raise ConflictError("Discovery approval is unavailable or its wall-time budget has expired")
+            if request != plan.approved_request():
+                raise PersistenceError("Discovery execution differs from its saved approval")
+            try:
+                candidates(parent, [*existing, value])
+            except ValueError as error:
+                raise PersistenceError(str(error)) from error
         if request.kind == "reproduce":
             if value.repeat_index != value.number or value.candidate_index != 0:
                 raise PersistenceError("Reproduction trials must enumerate the requested repetitions")
@@ -249,7 +270,7 @@ class OptimizationRepository:
         if _canonical(value.scenario) != _canonical(run.simulation.scenario):
             raise PersistenceError("Optimization trial scenario must match its simulation snapshot")
         job = JobRepository(self.session).get(value.simulation_id)
-        expected_agent = parent.comparison_agents[value.agent_index].snapshot if request.kind == "compare" else parent.agent_snapshot
+        expected_agent = parent.comparison_agents[value.agent_index].snapshot if request.kind in {"compare", "suite"} else parent.agent_snapshot
         if (run.simulation.agent_snapshot != expected_agent or job.agent_snapshot != expected_agent
                 or run.simulation.agent != ("baseline" if expected_agent is None else "custom")):
             raise PersistenceError("Optimization child must preserve its frozen agent identity")

@@ -10,6 +10,7 @@ import { mergeRuns, metric, terminal } from "./workflow";
 import type { HostedRun } from "./workflow";
 import { EvidencePanel } from "./EvidencePanel";
 import { RecordingPanel } from "./RecordingPanel";
+import { HostedLabWorkspace, hostedLabRoute } from "./LabWorkspace";
 
 type Client = ReturnType<typeof createHostedClient>;
 type Pending = { device: string; command: HostedCommand; uncertain: boolean };
@@ -204,6 +205,13 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
   const [older, setOlder] = useState<string | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<BrowserDeviceView | null>(null);
   const [refresh, setRefresh] = useState(0);
+  const [labRoute, setLabRoute] = useState(() => hostedLabRoute(typeof window === "undefined" ? "" : window.location.hash));
+  const [labVisited, setLabVisited] = useState(labRoute.section !== "legacy");
+  useEffect(() => {
+    const navigate = () => { const next = hostedLabRoute(window.location.hash); setLabRoute(next); if (next.section !== "legacy") setLabVisited(true); };
+    window.addEventListener("hashchange", navigate);
+    return () => window.removeEventListener("hashchange", navigate);
+  }, []);
   const pendingRef = useRef<Pending | null>(null);
   const runsRef = useRef<HostedRun[]>([]);
   const resultRequests = useRef(new Map<string, string>());
@@ -220,6 +228,7 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
     accountEpoch.current += 1;
     setDevices([]); setDevicesLoading(true); setPresets([]); setSelectedId(""); setRuns([]); runsRef.current = [];
     setClaim(null); setRevokeTarget(null); setPending(null); pendingRef.current = null; resultRequests.current.clear();
+    setLabRoute({ section: "legacy" }); setLabVisited(false);
     if (typeof window !== "undefined") window.history.replaceState(null, "", window.location.pathname + window.location.search);
   }
   function failed(error: unknown, context?: string) {
@@ -410,11 +419,11 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
   return <div className="hosted-shell">
     <SkipLink target="experiments" />
     <aside className="hosted-sidebar"><a className="hosted-brand" href="/app/"><Icon name="ghost" size={30} />Poltergeist<span>EXPERIMENT LAB</span></a>
-      <p className="hosted-nav-heading">YOUR WORKSPACE</p><nav aria-label="Workspace"><a href="#experiments"><Icon name="experiments" />Experiments</a><a href="#connect"><Icon name="simulations" />Connect a computer</a></nav>
+      <p className="hosted-nav-heading">YOUR WORKSPACE</p><nav aria-label="Workspace"><a href="#experiments" aria-current={labRoute.section === "legacy" && window.location.hash !== "#connect" ? "page" : undefined}><Icon name="experiments" />Experiments</a><a href="#lab" aria-current={labRoute.section === "guide" || labRoute.section === "run" ? "page" : undefined}><Icon name="lab" />Guided lab</a><a href="#discovery" aria-current={labRoute.section === "discovery" ? "page" : undefined}><Icon name="discovery" />Discovery</a><a href="#connect" aria-current={window.location.hash === "#connect" ? "page" : undefined}><Icon name="simulations" />Connect a computer</a></nav>
       <div className="hosted-sidebar-note"><Icon name="activity" /><strong>Local execution.<br />Connected insight.</strong><p>Your companion runs the simulation. This workspace receives approved summaries.</p></div><small className="hosted-sidebar-footer">Private connected workspace</small>
     </aside>
     <div className="hosted-workspace"><header className="hosted-topbar"><span>Workspace <span className="hosted-slash">/</span> Experiments</span><div><span className="hosted-account">{session.account.username}</span><button onClick={() => { void signOut(); }}>Sign out</button></div></header>
-      <main className="hosted-main" id="experiments" tabIndex={-1}><div className="hosted-page-heading"><div><p className="hosted-eyebrow">CONNECTED EXPERIMENTS</p><h1>Your lab, connected<span>.</span></h1><p className="hosted-muted">Create repeatable scenarios and review results from the computer you control.</p></div><button onClick={() => setRefresh(value => value + 1)}><Icon name="refresh" size={16} />Refresh computers</button></div>
+      <main className="hosted-main" id="experiments" tabIndex={-1}><div className="hosted-page-heading"><div><p className="hosted-eyebrow">CONNECTED EXPERIMENTS</p>{labRoute.section === "legacy" && <h1>Your lab, connected<span>.</span></h1>}<p className="hosted-muted">Create repeatable scenarios and review results from the computer you control.</p></div><button onClick={() => setRefresh(value => value + 1)}><Icon name="refresh" size={16} />Refresh computers</button></div>
         {notice && <p className="hosted-alert" role="alert">{notice}</p>}
         <div className="hosted-stats"><div><Icon name="simulations" /><span>Paired computers</span><strong>{devicesLoading ? "Loading…" : availabilityUnknown ? "Unknown" : devices.filter(value => !value.device.revoked_at).length}</strong></div><div><Icon name="activity" /><span>Accepting requests</span><strong>{devicesLoading ? "Loading…" : availabilityUnknown ? "Unknown" : devices.filter(value => value.connection.remote_requests_enabled).length}</strong></div><div><Icon name="experiments" /><span>Completed in this view</span><strong>{runs.filter(run => run.summary?.status === "completed").length}</strong></div></div>
         {devicesLoading ? <p className="hosted-state-note" role="status">Loading your computers…</p> : availabilityUnknown ? <section className="hosted-state-note" role="status"><strong>Computer availability could not be refreshed</strong><p>Check your connection and choose Refresh computers to try again. Sending new experiments is paused until availability is confirmed.</p></section> : !devices.some(value => !value.device.revoked_at) && <section className="hosted-state-note" role="status"><strong>No computers connected yet</strong><p>Pair Poltergeist Companion to run experiments and keep your results on that computer.</p><a href="#connect">Connect your first computer →</a></section>}
@@ -424,17 +433,19 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
             {!selected.device.revoked_at && <button className="hosted-danger-link" onClick={() => setRevokeTarget(selected)}>Revoke computer access</button>}</>}
         </section>
         {pending && <section className="hosted-card hosted-pending" role="status"><strong>{pending.uncertain ? "Delivery is unconfirmed" : "Waiting for your computer"}</strong><p>The original request identity is preserved. An acceptance acknowledgement confirms queueing, not completion.</p><code>{pending.command.request_id}</code>{pending.uncertain && <button onClick={() => { void retryPending(); }}>Retry original request</button>}</section>}
-        {selected && !selected.device.revoked_at && <div className="hosted-experiment-grid"><Composer key={key} target={selected} presets={presets} blocked={pending !== null || availabilityUnknown} onExecute={(recipe, mode, capture) => { void send({ kind: "execute", request_id: crypto.randomUUID(), scenario: recipe, mode, agent_id: null, options: { max_ticks: Math.min(10000, selected.device.policy.max_ticks), ...(capture.camera ? { camera: true } : {}), ...(capture.lidar ? { lidar: true } : {}) } }); }} />
+        {labRoute.section === "legacy" && selected && !selected.device.revoked_at && <div className="hosted-experiment-grid"><Composer key={key} target={selected} presets={presets} blocked={pending !== null || availabilityUnknown} onExecute={(recipe, mode, capture) => { void send({ kind: "execute", request_id: crypto.randomUUID(), scenario: recipe, mode, agent_id: null, options: { max_ticks: Math.min(10000, selected.device.policy.max_ticks), ...(capture.camera ? { camera: true } : {}), ...(capture.lidar ? { lidar: true } : {}) } }); }} />
           <section className="hosted-card hosted-run-list" aria-labelledby="runs-title"><div className="hosted-section-heading"><div><p className="hosted-eyebrow">DURABLE READBACK</p><h2 id="runs-title">Recent experiments</h2></div><span className="hosted-count">{runs.length}</span></div>
             {!runs.length ? <div className="hosted-empty"><Icon name="experiments" size={35} /><h3>Your next experiment starts here</h3><p>Choose a recipe and send an approved request. Existing receipts reappear when this page reloads.</p></div> : <ul>{runs.map(run => <li key={run.id}><button aria-pressed={run.id === activeRun?.id} onClick={() => setSelectedRun(run.id)}><span><strong>{run.summary?.scenario.name ?? `Experiment ${short(run.id)}`}</strong><small>{when(run.acceptedAt)}</small></span><span className="hosted-status" data-state={run.summary?.status ?? "queued"}>{run.summary ? readable(run.summary.status) : "Accepted"}</span></button></li>)}</ul>}
             {older && <button className="hosted-text-button" onClick={() => { const context = key, target = selected; void client.history(target.device.device_id, undefined, older).then(page => { if (context === scope.current) { paginated.current = true; ingest(page.items, context, target); setOlder(page.next_before); } }).catch(error => failed(error, context)); }}>Load earlier receipts</button>}
           </section></div>}
-        {activeRun && selected && <RunDetail run={activeRun} canRead={live && scopes.includes("result:read")} canCancel={live && scopes.includes("run:cancel") && pending === null}
+        {labRoute.section === "legacy" && activeRun && selected && <RunDetail run={activeRun} canRead={live && scopes.includes("result:read")} canCancel={live && scopes.includes("run:cancel") && pending === null}
           onRead={() => { void refreshResult(activeRun); }} onCancel={() => { void send({ kind: "cancel", request_id: crypto.randomUUID(), simulation_id: activeRun.id }); }} />}
-        {activeRun && selected && terminal(activeRun) && <EvidencePanel key={`${key}:${activeRun.id}`} client={client} device={selected.device.device_id}
+        {labRoute.section === "legacy" && activeRun && selected && terminal(activeRun) && <EvidencePanel key={`${key}:${activeRun.id}`} client={client} device={selected.device.device_id}
           run={activeRun.id} enabled={live && scopes.includes("result:read") && selected.connection.evidence_supported === true && selected.device.policy.allow_evidence_read === true} />}
-        {activeRun && selected && terminal(activeRun) && <RecordingPanel key={`recordings:${key}:${activeRun.id}`} client={client} device={selected.device.device_id}
+        {labRoute.section === "legacy" && activeRun && selected && terminal(activeRun) && <RecordingPanel key={`recordings:${key}:${activeRun.id}`} client={client} device={selected.device.device_id}
           run={activeRun.id} synthetic={activeRun.summary?.mode === "test"} enabled={live && scopes.includes("result:read") && selected.connection.recordings_supported === true && selected.device.policy.allow_evidence_read === true} />}
+        {labRoute.section !== "legacy" && !selected && <section className="hosted-state-note"><h1>Select a computer to open your experiment lab</h1><p>Pair or choose an approved companion, then return to the guided lab or discovery.</p><a href="#connect">Connect a computer</a></section>}
+        <div hidden={labRoute.section === "legacy"}>{labVisited && selected && !selected.device.revoked_at && <HostedLabWorkspace key={key} client={client} target={selected} contextKey={key} enabled={live} active={labRoute.section !== "legacy"} route={labRoute} authFailed={error => failed(error, key)} />}</div>
         <ConnectComputer claim={claim} busy={claimBusy} onClaim={claimCode} />
         <footer className="hosted-footer">A completed experiment is an observation, not a driving-safety guarantee. Evidence stays on your computer until requested.</footer>
       </main>

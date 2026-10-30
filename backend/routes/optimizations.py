@@ -11,7 +11,7 @@ from backend.services.comparison_service import build_comparison
 from shared.models.comparison import ComparisonReport
 from backend.services.optimization_service import OptimizationService
 from shared.models.api import QueueStatus
-from shared.models.optimization import OptimizationRecord, OptimizationRequest, OptimizationResume, OptimizationView
+from shared.models.optimization import OptimizationRecord, PublicOptimizationRequest, OptimizationResume, OptimizationView
 
 router = APIRouter(prefix="/optimizations", tags=["optimizations"])
 Optimizer = Annotated[OptimizationService, Depends(get_optimizer)]
@@ -30,7 +30,7 @@ def list_operations(optimizer: Optimizer, limit: Annotated[int, Query(ge=1, le=1
 
 
 @router.post("", response_model=OptimizationRecord, status_code=status.HTTP_202_ACCEPTED)
-def create(request: OptimizationRequest, optimizer: Optimizer):
+def create(request: PublicOptimizationRequest, optimizer: Optimizer):
     return optimizer.submit(request)
 
 

@@ -5,7 +5,10 @@ deployment, packaging and independent-machine gates. **S6 reliability remains
 open; S7's managed CPU pack is implemented, with independent-machine acceptance open.** Public S5 deployment is
 deferred at the user's request. S8–S10 now have private implementations with
 outstanding product, signing and external acceptance gates. **S11 visual design
-and usability is in progress**; S12–S19 remain planned. See the
+and usability is in progress**. S12's guided workflows are implemented, with
+independent new-tester acceptance open; S13's bounded discovery implementation
+is locally validated. S14–S19 remain planned. See
+[guided experimentation and discovery](guided-experimentation.md), the
 [S8–S10 checkpoint](evidence-capacity-release.md) and the
 [S11 implementation and review plan](visual-usability.md). See the dated
 [progress notes](progress-notes.md) for current work and validation.
@@ -104,8 +107,9 @@ desktop prototype; S3 has an installer/onboarding implementation under validatio
 S4 has private account/pairing, authenticated relay and normal desktop consent
 proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
 is deferred. S6 remains in progress; S7 has an external acceptance gate; S8–S10
-have private implementations described below. S11 is in progress; S12 onward
-remain **planned**. Earlier phases may build
+have private implementations described below. S11 is in progress; S12 has
+implemented guided workflows and an open human-adoption gate; S13 has a locally
+validated bounded discovery engine. S14 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -361,6 +365,13 @@ first-run testing on supported desktop displays and phone viewport sizes.
 
 ### S12 — Guided experimentation and adoption
 
+**Status: application implementation delivered; independent tester gate open.**
+Both dashboards now offer first-run guidance, illustrated galleries, saved
+suites, per-case comparisons, exact-frame highlights and deliberate feedback.
+Automated desktop/mobile journeys pass; new-tester feedback and verified
+feedback-driven changes still require actual participants. See the
+[workflow and acceptance guide](guided-experimentation.md).
+
 - Guide a first experiment with an illustrated scenario gallery and clear next
   actions; add saved experiment suites, useful comparisons and replay highlights.
 - Make results and exports understandable and collect deliberate tester feedback
@@ -370,6 +381,14 @@ first-run testing on supported desktop displays and phone viewport sizes.
 outcome without assistance, with feedback driving verified usability changes.
 
 ### S13 — Failure Discovery Agent
+
+**Status: private implementation delivered and locally validated.** Typed plans
+freeze all recipes, identities and settings before explicit budget approval.
+Serial search/confirmation retains every trial and preserves budgets across
+resume. Registered local agents, confirmed synthetic failures, inconclusive and
+negative searches, device ownership and revoked-consent checks pass. Live CARLA
+startup failures are retained as unknown evidence; see the dated
+[validation notes](progress-notes.md) for the current hardware result.
 
 - Translate an evaluation goal into a validated experiment plan using typed,
   allowlisted operations and user-approved execution/time budgets.

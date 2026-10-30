@@ -14,7 +14,7 @@ from sqlalchemy import Connection, inspect
 from .persistence_errors import DatabaseInitializationError
 
 
-CURRENT_REVISION = 6
+CURRENT_REVISION = 7
 
 _INITIAL_DDL = (
     """CREATE TABLE scenarios (
@@ -170,7 +170,26 @@ _CANCEL_ACK_CHECKSUM = sha256("\n".join(_CANCEL_ACK_DDL).encode("utf-8")).hexdig
 _COLUMNS["remote_command_receipts"].add("cancel_terminal")
 
 
+_EXPERIMENT_DOCUMENTS_DDL = (
+    """CREATE TABLE experiment_documents (
+        id VARCHAR(36) NOT NULL,
+        kind VARCHAR(16) NOT NULL CONSTRAINT ck_experiment_documents_kind
+            CHECK (kind IN ('suite','discovery','feedback','receipt')),
+        owner_scope VARCHAR(64),
+        payload TEXT NOT NULL,
+        revision INTEGER NOT NULL CONSTRAINT ck_experiment_documents_revision CHECK (revision >= 1),
+        created_at VARCHAR(32) NOT NULL, updated_at VARCHAR(32) NOT NULL,
+        PRIMARY KEY (id, kind)
+    )""",
+    "CREATE INDEX ix_experiment_documents_kind_created_id ON experiment_documents (kind, created_at, id)",
+)
+_EXPERIMENT_DOCUMENTS_CHECKSUM = sha256("\n".join(_EXPERIMENT_DOCUMENTS_DDL).encode("utf-8")).hexdigest()
+_COLUMNS["experiment_documents"] = {"id", "kind", "owner_scope", "payload", "revision", "created_at", "updated_at"}
+
+
 def _table_revision(name: str) -> int:
+    if name == "experiment_documents":
+        return 7
     if name in {"remote_command_receipts", "remote_run_projections"}:
         return 5
     return 4 if name == "agent_registrations" else 3 if name.startswith("optimization_") else 2 if name == "simulation_jobs" else 1
@@ -253,7 +272,8 @@ def migrate(connection: Connection) -> None:
                     (3, "optimization_journal", _OPTIMIZATION_CHECKSUM),
                     (4, "agent_registry", _AGENTS_CHECKSUM),
                     (5, "remote_command_receipts", _REMOTE_RECEIPTS_CHECKSUM),
-                    (6, "cancellation_acceptance_snapshot", _CANCEL_ACK_CHECKSUM)][:len(history)]
+                    (6, "cancellation_acceptance_snapshot", _CANCEL_ACK_CHECKSUM),
+                    (7, "guided_experiments_and_discovery", _EXPERIMENT_DOCUMENTS_CHECKSUM)][:len(history)]
         if [tuple(row) for row in history] != expected:
             raise DatabaseInitializationError("Unknown, future, or noncontiguous migration history")
         if not history and tables != {"schema_migrations"}:
@@ -311,5 +331,14 @@ def migrate(connection: Connection) -> None:
         connection.exec_driver_sql(
             "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
             (6, "cancellation_acceptance_snapshot", _CANCEL_ACK_CHECKSUM, datetime.now(UTC).isoformat()),
+        )
+        history = [*history, (6, "cancellation_acceptance_snapshot", _CANCEL_ACK_CHECKSUM)]
+    if len(history) == 6:
+        _verify_schema(connection, revision=6)
+        for statement in _EXPERIMENT_DOCUMENTS_DDL:
+            connection.exec_driver_sql(statement)
+        connection.exec_driver_sql(
+            "INSERT INTO schema_migrations (revision,name,checksum,applied_at) VALUES (?,?,?,?)",
+            (7, "guided_experiments_and_discovery", _EXPERIMENT_DOCUMENTS_CHECKSUM, datetime.now(UTC).isoformat()),
         )
     _verify_schema(connection)

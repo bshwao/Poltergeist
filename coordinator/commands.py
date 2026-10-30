@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from shared.models.coordination import DevicePolicy
 from shared.models.evidence import EvidenceRequest
+from shared.models.lab import LabCommand
 from shared.models.browser import BrowserCommandPage
 from shared.models.remote import (COMMAND_ADAPTER, REPLY_ADAPTER, CancelAccepted,
     CommandRejected, ExecuteAccepted, ExecuteCommand, RunResultReply,
@@ -157,7 +158,7 @@ class CommandService:
     def admit(self, owner_id, device_id, command, *, connected):
         # Validate again for direct callers; normalized defaults are part of the digest.
         command = parse_message(canonical_json(command), relay=False)
-        if isinstance(command, EvidenceRequest):
+        if isinstance(command, (EvidenceRequest, LabCommand)):
             raise AuthError(400, "use_evidence_endpoint")
         digest, payload = payload_digest(command), canonical_json(command)
         now = self.now()
@@ -203,6 +204,15 @@ class CommandService:
                 raise AuthError(403, "permission_denied")
             if self._execution(connection, row, command.simulation_id) is None:
                 raise AuthError(404, "resource_not_found")
+            return row["ownership_generation"]
+
+    def authorize_lab(self, owner_id, device_id, command):
+        if not isinstance(command, LabCommand):
+            raise AuthError(400, "invalid_request")
+        with self.store.transaction(write=False) as connection:
+            row = self._owner(connection, owner_id, device_id, scope=command_scope(command))
+            if not _stored(DevicePolicy, row["policy_json"]).allow_evidence_read:
+                raise AuthError(403, "permission_denied")
             return row["ownership_generation"]
 
     def get(self, owner_id, device_id, request_id):

@@ -5,6 +5,7 @@ import { ReadinessPanel } from "../components/ReadinessPanel";
 export function Dashboard({ active = true }: { active?: boolean }) {
   return <div className="overview-page">
     <header className="page-heading"><div><p className="eyebrow">WORKSPACE OVERVIEW</p><h1>Start with a scenario<span className="title-dot">.</span></h1><p className="page-description">A focused workspace for driving-safety experiments.</p></div></header>
+    <section className="notice" aria-label="First experiment guidance"><strong>New to the lab?</strong><p>Choose an illustrated scene, run one experiment and connect its outcome to recorded frame evidence.</p><a className="button primary" href="#lab">Start a guided experiment</a></section>
     <ReadinessPanel active={active} />
     <section className="overview-hero panel">
       <div className="hero-copy"><span className="badge badge-neutral">BUILD → RUN → REVIEW</span><h2>Build a scenario.<br />Run it in CARLA.</h2><p>Choose an intersection, pedestrian crossing, or sudden braking event. Adjust the conditions and inspect the recorded outcome.</p><a href="#scenarios" className="button primary">Open scenario workspace<Icon name="arrow" size={18} /></a></div>

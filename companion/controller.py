@@ -306,7 +306,7 @@ class CompanionController:
                 self._relay_approval = self._relay_fingerprint(binding, policy, credential)
                 self._relay_admission = True
                 service = RemoteService(runtime.worker(), lambda: self._remote_enrollment()[:2],
-                    lock=self._remote_lock)
+                    lock=self._remote_lock, optimizer_factory=runtime.optimizer)
                 factory = self._relay_factory or RelayClient
                 relay = factory(binding.origin, self._remote_enrollment, service,
                     remote_execution_enabled=self._relay_execution)

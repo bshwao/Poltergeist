@@ -6,6 +6,7 @@ No network I/O or telemetry loading happens here.
 """
 
 from math import ceil
+from contextlib import nullcontext
 from threading import RLock
 
 from backend.job_repository import JobRepository
@@ -20,6 +21,7 @@ from shared.models.remote import (CancelAccepted, CancelCommand, CommandRejected
     RunResultReply, canonical_json, command_scope, parse_message, payload_digest)
 from shared.models.runtime import SimulationOptions
 from shared.models.evidence import EvidenceRequest
+from shared.models.lab import LabCommand
 
 from .hosted_projection import HostedProjectionError, project_hosted_run
 
@@ -31,11 +33,16 @@ class RemoteDenied(Exception):
 
 
 class RemoteService:
-    def __init__(self, worker, approved_binding, *, lock=None):
+    def __init__(self, worker, approved_binding, *, lock=None, optimizer_factory=None):
         self.worker = worker
         self.database = worker.persistence.database
         self.approved_binding = approved_binding
         self.lock = lock or RLock()
+        self.lab_supported = optimizer_factory is not None
+        self.lab = None
+        if optimizer_factory is not None:
+            from .remote_lab import RemoteLabService
+            self.lab = RemoteLabService(self, optimizer_factory)
 
     def _approved(self, expected, command):
         try:
@@ -52,8 +59,16 @@ class RemoteService:
         return policy
 
     def _lookup(self, binding, command, digest):
+        from backend.experiment_repository import ExperimentRepository
+        from backend.remote_receipts import experiment_scope
         with self.database.session(write=False) as session:
             receipt = RemoteReceiptRepository(session).lookup(binding, command.request_id)
+            try:
+                ExperimentRepository(session, "receipt", owner_scope=experiment_scope(binding)).get(command.request_id)
+            except NotFoundError:
+                pass
+            else:
+                raise RemoteDenied("request_conflict")
         if receipt is not None and (receipt.operation != command.kind or receipt.payload_sha256 != digest):
             raise RemoteDenied("request_conflict")
         return receipt
@@ -77,9 +92,27 @@ class RemoteService:
         # coordinator admission. A structurally invalid envelope closes the relay
         # before dispatch rather than inventing a request identity here.
         command = parse_message(canonical_json(command), relay=False)
-        with self.lock:
+        lab_read = isinstance(command, LabCommand) and self.lab is not None and self.lab.is_read(command)
+        with nullcontext() if lab_read else self.lock:
             try:
-                policy = self._approved(binding, command)
+                if lab_read:
+                    with self.lock:
+                        policy = self._approved(binding, command)
+                else:
+                    policy = self._approved(binding, command)
+                if isinstance(command, LabCommand):
+                    if self.lab is None:
+                        raise RemoteDenied("invalid_request")
+                    try:
+                        reply = self.lab.dispatch(binding, command, policy)
+                        if lab_read:
+                            with self.lock:
+                                self._approved(binding, command)
+                        return reply
+                    except ValueError as error:
+                        if isinstance(error, PersistenceError):
+                            raise
+                        raise RemoteDenied("invalid_request") from None
                 if isinstance(command, ExecuteCommand):
                     return self._execute(binding, command, policy)
                 if isinstance(command, CancelCommand):
@@ -113,14 +146,16 @@ class RemoteService:
         from .evidence import read_evidence
         with self.database.session(write=False) as session:
             receipt = RemoteReceiptRepository(session).execution_for_run(binding, command.simulation_id)
-            if receipt is None:
-                raise RemoteDenied("run_not_found")
             stored = SimulationRepository(session).get(command.simulation_id)
-            if receipt.scenario_sha256 != payload_digest(stored.simulation.scenario):
+            if receipt is not None and receipt.scenario_sha256 != payload_digest(stored.simulation.scenario):
                 raise RemoteDenied("result_unavailable")
+        if receipt is None:
+            if self.lab is None:
+                raise RemoteDenied("run_not_found")
+            stored = self.lab.owned_run(binding, command.simulation_id)
         return read_evidence(self.worker.persistence.artifacts, stored.result, command)
 
-    def _execute(self, binding, command, policy):
+    def _execute(self, binding, command, policy, *, on_created=None):
         digest = payload_digest(command)
         existing = self._lookup(binding, command, digest)
         if existing is not None:
@@ -151,6 +186,8 @@ class RemoteService:
                 raise QueueFullError("Remote waiting queue is full")
             accepted.append(repository.create(binding, command.request_id, "execute", digest,
                 stored.simulation.id, scenario_sha256=scenario_digest))
+            if on_created is not None:
+                on_created(session, stored)
 
         try:
             self.worker.submit(command.scenario, mode=command.mode,

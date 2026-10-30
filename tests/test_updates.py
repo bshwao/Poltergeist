@@ -29,6 +29,7 @@ def release(tmp_path):
     bundle = b'{"fixture":"new immutable bundle"}'
     now = datetime.now(UTC)
     values = dict(version="0.2.0", created_at=now - timedelta(minutes=1), expires_at=now + timedelta(days=2),
+        profile_schema_max=7,
         installer_bytes=installer.stat().st_size, installer_sha256=file_digest(installer),
         bundle_manifest_sha256=sha256(bundle).hexdigest())
     manifest = tmp_path / "release.ps1"
@@ -131,7 +132,7 @@ def test_open_profile_queued_work_and_schema_incompatible_rollback_are_refused(t
         persistence.create_simulation({"name": "Queued work", "actors": [{"type": "ego_vehicle"}]}, mode="test")
         with pytest.raises(ValueError, match="queued"):
             attempt()
-        write(version="0.0.9", profile_schema_min=7, profile_schema_max=7)
+        write(version="0.0.9", profile_schema_min=6, profile_schema_max=6)
         with pytest.raises(ValueError, match="schema"):
             attempt(rollback=True)
         assert calls == [] and not (directory / "updates").exists()
@@ -190,3 +191,18 @@ def test_native_authenticode_rejects_unsigned_fixture(tmp_path):
 def test_signing_command_configuration_refuses_unsafe_substitution(url):
     with pytest.raises(ValueError):
         signing_inputs("signtool.exe", "0" * 40, url, PIN)
+
+
+def test_new_release_metadata_advertises_current_schema_without_reinterpreting_old_manifests(tmp_path, monkeypatch):
+    from scripts import release as producer
+    from backend.migrations import CURRENT_REVISION
+    installer, output = tmp_path / "Setup.exe", tmp_path / "release.ps1"
+    installer.write_bytes(b"disposable signed-release metadata fixture")
+    monkeypatch.setattr(producer, "verify_signature", lambda *args: PIN)
+    monkeypatch.setattr(producer, "powershell", lambda *args, **kwargs: None)
+    producer.signed_metadata(installer, "b" * 64, output, version="0.2.0", thumbprint="0" * 40,
+        timestamp_url="http://timestamp.test", publisher=PIN)
+    value = ReleaseManifest.model_validate_json(output.read_text(encoding="utf-8-sig").splitlines()[1][2:])
+    assert value.profile_schema_min == 6 and value.profile_schema_max == CURRENT_REVISION
+    legacy = value.model_dump(exclude={"profile_schema_min", "profile_schema_max"})
+    assert ReleaseManifest.model_validate(legacy).profile_schema_max == 6

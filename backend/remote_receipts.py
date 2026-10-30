@@ -9,18 +9,27 @@ acceptance, not the later simulation or hosted projection sequence.
 
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
+from hashlib import sha256
+import json
 import re
 from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, union
 from sqlalchemy.orm import Session
 
 from shared.origins import service_origin
 
-from .models import RemoteCommandReceiptRecord, RemoteProjectionRecord, SimulationJobRecord, SimulationRecord
+from .models import (ExperimentDocumentRecord, OptimizationTrialRecord, RemoteCommandReceiptRecord,
+    RemoteProjectionRecord, SimulationJobRecord, SimulationRecord)
 from .persistence_errors import ConflictError, PersistenceError
 from .repositories import _flush
+
+
+def experiment_scope(binding):
+    """Private lab documents follow the same account/device/pairing generation."""
+    value = [binding.origin, str(binding.device_id), str(binding.owner_id), binding.generation]
+    return sha256(json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
 
 
 def _uuid(value) -> UUID:
@@ -216,10 +225,15 @@ class RemoteReceiptRepository:
         """Count owned unclaimed, uncancelled queued jobs, never cancel receipts."""
         self._check_owner(binding)
         row = RemoteCommandReceiptRecord
-        return self.session.scalar(select(func.count(func.distinct(row.simulation_id))).select_from(row).join(
-            SimulationRecord, SimulationRecord.id == row.simulation_id,
-        ).join(SimulationJobRecord, SimulationJobRecord.simulation_id == row.simulation_id).where(
-            *self._scope(binding), row.operation == "execute", SimulationRecord.status == "queued",
+        owned = union(select(row.simulation_id).where(*self._scope(binding), row.operation == "execute"),
+            select(OptimizationTrialRecord.simulation_id).join(ExperimentDocumentRecord,
+                ExperimentDocumentRecord.id == OptimizationTrialRecord.operation_id).where(
+                    ExperimentDocumentRecord.owner_scope == experiment_scope(binding),
+                    ExperimentDocumentRecord.kind.in_(("discovery", "receipt")))).subquery()
+        return self.session.scalar(select(func.count()).select_from(owned).join(
+            SimulationRecord, SimulationRecord.id == owned.c.simulation_id,
+        ).join(SimulationJobRecord, SimulationJobRecord.simulation_id == owned.c.simulation_id).where(
+            SimulationRecord.status == "queued",
             SimulationJobRecord.claimed.is_(False), SimulationJobRecord.cancel_requested.is_(False),
         ))
 

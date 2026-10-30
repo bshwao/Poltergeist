@@ -108,7 +108,8 @@ class RelayClient:
                 uri = "wss" + self.origin[5:] + "/v1/device/connect"
                 connector = self._connector(uri, ssl=self._context, proxy=None, compression=None,
                         additional_headers={"Authorization": "Bearer " + credential,
-                                            "X-Poltergeist-Evidence": "v1", "X-Poltergeist-Recordings": "v1"},
+                                            "X-Poltergeist-Evidence": "v1", "X-Poltergeist-Recordings": "v1",
+                                            **({"X-Poltergeist-Lab": "v1"} if getattr(self.service, "lab_supported", False) else {})},
                         open_timeout=10, close_timeout=2, ping_interval=None, ping_timeout=None,
                         max_size=MAX_RELAY_BYTES, max_queue=4, logger=self._logger)
                 with self._lock:
@@ -145,7 +146,8 @@ class RelayClient:
         fields = dict(device_id=hello.device_id, ownership_generation=hello.ownership_generation,
                       connection_generation=hello.connection_generation)
         ready = ClientReady(**fields, remote_execution_enabled=self.enabled,
-                            evidence_supported=hello.evidence_supported, recordings_supported=hello.recordings_supported)
+                            evidence_supported=hello.evidence_supported, recordings_supported=hello.recordings_supported,
+                            lab_supported=hello.lab_supported and getattr(self.service, "lab_supported", False))
         excluded = set()
         if not hello.evidence_supported:
             excluded.add("evidence_supported")

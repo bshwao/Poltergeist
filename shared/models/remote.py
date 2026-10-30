@@ -14,6 +14,7 @@ from .evaluation import EvaluationSettings
 from .evidence import EvidenceRequest, EvidenceReply
 from .hosted import HostedRunSummaryV1
 from .scenario import Scenario
+from .lab import LabCommand, LabReply
 
 MAX_COMMAND_BYTES = 32768
 MAX_RELAY_BYTES = 262144
@@ -76,7 +77,7 @@ class ResultCommand(_RemoteModel):
     simulation_id: UUID
 
 
-RemoteCommand = Annotated[ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest,
+RemoteCommand = Annotated[ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest | LabCommand,
                           Field(discriminator="kind")]
 COMMAND_ADAPTER = TypeAdapter(RemoteCommand)
 
@@ -121,7 +122,7 @@ class CommandRejected(_RemoteModel):
     code: RemoteErrorCode
 
 
-RemoteReply = Annotated[ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply,
+RemoteReply = Annotated[ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply | LabReply,
                        Field(discriminator="kind")]
 REPLY_ADAPTER = TypeAdapter(RemoteReply)
 
@@ -142,6 +143,7 @@ class ServerHello(_Envelope):
     dead_timeout_s: Literal[90] = 90
     evidence_supported: bool = Field(default=False, exclude_if=lambda value: not value)
     recordings_supported: bool = Field(default=False, exclude_if=lambda value: not value)
+    lab_supported: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class ClientReady(_Envelope):
@@ -149,6 +151,7 @@ class ClientReady(_Envelope):
     remote_execution_enabled: bool = False
     evidence_supported: bool = Field(default=False, exclude_if=lambda value: not value)
     recordings_supported: bool = Field(default=False, exclude_if=lambda value: not value)
+    lab_supported: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class RelayCommand(_Envelope):
@@ -216,6 +219,12 @@ def parse_message(value: str | bytes, *, relay=True):
 
 
 def command_scope(command: RemoteCommand) -> PermissionScope:
+    if isinstance(command, LabCommand):
+        if command.action.kind in {"operation_cancel", "run_cancel"}:
+            return PermissionScope.CANCEL
+        if command.action.kind in {"suite_run", "plan_approve", "run_launch", "operation_resume"}:
+            return PermissionScope.EXECUTE_TEST if command.mode == "test" else PermissionScope.EXECUTE_CARLA
+        return PermissionScope.RESULT
     if isinstance(command, ExecuteCommand):
         return PermissionScope.EXECUTE_TEST if command.mode == "test" else PermissionScope.EXECUTE_CARLA
     return {"cancel": PermissionScope.CANCEL, "status": PermissionScope.STATUS,

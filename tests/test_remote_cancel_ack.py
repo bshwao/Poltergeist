@@ -68,7 +68,8 @@ def test_legacy_unknown_cancel_ack_is_retained_without_inventing_terminal_or_res
     # any existing acceptance identity, timestamp or payload field.
     with closing(sqlite3.connect(path)) as connection, connection:
         connection.execute("ALTER TABLE remote_command_receipts DROP COLUMN cancel_terminal")
-        connection.execute("DELETE FROM schema_migrations WHERE revision=6")
+        connection.execute("DROP TABLE experiment_documents")
+        connection.execute("DELETE FROM schema_migrations WHERE revision>=6")
         before = connection.execute("SELECT * FROM remote_command_receipts ORDER BY id").fetchall()
     restarted, service, _ = make()
     def unexpected_cancel(*args, **kwargs):

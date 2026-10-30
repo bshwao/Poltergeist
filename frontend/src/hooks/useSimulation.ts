@@ -7,7 +7,7 @@ type Snapshot = { id: string; record: SimulationRecord | null; progress: Simulat
 type Session = { id: string; controller: AbortController; cancel: AbortController | null };
 
 /** One serial poll per selected, visible run. Revisions prevent cancellation races. */
-export function useSimulation(id: string | null, active = true) {
+export function useSimulation(id: string | null, active = true, client: Pick<typeof api, "getSimulation" | "getSimulationProgress" | "getSimulationResult" | "cancelSimulation"> = api) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const latest = useRef<Snapshot | null>(null);
   const updateSnapshot = useCallback((update: (previous: Snapshot | null) => Snapshot | null) => {
@@ -42,7 +42,7 @@ export function useSimulation(id: string | null, active = true) {
       const deadline = setTimeout(abort, 12_000);
       try {
         if (!current) {
-          current = await api.getSimulation(id!, { signal: request.signal });
+          current = await client.getSimulation(id!, { signal: request.signal });
           if (!live()) return;
           const record = current;
           if (record.revision < knownRevision()) { updateSnapshot(previous => previous ? { ...previous, loading: false } : previous); current = null; schedule(); return; }
@@ -50,7 +50,7 @@ export function useSimulation(id: string | null, active = true) {
             ? { ...previous, loading: false, error: null } : { id: id!, record, progress: null, error: null, loading: false });
         }
         if (!isTerminal(current.simulation.status)) {
-          const progress = await api.getSimulationProgress(id!, { signal: request.signal });
+          const progress = await client.getSimulationProgress(id!, { signal: request.signal });
           if (!live()) return;
           if (progress.revision < knownRevision()) { schedule(); return; }
           updateSnapshot(previous => previous?.id === id
@@ -62,12 +62,12 @@ export function useSimulation(id: string | null, active = true) {
             schedule();
             return;
           }
-          current = await api.getSimulation(id!, { signal: request.signal });
+          current = await client.getSimulation(id!, { signal: request.signal });
           if (!live()) return;
           if (current.revision < knownRevision()) { current = null; schedule(); return; }
         }
         if (!current.result) {
-          const result = await api.getSimulationResult(id!, { signal: request.signal });
+          const result = await client.getSimulationResult(id!, { signal: request.signal });
           if (!live()) return;
           current = { ...current, simulation: result.simulation, result };
         }
@@ -93,7 +93,7 @@ export function useSimulation(id: string | null, active = true) {
       clearTimeout(timer);
       if (session.current === scope) session.current = null;
     };
-  }, [id, active, attempt, updateSnapshot]);
+  }, [id, active, attempt, updateSnapshot, client]);
 
   const cancel = useCallback(async () => {
     const scope = session.current;
@@ -104,7 +104,7 @@ export function useSimulation(id: string | null, active = true) {
     setCancelError(null);
     const deadline = setTimeout(() => controller.abort(), 12_000);
     try {
-      const record = await api.cancelSimulation(id, { signal: controller.signal });
+      const record = await client.cancelSimulation(id, { signal: controller.signal });
       if (session.current !== scope || scope.controller.signal.aborted) return;
       updateSnapshot(previous => previous?.id === id && (!previous.record || record.revision >= previous.record.revision)
         ? { ...previous, record, progress: previous.progress && previous.progress.revision > record.revision ? previous.progress : null } : previous);
@@ -119,7 +119,7 @@ export function useSimulation(id: string | null, active = true) {
       if (scope.cancel === controller) scope.cancel = null;
       if (session.current === scope) setCancelling(false);
     }
-  }, [id, active, refresh, updateSnapshot]);
+  }, [id, active, refresh, updateSnapshot, client]);
 
   const visible = snapshot?.id === id ? snapshot : null;
   return { record: visible?.record ?? null, progress: visible?.progress ?? null,

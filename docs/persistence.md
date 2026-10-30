@@ -213,10 +213,11 @@ completed automated reproduction updates it in the same transaction as the
 operation's final outcome. See [reproduction policy](optimization.md#reproduce-a-saved-failure).
 
 The packaged migration history contains revision 1 (`initial_persistence`),
-revision 2 (`simulation_jobs`), and revision 3 (`optimization_journal`).
-Initialization validates existing revision 1 or 2 databases before upgrading
-them transactionally; existing scenarios, runs, and reports remain unchanged.
-New databases receive all three revisions. The jobs
+2 (`simulation_jobs`), 3 (`optimization_journal`), 4 (`agent_registry`),
+5 (`remote_command_receipts`), 6 (`cancellation_acceptance_snapshot`) and
+7 (`guided_experiments_and_discovery`). Initialization validates each historical
+schema before upgrading transactionally; existing scenarios, runs and reports
+remain unchanged. New databases receive all seven revisions. The jobs
 table stores FIFO order, options, evaluation settings, cancellation requests,
 and durable execution claims alongside the parent run. Initialization enables
 SQLite foreign keys and verifies

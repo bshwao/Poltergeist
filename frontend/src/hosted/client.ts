@@ -3,6 +3,7 @@ import type {
   ExecuteCommand, PairingStatus, RemoteCommandView, ResultCommand, StatusCommand,
   EvidenceReply, EvidenceRequest, EvidenceSample,
 } from "../types/generated";
+import type { LabCommand, LabReply } from "../types/generated";
 
 export type HostedCommand = Pick<ExecuteCommand, "kind" | "request_id" | "scenario" | "mode" | "agent_id" | "options">
   | CancelCommand | ResultCommand | StatusCommand;
@@ -28,6 +29,11 @@ const messages: Record<string, string> = {
   transfer_busy: "Another evidence request is in progress. Try again shortly.",
   evidence_timeout: "The computer did not return evidence in time. Try again when it is connected.",
   command_storage_full: "The service has reached its receipt storage limit. Contact the operator.",
+  lab_unavailable: "Guided experiments need a connected, updated companion with approved execution and evidence access.",
+  lab_timeout: "The computer did not answer in time. Review saved plans before retrying a submitted action.",
+  queue_full: "The computer's experiment queue is full. Wait for work to finish.",
+  result_unavailable: "This evidence is unavailable for remote review. Open its local diagnostics or export it on the computer.",
+  run_not_found: "This experiment is unavailable to the current account and computer approval.",
 };
 
 export class HostedError extends Error {
@@ -333,6 +339,18 @@ export function createHostedClient(fetcher: typeof fetch = (...args) => fetch(..
     },
     async command(device: string, requestId: string, signal?: AbortSignal) {
       return command(await request(`/v1/devices/${pathId(device)}/commands/${pathId(requestId)}`, { signal }), device, requestId);
+    },
+    async lab(device: string, command: LabCommand, signal?: AbortSignal): Promise<LabReply> {
+      pathId(command.request_id);
+      const value = await request(`/v1/devices/${pathId(device)}/experimentation`, { body: command, signal });
+      if (!object(value) || value.request_id !== command.request_id) invalid();
+      if (value.kind === "rejected" && typeof value.code === "string") {
+        const status: Record<string, number> = { permission_denied: 403, policy_denied: 403, invalid_request: 400,
+          request_conflict: 409, run_not_found: 404, queue_full: 429, device_unavailable: 503, result_unavailable: 503 };
+        throw new HostedError(value.code, status[value.code] ?? 503);
+      }
+      if (value.kind !== "lab" || !object(value.result) || typeof value.result.kind !== "string") invalid();
+      return value as unknown as LabReply;
     },
   };
 }

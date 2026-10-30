@@ -3,7 +3,7 @@ import { api, ApiError } from "../services/api";
 import { emptyExperiment, experimentInput } from "../components/experiment-form";
 import type { ExperimentDraft, ExperimentKind } from "../components/experiment-form";
 import type { ComparisonReport, OptimizationRecord, OptimizationView, RegisteredAgent, TemplateInfo } from "../types/generated";
-import { simulationLink } from "../navigation";
+import { simulationLink, suiteRunLink } from "../navigation";
 
 const message = (e: unknown) => e instanceof ApiError && e.issues.length ? `${e.message} ${e.issues.map(issue => `${issue.path}: ${issue.message}`).join("; ")}` : e instanceof Error ? e.message : "The experiment request failed.";
 const ongoing = (r: OptimizationRecord) => r.status === "queued" || r.status === "running";
@@ -134,6 +134,8 @@ export function Experiments({ active = true, selectedId, sourceFailureId, initia
     {error && <p className="error-banner" role="alert">{error} <button type="button" onClick={() => setRefresh(r => r + 1)}>Refresh</button></p>}
     <section className="panel"><div className="panel-header"><h2>Experiment history</h2></div>{listError && <p role="alert">{listError}</p>}<div className="panel-body">{historyLoading ? <p role="status">Loading experiment history…</p> : history.length ? <ul className="experiment-history">{history.map(r => <li key={r.id}><a href={`#experiments/${r.id}`}>{r.request.kind} · {r.execution.mode} · {r.status} · {r.id}</a><span>{new Date(r.created_at).toLocaleString()}</span></li>)}</ul> : !listError && <p>No experiments on this page.</p>}<div className="button-row"><button className="button secondary" disabled={historyLoading || offset === 0} onClick={() => setOffset(n => Math.max(0, n - 10))}>Previous</button><span>Page {offset / 10 + 1}</span><button className="button secondary" disabled={historyLoading || !hasNext} onClick={() => setOffset(n => n + 10)}>Next</button></div></div></section>
     {selectedId && !view && !error && <p role="status">Loading experiment…</p>}
+    {operation?.request.kind === "suite" && <p><a className="button secondary" href={suiteRunLink(operation.id)}>Open saved suite comparison</a></p>}
+    {operation?.request.kind === "discover" && <p><a className="button secondary" href={`#discovery/${operation.request.plan_id}`}>Open approved discovery report</a></p>}
     {operation && view && <section className="panel"><div className="panel-header"><h2>{operation.request.kind} · {operation.status}</h2></div><div className="panel-body"><p><code>{operation.id}</code> · Revision {operation.revision} · {view.trials.length} executions submitted</p><p>{operation.outcome?.summary ?? "Execution is in progress; unknown outcomes are preserved."}</p>{operation.error && <p role="alert">{operation.error}</p>}<div className="button-row">{ongoing(operation) && <button className="button secondary" disabled={busy || operation.cancel_requested} onClick={() => void mutate(() => api.cancelOptimization(operation.id, { signal: mutation.current!.signal }))}>{operation.cancel_requested ? "Cancellation requested" : "Cancel experiment"}</button>}{operation.status === "interrupted" && <button className="button primary" disabled={busy} onClick={() => void mutate(() => api.resumeOptimization(operation.id, operation.revision, { signal: mutation.current!.signal }))}>Resume remaining trials</button>}</div>
       <details><summary>Frozen recipe, agents and execution settings</summary><pre>{JSON.stringify(operation, null, 2)}</pre></details>
       {comparison && <Comparison report={comparison} />}

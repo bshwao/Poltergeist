@@ -1,13 +1,14 @@
 # S0–S19 progress notes
 
-Updated October 29, 2026. Current work: **installed shortcut acceptance and native
-workflow review** for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
+Updated October 30, 2026. Current work: **S12 guided experimentation and S13
+bounded failure discovery**, alongside the open installed/native acceptance
+gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/installed-shortcut-validation`, based on GitHub `main` at `4e86d42`.
+Current branch: `main`. Earlier branch and CI references describe their recorded checkpoints.
 The S11 foundation is merged; its five-job branch validation passed.
 The earlier `codex/s7-managed-ai` branch is preserved separately.
 All earlier branch histories were fast-forwarded into GitHub and local `main`
@@ -34,8 +35,8 @@ private prototype does not close independent-machine or release validation.
 | S9 — Multi-user capacity | Provisional simulated target met | Monitoring, quotas, bounded request windows, single-process generation routing and atomic authenticated reply persistence. 25 owners/devices, 500 commands, p95 1.56 s (Python 3.12) / 1.39 s (Python 3.14), all ownership checks pass. 100 configured connections and physical-PC/provider targets remain unvalidated. |
 | S10 — Distribution and release | Private tooling; signing and external acceptance deferred | Pinned publisher verification, installer/uninstaller signing adapter, signed metadata, explicit bounded HTTPS delivery, staged cohorts, native update/rollback review, closed-process helper, backups and compatible rollback. Publisher/feed configuration is unset; actual signed acceptance, deployed delivery and [external beta](private-beta.md) remain open. |
 | **S11 — Visual design and usability** | **In progress; shared foundation implemented** | Shared light browser palette, readable typography, connection states, keyboard skip links/table scrolling and native tab traversal. Browser accessibility checks and companion regression tests cover this first checkpoint. Full workflow visual review, additional display/theme coverage and first-run testers remain. See [S11 plan](visual-usability.md). |
-| S12 — Guided experimentation and adoption | Planned | First-run guidance, galleries, saved suites, comparisons, replay highlights and tester feedback. |
-| S13 — Failure Discovery Agent | Planned | Budgeted search, confirmation and reproducible failure evidence. |
+| S12 — Guided experimentation and adoption | Application delivered; independent tester gate open | Guided first experiment, sixteen illustrated scenes, saved suites, per-case matched comparisons, exact-frame highlights and deliberate feedback in both dashboards. Desktop/mobile browser journeys and accessibility checks pass. Actual new-tester feedback and verified follow-up changes remain. See [workflow guide](guided-experimentation.md). |
+| S13 — Failure Discovery Agent | Private implementation delivered; locally validated | Digest/revision-bound approval, frozen candidates/agents/settings, execution/simulated/absolute-wall budgets, exact confirmation repeats and complete negative/unknown journals. Registered local agents and scoped remote consent/ownership checks pass. Current live CARLA attempts retained startup/RPC failures as unknown; no driving failure was claimed. |
 | S14 — Evidence Analyst Agent | Planned | Evidence-linked analysis with coverage and uncertainty. |
 | S15 — Regression Agent | Planned | Matched, frozen-version comparisons and measured regression detection. |
 | S16 — Sensor-based driving agents | Planned | Supported camera/LiDAR policy inputs, control and hardware validation. |
@@ -509,6 +510,66 @@ here and require the actual CI runners. Follow the
 [S4 branch workflows](https://github.com/bshwao/Poltergeist/actions?query=branch%3Acodex%2Fs4-hosted-pairing)
 for each newer commit's result.
 
+## October 30 — S12/S13 implementation and validation
+
+The local and connected dashboards now include Guided lab and Discovery. The
+first-run flow leads from a chosen illustration to one explicit run, measured
+outcome/coverage, actual frame highlights, existing full evidence/printable
+reports and optional consented feedback. Saved suites retain definitions and
+revisions; each launch freezes its own matched cases/seeds/controller order.
+Reports keep scenarios separate, preserve observed/missing denominators and link
+every execution. Confirmed discoveries can be saved as suites or downloaded with
+their exact recipe, settings, snapshot and source evidence.
+
+Discovery proposals are pure preflight. Every candidate is frozen before review;
+approval binds the displayed SHA-256 fingerprint and saved revision. All children
+use the existing serial worker and transactional journal. Negative/failed/unknown
+trials consume budget. Confirmation uses separate exact-recipe executions and
+does not count the search observation as a repetition. Cancellation, interruption
+and restart preserve spent executions and the original absolute deadline.
+
+The negotiated companion channel retains owner/device/generation scope and
+durable local mutation receipts. It rechecks consent and policy before each new
+child, includes optimized children in remote queue limits, and preserves evidence
+ownership after deleting a suite definition. Its twelve-execution baseline cap
+and normal evidence consent remain explicit. The coordinator does not persist
+experiment payloads or evidence. Schema 7 adds the documents/receipts; new release
+metadata advertises support through 7, while omitted fields in older signed
+metadata retain their original schema-6 interpretation.
+
+Validation: 365 frontend unit/client/component tests, all 25 local browser cases
+and all three real HTTPS/WSS hosted browser scenarios pass, including desktop
+and 390-pixel WCAG audits. Both production builds and generated-contract checks
+pass. The complete Python run recorded 3,388 passes, eleven schema-6 fixture/API
+expectation failures and ten explicitly skipped optional-model checks. All
+eleven failures were corrected and rechecked successfully; the final focused
+run passed 145 cases, including current contracts, strict consent, suite history,
+registered agents, approvals and the affected update lifecycle. The additional
+schema-seven release-metadata case also passes. The optional torch/scipy/cv2
+and pretrained-weight checks remain outside the core environment.
+Final boundary rechecks passed 116 remote execution/receipt/relay cases, including
+an injected receipt-capacity failure proving that guided acceptance rolls back
+the simulation, native receipt and lab receipt together. The restored first-run
+scene and permanent suite comparison links also pass browser reload checks.
+
+Two isolated live CARLA plans each allowed at most three executions, 24 reserved
+simulated seconds and 300 wall-clock seconds, with one search candidate and two
+required matching confirmations. The first started the local simulator on Low
+graphics; the second reused the listener. Each submitted one candidate, which
+failed the bounded 120-second RPC/startup-readiness check. Each complete journal
+reports zero confirmed failures and one unknown, with no fabricated contact or
+confirmation evidence. Artifacts are under `validation-evidence/s12-s13/` in the
+isolated `ca70d2bb-13b1-4d12-bf8b-ea137145eb02` and
+`d3586d93-337c-463c-99f6-61324ad1becd` directories. This is startup-fault evidence;
+successful CARLA driving confirmation is not established by this check.
+
+Automated checks found and verified fixes for lost-response/late-import handling,
+protected suite drafts, changed agent assets, approval-policy consistency, remote
+queue accounting, schema-compatible updates and mobile navigation overflow.
+These are engineering findings, not claims of new-tester feedback. S12's human
+adoption gate remains open; the [acceptance guide](guided-experimentation.md#acceptance-record)
+states the tasks, feedback and verified retest needed to close it.
+
 ## Remaining practical gates
 
 The private installers are unsigned. Clean-machine installation, native platform
@@ -521,5 +582,5 @@ unchanged.
 
 Visual design, guided workflows, experiment agents and external connections are
 numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
-[product impact notes](product-impact-proposals.md). S11 is in progress; S12–S19 remain planned work;
+[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14–S19 remain planned work;
 existing S0–S10 identifiers and completion gates are preserved.
