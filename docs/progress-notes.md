@@ -1,13 +1,13 @@
 # S0–S19 progress notes
 
-Updated October 29, 2026. Current work: **installed shortcut acceptance and native
-workflow review** for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
+Updated October 29, 2026. Current work: **S9 capacity and overload evidence**.
+Installed shortcut checks also advanced S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/installed-shortcut-validation`, based on GitHub `main` at `4e86d42`.
+Current branch: `codex/s9-capacity-backpressure`, based on GitHub `main` at `a0645af`.
 The S11 foundation is merged; its five-job branch validation passed.
 The earlier `codex/s7-managed-ai` branch is preserved separately.
 All earlier branch histories were fast-forwarded into GitHub and local `main`
@@ -44,6 +44,13 @@ private prototype does not close independent-machine or release validation.
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
+
+- The 100-device load attempt encountered the bounded HTTP request window:
+  35 cross-owner probes returned 503 and 65 returned the expected 404. No command
+  latency was measured. Benchmark protocol 2 adds bounded same-identity retries,
+  overload counters, a concurrent-start barrier, deployment-equivalent server
+  limits and structured failure evidence. The two-second/128 MiB targets remain
+  unchanged; larger-capacity acceptance is not claimed by this harness change.
 
 - The actual installed Start menu shortcut launched a fresh validation profile
   with spaces, completed first-run synthetic setup and a baseline run, and closed

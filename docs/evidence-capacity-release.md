@@ -162,6 +162,25 @@ traffic; the retained contended failure demonstrates shared-host sensitivity. Lo
 measurements have host-load variance; they are not a provider sizing guarantee.
 The benchmark excludes TLS cost, native allocations/RSS, recordings, actual
 simulations, physical sleep, WAN failures and cloud traffic/storage prices.
+
+The first 100-device burst stopped during the cross-owner probes: 35 responses
+were HTTP 503 and 65 were the expected 404 denials. It measured no command latency
+and does not establish the 100-device target. The coordinator's 64-request window
+returns 503 under overload; that response is distinct from an ownership denial.
+The [failure observation](validation/s9-configured-100-overload-20261029.json)
+preserves the outcome.
+
+Benchmark protocol 2 retries 429/503 within a fifteen-second absolute request
+budget and at most sixteen attempts, honors numeric Retry-After values, and keeps
+the original command body/request ID. It records retry/status counts and never
+replaces incomplete latency with zero. All owner probes finish before a barrier
+releases the concurrent command burst. The fixture now matches the CLI's
+128-connection concurrency limit and five-second keepalive. Caught setup/workload
+failures produce JSON evidence; shutdown failure retains the owned fixture for
+inspection. Existing output files are refused before load starts. The provisional
+two-second latency and 128 MiB traced-memory targets are unchanged. Protocol 2
+measurements must be identified separately from the older table above.
+
 Separate existing HTTPS/WSS tests cover transport security. The configured
 100-device ceiling, real concurrent CARLA runs on representative PCs and hosted
 costs remain unvalidated. A small three-user smoke benchmark runs in core CI.

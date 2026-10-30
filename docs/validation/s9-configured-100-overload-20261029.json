@@ -1,0 +1,18 @@
+{
+  "schema_version": "poltergeist-capacity-failure-observation-v1",
+  "passed": false,
+  "users": 100,
+  "rounds_per_device": 5,
+  "source_revision": "2783d57ab814b145584e8019230b084be2012c1c",
+  "python": "3.12.15 (main, Oct 14 2026, 01:08:45) [MSC v.1944 64 bit (AMD64)]",
+  "scope": "Disposable loopback HTTP/WS fixture on the development laptop. An idle validation companion was open. Numeric status counts were observed without changing responses or assertions; no command latency was measured.",
+  "exception_type": "AssertionError",
+  "failure_stage": "cross-owner initial HTTP probes",
+  "measured_command_latency": null,
+  "cross_owner_probe_http_status_counts": {
+    "503": 35,
+    "404": 65
+  },
+  "date": "2026-10-29",
+  "protocol_version": 1
+}
