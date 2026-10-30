@@ -1,0 +1,41 @@
+{
+  "schema_version": "poltergeist-capacity-v1",
+  "protocol_version": 2,
+  "transport": "loopback HTTP/WS fixture",
+  "users": 100,
+  "connected_devices": 100,
+  "rounds_per_device": 5,
+  "completed_commands": 0,
+  "routed_commands": 0,
+  "cross_owner_denials": 58,
+  "elapsed_s": 15.328000000001339,
+  "commands_per_s": null,
+  "latency_p50_s": null,
+  "latency_p95_s": null,
+  "latency_max_s": null,
+  "latency_measurement_complete": false,
+  "http_payload_bytes": 17567,
+  "http_status_counts": {
+    "503": 659,
+    "404": 58
+  },
+  "http_retry_count": 656,
+  "http_retry_wait_s": 390.8237791221382,
+  "max_connections": 100,
+  "failure_phase": "commands",
+  "failure_code": "retry_budget_exhausted",
+  "passed": false,
+  "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+  "python_peak_bytes": 93943116,
+  "cleanup_completed": true,
+  "database_bytes": 552960,
+  "server_concurrency_limit": 128,
+  "provisional_targets": {
+    "p95_latency_s": 2.0,
+    "python_peak_bytes": 134217728
+  },
+  "target_failures": [],
+  "source_revision": "fa39993a97dfd2ccf988e8ae8f8184dc50a852be",
+  "date": "2026-10-29",
+  "host_context": "Development laptop, Python 3.12.15; validation companion open and idle; no concurrent local benchmark/regression suite."
+}

@@ -101,4 +101,18 @@ def test_real_loopback_load_reports_ownership_routing_and_cleanup(tmp_path):
     assert report["connected_devices"] == 2 and report["cross_owner_denials"] == 2
     assert report["completed_commands"] == report["routed_commands"] == 4
     assert report["latency_measurement_complete"] is True and report["latency_p95_s"] is not None
-    assert report["cleanup_completed"] is True and report["server_concurrency_limit"] == 128
+    assert report["cleanup_completed"] is True
+    assert report["server_concurrency_limit"] >= report["max_connections"] + 65
+
+
+def test_coordinator_cli_keeps_http_slots_after_the_device_ceiling(tmp_path, monkeypatch):
+    import uvicorn
+    from coordinator.__main__ import main
+    calls = []
+    monkeypatch.setattr(uvicorn, "run", lambda app, **options: calls.append(options))
+    cert, key = tmp_path / "certificate.pem", tmp_path / "key.pem"
+    cert.write_text("unused CLI test certificate")
+    key.write_text("unused CLI test key")
+    assert main(["--database", str(tmp_path / "coordinator.db"), "--origin", "https://fixture.test",
+        "--certfile", str(cert), "--keyfile", str(key), "--max-connections", "1000"]) == 0
+    assert len(calls) == 1 and calls[0]["limit_concurrency"] >= 1065

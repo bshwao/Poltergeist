@@ -20,6 +20,12 @@ class CoordinatorSettings:
     max_commands_per_account: int = 10000
     monitor_token: str | None = field(default=None, repr=False)
 
+    @property
+    def server_connection_limit(self):
+        # Uvicorn counts persistent device sockets as well as HTTP connections.
+        # Keep a bounded HTTP allowance after the configured device slots fill.
+        return self.max_connections + 128
+
     def __post_init__(self):
         import re
         for value, maximum in ((self.max_connections, 1000), (self.max_transfers, 32),

@@ -194,11 +194,12 @@ def run(directory, *, users=25, rounds=20):
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
         origin = f"http://127.0.0.1:{listener.getsockname()[1]}"
-        app = create_app(CoordinatorSettings(Path(directory).absolute() / "coordinator.db", origin,
-            test_allow_insecure_loopback=True))
+        settings = CoordinatorSettings(Path(directory).absolute() / "coordinator.db", origin,
+            test_allow_insecure_loopback=True)
+        app = create_app(settings)
         server = uvicorn.Server(uvicorn.Config(app, log_level="critical", access_log=False, proxy_headers=False,
             ws_max_size=262144, ws_max_queue=1, ws_per_message_deflate=False, timeout_graceful_shutdown=5,
-            limit_concurrency=128, timeout_keep_alive=5))
+            limit_concurrency=settings.server_connection_limit, timeout_keep_alive=5))
         thread = Thread(target=lambda: server.run(sockets=[listener]), daemon=True)
         thread.start()
         deadline = monotonic() + 20
@@ -235,7 +236,7 @@ def run(directory, *, users=25, rounds=20):
         if not result["cleanup_completed"]:
             result.update(passed=False, failure_phase="cleanup", failure_code="fixture_shutdown_timeout")
     result["database_bytes"] = sum(p.stat().st_size for p in Path(directory).glob("coordinator.db*"))
-    result["server_concurrency_limit"] = 128
+    result["server_concurrency_limit"] = server.config.limit_concurrency if server is not None else None
     result["provisional_targets"] = {"p95_latency_s": 2., "python_peak_bytes": 128 * 1024**2}
     result["target_failures"] = []
     if result["latency_measurement_complete"] and result["latency_p95_s"] > 2.:

@@ -115,8 +115,9 @@ Authenticated browser traffic is bounded to 1,200 requests/minute/account.
 Request/evidence windows are process-local and bounded to 10,000 buckets;
 authentication and pairing abuse limits remain persisted in SQLite. The HTTP
 boundary limits concurrent requests to 64, bounds bodies to 32 KiB and times out
-an idle body receive after ten seconds. The CLI also sets Uvicorn concurrency
-128, WebSocket receive queue one and keepalive five seconds. Enforce deployment
+an idle body receive after ten seconds. The CLI sets Uvicorn's concurrency
+threshold to the device ceiling plus 128 HTTP slots (228 by default), WebSocket
+receive queue one and keepalive five seconds. Enforce deployment
 proxy connection/header deadlines too; hosting has not yet been deployed.
 
 `GET /v1/operations` requires a separate high-entropy bearer token from
@@ -174,12 +175,26 @@ Benchmark protocol 2 retries 429/503 within a fifteen-second absolute request
 budget and at most sixteen attempts, honors numeric Retry-After values, and keeps
 the original command body/request ID. It records retry/status counts and never
 replaces incomplete latency with zero. All owner probes finish before a barrier
-releases the concurrent command burst. The fixture now matches the CLI's
-128-connection concurrency limit and five-second keepalive. Caught setup/workload
+releases the concurrent command burst. The fixture uses the same transport budget
+as the CLI and its five-second keepalive. Caught setup/workload
 failures produce JSON evidence; shutdown failure retains the owned fixture for
 inspection. Existing output files are refused before load starts. The provisional
 two-second latency and 128 MiB traced-memory targets are unchanged. Protocol 2
 measurements must be identified separately from the older table above.
+
+With the original 128 transport threshold, protocol 2 connected all 100 simulated
+devices but completed only 58 owner probes before its retry budget expired. It
+recorded 659 HTTP 503 responses, no commands and unknown command latency, while
+traced allocations peaked at 93,943,116 bytes. The
+[failed measurement](validation/s9-protocol2-100-cap128-20261029.json) is retained.
+Uvicorn includes open device sockets in its concurrency accounting; this is
+confirmed in the pinned installed implementation and its
+[upstream server behavior](https://github.com/Kludex/uvicorn/blob/main/docs/server-behavior.md).
+The old shared threshold left too little HTTP headroom once device slots filled.
+The CLI and load fixture now derive their threshold from the device ceiling plus
+the fixed HTTP allowance. The 64-active-request guard and all timing, memory,
+body, ownership and durability checks are unchanged. Fresh measurements are
+required before claiming that the 100-device target passes.
 
 Separate existing HTTPS/WSS tests cover transport security. The configured
 100-device ceiling, real concurrent CARLA runs on representative PCs and hosted

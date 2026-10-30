@@ -30,7 +30,8 @@ def main(argv=None):
     uvicorn.run(create_app(settings), host=args.host, port=args.port, workers=1,
         ssl_certfile=str(args.certfile), ssl_keyfile=str(args.keyfile),
         proxy_headers=False, access_log=False, log_level="warning", ws_max_size=262144,
-        ws_max_queue=1, ws_per_message_deflate=False, limit_concurrency=128, timeout_keep_alive=5)
+        ws_max_queue=1, ws_per_message_deflate=False,
+        limit_concurrency=settings.server_connection_limit, timeout_keep_alive=5)
     return 0
 
 
