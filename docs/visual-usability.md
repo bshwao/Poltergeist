@@ -38,6 +38,16 @@ The first Windows visual smoke review covered Setup and Local execution at
 the clipped status footer. Automated minimum-window checks cover the footer and
 update actions at 700 × 600; the complete native visual matrix is still open.
 
+The Windows checkpoint passed 340 frontend unit tests, both production builds,
+the generated-contract check, all 19 local browser tests, both hosted browser
+tests and all 22 native companion cases. The first GitHub run passed the twelve
+local page accessibility scans but exposed a race in the new keyboard recovery
+test: it could try to focus Retry before template loading enabled the button.
+The corrected test deliberately holds that initial request, verifies the disabled
+state, releases it, then waits for enabled and confirmed keyboard focus before
+pressing Enter. Its focused rerun passes; subsequent GitHub status is tracked
+per revision. No rule or assertion was disabled.
+
 Run the checks from `frontend`:
 
 ```powershell

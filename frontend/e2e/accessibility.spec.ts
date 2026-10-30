@@ -16,12 +16,21 @@ for (const width of [1440, 390]) {
 }
 
 test("a lost local API has a keyboard reachable recovery action", async ({ page }) => {
+  let release!: () => void;
+  const templates = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/scenarios/templates", async route => { await templates; await route.continue(); });
   await page.route("**/health", route => route.abort("failed"));
   await page.goto("/#overview");
   const status = page.getByRole("status", { name: "API connection" });
-  await expect(status).toContainText("The local API is unavailable");
+  const retry = status.getByRole("button", { name: "Retry connection" });
+  try {
+    await expect(status).toContainText("The local API is unavailable");
+    await expect(retry).toBeDisabled();
+  } finally { release(); }
   await page.unroute("**/health");
-  await status.getByRole("button", { name: "Retry connection" }).focus();
+  await expect(retry).toBeEnabled();
+  await retry.focus();
+  await expect(retry).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator(".connection-pill")).toHaveText("API connected");
   await expect(status).not.toBeVisible();
