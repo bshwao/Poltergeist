@@ -13,6 +13,7 @@ from scenarios.stress_presets import STRESS_PRESETS
 from .controller import read_json
 from .profile import CompanionConfig
 from .design import configure_design
+from .scrolling import ScrollPanel
 
 
 def installation_recipe():
@@ -68,14 +69,16 @@ class CompanionWindow:
         tabs = ttk.Notebook(outer)
         tabs.enable_traversal()
         tabs.pack(fill="both", expand=True)
-        execution = ttk.Frame(tabs, padding=12)
+        self._execution_scroll = ScrollPanel(tabs)
+        execution = self._execution_scroll.frame
         settings = ttk.Frame(tabs, padding=12)
         diagnostics = ttk.Frame(tabs, padding=12)
         archives = ttk.Frame(tabs, padding=12)
         for frame, label in ((execution, "Local execution"), (settings, "Settings"),
                              (diagnostics, "Diagnostics"), (archives, "Imported reports")):
             tabs.add(frame, text=label)
-        self._build_execution(execution)
+        self._build_execution(self._execution_scroll.content)
+        self._execution_scroll.bind_content()
         self._build_settings(settings)
         from .model_ui import ModelPanel
         self.models = ModelPanel(self, tabs)

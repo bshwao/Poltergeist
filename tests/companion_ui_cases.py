@@ -297,6 +297,39 @@ def test_update_controls_stay_disabled_without_a_release_identity(window):
     assert not (controller.profile / "updates").exists() and errors == []
 
 
+def test_local_execution_actions_scroll_into_keyboard_view(window):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    root.focus_force()
+    panel = desktop._execution_scroll
+    desktop._tabs.select(panel.frame)
+    try:
+        for size in ("960x800", "700x600"):
+            root.geometry(size)
+            root.update()
+            root.update_idletasks()
+            assert panel.scrollbar.winfo_ismapped()
+            for name in ("Run recipe", "Cancel selected", "Export HTML", "Export JSON", "Export evidence…", "Remove evidence…"):
+                button = next(button for button in desktop._buttons if button.cget("text") == name)
+                button.focus_force()
+                root.update()
+                assert root.focus_get() is button
+                assert panel.canvas.winfo_rooty() <= button.winfo_rooty()
+                assert button.winfo_rooty() + button.winfo_height() <= panel.canvas.winfo_rooty() + panel.canvas.winfo_height()
+            panel.canvas.focus_force()
+            panel.canvas.event_generate("<Home>")
+            root.update()
+            assert panel.canvas.yview()[0] == 0
+            panel.canvas.event_generate("<Next>")
+            root.update()
+            assert panel.canvas.yview()[0] > 0
+    finally:
+        root.withdraw()
+    assert errors == []
+
+
 def test_status_messages_remain_visible_below_tall_tabs(window):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None)

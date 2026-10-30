@@ -15,6 +15,10 @@ their meaning. The companion uses matching Segoe UI typography with native
 Windows control colors and display scaling. It retains the system theme rather
 than overriding Windows contrast settings. Ctrl+Tab and Ctrl+Shift+Tab traverse
 the companion's tabs.
+Local execution also has a scroll surface: Tab reveals offscreen controls, the
+run list retains native scrolling, and the surface supports the wheel, Page
+Up/Down and Home/End. Native regression checks exercise execution and export
+actions at 960 × 800 and 700 × 600.
 The status footer reserves space before the main notebook; tall tabs cannot
 push recovery messages out of view. The full profile path is in Diagnostics.
 

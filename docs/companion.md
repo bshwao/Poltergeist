@@ -18,6 +18,12 @@ teaching starter. Weights alone do not establish readiness. See
 
 ## Open the application
 
+The Local execution tab scrolls when its controls exceed the available height.
+Tabbing to a control brings it into view, including cancellation and export
+actions below the run history. Use the scrollbar or mouse wheel over the panel;
+when the scroll surface has focus, Page Up/Down and Home/End move through it.
+The run list retains its own native wheel behavior.
+
 Extract the complete private archive to a writable local directory, then
 double-click **Poltergeist Companion.vbs**. It invokes the bundled `pythonw.exe`
 with isolated imports; it needs neither a console nor system Python/Node/Git/pip.

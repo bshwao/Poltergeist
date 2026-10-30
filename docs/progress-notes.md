@@ -1,13 +1,14 @@
 # S0–S19 progress notes
 
-Updated October 29, 2026. Current work: **S11 visual design and usability**,
-starting with shared design and keyboard/status accessibility. Previous checkpoint: **S8 live recording review locally
+Updated October 29, 2026. Current work: **installed shortcut acceptance and native
+workflow review** for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/s11-visual-usability`, based on GitHub `main` at `7c92e82`.
+Current branch: `codex/installed-shortcut-validation`, based on GitHub `main` at `4e86d42`.
+The S11 foundation is merged; its five-job branch validation passed.
 The earlier `codex/s7-managed-ai` branch is preserved separately.
 All earlier branch histories were fast-forwarded into GitHub and local `main`
 at `2d9e784`; its branch and main five-job CI matrices pass.
@@ -43,6 +44,14 @@ private prototype does not close independent-machine or release validation.
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
+
+- The actual installed Start menu shortcut launched a fresh validation profile
+  with spaces, completed first-run synthetic setup and a baseline run, and closed
+  cleanly. The separate installed SDK worker smoke check passed. Visual inspection
+  found that the Local execution run list hid its export actions at 960 × 800.
+  A scroll surface with keyboard-focus reveal fixes this; all 23 native GUI cases
+  and 23 packaging checks pass. Rebuilt installed workflow acceptance is in
+  progress; this is local unsigned validation, not independent-machine acceptance.
 
 - S8–S10 work adds bounded evidence transport without persisting recordings in
   coordinator SQL, local evidence export/removal and quotas, aggregate operations
