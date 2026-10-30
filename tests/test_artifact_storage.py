@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import errno
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import struct
 from uuid import uuid4
@@ -180,6 +181,131 @@ def test_atomic_publish_failure_removes_owned_partial_directory(store, monkeypat
         store.write_telemetry(uuid4(), frames())
     assert not stages(store)
     assert not list(store.root.glob("*/*/*/frames.ndjson"))
+
+
+@pytest.mark.parametrize("written", [0, 3])
+@pytest.mark.parametrize("failure", [OSError, KeyboardInterrupt])
+def test_failed_write_releases_reserved_quota_without_discounting_other_artifacts(store, monkeypatch, written, failure):
+    existing = store.write_report(uuid4(), {"preserved": True})
+    used = store.capacity()["used_bytes"]
+    original = Path.open
+
+    class FailingStream:
+        def __init__(self, stream):
+            self.stream = stream
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.stream.close()
+
+        def __getattr__(self, name):
+            return getattr(self.stream, name)
+
+        def write(self, data):
+            self.stream.write(data[:written])
+            self.stream.flush()
+            raise failure("interrupted evidence write")
+
+    def open_stream(path, *args, **kwargs):
+        stream = original(path, *args, **kwargs)
+        return FailingStream(stream) if args and args[0] == "xb" else stream
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "open", open_stream)
+        with pytest.raises(failure, match="interrupted evidence"):
+            store._write("report", uuid4(), [b"new evidence"])
+
+    assert store.capacity()["used_bytes"] == used
+    assert not stages(store)
+    assert json.loads(store.read_bytes(existing)) == {"preserved": True}
+    store.remove(existing)
+    assert store.capacity()["used_bytes"] == 0
+
+
+def test_initialize_retries_a_failed_scan_without_losing_or_double_counting_usage(tmp_path, monkeypatch):
+    root = tmp_path / "storage"
+    for namespace in ("telemetry", "reports"):
+        directory = root / namespace
+        directory.mkdir(parents=True)
+        (directory / "existing").write_bytes(b"12345")
+    value = ArtifactStore(root)
+    contained = value._contained
+
+    def fail_scan(path, **kwargs):
+        if path.name == "existing" and path.parent.name == "reports":
+            raise PermissionError("evidence temporarily unavailable")
+        return contained(path, **kwargs)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(value, "_contained", fail_scan)
+        with pytest.raises(PermissionError, match="temporarily unavailable"):
+            value.initialize()
+    with pytest.raises(FileNotFoundError, match="initialized"):
+        value.write_report(uuid4(), {})
+    value.initialize()
+    value.initialize()
+    assert value.capacity()["used_bytes"] == 10
+
+
+def test_initialize_does_not_silently_skip_unreadable_namespaces(tmp_path, monkeypatch):
+    directory = tmp_path / "reports"
+    directory.mkdir()
+    (directory / "existing").write_bytes(b"12345")
+    value = ArtifactStore(tmp_path)
+    scandir = os.scandir
+
+    def unavailable(path):
+        if Path(path) == directory:
+            raise PermissionError("cannot scan reports")
+        return scandir(path)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(os, "scandir", unavailable)
+        with pytest.raises(PermissionError, match="cannot scan reports"):
+            value.initialize()
+    value.initialize()
+    assert value.capacity()["used_bytes"] == 5
+
+
+@pytest.mark.parametrize("maximum_write", [0, 3])
+def test_short_writes_are_completed_or_rolled_back_before_publication(store, monkeypatch, maximum_write):
+    original = Path.open
+
+    class ShortStream:
+        def __init__(self, stream):
+            self.stream = stream
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.stream.close()
+
+        def __getattr__(self, name):
+            return getattr(self.stream, name)
+
+        def write(self, data):
+            return self.stream.write(data[:maximum_write])
+
+    def open_stream(path, *args, **kwargs):
+        stream = original(path, *args, **kwargs)
+        return ShortStream(stream) if args and args[0] == "xb" else stream
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "open", open_stream)
+        if maximum_write:
+            ref = store._write("report", uuid4(), [b"complete evidence"])
+        else:
+            with pytest.raises(OSError, match="progress"):
+                store._write("report", uuid4(), [b"complete evidence"])
+    if maximum_write:
+        assert store.read_bytes(ref) == b"complete evidence"
+        assert store.capacity()["used_bytes"] == len(b"complete evidence")
+    else:
+        assert store.capacity()["used_bytes"] == 0
+    assert not stages(store)
 
 
 def windows_rename_error(code):

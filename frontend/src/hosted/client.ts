@@ -153,6 +153,7 @@ async function json(response: Response): Promise<unknown> {
     return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) as unknown;
   } catch (error) {
     if (error instanceof HostedError) throw error;
+    if (error instanceof Error && error.name === "AbortError") throw error;
     invalid();
   } finally { reader.releaseLock(); }
 }

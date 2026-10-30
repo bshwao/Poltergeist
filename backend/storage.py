@@ -71,6 +71,10 @@ def _linked(path: Path) -> bool:
     return path.is_symlink() or path.is_junction()
 
 
+def _walk_error(error: OSError) -> None:
+    raise error
+
+
 def _parts(path: str) -> tuple[str, ...]:
     if not isinstance(path, str) or not path or "\\" in path or ":" in path:
         raise ArtifactError("Artifact paths must use relative forward-slash components")
@@ -142,33 +146,57 @@ class ArtifactStore:
         self._publish_lock = Lock()
 
     def initialize(self) -> None:
-        if self._initialized:
-            return
-        if _linked(self.root):
-            raise ArtifactError("The artifact root must not be a symlink or junction")
-        self.root.mkdir(parents=True, exist_ok=True)
-        if not self.root.is_dir() or _linked(self.root):
-            raise ArtifactError("Artifact storage must be a directory")
-        self._canonical_root = self.root.resolve(strict=True)
-        self._initialized = True
-        for namespace, _, _ in _LAYOUT.values():
-            directory = self.root / namespace
-            if not directory.exists():
-                continue
-            for parent, directories, files in os.walk(directory, followlinks=False):
-                for name in (*directories, *files):
-                    path = self._contained(Path(parent) / name, exists=True)
-                    if path.is_file():
-                        self._used_bytes += path.stat().st_size
+        with self._publish_lock:
+            if self._initialized:
+                return
+            if _linked(self.root):
+                raise ArtifactError("The artifact root must not be a symlink or junction")
+            self.root.mkdir(parents=True, exist_ok=True)
+            if not self.root.is_dir() or _linked(self.root):
+                raise ArtifactError("Artifact storage must be a directory")
+            self._canonical_root = self.root.resolve(strict=True)
+            self._initialized = True  # Containment checks also protect the initial scan.
+            used = 0
+            try:
+                for namespace, _, _ in _LAYOUT.values():
+                    directory = self._contained(self.root / namespace)
+                    if not directory.exists():
+                        continue
+                    for parent, directories, files in os.walk(directory, followlinks=False, onerror=_walk_error):
+                        for name in (*directories, *files):
+                            path = self._contained(Path(parent) / name, exists=True)
+                            if path.is_file():
+                                used += path.stat().st_size
+            except BaseException:
+                self._initialized = False
+                self._canonical_root = None
+                raise
+            with self._budget_lock:
+                self._used_bytes = used
 
     def _write_bytes(self, stream, data):
         """Reserve before writing; every writer shares the same profile budget."""
+        start = stream.tell()
         with self._budget_lock:
             if (self._used_bytes + len(data) > self.quota_bytes or
                     shutil.disk_usage(self.root).free < self.min_free_bytes + len(data)):
                 raise ArtifactError("Evidence storage limit reached; export or remove old evidence locally")
             self._used_bytes += len(data)
-        stream.write(data)
+        try:
+            remaining = memoryview(data)
+            while remaining:
+                written = stream.write(remaining)
+                if written is None or written <= 0:
+                    raise OSError("Evidence write did not make progress")
+                remaining = remaining[written:]
+        except BaseException:
+            # Writers use unbuffered files, so fstat includes even a partial
+            # native write interrupted before write() returned. Rollback will
+            # subtract those real bytes; release only the unwritten reservation.
+            actual = max(0, os.fstat(stream.fileno()).st_size - start)
+            with self._budget_lock:
+                self._used_bytes -= len(data) - actual
+            raise
 
     def capacity(self):
         with self._budget_lock:
@@ -261,7 +289,7 @@ class ArtifactStore:
             return
         # No links may be traversed, even during rollback/removal.
         removed = 0
-        for parent, directories, files in os.walk(directory, followlinks=False):
+        for parent, directories, files in os.walk(directory, followlinks=False, onerror=_walk_error):
             for name in (*directories, *files):
                 path = self._contained(Path(parent) / name, exists=True)
                 if path.is_file():
@@ -304,7 +332,7 @@ class ArtifactStore:
         stage, final, ref = self._begin(kind, simulation_id)
         owner = stage.stat()
         try:
-            with (stage / _LAYOUT[kind][1]).open("xb") as output:
+            with (stage / _LAYOUT[kind][1]).open("xb", buffering=0) as output:
                 for chunk in content:
                     self._write_bytes(output, chunk)
                 output.flush()
@@ -463,7 +491,7 @@ class CaptureWriter:
                 self._owner = self._stage.stat()
             self._store._contained(self._stage, exists=True)
             filename = f"{self._count:08d}-{sample.kind}.bin"
-            with self._store._contained(self._stage / filename).open("xb") as output:
+            with self._store._contained(self._stage / filename).open("xb", buffering=0) as output:
                 self._store._write_bytes(output, sample.data)
                 output.flush()
                 os.fsync(output.fileno())
@@ -474,7 +502,7 @@ class CaptureWriter:
             }
             # Spool metadata as well as bytes, keeping capture memory bounded by
             # one callback/sample rather than the length of the run.
-            with self._store._contained(self._stage / "samples.ndjson").open("ab") as manifest:
+            with self._store._contained(self._stage / "samples.ndjson").open("ab", buffering=0) as manifest:
                 self._store._write_bytes(manifest, (_json(entry) + "\n").encode("utf-8"))
             self._last[stream] = sample.frame, sample.timestamp
             if stream[1] is not None:
@@ -506,7 +534,7 @@ class CaptureWriter:
                 "total_bytes": self._bytes,
             }
             self._store._contained(self._stage, exists=True)
-            with self._store._contained(self._stage / "manifest.json").open("xb") as target:
+            with self._store._contained(self._stage / "manifest.json").open("xb", buffering=0) as target:
                 self._store._write_bytes(target, (_json(header)[:-1] + ',"samples":[').encode("utf-8"))
                 with self._store._contained(self._stage / "samples.ndjson", exists=True).open("rb") as source:
                     for index, line in enumerate(source):
