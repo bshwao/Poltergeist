@@ -1,0 +1,81 @@
+{
+  "schema_version": "poltergeist-installed-shortcut-validation-v1",
+  "date": "2026-10-29",
+  "status": "partial; fixed visual recheck interrupted by user",
+  "goal_complete": false,
+  "implementation_revision": "2783d57ab814b145584e8019230b084be2012c1c",
+  "initial_shortcut": {
+    "source_revision": "4e86d421ed31e94b99b060a7ab4b45a1e3446a41",
+    "actual_start_menu_link_invoked": true,
+    "compiled_profile_path_contains_spaces": true,
+    "initial_profile_only_installer_ownership_marker": true,
+    "setup_and_synthetic_baseline_through_visible_controls": true,
+    "completed_run_id": "06a161d1-3264-47e6-a71e-f0d68504e70f",
+    "closed_exit_code": 0,
+    "visual_finding": "The growing run list hid export/cancel/evidence actions at 960x800."
+  },
+  "fix": {
+    "behavior": "Local execution scrolls; keyboard focus reveals controls; wheel and page keys work without replacing the run list native scroll behavior.",
+    "regression_sizes": [
+      "960x800",
+      "700x600"
+    ],
+    "checks": {
+      "native_gui": {
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "report_sha256": "ea4e3b0cf01ead71dbe519c152479b8849dfa3c999941ad30bec3827cae4da43"
+      },
+      "packaging": {
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "report_sha256": "323b257371021d77f04b4347805fc09941302bd76821d24d9321244dd94df709"
+      }
+    }
+  },
+  "fixed_installation": {
+    "installer": {
+      "build_id": "private-2eeb87d669db457e",
+      "bundle_manifest_sha256": "2eeb87d669db457ec99c384780fa3db820ed44725be1c8c7910a1e753695fcc3",
+      "bytes": 58901068,
+      "compiler_version": "7.1.0",
+      "installer_sha256": "4d648c08cfe54f3641459afc79b677c0d9a43e4d397ea63cd3431be29302834d",
+      "max_install_folder_characters": 111,
+      "publisher_sha256": null,
+      "schema_version": "poltergeist-private-installer-v1",
+      "signed": false,
+      "validation_only": true,
+      "version": "0.1.0"
+    },
+    "matched_first_party_modules": 196,
+    "bundle_files_verified": 6282,
+    "profile_files_preserved_byte_for_byte": 8,
+    "saved_completed_results_read_only": 1,
+    "sdk_worker": {
+      "passed": true,
+      "worker_python_version": "3.12.15",
+      "decisions": 2,
+      "installed_parent_and_child_imports": true
+    },
+    "actual_start_menu_link_invoked": true,
+    "visual_recheck": "not completed; user stopped Computer Use with Escape and chose no window control",
+    "process_shutdown": "not verified; validation companion remains open",
+    "native_signature_status": "NotSigned"
+  },
+  "scope": [
+    "Same Windows development laptop and user; validation namespace and compiled profile, not a clean external machine.",
+    "The fixed bundle is unsigned. No signing, public hosting or external beta acceptance is claimed.",
+    "No physical mouse, PC sleep, NIC failure or full shortcut-driven fault matrix was tested.",
+    "Automated GUI cases and read-only stored-result checks are distinct from the interrupted fixed visual workflow."
+  ],
+  "remaining": [
+    "Fixed installed visual export, close and reopen workflow",
+    "Independent-machine and supported Windows/CARLA/hardware acceptance",
+    "Physical sleep/network and wider native CARLA fault checks",
+    "Production signing, signed updates/rollback and external beta"
+  ]
+}

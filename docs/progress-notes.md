@@ -50,8 +50,13 @@ private prototype does not close independent-machine or release validation.
   cleanly. The separate installed SDK worker smoke check passed. Visual inspection
   found that the Local execution run list hid its export actions at 960 × 800.
   A scroll surface with keyboard-focus reveal fixes this; all 23 native GUI cases
-  and 23 packaging checks pass. Rebuilt installed workflow acceptance is in
-  progress; this is local unsigned validation, not independent-machine acceptance.
+  and 23 packaging checks pass. The fixed installer preserves all eight existing
+  profile files, matches 196 first-party sources and verifies 6,282 bundle files.
+  Its installed SDK worker and read-only saved-result checks pass. The fixed
+  shortcut launched, but the user stopped Computer Use with Escape and chose
+  continued work without window control. Visual export/reopen acceptance remains
+  incomplete; the validation companion stays open. See the
+  [scoped installed shortcut record](validation/s3-installed-shortcut-20261029.json).
 
 - S8–S10 work adds bounded evidence transport without persisting recordings in
   coordinator SQL, local evidence export/removal and quotas, aggregate operations

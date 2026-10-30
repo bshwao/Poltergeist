@@ -117,6 +117,14 @@ Native setup, pairing/recovery, consent, cancellation, suspension and reopening
 pass on this laptop. Default uninstall preserves all profile file bytes. The
 Start menu shortcut's target/arguments are verified, without actually invoking it.
 
+A later [installed shortcut check](validation/s3-installed-shortcut-20261029.json)
+actually invokes the Start menu link with an isolated compiled profile whose path
+contains spaces. Visible setup and a synthetic baseline complete, and the SDK
+probe uses the installed interpreter. That check exposed hidden execution/export
+actions, now covered by scroll and keyboard-focus regression checks. The fixed
+installer preserves the existing profile bytes and saved result; its visual
+export/reopen follow-up was interrupted by the user and remains incomplete.
+
 External clean-machine/native support testing, visual onboarding inspection,
 redistribution terms, code signing and external beta remain open. CARLA and model
 weights are separate installations. Public hosting remains deferred.
