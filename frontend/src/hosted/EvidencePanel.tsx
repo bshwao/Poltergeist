@@ -36,7 +36,7 @@ export function EvidencePanel({ client, device, run, enabled }: {
     {!enabled && <p>Connect an updated companion and approve evidence access on that computer to review frames.</p>}
     {error && <p role="alert">{error}</p>}
     {page && page.state !== "available" && <p role="status">{states[page.state]}</p>}
-    {page?.state === "available" && <div className="hosted-table-scroll"><table><caption>Recorded telemetry · {page.frames.length} frames</caption>
+    {page?.state === "available" && <div className="hosted-table-scroll" tabIndex={0} role="region" aria-label="Recorded telemetry table"><table><caption>Recorded telemetry · {page.frames.length} frames</caption>
       <thead><tr><th>Frame</th><th>Time (s)</th><th>Speed (m/s)</th><th>Brake</th><th>Collisions</th><th>Violations</th></tr></thead>
       <tbody>{page.frames.map(row => <tr key={row.frame}><td>{row.frame}</td><td>{row.time_s.toFixed(3)}</td><td>{metric(row.speed_mps)}</td>
         <td>{metric(row.control.brake)}</td><td>{metric(row.collisions)}</td><td>{metric(row.traffic_violations)}</td></tr>)}</tbody></table></div>}

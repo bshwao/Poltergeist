@@ -1,4 +1,5 @@
 import { test, expect, type Page, type APIRequestContext } from "@playwright/test";
+import { auditAccessibility } from "../test-support/accessibility";
 
 async function control(request: APIRequestContext, action: string, name = "alice") {
   const result = await request.post(`http://127.0.0.1:8059/${action}`, {
@@ -16,6 +17,29 @@ async function register(page: Page, username: string) {
   await expect(page.getByRole("heading", { name: "Your lab, connected." })).toBeVisible();
 }
 
+test("computer loading and network failure remain distinct from an empty workspace", async ({ page }, testInfo) => {
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/v1/browser/devices", async route => { await gate; await route.continue(); });
+  try {
+    await register(page, "designreview");
+    await expect(page.getByText("Loading your computers…", { exact: true })).toBeVisible();
+    await expect(page.getByText("No computers connected yet", { exact: true })).not.toBeVisible();
+    await expect(page.locator(".hosted-stats > div").first()).toContainText("Loading…");
+  } finally { release(); }
+  await expect(page.getByText("No computers connected yet", { exact: true })).toBeVisible();
+  await page.unroute("**/v1/browser/devices");
+  await page.route("**/v1/browser/devices", route => route.abort("failed"));
+  await page.getByRole("button", { name: "Refresh computers", exact: true }).click();
+  await expect(page.getByText("Computer availability could not be refreshed", { exact: true })).toBeVisible();
+  await expect(page.locator(".hosted-stats > div").first()).toContainText("Unknown");
+  await expect(page.getByText("No computers connected yet", { exact: true })).not.toBeVisible();
+  await auditAccessibility(page, testInfo, "availability-unknown");
+  await page.unroute("**/v1/browser/devices");
+  await page.getByRole("button", { name: "Refresh computers", exact: true }).click();
+  await expect(page.getByText("No computers connected yet", { exact: true })).toBeVisible();
+});
+
 test("two isolated accounts pair, execute once across a lost response, cancel, reload, pause and revoke", async ({ page, browser, request }, testInfo) => {
   const errors: string[] = [], destinations: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -30,8 +54,18 @@ test("two isolated accounts pair, execute once across a lost response, cancel, r
   expect(document?.headers()["content-security-policy"]).toContain("connect-src 'self'");
   expect(document?.headers()["content-security-policy"]).not.toContain("unsafe-inline");
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("main")).toBeFocused();
+  await auditAccessibility(page, testInfo, "sign-in");
   await page.screenshot({ path: testInfo.outputPath("sign-in-desktop.png"), fullPage: true });
   await register(page, "alice");
+  await page.getByRole("link", { name: "Skip to content" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("main")).toBeFocused();
+  await expect(page.getByText("No computers connected yet", { exact: true })).toBeVisible();
+  await auditAccessibility(page, testInfo, "empty-workspace");
   await expect(page.getByText("Your next experiment starts here")).not.toBeVisible();
   const first = await control(request, "new");
   await page.getByLabel("Pairing code", { exact: true }).fill(first.code);
@@ -98,6 +132,14 @@ test("two isolated accounts pair, execute once across a lost response, cancel, r
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 1000 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      if (width === 390) {
+        const table = page.getByRole("region", { name: "Recorded telemetry table" });
+        await table.focus();
+        await page.keyboard.press("ArrowRight");
+        await expect.poll(() => table.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+      }
+      await auditAccessibility(page, testInfo, `result-${width}`);
+      await page.evaluate(() => window.scrollTo(0, 0));
       await page.screenshot({ path: testInfo.outputPath(`workspace-${width}.png`), fullPage: true });
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
@@ -113,6 +155,7 @@ test("two isolated accounts pair, execute once across a lost response, cancel, r
 
     await control(request, "pause");
     await expect(computer.getByText("paused", { exact: true })).toBeVisible();
+    await auditAccessibility(page, testInfo, "paused-computer");
     await expect(page.getByRole("button", { name: "Run experiment", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "Refresh result", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "Read telemetry", exact: true })).toBeDisabled();
@@ -122,6 +165,7 @@ test("two isolated accounts pair, execute once across a lost response, cancel, r
     await expect(page.getByRole("region", { name: "Cancel browser experiment" }).getByText("cancelled", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Revoke computer access", exact: true }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    await auditAccessibility(page, testInfo, "revoke-dialog");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).not.toBeVisible();
     await page.getByRole("button", { name: "Revoke computer access", exact: true }).click();

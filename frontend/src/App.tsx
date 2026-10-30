@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "./components/Icon";
+import { SkipLink } from "./components/SkipLink";
 import { useWorkspace } from "./hooks/useWorkspace";
 import { Dashboard } from "./pages/Dashboard";
 import { Scenarios } from "./pages/Scenarios";
@@ -39,7 +40,7 @@ export default function App() {
   }, []);
 
   return <div className="app-shell">
-    <a className="skip-link" href="#main-content" onClick={(event) => { event.preventDefault(); main.current?.focus(); }}>Skip to content</a>
+    <SkipLink target="main-content" />
     <aside className="sidebar">
       <a href="#overview" className="brand" aria-label="Poltergeist overview"><span className="brand-mark"><Icon name="ghost" size={24} /></span><span>poltergeist<span className="brand-caption">DRIVING SAFETY LAB</span></span></a>
       <div className="sidebar-label">WORKSPACE</div>
@@ -50,6 +51,7 @@ export default function App() {
     <div className="workspace-content">
       <div className="topbar"><div className="breadcrumb">Workspace<span>/</span><strong>{pageLabels[page]}</strong></div><div className="topbar-right"><span className={`connection-pill connection-${workspace.connection}`} title="API liveness; does not indicate CARLA readiness" role="status"><span className="status-dot" />{workspace.connection === "online" ? "API connected" : workspace.connection === "checking" ? "Checking API" : "API unavailable"}</span><button type="button" className="icon-button" onClick={workspace.refresh} disabled={workspace.loading} aria-label="Refresh API connection"><Icon name="refresh" size={17} /></button></div></div>
       <main id="main-content" className="main-content" ref={main} tabIndex={-1}>
+        {workspace.connection === "offline" && <section className="notice error-notice connection-notice" aria-label="API connection" role="status"><div><strong>The local API is unavailable</strong><p>Start the local backend, then retry the connection. Saved work appears when it reconnects.</p></div><button className="button secondary" onClick={workspace.refresh} disabled={workspace.loading}>Retry connection</button></section>}
         <div hidden={page !== "overview"}><Dashboard active={page === "overview"} /></div>
         <div hidden={page !== "scenarios"}><Scenarios templates={workspace.templates} loading={workspace.loading} error={workspace.error} onRetry={workspace.refresh} active={page === "scenarios"} registryRevision={registryRevision} /></div>
         {visited.has("agents") && <div hidden={page !== "agents"}><Agents active={page === "agents"} onRegistryChange={registryChanged} /></div>}

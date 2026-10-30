@@ -1,0 +1,33 @@
+/* Shared light palette for the local and connected workspaces. */
+:root {
+  color-scheme: light;
+  --lab-font: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  --lab-ink: #182b24;
+  --lab-muted: #52665b;
+  --lab-canvas: #f4f7f3;
+  --lab-surface: #ffffff;
+  --lab-soft: #edf3e9;
+  --lab-line: #d9e2d8;
+  --lab-accent: #246b4b;
+  --lab-accent-hover: #195337;
+  --lab-sidebar: #18372d;
+  --lab-focus: #815400;
+  --lab-radius: 12px;
+}
+
+.skip-link {
+  position: fixed; z-index: 100; left: 16px; top: 12px;
+  transform: translateY(-160%); padding: 12px 20px;
+  color: var(--lab-ink); background: var(--lab-surface);
+  border: 2px solid var(--lab-focus); border-radius: 8px;
+  font: 600 14px/1.5 var(--lab-font); text-decoration: none;
+}
+.skip-link:focus { transform: none; }
+:focus-visible { outline: 3px solid var(--lab-focus); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  button, input, select, textarea, [role="button"] { border: 1px solid ButtonText; }
+  :focus-visible { outline-color: Highlight; }
+}

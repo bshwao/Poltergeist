@@ -1,12 +1,14 @@
 # S0–S19 progress notes
 
-Updated October 29, 2026. Current checkpoint: **S8 live recording review locally
+Updated October 29, 2026. Current work: **S11 visual design and usability**,
+starting with shared design and keyboard/status accessibility. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Branch: `codex/s7-managed-ai` (continues the preserved S6 history).
+Current branch: `codex/s11-visual-usability`, based on GitHub `main` at `7c92e82`.
+The earlier `codex/s7-managed-ai` branch is preserved separately.
 All earlier branch histories were fast-forwarded into GitHub and local `main`
 at `2d9e784`; its branch and main five-job CI matrices pass.
 
@@ -30,7 +32,7 @@ private prototype does not close independent-machine or release validation.
 | S8 — Evidence delivery | Private implementation; live review locally validated | Explicit evidence/capture approval, negotiated pull-only pages/chunks, hashes, versioned cursors, disk budgets, ZIP export and tombstones. Website camera/LiDAR review: 60 simulated seconds, 2,402 samples, 303 MB captured, 2.13 MB reviewed. Representative hardware/production-duration gates remain. See [checkpoint](evidence-capacity-release.md). |
 | S9 — Multi-user capacity | Provisional simulated target met | Monitoring, quotas, bounded request windows, single-process generation routing and atomic authenticated reply persistence. 25 owners/devices, 500 commands, p95 1.56 s (Python 3.12) / 1.39 s (Python 3.14), all ownership checks pass. 100 configured connections and physical-PC/provider targets remain unvalidated. |
 | S10 — Distribution and release | Private tooling; signing and external acceptance deferred | Pinned publisher verification, installer/uninstaller signing adapter, signed metadata, explicit bounded HTTPS delivery, staged cohorts, native update/rollback review, closed-process helper, backups and compatible rollback. Publisher/feed configuration is unset; actual signed acceptance, deployed delivery and [external beta](private-beta.md) remain open. |
-| S11 — Visual design and usability | Planned; early dashboard design present | Consistent visual system, responsive layouts and accessibility across principal workflows. |
+| **S11 — Visual design and usability** | **In progress; shared foundation implemented** | Shared light browser palette, readable typography, connection states, keyboard skip links/table scrolling and native tab traversal. Browser accessibility checks and companion regression tests cover this first checkpoint. Full workflow visual review, additional display/theme coverage and first-run testers remain. See [S11 plan](visual-usability.md). |
 | S12 — Guided experimentation and adoption | Planned | First-run guidance, galleries, saved suites, comparisons, replay highlights and tester feedback. |
 | S13 — Failure Discovery Agent | Planned | Budgeted search, confirmation and reproducible failure evidence. |
 | S14 — Evidence Analyst Agent | Planned | Evidence-linked analysis with coverage and uncertainty. |
@@ -505,5 +507,5 @@ unchanged.
 
 Visual design, guided workflows, experiment agents and external connections are
 numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
-[product impact notes](product-impact-proposals.md). They remain planned work;
+[product impact notes](product-impact-proposals.md). S11 is in progress; S12–S19 remain planned work;
 existing S0–S10 identifiers and completion gates are preserved.

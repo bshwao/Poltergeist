@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Icon } from "../components/Icon";
+import { SkipLink } from "../components/SkipLink";
 import { readNumericField } from "../components/scenario-form";
 import type { BrowserDeviceView, BrowserScenarioPreset, BrowserSession, PairingStatus, PermissionScope, RemoteCommandView, Scenario } from "../types/generated";
 import { createHostedClient, HostedError } from "./client";
@@ -35,6 +36,7 @@ function AuthForm({ loading, message, logoutUncertain, onLogin, onRetryLogout, o
     finally { submitting.current = false; setBusy(false); }
   }
   return <div className="hosted-auth">
+    <SkipLink target="sign-in" />
     <section className="hosted-welcome" aria-label="About Poltergeist">
       <a className="hosted-brand" href="/app/"><Icon name="ghost" size={34} /> Poltergeist<span>EXPERIMENT LAB</span></a>
       <div className="hosted-welcome-copy"><p className="hosted-eyebrow">YOUR COMPUTER. YOUR EXPERIMENTS.</p>
@@ -43,7 +45,7 @@ function AuthForm({ loading, message, logoutUncertain, onLogin, onRetryLogout, o
         <ol className="hosted-flow"><li><Icon name="scenarios" /> Choose a scenario</li><li><Icon name="simulations" /> Run locally</li><li><Icon name="activity" /> Review the evidence</li></ol>
       </div><p className="hosted-welcome-foot">Simulation and recordings stay on your computer. You choose which account can request work.</p>
     </section>
-    <main className="hosted-auth-main"><div className="hosted-auth-card">
+    <main className="hosted-auth-main" id="sign-in" tabIndex={-1}><div className="hosted-auth-card">
       <p className="hosted-eyebrow">CONNECTED EXPERIMENTS</p><h2>{logoutUncertain ? "Confirm sign out" : register ? "Create your account" : "Welcome back"}</h2>
       <p className="hosted-muted">{logoutUncertain ? "Your private workspace is hidden while sign out is unconfirmed." : "Sign in to connect a computer and manage your experiments."}</p>
       {message && <p className="hosted-alert" role="alert">{message}</p>}
@@ -190,6 +192,7 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
   const [notice, setNotice] = useState("");
   const [logoutUncertain, setLogoutUncertain] = useState(false);
   const [devices, setDevices] = useState<BrowserDeviceView[]>([]);
+  const [devicesLoading, setDevicesLoading] = useState(true);
   const [presets, setPresets] = useState<BrowserScenarioPreset[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [availabilityUnknown, setAvailabilityUnknown] = useState(false);
@@ -215,7 +218,7 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
 
   function clearPrivate() {
     accountEpoch.current += 1;
-    setDevices([]); setPresets([]); setSelectedId(""); setRuns([]); runsRef.current = [];
+    setDevices([]); setDevicesLoading(true); setPresets([]); setSelectedId(""); setRuns([]); runsRef.current = [];
     setClaim(null); setRevokeTarget(null); setPending(null); pendingRef.current = null; resultRequests.current.clear();
     if (typeof window !== "undefined") window.history.replaceState(null, "", window.location.pathname + window.location.search);
   }
@@ -245,7 +248,7 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
         setSelectedId(old => old && list.some(value => value.device.device_id === old) ? old
           : list.find(value => value.device.revoked_at === null)?.device.device_id ?? "");
       } catch (error) { if (!controller.signal.aborted) { setAvailabilityUnknown(true); failed(error); } }
-      finally { if (!controller.signal.aborted) timer = setTimeout(() => { void poll(); }, 4000); }
+      finally { if (!controller.signal.aborted) { setDevicesLoading(false); timer = setTimeout(() => { void poll(); }, 4000); } }
     }
     void poll();
     return () => { controller.abort(); clearTimeout(timer); };
@@ -405,14 +408,16 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
   const activeRun = runs.find(value => value.id === selectedRun) ?? runs[0];
   const live = selected?.connection.remote_requests_enabled === true && !availabilityUnknown;
   return <div className="hosted-shell">
+    <SkipLink target="experiments" />
     <aside className="hosted-sidebar"><a className="hosted-brand" href="/app/"><Icon name="ghost" size={30} />Poltergeist<span>EXPERIMENT LAB</span></a>
       <p className="hosted-nav-heading">YOUR WORKSPACE</p><nav aria-label="Workspace"><a href="#experiments"><Icon name="experiments" />Experiments</a><a href="#connect"><Icon name="simulations" />Connect a computer</a></nav>
       <div className="hosted-sidebar-note"><Icon name="activity" /><strong>Local execution.<br />Connected insight.</strong><p>Your companion runs the simulation. This workspace receives approved summaries.</p></div><small className="hosted-sidebar-footer">Private connected workspace</small>
     </aside>
     <div className="hosted-workspace"><header className="hosted-topbar"><span>Workspace <span className="hosted-slash">/</span> Experiments</span><div><span className="hosted-account">{session.account.username}</span><button onClick={() => { void signOut(); }}>Sign out</button></div></header>
-      <main className="hosted-main" id="experiments"><div className="hosted-page-heading"><div><p className="hosted-eyebrow">CONNECTED EXPERIMENTS</p><h1>Your lab, connected<span>.</span></h1><p className="hosted-muted">Create repeatable scenarios and review results from the computer you control.</p></div><button onClick={() => setRefresh(value => value + 1)}><Icon name="refresh" size={16} />Refresh computers</button></div>
+      <main className="hosted-main" id="experiments" tabIndex={-1}><div className="hosted-page-heading"><div><p className="hosted-eyebrow">CONNECTED EXPERIMENTS</p><h1>Your lab, connected<span>.</span></h1><p className="hosted-muted">Create repeatable scenarios and review results from the computer you control.</p></div><button onClick={() => setRefresh(value => value + 1)}><Icon name="refresh" size={16} />Refresh computers</button></div>
         {notice && <p className="hosted-alert" role="alert">{notice}</p>}
-        <div className="hosted-stats"><div><Icon name="simulations" /><span>Paired computers</span><strong>{devices.filter(value => !value.device.revoked_at).length}</strong></div><div><Icon name="activity" /><span>Accepting requests</span><strong>{availabilityUnknown ? "Unknown" : devices.filter(value => value.connection.remote_requests_enabled).length}</strong></div><div><Icon name="experiments" /><span>Completed in this view</span><strong>{runs.filter(run => run.summary?.status === "completed").length}</strong></div></div>
+        <div className="hosted-stats"><div><Icon name="simulations" /><span>Paired computers</span><strong>{devicesLoading ? "Loading…" : availabilityUnknown ? "Unknown" : devices.filter(value => !value.device.revoked_at).length}</strong></div><div><Icon name="activity" /><span>Accepting requests</span><strong>{devicesLoading ? "Loading…" : availabilityUnknown ? "Unknown" : devices.filter(value => value.connection.remote_requests_enabled).length}</strong></div><div><Icon name="experiments" /><span>Completed in this view</span><strong>{runs.filter(run => run.summary?.status === "completed").length}</strong></div></div>
+        {devicesLoading ? <p className="hosted-state-note" role="status">Loading your computers…</p> : availabilityUnknown ? <section className="hosted-state-note" role="status"><strong>Computer availability could not be refreshed</strong><p>Check your connection and choose Refresh computers to try again. Sending new experiments is paused until availability is confirmed.</p></section> : !devices.some(value => !value.device.revoked_at) && <section className="hosted-state-note" role="status"><strong>No computers connected yet</strong><p>Pair Poltergeist Companion to run experiments and keep your results on that computer.</p><a href="#connect">Connect your first computer →</a></section>}
         <section className="hosted-card hosted-device" aria-labelledby="computer-title"><div><p className="hosted-eyebrow">EXECUTION COMPUTER</p><h2 id="computer-title">Choose your companion</h2></div><label className="hosted-device-picker">Computer<select aria-label="Execution computer" value={selectedId} onChange={event => setSelectedId(event.target.value)} disabled={pending !== null}><option value="">Select a computer</option>{devices.map(value => <option key={value.device.device_id} value={value.device.device_id}>{value.device.display_name}{value.device.revoked_at ? " (revoked)" : ""}</option>)}</select></label>
           {selected && <><span className="hosted-status" data-state={availabilityUnknown ? "connecting" : selected.connection.state}>{availabilityUnknown ? "Availability unknown" : readable(selected.connection.state)}</span><p className="hosted-device-detail">Last seen: {when(selected.connection.last_seen_at)}{selected.connection.protocol_compatible ? " · Compatible connection protocol" : " · Compatibility not yet confirmed"}</p>
             <p className="hosted-muted">{selected.connection.state === "paused" ? "Connected, with remote requests paused. In the companion, disconnect, check consent and reconnect to allow approved requests." : !live ? "Open the companion, start its local runtime and connect with consent to accept requests." : "Approved requests are delivered to this computer. CARLA readiness is checked when a live experiment starts."}</p>

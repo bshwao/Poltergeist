@@ -297,6 +297,31 @@ def test_update_controls_stay_disabled_without_a_release_identity(window):
     assert not (controller.profile / "updates").exists() and errors == []
 
 
+def test_status_messages_remain_visible_below_tall_tabs(window):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    root.geometry("700x600")
+    root.update()
+    root.update_idletasks()
+    def descendants(widget):
+        for child in widget.winfo_children():
+            yield child
+            yield from descendants(child)
+    label = next(widget for widget in descendants(root)
+                 if isinstance(widget, tk.ttk.Label) and str(widget.cget("textvariable")) == str(desktop.message))
+    try:
+        for panel in (desktop.setup, desktop.models, desktop.updates):
+            desktop._tabs.select(panel.frame)
+            root.update_idletasks()
+            assert label.winfo_ismapped()
+            assert label.winfo_rooty() + label.winfo_height() <= root.winfo_rooty() + root.winfo_height()
+    finally:
+        root.withdraw()
+    assert errors == []
+
+
 def test_update_actions_remain_visible_at_minimum_window_size(window):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None)

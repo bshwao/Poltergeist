@@ -4,9 +4,10 @@ Status: S0 locally validated; S1–S5 have private implementations with outstand
 deployment, packaging and independent-machine gates. **S6 reliability remains
 open; S7's managed CPU pack is implemented, with independent-machine acceptance open.** Public S5 deployment is
 deferred at the user's request. S8–S10 now have private implementations with
-outstanding product, signing and external acceptance gates; S11–S19 remain
-planned. See the [S8–S10 checkpoint](evidence-capacity-release.md). Early S11 design work is
-already present in the S5 dashboard. See the dated
+outstanding product, signing and external acceptance gates. **S11 visual design
+and usability is in progress**; S12–S19 remain planned. See the
+[S8–S10 checkpoint](evidence-capacity-release.md) and the
+[S11 implementation and review plan](visual-usability.md). See the dated
 [progress notes](progress-notes.md) for current work and validation.
 This roadmap records the proposed hosted dashboard/backend and
 local companion architecture; it does not indicate that those services or the
@@ -103,7 +104,8 @@ desktop prototype; S3 has an installer/onboarding implementation under validatio
 S4 has private account/pairing, authenticated relay and normal desktop consent
 proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
 is deferred. S6 remains in progress; S7 has an external acceptance gate; S8–S10
-have private implementations described below. S11 onward remain **planned**. Earlier phases may build
+have private implementations described below. S11 is in progress; S12 onward
+remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -342,6 +344,12 @@ copies. It does not satisfy the external completion gate below.
 update and troubleshoot without repository access or developer assistance.
 
 ### S11 — Visual design and usability
+
+**Status: in progress.** The first checkpoint adds shared browser design tokens,
+readable typography, keyboard skip links and telemetry scrolling, explicit
+connection recovery states, native companion typography/tab traversal and
+automated browser accessibility checks. S11.2 workflow visual review and S11.3
+new-tester acceptance remain open. See the [implementation plan](visual-usability.md).
 
 - Establish a consistent dashboard and companion design, typography, themes,
   responsive charts/layouts and readable device/experiment status.

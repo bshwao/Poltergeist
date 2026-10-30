@@ -12,6 +12,7 @@ from scenarios.stress_presets import STRESS_PRESETS
 
 from .controller import read_json
 from .profile import CompanionConfig
+from .design import configure_design
 
 
 def installation_recipe():
@@ -43,21 +44,29 @@ class CompanionWindow:
         self._pending_update = None
         self._imports = {}
         root.title("Poltergeist Companion — private prototype")
-        root.geometry("860x740")
+        configure_design(root)
+        root.geometry(f"960x{min(800, max(600, root.winfo_screenheight() - 100))}")
         root.minsize(700, 600)
         root.protocol("WM_DELETE_WINDOW", self.request_close)
         outer = ttk.Frame(root, padding=16)
         outer.pack(fill="both", expand=True)
-        ttk.Label(outer, text="Poltergeist Companion", font=("Segoe UI", 19, "bold")).pack(anchor="w")
-        ttk.Label(outer, text="Private local prototype · Windows x64", foreground="#555555").pack(anchor="w", pady=(2, 10))
+        ttk.Label(outer, text="Poltergeist Companion", style="Lab.Title.TLabel").pack(anchor="w")
+        ttk.Label(outer, text="Your local experiment runtime · Private Windows preview", style="Lab.Subtitle.TLabel").pack(anchor="w")
         self.runtime_text = tk.StringVar(value="Local runtime: starting…" if autostart else "Local runtime: stopped")
-        ttk.Label(outer, textvariable=self.runtime_text, font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        ttk.Label(outer, textvariable=self.runtime_text, style="Lab.Runtime.TLabel").pack(anchor="w")
         ttk.Label(outer, text="Private account connection preview. Remote requests need pairing, local consent and an explicit connection.", wraplength=790).pack(anchor="w", pady=(4, 8))
         toolbar = ttk.Frame(outer)
         toolbar.pack(fill="x", pady=(0, 10))
         self.start_button = self._button(toolbar, "Start local runtime", lambda: self._run(self._start_runtime, self._apply_snapshot))
         self.stop_button = self._button(toolbar, "Stop local runtime", self._stop)
+        # Reserve the status area before the expanding notebook requests space.
+        # Otherwise a tall tab can push recovery messages outside the window.
+        footer = ttk.Frame(outer)
+        footer.pack(side="bottom", fill="x", pady=(12, 0))
+        self.message = tk.StringVar(value="Results and logs stay in your companion profile.")
+        ttk.Label(footer, textvariable=self.message, wraplength=790).pack(anchor="w", pady=(0, 3))
         tabs = ttk.Notebook(outer)
+        tabs.enable_traversal()
         tabs.pack(fill="both", expand=True)
         execution = ttk.Frame(tabs, padding=12)
         settings = ttk.Frame(tabs, padding=12)
@@ -85,9 +94,6 @@ class CompanionWindow:
             tabs.select(self.setup.frame)
         self._build_diagnostics(diagnostics)
         self._build_archives(archives)
-        self.message = tk.StringVar(value="Results and logs stay in your companion profile.")
-        ttk.Label(outer, textvariable=self.message, wraplength=790).pack(anchor="w", pady=(12, 3))
-        ttk.Label(outer, text=f"Data: {controller.profile}", wraplength=790, foreground="#555555").pack(anchor="w")
         root.bind("<Configure>", self._resize_text, add="+")
         root.after(50, self._pump)
         if autostart:
@@ -190,6 +196,7 @@ class CompanionWindow:
 
     def _build_diagnostics(self, frame):
         ttk.Label(frame, text="Local checks", font=("Segoe UI", 12, "bold")).pack(anchor="w")
+        ttk.Label(frame, text=f"Data and logs: {self.controller.profile}", wraplength=750).pack(anchor="w", pady=(8, 0))
         ttk.Label(frame, text="Checks do not start CARLA or run an experiment. RPC checks inspect the configured local server. Logs are in the profile’s logs folder.", wraplength=750).pack(anchor="w", pady=8)
         row = ttk.Frame(frame)
         row.pack(fill="x", pady=(0, 8))
