@@ -34,8 +34,8 @@ def client_for(settings, adapter=ContactAdapter):
     return TestClient(create_app(settings, runner_factory=lambda **kw: SimulationRunner(adapter(), **kw)))
 
 
-def wait(client, path, predicate):
-    deadline, last = monotonic() + 30, None
+def wait(client, path, predicate, *, timeout_s=30):
+    deadline, last = monotonic() + timeout_s, None
     while monotonic() < deadline:
         response = client.get(path)
         assert response.status_code == 200, response.text
@@ -65,9 +65,9 @@ def approve(client, plan, **changes):
         "expected_revision": plan["revision"], "digest": plan["digest"], "approve": True, **changes})
 
 
-def report(client, plan):
+def report(client, plan, *, timeout_s=30):
     return wait(client, f"/experimentation/discovery/plans/{plan['id']}/report",
-        lambda value: value["evidence"]["operation"]["status"] not in {"queued", "running"})
+        lambda value: value["evidence"]["operation"]["status"] not in {"queued", "running"}, timeout_s=timeout_s)
 
 
 def test_gallery_is_illustratable_and_inert_without_persistence(settings):
@@ -335,7 +335,9 @@ def test_registered_agent_search_confirmation_and_suite_comparisons(settings, pa
         plan = propose(client, **value)
         assert plan["agent_snapshot"] == agent["snapshot"] and not calls(log)
         assert approve(client, plan).status_code == 202
-        result = report(client, plan)
+        # Three real SDK processes share the approved 120-second budget; a
+        # baseline-only 30-second observer must not abort their confirmations.
+        result = report(client, plan, timeout_s=value["budget"]["max_wall_time_s"])
         assert result["confirmed_failures"] == 1 and result["executions_used"] == 3
         assert len([row for row in calls(log) if row["event"] == "load"]) == 3
         scenario = result["candidates"][0]["scenario"]

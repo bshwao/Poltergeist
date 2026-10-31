@@ -22,6 +22,14 @@ actions at 960 × 800 and 700 × 600.
 The status footer reserves space before the main notebook; tall tabs cannot
 push recovery messages out of view. The full profile path is in Diagnostics.
 
+The expanded S12/S13 browser navigation also needs a bounded vertical scroll
+surface. At short desktop heights, the fixed sidebar previously let its pale
+note and footer extend past the dark background; the discovery-report CI audit
+found insufficient contrast. The sidebar now scrolls independently. A 1280 × 600
+regression scrolls to the footer, focuses navigation back into view and audits
+the complete page at both positions. The existing discovery-report audit is
+retained without exclusions.
+
 Both browser workspaces provide a visible-on-focus Skip to content link. Local
 API failures have a recovery message and Retry connection action. The connected
 workspace distinguishes loading computers, an empty paired-device list and

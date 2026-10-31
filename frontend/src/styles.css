@@ -31,7 +31,7 @@ h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
 p { line-height: 1.65; }
 code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
 .app-shell { display: flex; min-height: 100vh; }
-.sidebar { width: 226px; background: var(--lab-sidebar); color: #a4a8bb; position: fixed; inset: 0 auto 0 0; display: flex; flex-direction: column; padding: 34px 18px 0; }
+.sidebar { width: 226px; background: var(--lab-sidebar); color: #a4a8bb; position: fixed; inset: 0 auto 0 0; display: flex; flex-direction: column; padding: 34px 18px 0; overflow-y: auto; overscroll-behavior-y: contain; }
 .brand { color: #f9f9ff; display: flex; gap: 10px; align-items: center; text-decoration: none; font-size: 22px; font-weight: 650; letter-spacing: -.8px; margin: 0 9px 52px; }
 .brand-mark { display: grid; place-items: center; width: 37px; height: 40px; color: #c5ddaf; }
 .brand-caption { display: block; margin-top: 5px; font-size: 10px; color: #b6c9bc; letter-spacing: 2.1px; font-weight: 500; }

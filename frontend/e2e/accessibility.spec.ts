@@ -15,6 +15,22 @@ for (const width of [1440, 390]) {
   }
 }
 
+test("navigation stays readable and reachable in a short desktop viewport", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 600 });
+  await page.goto("/#overview");
+  await expect(page.locator(".connection-pill")).toHaveText("API connected");
+  const sidebar = page.locator(".sidebar");
+  const footer = sidebar.getByText("Local development", { exact: false });
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer).toBeInViewport();
+  await auditAccessibility(page, testInfo, "short-desktop-sidebar-end");
+  const overview = sidebar.getByRole("link", { name: "Overview", exact: true });
+  await overview.focus();
+  await expect(overview).toBeFocused();
+  await expect(overview).toBeInViewport();
+  await auditAccessibility(page, testInfo, "short-desktop-sidebar-navigation");
+});
+
 test("a lost local API has a keyboard reachable recovery action", async ({ page }) => {
   let release!: () => void;
   const templates = new Promise<void>(resolve => { release = resolve; });

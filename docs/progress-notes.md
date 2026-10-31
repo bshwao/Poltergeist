@@ -47,6 +47,17 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- Pulled the S12/S13 workflows from `82c1006` and retained the capacity work.
+  That main revision's four Python CI jobs passed; its dashboard job failed
+  discovery-report contrast because the expanded fixed sidebar overflowed its
+  dark surface. An independent sidebar scroll surface fixes this. The new
+  1280 × 600 footer/navigation regression failed before the fix and passes after
+  it; all 365 frontend unit tests, 26 local browser tests, three connected-browser
+  tests, contract checks and both builds pass. An SDK integration test's observer
+  now uses its approved 120-second discovery allowance instead of stopping at
+  30 seconds while confirmations are still working. Product budgets and
+  confirmation assertions remain unchanged.
+
 - Protocol 2 retains the original 100-device overload failure and the later
   transport-headroom measurement: all 500 commands complete with correct
   ownership, but p95 6.92 s fails the unchanged two-second target. The 25-device
