@@ -83,13 +83,16 @@ class CommandService:
     def connection_current(self, credential, expected):
         """Recheck a displayed connection without manufacturing device activity."""
         with self.store.transaction(write=False) as connection:
-            row = self._credential(connection, credential, expected=expected)
-            policy = _stored(DevicePolicy, row["policy_json"])
-            grants = {item[0] for item in connection.execute("SELECT scope FROM device_grants "
-                "WHERE device_id=? AND ownership_generation=?", (row["id"], row["ownership_generation"]))}
-            if policy != expected["policy"] or grants != set(policy.scopes):
-                raise AuthError(403, "permission_denied")
-            return dict(row)
+            return self._connection_current(connection, credential, expected)
+
+    def _connection_current(self, connection, credential, expected):
+        row = self._credential(connection, credential, expected=expected)
+        policy = _stored(DevicePolicy, row["policy_json"])
+        grants = {item[0] for item in connection.execute("SELECT scope FROM device_grants "
+            "WHERE device_id=? AND ownership_generation=?", (row["id"], row["ownership_generation"]))}
+        if policy != expected["policy"] or grants != set(policy.scopes):
+            raise AuthError(403, "permission_denied")
+        return dict(row)
 
     def last_seen(self, owner_id, device_id):
         with self.store.transaction(write=False) as connection:
@@ -155,46 +158,49 @@ class CommandService:
             simulation_id=row["simulation_id"], reply=reply)
 
     def admit(self, owner_id, device_id, command, *, connected):
+        with self.store.transaction() as connection:
+            return self._admit(connection, owner_id, device_id, command, connected=connected)
+
+    def _admit(self, connection, owner_id, device_id, command, *, connected):
         # Validate again for direct callers; normalized defaults are part of the digest.
         command = parse_message(canonical_json(command), relay=False)
         if isinstance(command, EvidenceRequest):
             raise AuthError(400, "use_evidence_endpoint")
         digest, payload = payload_digest(command), canonical_json(command)
         now = self.now()
-        with self.store.transaction() as connection:
-            row = self._owner(connection, owner_id, device_id, scope=command_scope(command))
-            existing = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND request_id=?",
-                (row["id"], row["ownership_generation"], str(command.request_id))).fetchone()
-            if existing is not None:
-                if existing["owner_id"] != str(owner_id) or not hmac.compare_digest(existing["payload_hash"], digest):
-                    raise AuthError(409, "request_conflict")
-                return self._view(existing)
-            if isinstance(command, ExecuteCommand):
-                policy = _stored(DevicePolicy, row["policy_json"])
-                if (command.options.camera or command.options.lidar) and (not policy.allow_raw_capture or command.mode != "carla"):
-                    raise AuthError(403, "policy_denied")
-                if (command.scenario.duration_s > policy.max_duration_s or command.options.max_ticks > policy.max_ticks or
-                        ceil(command.scenario.duration_s / command.scenario.fixed_delta_seconds - 1e-9)
-                        > min(policy.max_ticks, command.options.max_ticks)):
-                    raise AuthError(403, "policy_denied")
-            if command.kind in ("cancel", "result") and self._execution(connection, row, command.simulation_id) is None:
-                raise AuthError(404, "resource_not_found")
-            if not connected:
-                raise AuthError(503, "device_unavailable", retry_after=3)
-            if (connection.execute("SELECT count(*) FROM commands WHERE owner_id=?", (str(owner_id),)).fetchone()[0]
-                    >= self.max_commands_per_account or
-                    connection.execute("SELECT count(*) FROM commands").fetchone()[0] >= 100000):
-                raise AuthError(429, "command_storage_full", retry_after=60)
-            count = connection.execute("SELECT count(*) FROM commands WHERE device_id=? AND ownership_generation=? AND status='queued'",
-                (row["id"], row["ownership_generation"])).fetchone()[0]
-            if count >= 32:
-                raise AuthError(429, "device_queue_full", retry_after=3)
-            identifier = str(uuid4())
-            connection.execute("INSERT INTO commands(id,device_id,owner_id,ownership_generation,request_id,operation,payload_hash,"
-                "payload_json,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,'queued',?,?)",
-                (identifier, row["id"], str(owner_id), row["ownership_generation"], str(command.request_id), command.kind, digest, payload, now, now))
-            audit(connection, now, "command_admit", "allowed", account_id=str(owner_id), device_id=row["id"], command_id=identifier)
-            return self._view(connection.execute("SELECT * FROM commands WHERE id=?", (identifier,)).fetchone())
+        row = self._owner(connection, owner_id, device_id, scope=command_scope(command))
+        existing = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND request_id=?",
+            (row["id"], row["ownership_generation"], str(command.request_id))).fetchone()
+        if existing is not None:
+            if existing["owner_id"] != str(owner_id) or not hmac.compare_digest(existing["payload_hash"], digest):
+                raise AuthError(409, "request_conflict")
+            return self._view(existing)
+        if isinstance(command, ExecuteCommand):
+            policy = _stored(DevicePolicy, row["policy_json"])
+            if (command.options.camera or command.options.lidar) and (not policy.allow_raw_capture or command.mode != "carla"):
+                raise AuthError(403, "policy_denied")
+            if (command.scenario.duration_s > policy.max_duration_s or command.options.max_ticks > policy.max_ticks or
+                    ceil(command.scenario.duration_s / command.scenario.fixed_delta_seconds - 1e-9)
+                    > min(policy.max_ticks, command.options.max_ticks)):
+                raise AuthError(403, "policy_denied")
+        if command.kind in ("cancel", "result") and self._execution(connection, row, command.simulation_id) is None:
+            raise AuthError(404, "resource_not_found")
+        if not connected:
+            raise AuthError(503, "device_unavailable", retry_after=3)
+        if (connection.execute("SELECT count(*) FROM commands WHERE owner_id=?", (str(owner_id),)).fetchone()[0]
+                >= self.max_commands_per_account or
+                connection.execute("SELECT count(*) FROM commands").fetchone()[0] >= 100000):
+            raise AuthError(429, "command_storage_full", retry_after=60)
+        count = connection.execute("SELECT count(*) FROM commands WHERE device_id=? AND ownership_generation=? AND status='queued'",
+            (row["id"], row["ownership_generation"])).fetchone()[0]
+        if count >= 32:
+            raise AuthError(429, "device_queue_full", retry_after=3)
+        identifier = str(uuid4())
+        connection.execute("INSERT INTO commands(id,device_id,owner_id,ownership_generation,request_id,operation,payload_hash,"
+            "payload_json,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,'queued',?,?)",
+            (identifier, row["id"], str(owner_id), row["ownership_generation"], str(command.request_id), command.kind, digest, payload, now, now))
+        audit(connection, now, "command_admit", "allowed", account_id=str(owner_id), device_id=row["id"], command_id=identifier)
+        return self._view(connection.execute("SELECT * FROM commands WHERE id=?", (identifier,)).fetchone())
 
     def authorize_evidence(self, owner_id, device_id, command):
         with self.store.transaction(write=False) as connection:
@@ -207,14 +213,17 @@ class CommandService:
 
     def get(self, owner_id, device_id, request_id):
         with self.store.transaction(write=False) as connection:
-            row = self._owner(connection, owner_id, device_id)
-            command = connection.execute("SELECT * FROM commands WHERE device_id=? AND owner_id=? AND ownership_generation=? AND request_id=?",
-                (row["id"], str(owner_id), row["ownership_generation"], str(request_id))).fetchone()
-            if command is None:
-                raise AuthError(404, "resource_not_found")
-            parsed = _stored(COMMAND_ADAPTER, command["payload_json"])
-            self._owner(connection, owner_id, device_id, scope=command_scope(parsed))
-            return self._view(command)
+            return self._get(connection, owner_id, device_id, request_id)
+
+    def _get(self, connection, owner_id, device_id, request_id):
+        row = self._owner(connection, owner_id, device_id)
+        command = connection.execute("SELECT * FROM commands WHERE device_id=? AND owner_id=? AND ownership_generation=? AND request_id=?",
+            (row["id"], str(owner_id), row["ownership_generation"], str(request_id))).fetchone()
+        if command is None:
+            raise AuthError(404, "resource_not_found")
+        parsed = _stored(COMMAND_ADAPTER, command["payload_json"])
+        self._owner(connection, owner_id, device_id, scope=command_scope(parsed))
+        return self._view(command)
 
     def pending(self, credential, expected):
         with self.store.transaction() as connection:

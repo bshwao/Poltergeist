@@ -1,0 +1,71 @@
+{
+  "source_revision": "951ec1305172b088ce4117b45012865c759a30ab",
+  "profiling_not_acceptance": true,
+  "users": 100,
+  "rounds_per_device": 2,
+  "aggregate_timings": {
+    "path_validation_calls": 2700,
+    "path_validation_s": 7.089285400143126,
+    "sql_begin_calls": 2700,
+    "sql_begin_s": 0.4224063000037859,
+    "sql_select_calls": 7700,
+    "sql_select_s": 1.0950993002225005,
+    "commit_calls": 2600,
+    "commit_s": 1.2701098999568785,
+    "sql_update_calls": 1300,
+    "sql_update_s": 0.14279029993122094,
+    "sql_insert_calls": 600,
+    "sql_insert_s": 0.048796500010212185,
+    "workload_wall_calls": 1,
+    "workload_wall_s": 18.530525400001352
+  },
+  "workload_result": {
+    "schema_version": "poltergeist-capacity-v1",
+    "protocol_version": 2,
+    "transport": "loopback HTTP/WS fixture",
+    "users": 100,
+    "connected_devices": 100,
+    "rounds_per_device": 2,
+    "completed_commands": 200,
+    "routed_commands": 200,
+    "cross_owner_denials": 100,
+    "elapsed_s": 17.78099999999904,
+    "commands_per_s": 11.24796130701371,
+    "latency_p50_s": 5.320499999999811,
+    "latency_p95_s": 9.078000000001339,
+    "latency_max_s": 9.125,
+    "latency_measurement_complete": true,
+    "http_payload_bytes": 145924,
+    "http_status_counts": {
+      "404": 100,
+      "503": 140,
+      "202": 200,
+      "200": 200
+    },
+    "http_retry_count": 140,
+    "http_retry_wait_s": 143.30966129594353,
+    "max_connections": 100,
+    "failure_phase": null,
+    "failure_code": null,
+    "passed": false,
+    "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+    "python_peak_bytes": 48462954,
+    "cleanup_completed": true,
+    "database_bytes": 811008,
+    "server_concurrency_limit": 228,
+    "provisional_targets": {
+      "p95_latency_s": 2.0,
+      "python_peak_bytes": 134217728
+    },
+    "target_failures": [
+      "latency"
+    ]
+  },
+  "scope": "Same fixture with aggregate operation timing overhead; account setup excluded from timings.",
+  "runtime": {
+    "python": "3.12.15 (main, Oct 14 2026, 01:08:45) [MSC v.1944 64 bit (AMD64)]",
+    "sqlite": "3.53.1",
+    "platform": "Windows-11-10.0.26300-SP0"
+  },
+  "host_context": "Validation companion open and idle; no concurrent local benchmark or regression suite."
+}

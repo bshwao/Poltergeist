@@ -53,15 +53,18 @@ class RelayHub:
         self.evidence_bytes = 0
         self.capacity_refusals = 0
 
-    def available(self, device_id):
+    def available(self, device_id, *, connection=None):
         current = self.connections.get(str(device_id))
-        return current is not None and current.ready and current.enabled and self._current(current)
+        return current is not None and current.ready and current.enabled and self._current(current, connection=connection)
 
-    def _current(self, current):
+    def _current(self, current, *, connection=None):
         if self._expired(current):
             return False
         try:
-            self.commands.connection_current(current.credential, current.identity)
+            if connection is None:
+                self.commands.connection_current(current.credential, current.identity)
+            else:
+                self.commands._connection_current(connection, current.credential, current.identity)
             return True
         except AuthError:
             return False

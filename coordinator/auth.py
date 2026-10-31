@@ -150,13 +150,19 @@ class AuthService:
     def session(self, token):
         if not isinstance(token, str) or not _TOKEN.fullmatch(token):
             raise AuthError(401, "authentication_required")
-        now = self.now()
         with self.store.transaction() as connection:
-            row = connection.execute("SELECT s.*,a.username,a.disabled_at,a.auth_revision AS current_revision "
-                "FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token_hash=?", (hash_token(token),)).fetchone()
-            if row is None or row["revoked_at"] is not None or row["disabled_at"] is not None or row["auth_revision"] != row["current_revision"] or now >= row["expires_at"] or now - row["last_used_at"] >= 1800:
-                raise AuthError(401, "authentication_required")
-            connection.execute("UPDATE sessions SET last_used_at=? WHERE id=?", (now, row["id"]))
+            return self._session(connection, token)
+
+    def _session(self, connection, token):
+        """Authenticate and touch within the caller's short write transaction."""
+        if not isinstance(token, str) or not _TOKEN.fullmatch(token):
+            raise AuthError(401, "authentication_required")
+        now = self.now()
+        row = connection.execute("SELECT s.*,a.username,a.disabled_at,a.auth_revision AS current_revision "
+            "FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.token_hash=?", (hash_token(token),)).fetchone()
+        if row is None or row["revoked_at"] is not None or row["disabled_at"] is not None or row["auth_revision"] != row["current_revision"] or now >= row["expires_at"] or now - row["last_used_at"] >= 1800:
+            raise AuthError(401, "authentication_required")
+        connection.execute("UPDATE sessions SET last_used_at=? WHERE id=?", (now, row["id"]))
         return {"account_id": row["account_id"], "username": row["username"], "csrf_token": row["csrf_token"], "expires_at": row["expires_at"]}
 
     def logout(self, token):

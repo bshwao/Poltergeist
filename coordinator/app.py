@@ -173,7 +173,7 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
     async def persistence_error(request, error):
         return failure(503, "coordinator_unavailable", retry_after=3)
 
-    def browser(request, *, write=False, authenticated=True):
+    def browser(request, *, write=False, authenticated=True, connection=None):
         origin = request.headers.get("origin")
         if origin is not None and origin != settings.public_origin:
             raise AuthError(403, "cross_origin_denied")
@@ -184,7 +184,9 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
             raise AuthError(403, "browser_header_required")
         if not authenticated:
             return None
-        account = request.app.state.auth.session(request.cookies.get(COOKIE))
+        token = request.cookies.get(COOKIE)
+        auth = request.app.state.auth
+        account = auth.session(token) if connection is None else auth._session(connection, token)
         request.app.state.limits.consume("browser:" + str(account["account_id"]), 1200)
         if write:
             supplied = request.headers.get("x-csrf-token", "")
@@ -338,13 +340,18 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
 
     @app.post("/v1/devices/{device_id}/commands", status_code=202)
     async def command(device_id: UUID, request: Request):
-        account = browser(request, write=True)
-        try:
-            body = parse_message(await request.body(), relay=False)
-        except ValueError:
-            raise AuthError(400, "invalid_request") from None
-        result = request.app.state.commands.admit(account["account_id"], device_id, body,
-            connected=request.app.state.relay.available(device_id))
+        browser(request, write=True, authenticated=False)
+        # The boundary has bounded the body. Never hold a database transaction
+        # across an await; authenticate before parsing the untrusted command.
+        raw = await request.body()
+        with store.transaction() as connection:
+            account = browser(request, write=True, connection=connection)
+            try:
+                body = parse_message(raw, relay=False)
+            except ValueError:
+                raise AuthError(400, "invalid_request") from None
+            result = request.app.state.commands._admit(connection, account["account_id"], device_id, body,
+                connected=request.app.state.relay.available(device_id, connection=connection))
         request.app.state.relay.notify(device_id)
         return result
 
@@ -383,7 +390,10 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
 
     @app.get("/v1/devices/{device_id}/commands/{request_id}")
     def command_status(device_id: UUID, request_id: UUID, request: Request):
-        return request.app.state.commands.get(browser(request)["account_id"], device_id, request_id)
+        browser(request, authenticated=False)
+        with store.transaction() as connection:
+            account = browser(request, connection=connection)
+            return request.app.state.commands._get(connection, account["account_id"], device_id, request_id)
 
     @app.get("/v1/devices/{device_id}/commands")
     def command_history(device_id: UUID, request: Request,

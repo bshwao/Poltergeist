@@ -193,12 +193,40 @@ confirmed in the pinned installed implementation and its
 The old shared threshold left too little HTTP headroom once device slots filled.
 The CLI and load fixture now derive their threshold from the device ceiling plus
 the fixed HTTP allowance. The 64-active-request guard and all timing, memory,
-body, ownership and durability checks are unchanged. Fresh measurements are
-required before claiming that the 100-device target passes.
+body, ownership and durability checks are unchanged.
+
+Protocol 2 measurements with the 228 transport threshold, Python 3.12.15 and
+SQLite 3.53.1 on the development Windows laptop:
+
+| Devices / commands | Routing and ownership | p95 latency | Traced peak | Target |
+| --- | --- | --- | --- | --- |
+| [25 / 500](validation/s9-protocol2-25-headroom-20261029.json) | 500 routed/completed; 25 denials | 1.34 s | 16.4 MiB | Passed |
+| [100 / 500](validation/s9-protocol2-100-headroom-20261029.json) | 500 routed/completed; 100 denials | 6.92 s | 48.8 MiB | **Latency failed** |
+
+The 100-device run recorded 309 HTTP 503 responses, all recovered within the
+existing retry budgets. Retrying makes the failure evidence complete; it does
+not remove overload time from command latency. Both fixtures shut down cleanly.
+The validation companion was open and idle, with no concurrent local benchmark
+or regression suite. This establishes simulated routing at the configured
+ceiling, while the two-second latency target still fails there.
+
+A separate [aggregate diagnostic profile](validation/s9-transaction-profile-20261029.json)
+of 100 devices and 200 commands recorded 2,700 transactions and 7.09 seconds in
+path validation during an 18.53-second workload. Instrumentation adds overhead;
+this diagnostic is not an acceptance measurement. Browser command admission now
+shares a short transaction with session authentication, full live-connection
+validation and the receipt insert. Command readback similarly shares its
+transaction with session authentication. Each request still reads current
+credentials, account/session revocation, policy, grants and ownership as
+applicable; no authorization or filesystem decisions are cached. A failed
+command request rolls back its session activity timestamp. Admission notifies
+the relay only after commit, and no transaction spans a body/network await.
+SQLite FULL durability and fresh per-transaction path checks remain enabled.
+Fresh capacity measurements of this change are pending.
 
 Separate existing HTTPS/WSS tests cover transport security. The configured
-100-device ceiling, real concurrent CARLA runs on representative PCs and hosted
-costs remain unvalidated. A small three-user smoke benchmark runs in core CI.
+100-device latency target, real concurrent CARLA runs on representative PCs and
+hosted costs remain unvalidated. A small three-user smoke benchmark runs in core CI.
 
 ## S10: signing and safe update tooling
 
