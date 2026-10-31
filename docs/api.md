@@ -343,6 +343,12 @@ submit through the existing simulation routes rather than creating a second work
 
 ## Errors and limits
 
+S14/S15 add read-only `GET /experimentation/analysis/{simulation_id}` and
+`GET|POST /experimentation/regressions/{suite_run_id}`. The regression POST accepts
+an explicit measurement/threshold/minimum-pairs policy and launches no execution.
+See [evidence and regression agents](evidence-regression-agents.md) for coverage,
+unknown-result rules, exports, review limits and connected-companion negotiation.
+
 Guided suites, explicitly approved discovery plans, exact-frame highlights and
 consented feedback use the `/experimentation` endpoints described in the
 [guided experimentation API table](guided-experimentation.md#local-api-and-storage).

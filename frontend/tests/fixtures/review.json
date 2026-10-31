@@ -1,0 +1,281 @@
+{
+  "analysis": {
+    "schema_version": "poltergeist-evidence-analysis-v1",
+    "method": "recorded-evidence-rules-v1",
+    "simulation_id": "0547d977-a321-44f3-a590-583543ae3199",
+    "mode": "test",
+    "execution_status": "completed",
+    "state": "complete",
+    "source_digest": "9390bde47db78dc0f1b4e1c3c9b9de98063c881d12775e4f69873068fd5ca1e9",
+    "telemetry_digest": "63afae15264fcd4064895e21f67b90424d6001b9312f05391ed27a1be657ce49",
+    "summary": "Reviewed 3 saved frames from a completed execution. Recorded safety coverage is complete for this trace.",
+    "coverage": {
+      "telemetry_frames": 3,
+      "telemetry_gaps": 0,
+      "safety_complete": true,
+      "interventions_recorded": true,
+      "decision_trace": "not_reviewed"
+    },
+    "observations": [
+      {
+        "kind": "execution",
+        "statement": "The saved execution ended as completed with 3 recorded telemetry frames.",
+        "value": 3.0,
+        "unit": "recorded frames",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "result",
+            "field": "simulation.status",
+            "frame": null,
+            "time_s": null
+          },
+          {
+            "source": "result",
+            "field": "telemetry_frames",
+            "frame": null,
+            "time_s": null
+          }
+        ]
+      },
+      {
+        "kind": "contact",
+        "statement": "1 recorded frames contain contact events among 3 observed frames out of 3 reviewed frames. These are frame counts, not distinct event episodes.",
+        "value": 1.0,
+        "unit": "frames with events",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "collisions",
+            "frame": 0,
+            "time_s": 0.0
+          }
+        ]
+      },
+      {
+        "kind": "traffic_rule",
+        "statement": "0 recorded frames contain rule-event events among 3 observed frames out of 3 reviewed frames. These are frame counts, not distinct event episodes.",
+        "value": 0.0,
+        "unit": "frames with events",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "traffic_violations",
+            "frame": 0,
+            "time_s": 0.0
+          }
+        ]
+      },
+      {
+        "kind": "braking",
+        "statement": "Peak measured deceleration is 0 m/s\u00b2 across 3 of 3 eligible motion observations.",
+        "value": 0.0,
+        "unit": "m/s\u00b2",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "ego",
+            "frame": 0,
+            "time_s": 0.0
+          }
+        ]
+      },
+      {
+        "kind": "intervention",
+        "statement": "The stored control audit records 0 scripted interventions; 0 have matching reviewed frame/time references. Proposed and applied controls are separate from model intent.",
+        "value": 0.0,
+        "unit": "audit records",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "result",
+            "field": "control_audit.interventions",
+            "frame": null,
+            "time_s": null
+          }
+        ]
+      }
+    ],
+    "hypotheses": [],
+    "unresolved_questions": [
+      "The saved trace alone cannot establish what the model perceived or why it chose an action.",
+      "Decision traces and recordings may add context; they cannot by themselves establish internal model reasoning."
+    ],
+    "limitations": [
+      "Synthetic mode exercises the workflow; these observations are not measurements of CARLA driving.",
+      "This deterministic report describes recorded evidence; it does not inspect a model's internal reasoning or establish causation.",
+      "A missing event or a low heuristic score does not establish safety. Partial and unavailable observations remain unknown.",
+      "The review is bounded to 128 MiB and 100,001 telemetry frames. Selected links are not a complete replay.",
+      "Decision traces and camera/LiDAR recordings are reviewed separately; this report does not validate their integrity."
+    ]
+  },
+  "regression": {
+    "schema_version": "poltergeist-regression-v1",
+    "method": "matched-observation-rules-v1",
+    "operation_id": "3b15cc16-82f5-4aa4-88e8-c78a9accbfd0",
+    "execution_status": "completed",
+    "source_digest": "837eacf23a85ed803590ff00c9990d7ad81520b36326824ac16c1682d583644c",
+    "plan_digest": "7940063bbb4ffe03907853162a343dbacfa777dcdb2a3c964979a2d72a04fef0",
+    "policy": {
+      "minimum_pairs": 3,
+      "thresholds": {
+        "severity": 5.0,
+        "collision_count": 0.0
+      }
+    },
+    "state": "regression_observed",
+    "summary": "2 case/controller/metric comparisons show a repeated worsening pattern under the selected policy. Unresolved or unselected measurements are not cleared by this report.",
+    "evidence_review": {
+      "available_runs": 6,
+      "unavailable_runs": 0,
+      "limited_runs": 0,
+      "frames_read": 18,
+      "bytes_read": 19935,
+      "frame_limit": 100001,
+      "byte_limit": 134217728
+    },
+    "context_notes": [],
+    "controllers": [
+      {
+        "agent_index": 0,
+        "registration_id": "beb70be0-0208-467a-bab9-d58d8bcfce69",
+        "name": "Frozen regression fixture",
+        "version": "1.0",
+        "snapshot_digest": "3fd2bb4318b93f6bdf3b3c33c4c8739ca3fd4299ff13c5664b85528bb778889a",
+        "execution_digest": "894d9698e15ff1b20fbc2bba35acaba844989560f556eb8a4f2a950e9246767b",
+        "python_digest": "f9475ecd98ef320792a4946b80b1915500a318e9ad537097b8188c28fd659928",
+        "dependencies_digest": "26d636f63e96c143232e8bda13c57fbc39bcb6219f4725782f8ecaee846e46d7",
+        "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      {
+        "agent_index": 1,
+        "registration_id": "ace23e28-3b2b-4f1d-993b-ad76144bf5f0",
+        "name": "Frozen regression fixture",
+        "version": "2.0",
+        "snapshot_digest": "f5475a01288505757642614e9241edfb3785677735e94128b8ec827a89a9d37f",
+        "execution_digest": "8940e3f5f0eeea2b06fabe32c19cbef2479816e0f8153a6137cf53da007b1ad0",
+        "python_digest": "f9475ecd98ef320792a4946b80b1915500a318e9ad537097b8188c28fd659928",
+        "dependencies_digest": "26d636f63e96c143232e8bda13c57fbc39bcb6219f4725782f8ecaee846e46d7",
+        "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    ],
+    "pairs": [
+      {
+        "case_index": 0,
+        "compared_agent_index": 1,
+        "seed": 7,
+        "repeat_index": 0,
+        "reference_simulation_id": "514a93d3-c6a9-479a-8c7a-6c3ee8857c6e",
+        "compared_simulation_id": "f1a8ffad-c073-4935-867c-04564ded1dd0",
+        "comparable": true,
+        "reason": "Matched frozen recipe/seed/repetition, observed coverage, runtime and input contract",
+        "differences": {
+          "severity": 81.79342431761788,
+          "collision_count": 1.0
+        },
+        "reference_values": {
+          "severity": 18.20657568238213,
+          "collision_count": 0.0
+        },
+        "compared_values": {
+          "severity": 100.0,
+          "collision_count": 1.0
+        }
+      },
+      {
+        "case_index": 0,
+        "compared_agent_index": 1,
+        "seed": 11,
+        "repeat_index": 0,
+        "reference_simulation_id": "d104179d-7243-4bf7-970e-1523ef404612",
+        "compared_simulation_id": "74cdca32-375b-40af-9b13-d2c583b4ce1c",
+        "comparable": true,
+        "reason": "Matched frozen recipe/seed/repetition, observed coverage, runtime and input contract",
+        "differences": {
+          "severity": 81.79342431761788,
+          "collision_count": 1.0
+        },
+        "reference_values": {
+          "severity": 18.20657568238213,
+          "collision_count": 0.0
+        },
+        "compared_values": {
+          "severity": 100.0,
+          "collision_count": 1.0
+        }
+      },
+      {
+        "case_index": 0,
+        "compared_agent_index": 1,
+        "seed": 13,
+        "repeat_index": 0,
+        "reference_simulation_id": "e991dfe6-728f-4b6e-ad51-75f7e9eb5ec7",
+        "compared_simulation_id": "93d357bc-ae79-4e44-b6bc-b50c9f05e138",
+        "comparable": true,
+        "reason": "Matched frozen recipe/seed/repetition, observed coverage, runtime and input contract",
+        "differences": {
+          "severity": 81.79342431761788,
+          "collision_count": 1.0
+        },
+        "reference_values": {
+          "severity": 18.20657568238213,
+          "collision_count": 0.0
+        },
+        "compared_values": {
+          "severity": 100.0,
+          "collision_count": 1.0
+        }
+      }
+    ],
+    "assessments": [
+      {
+        "case_index": 0,
+        "case_name": "Controlled observed contact",
+        "compared_agent_index": 1,
+        "metric": "severity",
+        "unit": "0\u2013100 heuristic",
+        "worsening_direction": "higher",
+        "threshold": 5.0,
+        "decision": "regression_observed",
+        "planned_pairs": 3,
+        "observed_pairs": 3,
+        "worsening_pairs": 3,
+        "mean_change": 81.79342431761788,
+        "minimum_change": 81.79342431761788,
+        "maximum_change": 81.79342431761788,
+        "sample_stddev": 0.0,
+        "explanation": "3 of 3 observed pairs exceed the worsening threshold; 0 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+      },
+      {
+        "case_index": 0,
+        "case_name": "Controlled observed contact",
+        "compared_agent_index": 1,
+        "metric": "collision_count",
+        "unit": "episodes",
+        "worsening_direction": "higher",
+        "threshold": 0.0,
+        "decision": "regression_observed",
+        "planned_pairs": 3,
+        "observed_pairs": 3,
+        "worsening_pairs": 3,
+        "mean_change": 1.0,
+        "minimum_change": 1.0,
+        "maximum_change": 1.0,
+        "sample_stddev": 0.0,
+        "explanation": "3 of 3 observed pairs exceed the worsening threshold; 0 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+      }
+    ],
+    "limitations": [
+      "This is an observed, threshold-based pattern in matched frozen trials, not a probability of failure, a causal attribution or a general safety ranking.",
+      "Raw differences are compared minus reference. Lower TTC/clearance is worse; other selected metrics worsen when higher.",
+      "A negative/clear result requires every planned pair and at least the policy's minimum count. Missing, failed, cancelled, corrupted or incompatible evidence is not zero.",
+      "A positive pattern requires every observed paired change to exceed the threshold and at least the minimum count. Mixed patterns are inconclusive; sample spread is descriptive.",
+      "Frozen snapshots describe the executed artifacts/configuration. They do not establish that those files remain installed or that model weights alone caused a difference.",
+      "Reproduce using the frozen suite request and version snapshots in its existing evidence export; later edits or deletion of a reusable definition do not replace that journal.",
+      "Synthetic fixtures check this workflow. CARLA, hardware and learned inference can vary between repeated seeds."
+    ]
+  }
+}

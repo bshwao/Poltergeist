@@ -13,6 +13,8 @@ from backend.optimization_repository import OptimizationRepository
 from backend.persistence_errors import ConflictError, NotFoundError
 from backend.remote_receipts import RemoteReceiptRepository, experiment_scope
 from backend.services.comparison_service import build_suite_report
+from backend.services.evidence_analysis_service import build_evidence_analysis
+from backend.services.regression_service import build_regression_report
 from backend.services.experimentation_service import ExperimentationService, gallery, replay_highlights, read_highlight_evidence
 from backend.services.simulation_service import QueueFullError
 from backend.repositories import SimulationRepository
@@ -22,14 +24,15 @@ from shared.models.runtime import SimulationOptions
 from shared.models.evidence import EvidenceFrame
 from shared.models.lab import (LabReply, LabReceipt, LabGalleryResult, LabSuitesResult, LabPlansResult,
     LabFeedbacksResult, LabSuiteResult, LabPlanResult, LabOperationResult, LabDiscoveryResult,
-    LabSuiteReportResult, LabSuiteRunsResult, LabRunResult, LabHighlightsResult, LabFrameResult, LabFeedbackResult, LabDeletedResult)
+    LabSuiteReportResult, LabSuiteRunsResult, LabRunResult, LabHighlightsResult, LabFrameResult, LabFeedbackResult, LabDeletedResult,
+    LabAnalysisResult, LabRegressionResult)
 from shared.models.remote import ExecuteCommand, RemoteRunOptions, canonical_json, payload_digest, MAX_RELAY_BYTES
 
 from .remote_service import RemoteDenied
 
 MAX_REMOTE_EXECUTIONS = 12
 _PUBLIC_ERROR = "The experiment failed on this computer. Review its local diagnostics."
-_READS = {"gallery", "suites", "plans", "feedbacks", "suite_runs", "suite_get", "plan_get", "discovery_report", "suite_report", "operation_get", "run_get", "highlights", "frame_get"}
+_READS = {"gallery", "suites", "plans", "feedbacks", "suite_runs", "suite_get", "plan_get", "discovery_report", "suite_report", "operation_get", "run_get", "highlights", "frame_get", "analysis_get", "regression_report"}
 
 
 binding_scope = experiment_scope
@@ -280,6 +283,11 @@ class RemoteLabService:
             value = build_suite_report(self.worker.persistence, action.id)
             evidence = value.evidence.model_copy(update={"operation": public_operation(value.evidence.operation)})
             result = LabSuiteReportResult(report=value.model_copy(update={"evidence": evidence}))
+        elif action.kind == "regression_report":
+            operation = self._owned_operation(workspace, action.id)
+            if operation.request.kind != "suite" or any(agent.agent_id is not None for agent in operation.comparison_agents):
+                raise RemoteDenied("policy_denied")
+            result = LabRegressionResult(report=build_regression_report(self.worker.persistence, action.id, action.policy))
         elif action.kind == "run_launch":
             check_remote_execution(action.launch, policy, action.launch.scenario)
             if action.launch.options != SimulationOptions(max_ticks=action.launch.options.max_ticks):
@@ -289,9 +297,13 @@ class RemoteLabService:
             accepted = self.remote._execute(binding, request, policy,
                 on_created=lambda session, stored: acknowledge(session, LabRunResult(record=transactional_run(session, stored))))
             result = LabRunResult(record=public_run(_record(self.worker.get(accepted.simulation_id), self.worker)))
-        elif action.kind in {"run_get", "run_cancel", "highlights", "frame_get"}:
+        elif action.kind in {"run_get", "run_cancel", "highlights", "frame_get", "analysis_get"}:
             stored = self.owned_run(binding, action.id)
-            if action.kind == "highlights":
+            if action.kind == "analysis_get":
+                if stored.simulation.agent != "baseline" or stored.simulation.agent_snapshot is not None:
+                    raise RemoteDenied("policy_denied")
+                result = LabAnalysisResult(analysis=build_evidence_analysis(self.worker.persistence, action.id))
+            elif action.kind == "highlights":
                 result = LabHighlightsResult(highlights=replay_highlights(self.worker.persistence, action.id))
             elif action.kind == "frame_get":
                 _, frames = read_highlight_evidence(self.worker.persistence, action.id)

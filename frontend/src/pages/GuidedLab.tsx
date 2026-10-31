@@ -7,6 +7,7 @@ import { isTerminal, useSimulation } from "../hooks/useSimulation";
 import { DEFAULT_EVALUATION, DEFAULT_OPTIONS } from "../components/launch-form";
 import { ScenarioGallery, ScenarioIllustration } from "../components/ScenarioGallery";
 import { ReplayHighlightsPanel } from "../components/ReplayHighlights";
+import { EvidenceAnalystPanel } from "../components/EvidenceAnalystPanel";
 import { SuiteManager } from "../components/SuiteManager";
 import { simulationLink, simulationFrameLink } from "../navigation";
 import "../lab.css";
@@ -32,7 +33,7 @@ export function GuidanceFeedbackForm({ simulationId, active, client = api }: { s
   </form></section>;
 }
 
-export function GuidedLab({ active = true, client = api, contextKey = "local", runHref = (id, frame) => frame === undefined ? simulationLink(id) : simulationFrameLink(id, frame), modes = ["test", "carla"], suiteRunId = null }: { active?: boolean; client?: LabClient; contextKey?: string; runHref?: (id: string, frame?: number) => string; modes?: ("test" | "carla")[]; suiteRunId?: string | null }) {
+export function GuidedLab({ active = true, client = api, contextKey = "local", runHref = (id, frame) => frame === undefined ? simulationLink(id) : simulationFrameLink(id, frame), modes = ["test", "carla"], suiteRunId = null, reviewAvailable = true }: { active?: boolean; client?: LabClient; contextKey?: string; runHref?: (id: string, frame?: number) => string; modes?: ("test" | "carla")[]; suiteRunId?: string | null; reviewAvailable?: boolean }) {
   const [tab, setTab] = useState<"guide" | "gallery" | "suites">(suiteRunId ? "suites" : "guide");
   const [selected, setSelected] = useState<GalleryScenario | null>(null), [incoming, setIncoming] = useState<SuiteCase | null>(null);
   const [mode, setMode] = useState<"test" | "carla">("test"), [visitedSuites, setVisitedSuites] = useState(Boolean(suiteRunId));
@@ -83,9 +84,9 @@ export function GuidedLab({ active = true, client = api, contextKey = "local", r
           setIncoming({ name: selected?.title ?? scenario.template?.replace(/_/g, " ").replace(/\b\w/g, letter => letter.toUpperCase()) ?? scenario.name, scenario });
           setTab("suites"); setVisitedSuites(true);
         }}>Keep scenes for a comparison</button></div>
-      </div></section><ReplayHighlightsPanel simulationId={runId} active={active && tab === "guide"} client={client} frameHref={runHref} /><GuidanceFeedbackForm key={runId} simulationId={runId} active={active && tab === "guide"} client={client} /></>}
+      </div></section><ReplayHighlightsPanel simulationId={runId} active={active && tab === "guide"} client={client} frameHref={runHref} /><EvidenceAnalystPanel key={`analyst-${runId}`} simulationId={runId} active={active && tab === "guide"} available={reviewAvailable} client={client} frameHref={(id, frame) => runHref(id, frame)} /><GuidanceFeedbackForm key={runId} simulationId={runId} active={active && tab === "guide"} client={client} /></>}
     </div>
     <div id="lab-gallery" role="tabpanel" aria-labelledby="lab-tab-gallery" hidden={tab !== "gallery"}><h2 className="lab-section-title">Choose a situation to investigate</h2><p>Each illustrated scene carries a complete recipe, seed and map. Add the scenes you care about to a reusable suite.</p>{gallery.error && <p role="alert">{gallery.error}</p>}{gallery.value && <ScenarioGallery entries={gallery.value} choose={choose} add={add} disabled={locked} />}</div>
-    <div id="lab-suites" role="tabpanel" aria-labelledby="lab-tab-suites" hidden={tab !== "suites"}>{visitedSuites && <SuiteManager active={active && tab === "suites"} incoming={incoming} client={client} runHref={runHref} modes={modes} initialRunId={suiteRunId} />}</div>
+    <div id="lab-suites" role="tabpanel" aria-labelledby="lab-tab-suites" hidden={tab !== "suites"}>{visitedSuites && <SuiteManager active={active && tab === "suites"} incoming={incoming} client={client} runHref={runHref} modes={modes} initialRunId={suiteRunId} reviewAvailable={reviewAvailable} />}</div>
   </div>;
 }

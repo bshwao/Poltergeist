@@ -22,6 +22,7 @@ class BrowserConnectionView(ContractModel):
     evidence_supported: bool = False
     recordings_supported: bool = False
     lab_supported: bool = False
+    analysis_supported: bool = False
 
 
 class BrowserDeviceView(ContractModel):

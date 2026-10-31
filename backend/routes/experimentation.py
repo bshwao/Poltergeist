@@ -11,6 +11,9 @@ from backend.services.comparison_service import build_suite_report
 from shared.models.experimentation import (DiscoveryApproval, DiscoveryPlan, DiscoveryProposal, DiscoveryReport,
     GalleryScenario, GuidanceFeedback, ReplayHighlights, SavedFeedback, SavedSuite, SuiteLaunch, SuiteReport, SuiteSave, SuiteUpdate)
 from shared.models.optimization import OptimizationRecord
+from shared.models.analysis import EvidenceAnalysis, RegressionPolicy, RegressionReport
+from backend.services.evidence_analysis_service import build_evidence_analysis
+from backend.services.regression_service import build_regression_report
 
 router = APIRouter(prefix="/experimentation", tags=["experimentation"])
 
@@ -107,6 +110,26 @@ def discovery_report(identity: UUID, workspace: Service, response: Response, dow
 @router.get("/highlights/{identity}", response_model=ReplayHighlights)
 def highlights(identity: UUID, workspace: Service):
     return replay_highlights(workspace.persistence, identity)
+
+
+@router.get("/analysis/{identity}", response_model=EvidenceAnalysis)
+def evidence_analysis(identity: UUID, workspace: Service, response: Response, download: bool = False):
+    if download:
+        response.headers["Content-Disposition"] = f'attachment; filename="poltergeist-analysis-{identity}.json"'
+    response.headers["Cache-Control"] = "no-store"
+    return build_evidence_analysis(workspace.persistence, identity)
+
+
+@router.get("/regressions/{identity}", response_model=RegressionReport)
+def regression_report(identity: UUID, workspace: Service, response: Response):
+    response.headers["Cache-Control"] = "no-store"
+    return build_regression_report(workspace.persistence, identity)
+
+
+@router.post("/regressions/{identity}", response_model=RegressionReport)
+def review_regression(identity: UUID, policy: RegressionPolicy, workspace: Service, response: Response):
+    response.headers["Cache-Control"] = "no-store"
+    return build_regression_report(workspace.persistence, identity, policy)
 
 
 @router.post("/feedback", response_model=SavedFeedback, status_code=201)

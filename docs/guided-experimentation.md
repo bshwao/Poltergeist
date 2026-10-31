@@ -166,6 +166,12 @@ compatibility checks preserve that boundary.
 
 ## Acceptance record
 
+S14 adds an explicit **Analyze recorded evidence** action to run outcomes. S15
+adds **Review version regression** to saved-suite results, using frozen registered
+versions and a selected measurement policy. Neither review starts more runs.
+See [evidence and regression agents](evidence-regression-agents.md) for frame links,
+coverage, unknowns, exports and the connected baseline-only restriction.
+
 Automated checks cover the first-run journey, no execution on browse/preview,
 explicit approval, feedback consent, exports, protected drafts, exact frame
 links, saved-suite comparisons, cancellation, interruption, absolute budgets,

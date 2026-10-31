@@ -6,25 +6,23 @@ import { useLabMutation, useLabReport, labError } from "../hooks/useLab";
 import { suiteDefaults, suiteInput } from "./lab-form";
 import type { SuiteDraft } from "./lab-form";
 import { simulationLink, suiteRunLink } from "../navigation";
+import { RegressionPanel } from "./RegressionPanel";
+import { saveLabJson } from "./lab-download";
+export { saveLabJson } from "./lab-download";
 
-export function saveLabJson(value: unknown, filename: string) {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }));
-  const anchor = document.createElement("a"); anchor.href = url; anchor.download = filename; anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 const metric = (value: number | null) => value === null ? "Not measured" : Number(value.toFixed(2)).toString();
 
-export function SuiteResults({ report, runHref = simulationLink }: { report: SuiteReport; runHref?: (id: string) => string }) {
+export function SuiteResults({ report, runHref = simulationLink, client = api, active = true, reviewAvailable = true }: { report: SuiteReport; runHref?: (id: string) => string; client?: LabClient; active?: boolean; reviewAvailable?: boolean }) {
   return <div className="lab-stack"><p>{report.evidence.operation.outcome?.summary ?? "Suite execution is in progress. Unfinished cells remain explicit."}</p>
     <button type="button" className="button secondary" onClick={() => saveLabJson(report, `poltergeist-suite-report-${report.evidence.operation.id}.json`)}>Download suite comparison evidence</button>
     {report.cases.map(c => <section className="lab-case-results" key={c.case_index}><h3>{c.name}</h3><p className="field-hint">Compare agents on this scenario's matched seeds and repetitions.</p>
       <div className="table-scroll" tabIndex={0} role="region" aria-label={`Comparison for ${c.name}`}><table className="data-table"><thead><tr><th>Agent / version</th><th>Completed / planned</th><th>Mean severity</th><th>Contacts (mean)</th><th>Unknown / unfinished</th></tr></thead><tbody>{c.groups.map(g => <tr key={g.agent_index}><th scope="row">{g.name}{g.version && <small>Version {g.version}</small>}</th><td>{g.completed_runs} / {g.planned_runs}</td><td>{metric(g.metrics.severity?.mean ?? null)}<small>{g.metrics.severity?.observed_results ?? 0} observed results</small></td><td>{metric(g.metrics.collision_count?.mean ?? null)}<small>{g.metrics.collision_count?.observed_results ?? 0} observed results</small></td><td>{g.unknown_runs} / {g.unassessed_runs}</td></tr>)}</tbody></table></div>
       {c.paired_comparisons.map(p => <p className="notice" key={p.compared_agent_index}>{c.groups[p.compared_agent_index]?.name} minus {c.groups[0]?.name}: {metric(p.difference.mean)} severity points across {p.difference.observed_results} / {p.difference.eligible_results} comparable pairs. Positive means higher measured heuristic severity. This is a descriptive comparison.</p>)}
       <details><summary>Coverage, measured distributions and run evidence</summary>{c.groups.map(g => <div key={g.agent_index}><h4>{g.name}</h4><p>{g.partial_coverage_results} partial-coverage results · Inputs: {JSON.stringify(g.input_sources)}</p><ul>{g.simulation_ids.map(id => <li key={id}><a href={runHref(id)}>Review run {id}</a></li>)}</ul><pre>{JSON.stringify(g.metrics, null, 2)}</pre></div>)}{c.notes.map(note => <p key={note}>{note}</p>)}</details>
-    </section>)}</div>;
+    </section>)}<RegressionPanel key={report.evidence.operation.id} operationId={report.evidence.operation.id} client={client} active={active} available={reviewAvailable} runHref={runHref} /></div>;
 }
 
-export function SuiteManager({ active, incoming, client = api, runHref = simulationLink, modes = ["test", "carla"], initialRunId = null }: { active: boolean; incoming: SuiteCase | null; client?: LabClient; runHref?: (id: string) => string; modes?: ("test" | "carla")[]; initialRunId?: string | null }) {
+export function SuiteManager({ active, incoming, client = api, runHref = simulationLink, modes = ["test", "carla"], initialRunId = null, reviewAvailable = true }: { active: boolean; incoming: SuiteCase | null; client?: LabClient; runHref?: (id: string) => string; modes?: ("test" | "carla")[]; initialRunId?: string | null; reviewAvailable?: boolean }) {
   const [draft, setDraft] = useState(suiteDefaults), [saved, setSaved] = useState<SavedSuite | null>(null);
   const [offset, setOffset] = useState(0), [runId, setRunId] = useState<string | null>(initialRunId);
   const [pastSuite, setPastSuite] = useState<SavedSuite | null>(null), [pastOffset, setPastOffset] = useState(0);
@@ -131,7 +129,7 @@ export function SuiteManager({ active, incoming, client = api, runHref = simulat
       <div className="button-row"><button className="button secondary small" disabled={!pastOffset || past.loading} onClick={() => setPastOffset(n => Math.max(0, n - 10))}>Previous suite runs</button><span>Page {pastOffset / 10 + 1}</span><button className="button secondary small" disabled={past.loading || (past.value?.length ?? 0) <= 10} onClick={() => setPastOffset(n => n + 10)}>Next suite runs</button></div>
     </div></section>}
     {runId && <section className="panel lab-suite-run"><div className="panel-header"><h2>Suite run · {operation?.status ?? "loading"}</h2><button className="button secondary small" onClick={report.refresh}>Refresh suite result</button></div><div className="panel-body"><a href={suiteRunLink(runId)}>Permanent link to this suite comparison</a>{report.error && <p role="alert">{report.error}</p>}{report.loading && !report.value && <p role="status">Loading suite evidence…</p>}
-      {operation && <><p><code>{operation.id}</code> · {report.value!.evidence.trials.length} executions submitted</p>{operation.error && <p role="alert">{operation.error}</p>}<div className="button-row">{["queued", "running"].includes(operation.status) && <button className="button secondary" disabled={mutation.busy || operation.cancel_requested} onClick={() => void mutation.run(signal => client.cancelOptimization(operation.id, { signal }), report.refresh)}>{operation.cancel_requested ? "Suite cancellation requested" : "Cancel suite"}</button>}{operation.status === "interrupted" && <button className="button secondary" disabled={mutation.busy} onClick={() => void mutation.run(signal => client.resumeOptimization(operation.id, operation.revision, { signal }), report.refresh)}>Resume remaining suite runs</button>}</div><SuiteResults report={report.value!} runHref={runHref} /></>}
+      {operation && <><p><code>{operation.id}</code> · {report.value!.evidence.trials.length} executions submitted</p>{operation.error && <p role="alert">{operation.error}</p>}<div className="button-row">{["queued", "running"].includes(operation.status) && <button className="button secondary" disabled={mutation.busy || operation.cancel_requested} onClick={() => void mutation.run(signal => client.cancelOptimization(operation.id, { signal }), report.refresh)}>{operation.cancel_requested ? "Suite cancellation requested" : "Cancel suite"}</button>}{operation.status === "interrupted" && <button className="button secondary" disabled={mutation.busy} onClick={() => void mutation.run(signal => client.resumeOptimization(operation.id, operation.revision, { signal }), report.refresh)}>Resume remaining suite runs</button>}</div><SuiteResults report={report.value!} runHref={runHref} client={client} active={active} reviewAvailable={reviewAvailable} /></>}
     </div></section>}
   </div>;
 }

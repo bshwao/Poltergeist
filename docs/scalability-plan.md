@@ -7,7 +7,8 @@ deferred at the user's request. S8–S10 now have private implementations with
 outstanding product, signing and external acceptance gates. **S11 visual design
 and usability is in progress**. S12's guided workflows are implemented, with
 independent new-tester acceptance open; S13's bounded discovery implementation
-is locally validated. S14–S19 remain planned. See
+is locally validated. S14/S15 have locally validated private implementations;
+S16–S19 remain planned. See [evidence and regression agents](evidence-regression-agents.md),
 [guided experimentation and discovery](guided-experimentation.md), the
 [S8–S10 checkpoint](evidence-capacity-release.md) and the
 [S11 implementation and review plan](visual-usability.md). See the dated
@@ -109,7 +110,8 @@ proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
 is deferred. S6 remains in progress; S7 has an external acceptance gate; S8–S10
 have private implementations described below. S11 is in progress; S12 has
 implemented guided workflows and an open human-adoption gate; S13 has a locally
-validated bounded discovery engine. S14 onward remain **planned**. Earlier phases may build
+validated bounded discovery engine. S14/S15 have locally validated saved-evidence
+review implementations; S16 onward remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -401,6 +403,12 @@ Depends on S6–S8; an optional language interface comes from S18.
 
 ### S14 — Evidence Analyst Agent
 
+**Status: private implementation; synthetic acceptance validated.** Deterministic saved-run
+reviews link observations to exact frames, label unverified hypotheses and
+preserve missing evidence. Local and negotiated connected-dashboard panels and
+JSON exports use the same contracts. Independent human review and representative
+live evidence acceptance remain. See the [agent guide](evidence-regression-agents.md).
+
 - Summarize recorded contacts, braking and interventions with exact frame links
   and measurement coverage, keeping observations and hypotheses distinct.
 - Identify missing evidence and avoid inventing model reasoning or causal claims
@@ -410,6 +418,14 @@ Depends on S6–S8; an optional language interface comes from S18.
 and preserve unknowns on incomplete or unavailable runs. Depends on S8.
 
 ### S15 — Regression Agent
+
+**Status: private implementation; synthetic acceptance validated.** Saved-suite reviews use
+frozen registered artifacts, matched pairs, explicit thresholds/minimum counts,
+descriptive spread and honest inconclusive outcomes. They launch no new runs.
+Registered comparisons are local; remote execution retains its baseline-only
+boundary. Two registered SDK versions demonstrate a repeated introduced contact
+regression on three matched synthetic seeds. Representative live/hardware
+comparisons remain. See the [agent guide](evidence-regression-agents.md).
 
 - Compare frozen model versions on matched saved recipes and seeds, recording
   input/execution differences, sample counts, uncertainty and incomplete results.

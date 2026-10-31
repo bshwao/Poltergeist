@@ -10,6 +10,7 @@ import { createHostedClient, HostedError } from "./client";
 import { createHostedLabClient } from "./lab-client";
 import { EvidencePanel } from "./EvidencePanel";
 import { RecordingPanel } from "./RecordingPanel";
+import { EvidenceAnalystPanel } from "../components/EvidenceAnalystPanel";
 
 export type HostedLabRoute = { section: "legacy" | "guide" | "discovery" | "run"; planId?: string | null; runId?: string; frame?: number; suiteRunId?: string };
 export function hostedLabRoute(hash: string): HostedLabRoute {
@@ -24,7 +25,7 @@ export function hostedLabRoute(hash: string): HostedLabRoute {
 }
 const runHref = (id: string, frame?: number) => `#lab-run=${id}${frame === undefined ? "" : `&frame=${frame}`}`;
 
-function HostedLabRun({ adapter, client, device, run, frame, active }: { adapter: ReturnType<typeof createHostedLabClient>; client: ReturnType<typeof createHostedClient>; device: string; run: string; frame?: number; active: boolean }) {
+function HostedLabRun({ adapter, client, device, run, frame, active, reviewAvailable }: { adapter: ReturnType<typeof createHostedLabClient>; client: ReturnType<typeof createHostedClient>; device: string; run: string; frame?: number; active: boolean; reviewAvailable: boolean }) {
   const state = useSimulation(run, active, adapter);
   const [selectedFrame, setSelectedFrame] = useState<number | null>(frame ?? null);
   useEffect(() => { setSelectedFrame(frame ?? null); }, [run, frame]);
@@ -37,7 +38,7 @@ function HostedLabRun({ adapter, client, device, run, frame, active }: { adapter
     {result && <><SafetyMetrics result={result} /><ReplayHighlightsPanel simulationId={run} active={active} client={adapter} inspect={value => { setSelectedFrame(value); window.location.hash = runHref(run, value); }} />
       {selectedFrame !== null && <section className="panel" aria-label="Selected recorded frame"><div className="panel-header"><h2>Recorded frame {selectedFrame}</h2><button className="button secondary small" onClick={detail.refresh}>Refresh selected frame</button></div><div className="panel-body">{detail.loading && <p role="status">Reading the exact recorded frame…</p>}{detail.error && <p role="alert">{detail.error}</p>}{detail.value && <dl className="lab-frame-facts">{Object.entries({ "Frame": detail.value.frame, "Time (s)": detail.value.time_s, "Speed (m/s)": detail.value.speed_mps,
         "Throttle": detail.value.control.throttle, "Brake": detail.value.control.brake, "Steer": detail.value.control.steer, "Contacts": detail.value.collisions, "Traffic violations": detail.value.traffic_violations }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? "Not observed"}</dd></div>)}</dl>}</div></section>}
-      <EvidencePanel client={client} device={device} run={run} enabled={active} /><RecordingPanel client={client} device={device} run={run} enabled={active} synthetic={record.simulation.mode === "test"} />
+      <EvidenceAnalystPanel key={`analyst-${run}`} simulationId={run} active={active} available={reviewAvailable} client={adapter} frameHref={runHref} /><EvidencePanel client={client} device={device} run={run} enabled={active} /><RecordingPanel client={client} device={device} run={run} enabled={active} synthetic={record.simulation.mode === "test"} />
     </>}
   </div>;
 }
@@ -47,7 +48,8 @@ export function HostedLabWorkspace({ client, target, contextKey, enabled, active
 }) {
   const live = useRef(enabled); live.current = enabled;
   const failure = useRef(authFailed); failure.current = authFailed;
-  const adapter = useMemo(() => createHostedLabClient(client, target, () => live.current, error => failure.current(error)), [client, contextKey]);
+  const analysisAvailable = useRef(false); analysisAvailable.current = target.connection.analysis_supported === true;
+  const adapter = useMemo(() => createHostedLabClient(client, target, () => live.current, error => failure.current(error), () => analysisAvailable.current), [client, contextKey]);
   useEffect(() => () => adapter.dispose(), [adapter]);
   const [visited, setVisited] = useState<Set<string>>(() => new Set([route.section]));
   useEffect(() => { setVisited(previous => new Set([...previous, route.section])); }, [route.section]);
@@ -55,8 +57,8 @@ export function HostedLabWorkspace({ client, target, contextKey, enabled, active
   const modes = (["test", "carla"] as const).filter(mode => target.device.policy.scopes.includes(`run:execute:${mode}`));
   return <div className="hosted-guided-workspace">{!ready ? <section className="hosted-state-note" role="status"><h1>Prepare this computer for guided experiments</h1><p>Update and connect its companion, and approve result reading, experiment execution and evidence access in its local connection settings.</p><a href="#connect">Review computer connection</a></section> : <>
     <div className="hosted-state-note"><strong>{target.device.display_name} · Built-in baseline</strong><p>Paired-computer suites and discovery plans support up to 12 executions, within this computer's approved per-run limits. Registered custom agents are available in the local workspace.</p>{!enabled && <p role="status">Computer availability is unconfirmed. Connect it to continue reading or submitting work.</p>}</div>
-    <div hidden={route.section !== "guide"}>{visited.has("guide") && <GuidedLab client={adapter} active={active && route.section === "guide" && enabled} contextKey={contextKey} runHref={runHref} modes={modes} suiteRunId={route.suiteRunId ?? null} />}</div>
+    <div hidden={route.section !== "guide"}>{visited.has("guide") && <GuidedLab client={adapter} active={active && route.section === "guide" && enabled} contextKey={contextKey} runHref={runHref} modes={modes} suiteRunId={route.suiteRunId ?? null} reviewAvailable={analysisAvailable.current} />}</div>
     <div hidden={route.section !== "discovery"}>{visited.has("discovery") && <Discovery client={adapter} active={active && route.section === "discovery" && enabled} planId={route.planId ?? null} runHref={runHref} navigatePlan={id => { window.location.hash = `discovery/${id}`; }} modes={modes} maxExecutions={12} />}</div>
-    {route.section === "run" && route.runId && <HostedLabRun key={route.runId} adapter={adapter} client={client} device={target.device.device_id} run={route.runId} frame={route.frame} active={active && enabled} />}
+    {route.section === "run" && route.runId && <HostedLabRun key={route.runId} adapter={adapter} client={client} device={target.device.device_id} run={route.runId} frame={route.frame} active={active && enabled} reviewAvailable={analysisAvailable.current} />}
   </>}</div>;
 }

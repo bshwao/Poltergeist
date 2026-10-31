@@ -109,7 +109,8 @@ class RelayClient:
                 connector = self._connector(uri, ssl=self._context, proxy=None, compression=None,
                         additional_headers={"Authorization": "Bearer " + credential,
                                             "X-Poltergeist-Evidence": "v1", "X-Poltergeist-Recordings": "v1",
-                                            **({"X-Poltergeist-Lab": "v1"} if getattr(self.service, "lab_supported", False) else {})},
+                                            **({"X-Poltergeist-Lab": "v1"} if getattr(self.service, "lab_supported", False) else {}),
+                                            **({"X-Poltergeist-Analysis": "v1"} if getattr(self.service, "analysis_supported", False) else {})},
                         open_timeout=10, close_timeout=2, ping_interval=None, ping_timeout=None,
                         max_size=MAX_RELAY_BYTES, max_queue=4, logger=self._logger)
                 with self._lock:
@@ -147,7 +148,8 @@ class RelayClient:
                       connection_generation=hello.connection_generation)
         ready = ClientReady(**fields, remote_execution_enabled=self.enabled,
                             evidence_supported=hello.evidence_supported, recordings_supported=hello.recordings_supported,
-                            lab_supported=hello.lab_supported and getattr(self.service, "lab_supported", False))
+                            lab_supported=hello.lab_supported and getattr(self.service, "lab_supported", False),
+                            analysis_supported=hello.analysis_supported and getattr(self.service, "analysis_supported", False))
         excluded = set()
         if not hello.evidence_supported:
             excluded.add("evidence_supported")

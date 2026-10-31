@@ -1,6 +1,7 @@
 """Guidance and reviewed plans reuse the existing serial, durable worker."""
 
 from datetime import UTC, datetime, timedelta
+from dataclasses import dataclass
 from hashlib import sha256
 import json
 
@@ -248,7 +249,20 @@ class ExperimentationService:
             return result
 
 
-def read_highlight_evidence(persistence, simulation_id):
+MAX_REVIEW_BYTES = 128 * 1024**2
+
+
+class ReviewLimitError(ArtifactError):
+    pass
+
+
+@dataclass
+class ReviewBudget:
+    remaining_bytes: int
+    remaining_frames: int
+
+
+def read_review_evidence(persistence, simulation_id, *, budget=None):
     """Validate bounded telemetry without reading unrelated camera/LiDAR blobs."""
     result = persistence.get_simulation(simulation_id).result
     if result is None:
@@ -257,15 +271,41 @@ def read_highlight_evidence(persistence, simulation_id):
     if len(references) != 1:
         raise PersistenceError("Highlights require one recorded telemetry artifact")
     path = persistence.artifacts.validate_reference(references[0], simulation_id)
-    if path.stat().st_size > 128 * 1024**2:
-        raise ArtifactError("Highlight evidence exceeds its review limit; use paged telemetry or a local export")
-    frames = []
+    budget = ReviewBudget(MAX_REVIEW_BYTES, 100001) if budget is None else budget
+    if path.stat().st_size > min(MAX_REVIEW_BYTES, budget.remaining_bytes):
+        raise ReviewLimitError("Evidence exceeds its review limit; use paged telemetry or a local export")
+    frames, reviewed_bytes, digest = [], 0, sha256()
     with path.open("rb") as source:
-        while line := source.readline(256 * 1024 + 1):
-            if len(line) > 256 * 1024 or not line.endswith(b"\n") or len(frames) >= 100001:
-                raise ArtifactError("Highlight evidence exceeds its frame review limit; use paged telemetry")
+        while True:
+            allowance = min(256 * 1024 + 1, budget.remaining_bytes, MAX_REVIEW_BYTES - reviewed_bytes)
+            if allowance <= 0:
+                raise ReviewLimitError("Evidence exhausted its byte review limit; use paged telemetry")
+            line = source.readline(allowance)
+            if not line:
+                break
+            reviewed_bytes += len(line)
+            budget.remaining_bytes -= len(line)
+            if (not budget.remaining_frames
+                    or len(line) > 256 * 1024
+                    or not line.endswith(b"\n") or len(frames) >= 100001):
+                raise ReviewLimitError("Evidence exceeds its frame review limit; use paged telemetry")
+            digest.update(line)
             frames.append(TelemetryFrame.model_validate_json(line))
-    return result, persistence._validate_trace(result, frames)
+            budget.remaining_frames -= 1
+    return result, persistence._validate_trace(result, frames), digest.hexdigest()
+
+
+def read_highlight_evidence(persistence, simulation_id):
+    result, frames, _ = read_review_evidence(persistence, simulation_id)
+    return result, frames
+
+
+def verify_review_metrics(result, frames):
+    """Do not infer coverage from stored scores that contradict today's trace."""
+    from evaluation import evaluate_safety
+    settings = result.metrics.evaluation_settings
+    if settings is None or evaluate_safety(frames, settings=settings) != result.metrics:
+        raise PersistenceError("Saved safety metrics cannot be verified against the reviewed telemetry")
 
 
 def replay_highlights(persistence, simulation_id):

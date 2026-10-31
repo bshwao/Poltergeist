@@ -32,6 +32,7 @@ class DeviceConnection:
     evidence_supported: bool = False
     recordings_supported: bool = False
     lab_supported: bool = False
+    analysis_supported: bool = False
     transfers: dict = field(default_factory=dict)
 
     def envelope(self):
@@ -99,6 +100,7 @@ class RelayHub:
             evidence_supported=current.evidence_supported,
             recordings_supported=current.recordings_supported,
             lab_supported=current.lab_supported,
+            analysis_supported=current.analysis_supported,
             remote_requests_enabled=current.ready and current.enabled)
 
     def notify(self, device_id):
@@ -150,6 +152,7 @@ class RelayHub:
                 current.evidence_supported = current.evidence_supported and message.evidence_supported
                 current.recordings_supported = current.recordings_supported and message.recordings_supported
                 current.lab_supported = current.lab_supported and message.lab_supported
+                current.analysis_supported = current.analysis_supported and message.analysis_supported and current.lab_supported
                 current.wake.set()
             elif isinstance(message, RelayPong):
                 if current.ping is None or message.nonce != current.ping[0]:
@@ -237,6 +240,7 @@ class RelayHub:
         current.recordings_supported = (current.evidence_supported
             and getattr(socket, "headers", {}).get("x-poltergeist-recordings") == "v1")
         current.lab_supported = getattr(socket, "headers", {}).get("x-poltergeist-lab") == "v1"
+        current.analysis_supported = current.lab_supported and getattr(socket, "headers", {}).get("x-poltergeist-analysis") == "v1"
         previous = self.connections.get(identity["id"])
         self.connections[identity["id"]] = current
         if previous is not None:
@@ -249,7 +253,7 @@ class RelayHub:
             await current.send(ServerHello(**current.envelope(), owner_id=identity["owner_id"],
                 policy_revision=identity["policy_revision"], policy=identity["policy"],
                 evidence_supported=current.evidence_supported, recordings_supported=current.recordings_supported,
-                lab_supported=current.lab_supported))
+                lab_supported=current.lab_supported, analysis_supported=current.analysis_supported))
             tasks = [asyncio.create_task(self._receive(current)), asyncio.create_task(self._deliver(current)),
                 asyncio.create_task(self._heartbeat(current))]
             await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -306,6 +310,8 @@ class RelayHub:
         current = self.connections.get(str(device_id))
         if not self.available(device_id) or not current.lab_supported:
             raise AuthError(503, "lab_unavailable", retry_after=3)
+        if command.action.kind in {"analysis_get", "regression_report"} and not current.analysis_supported:
+            raise AuthError(503, "analysis_unavailable", retry_after=3)
         if generation != current.identity["ownership_generation"]:
             raise AuthError(403, "permission_denied")
         if current.transfers or self.transfer_count >= self.max_transfers:

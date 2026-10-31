@@ -31,6 +31,7 @@ const messages: Record<string, string> = {
   command_storage_full: "The service has reached its receipt storage limit. Contact the operator.",
   lab_unavailable: "Guided experiments need a connected, updated companion with approved execution and evidence access.",
   lab_timeout: "The computer did not answer in time. Review saved plans before retrying a submitted action.",
+  analysis_unavailable: "Update and reconnect this companion to enable evidence analysis and regression review.",
   queue_full: "The computer's experiment queue is full. Wait for work to finish.",
   result_unavailable: "This evidence is unavailable for remote review. Open its local diagnostics or export it on the computer.",
   run_not_found: "This experiment is unavailable to the current account and computer approval.",
@@ -236,6 +237,9 @@ export function createHostedClient(fetcher: typeof fetch = (...args) => fetch(..
             || row.device.policy.allow_map_reload !== false || row.device.policy.allow_graphics_change !== false || typeof row.device.policy.allow_raw_capture !== "boolean"
             || !["offline", "connecting", "connected", "paused", "revoked"].includes(String(row.connection.state))
             || typeof row.connection.remote_requests_enabled !== "boolean"
+            || (row.connection.lab_supported !== undefined && typeof row.connection.lab_supported !== "boolean")
+            || (row.connection.analysis_supported !== undefined && typeof row.connection.analysis_supported !== "boolean")
+            || (row.connection.analysis_supported === true && row.connection.lab_supported !== true)
             || (row.connection.remote_requests_enabled && (row.connection.state !== "connected" || row.device.revoked_at !== null || row.connection.protocol_compatible !== true))
             || (row.connection.last_seen_at !== null && !date(row.connection.last_seen_at))
             || row.connection.carla_readiness !== "unknown" || row.connection.baseline_only !== true) invalid();

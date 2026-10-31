@@ -83,7 +83,25 @@
 .lab-surface .safety-card span, .lab-frame-facts dt { color: #536454; font-size: 12px; }
 .lab-surface .safety-metrics .form-section { padding: 18px; }
 .run-detail .replay-highlights { margin: 22px 0; }
+.run-detail .evidence-analyst { margin: 22px 0; }
+.review-stack { display: grid; gap: 20px; margin-top: 22px; min-width: 0; }
+.review-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.review-facts > div { padding: 16px; background: var(--lab-soft); border-radius: 8px; }
+.review-facts dt { font-size: 12px; color: var(--lab-muted); margin-bottom: 8px; }
+.review-facts dd { margin: 0; font-size: 15px; line-height: 1.6; }
+.review-observations, .review-metric-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.review-finding { padding: 18px; border: 1px solid var(--lab-line); border-radius: 8px; min-width: 0; }
+.review-finding h3 { text-transform: capitalize; }
+.review-references { padding: 0; list-style: none; display: grid; gap: 10px; margin: 16px 0 0; }
+.review-references li, .review-controllers li { overflow-wrap: anywhere; }
+.review-policy { padding: 18px !important; border: 1px solid var(--lab-line) !important; border-radius: 8px; margin: 20px 0 !important; }
+.review-metric-options > div { display: grid; align-content: start; gap: 10px; padding: 14px; background: #f7f9f3; border-radius: 6px; }
+.review-controllers, .review-pairs { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.review-controllers li, .review-pairs li { border: 1px solid var(--lab-line); padding: 16px; border-radius: 8px; }
+.review-controllers span { display: block; margin-top: 8px; font-size: 12px; line-height: 1.7; }
+.review-pairs a { text-decoration: underline; font-size: 13px; }
 @media (max-width: 720px) {
+  .review-facts, .review-observations, .review-metric-options { grid-template-columns: 1fr; }
   .lab-gallery, .lab-key-figures, .lab-selected-scene { grid-template-columns: 1fr; }
   .lab-surface .safety-grid, .lab-frame-facts { grid-template-columns: 1fr; }
   .lab-steps { grid-template-columns: 1fr; }

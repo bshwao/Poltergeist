@@ -39,6 +39,7 @@ class RemoteService:
         self.approved_binding = approved_binding
         self.lock = lock or RLock()
         self.lab_supported = optimizer_factory is not None
+        self.analysis_supported = self.lab_supported
         self.lab = None
         if optimizer_factory is not None:
             from .remote_lab import RemoteLabService

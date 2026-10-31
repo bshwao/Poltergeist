@@ -13,6 +13,7 @@ from .experimentation import (DiscoveryApproval, DiscoveryPlan, DiscoveryProposa
     SuiteReport, SuiteSave, SuiteUpdate)
 from .optimization import OptimizationRecord
 from .evidence import EvidenceFrame
+from .analysis import EvidenceAnalysis, RegressionPolicy, RegressionReport
 
 
 class LabGallery(ContractModel):
@@ -28,7 +29,7 @@ class LabPage(ContractModel):
 
 class LabIdentity(ContractModel):
     kind: Literal["suite_get", "suite_delete", "plan_get", "discovery_report", "suite_report",
-        "operation_get", "operation_cancel", "operation_resume", "run_get", "run_cancel", "highlights"]
+        "operation_get", "operation_cancel", "operation_resume", "run_get", "run_cancel", "highlights", "analysis_get"]
     id: UUID
     expected_revision: Annotated[int, Field(ge=1, strict=True)] | None = None
 
@@ -97,8 +98,14 @@ class LabFrame(ContractModel):
     frame: Annotated[int, Field(ge=0, strict=True)]
 
 
+class LabRegression(ContractModel):
+    kind: Literal["regression_report"] = "regression_report"
+    id: UUID
+    policy: RegressionPolicy = Field(default_factory=RegressionPolicy)
+
+
 LabAction = Annotated[LabGallery | LabPage | LabIdentity | LabSuiteRuns | LabSuiteSave | LabSuiteUpdate | LabSuiteRun
-    | LabPropose | LabApprove | LabFeedback | LabLaunch | LabFrame, Field(discriminator="kind")]
+    | LabPropose | LabApprove | LabFeedback | LabLaunch | LabFrame | LabRegression, Field(discriminator="kind")]
 
 
 class LabCommand(ContractModel):
@@ -186,6 +193,16 @@ class LabHighlightsResult(ContractModel):
     highlights: ReplayHighlights
 
 
+class LabAnalysisResult(ContractModel):
+    kind: Literal["analysis"] = "analysis"
+    analysis: EvidenceAnalysis
+
+
+class LabRegressionResult(ContractModel):
+    kind: Literal["regression"] = "regression"
+    report: RegressionReport
+
+
 class LabFrameResult(ContractModel):
     kind: Literal["frame"] = "frame"
     simulation_id: UUID
@@ -204,7 +221,7 @@ class LabDeletedResult(ContractModel):
 
 LabResult = Annotated[LabGalleryResult | LabSuitesResult | LabPlansResult | LabFeedbacksResult | LabSuiteResult
     | LabPlanResult | LabOperationResult | LabSuiteRunsResult | LabDiscoveryResult | LabSuiteReportResult | LabRunResult
-    | LabHighlightsResult | LabFrameResult | LabFeedbackResult | LabDeletedResult, Field(discriminator="kind")]
+    | LabHighlightsResult | LabFrameResult | LabFeedbackResult | LabDeletedResult | LabAnalysisResult | LabRegressionResult, Field(discriminator="kind")]
 
 
 class LabReply(ContractModel):

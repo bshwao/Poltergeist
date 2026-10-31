@@ -5,6 +5,8 @@ import type { BehaviorAnalysis } from "../types/generated";
 import { isBehaviorAnalysis } from "./behavior-contract";
 import { experimentContracts } from "./experiment-contract";
 import { labContracts } from "./lab-contract";
+import { isEvidenceAnalysis, isRegressionPolicy, isRegressionReport } from "./analysis-contract";
+import type { EvidenceAnalysis, RegressionPolicy, RegressionReport } from "../types/generated";
 import type { DiscoveryPlan, DiscoveryProposal, DiscoveryReport, GalleryScenario, GuidanceFeedback, ReplayHighlights, SavedFeedback, SavedSuite, SuiteReport, SuiteSave } from "../types/generated";
 import type { LabReply } from "../types/generated";
 type LabResult = LabReply["result"];
@@ -771,6 +773,8 @@ export function createApiClient(baseUrl = API_BASE_URL) {
       case "suite_report": return isObject(value.report) && isObject(value.report.evidence) && isObject(value.report.evidence.operation) && isUuid(value.report.evidence.operation.id) && lab.suiteReport(value.report, value.report.evidence.operation.id);
       case "run": return isSimulationRecord(value.record);
       case "highlights": return isObject(value.highlights) && isUuid(value.highlights.simulation_id) && lab.highlights(value.highlights, value.highlights.simulation_id);
+      case "analysis": return isEvidenceAnalysis(value.analysis);
+      case "regression": return isRegressionReport(value.report);
       case "frame": return isUuid(value.simulation_id) && isObject(value.frame) && integer(value.frame.frame) && nonnegative(value.frame.time_s)
         && (value.frame.speed_mps === null || nonnegative(value.frame.speed_mps)) && isControl(value.frame.control)
         && (value.frame.collisions === null || integer(value.frame.collisions)) && (value.frame.traffic_violations === null || integer(value.frame.traffic_violations));
@@ -804,6 +808,13 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     getDiscoveryReport: (id: string, options: RequestOptions = {}) => request<DiscoveryReport>(`/experimentation/discovery/plans/${checkedId(id)}/report`, options, v => lab.discovery(v, id)),
     discoveryExportUrl: (id: string) => `${base}/experimentation/discovery/plans/${checkedId(id)}/report?download=true`,
     getReplayHighlights: (id: string, options: RequestOptions = {}) => request<ReplayHighlights>(`/experimentation/highlights/${checkedId(id)}`, options, v => lab.highlights(v, id)),
+    getEvidenceAnalysis: (id: string, options: RequestOptions = {}) => request<EvidenceAnalysis>(`/experimentation/analysis/${checkedId(id)}`, options,
+      v => isEvidenceAnalysis(v) && v.simulation_id.toLowerCase() === id.toLowerCase()),
+    getRegressionReport: (id: string, policy: RegressionPolicy = { minimum_pairs: 3, thresholds: { severity: 5, collision_count: 0 } }, options: RequestOptions = {}) => {
+      if (!isRegressionPolicy(policy)) return Promise.reject(new ApiError("Choose valid regression thresholds and at least two matched pairs.", 422));
+      return request<RegressionReport>(`/experimentation/regressions/${checkedId(id)}`, options,
+        v => isRegressionReport(v) && v.operation_id.toLowerCase() === id.toLowerCase() && canonicalJson(v.policy) === canonicalJson(policy), "POST", policy);
+    },
     saveGuidanceFeedback: (input: GuidanceFeedback, options: RequestOptions = {}) => request<SavedFeedback>("/experimentation/feedback", options, v => lab.feedback(v) && v.feedback.simulation_id === input.simulation_id, "POST", input, 201),
     listOptimizations: (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<OptimizationRecord[]>(`/optimizations${paginationQuery(pagination)}`, options, v => Array.isArray(v) && v.every(experiments.record)),
     createOptimization: (input: unknown, options: RequestOptions = {}) => request<OptimizationRecord>("/optimizations", options, experiments.record, "POST", input, 202),

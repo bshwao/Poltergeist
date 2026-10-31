@@ -8,6 +8,7 @@ import { AgentIdentity } from "../components/AgentIdentity";
 import { DecisionTimeline } from "../components/DecisionTimeline";
 import { BehaviorReview } from "../components/BehaviorReview";
 import { ReplayHighlightsPanel } from "../components/ReplayHighlights";
+import { EvidenceAnalystPanel } from "../components/EvidenceAnalystPanel";
 import type { EvidenceFocus } from "../components/evidence-navigation";
 import { isTerminal, useSimulation } from "../hooks/useSimulation";
 import { simulationLink } from "../navigation";
@@ -122,6 +123,7 @@ export function RunDetail({ id, active, initialFrame }: { id: string; active: bo
     {record?.result && <>
       <SafetyMetrics result={record.result} />
       <ReplayHighlightsPanel simulationId={id} active={active} inspect={frame => inspect("telemetry", frame)} />
+      <EvidenceAnalystPanel key={`analysis-${id}`} simulationId={id} active={active} inspect={(frame, source) => inspect(source === "control_audit" ? "decisions" : "telemetry", frame)} />
       <div id={`behavior-${id}`} tabIndex={-1} className="evidence-destination"><BehaviorReview key={id} simulationId={id} active={active} inspect={inspect} /></div>
       <div id={`evidence-${id}-decisions`} tabIndex={-1} className="evidence-destination">{focus?.source === "decisions" && <button type="button" className="button secondary small evidence-return" onClick={returnToFinding}>Return to behavior finding</button>}<DecisionTimeline key={id} simulationId={id} active={active} focus={focus?.source === "decisions" ? focus : undefined} /></div>
       <div id={`evidence-${id}-telemetry`} tabIndex={-1} className="evidence-destination">{focus?.source === "telemetry" && <button type="button" className="button secondary small evidence-return" onClick={returnToFinding}>Return to behavior finding</button>}<MetricsChart simulationId={id} active={active} focus={focus?.source === "telemetry" ? focus : undefined} maxSampleGapS={record.result.metrics.evaluation_settings?.max_sample_gap_s ?? (record.result.runtime?.fixed_delta_seconds ?? record.result.simulation.scenario.fixed_delta_seconds) * 1.5} /></div>

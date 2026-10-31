@@ -144,6 +144,7 @@ class ServerHello(_Envelope):
     evidence_supported: bool = Field(default=False, exclude_if=lambda value: not value)
     recordings_supported: bool = Field(default=False, exclude_if=lambda value: not value)
     lab_supported: bool = Field(default=False, exclude_if=lambda value: not value)
+    analysis_supported: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class ClientReady(_Envelope):
@@ -152,6 +153,7 @@ class ClientReady(_Envelope):
     evidence_supported: bool = Field(default=False, exclude_if=lambda value: not value)
     recordings_supported: bool = Field(default=False, exclude_if=lambda value: not value)
     lab_supported: bool = Field(default=False, exclude_if=lambda value: not value)
+    analysis_supported: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class RelayCommand(_Envelope):

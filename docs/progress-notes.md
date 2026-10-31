@@ -1,15 +1,17 @@
 # S0–S19 progress notes
 
-Updated October 31, 2026. Current work: **S12/S13 guided-workflow validation**
-and integration of the S9 capacity changes, alongside the open installed/native acceptance
+Updated October 31, 2026. Current work: **S14 Evidence Analyst and S15 Regression Agent**
+on the merged S12/S13 and S9 foundation, alongside the open installed/native acceptance
 gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/guided-workflows-validation`, integrating GitHub `main`
-at `82c1006`. Earlier branch and CI references describe their recorded checkpoints.
+Current branch: `codex/s14-s15-evidence-regression-agents`, based on GitHub `main`
+at `50593bf`. That integrated revision passed all five CI jobs and was
+fast-forwarded into GitHub and the original local main checkout. Earlier branch
+and CI references describe their recorded checkpoints.
 The S11 foundation is merged; its five-job branch validation passed.
 The earlier `codex/s7-managed-ai` branch is preserved separately.
 All earlier branch histories were fast-forwarded into GitHub and local `main`
@@ -38,14 +40,28 @@ private prototype does not close independent-machine or release validation.
 | **S11 — Visual design and usability** | **In progress; shared foundation implemented** | Shared light browser palette, readable typography, connection states, keyboard skip links/table scrolling and native tab traversal. Browser accessibility checks and companion regression tests cover this first checkpoint. Full workflow visual review, additional display/theme coverage and first-run testers remain. See [S11 plan](visual-usability.md). |
 | S12 — Guided experimentation and adoption | Application delivered; independent tester gate open | Guided first experiment, sixteen illustrated scenes, saved suites, per-case matched comparisons, exact-frame highlights and deliberate feedback in both dashboards. Desktop/mobile browser journeys and accessibility checks pass. Actual new-tester feedback and verified follow-up changes remain. See [workflow guide](guided-experimentation.md). |
 | S13 — Failure Discovery Agent | Private implementation delivered; locally validated | Digest/revision-bound approval, frozen candidates/agents/settings, execution/simulated/absolute-wall budgets, exact confirmation repeats and complete negative/unknown journals. Registered local agents and scoped remote consent/ownership checks pass. Current live CARLA attempts retained startup/RPC failures as unknown; no driving failure was claimed. |
-| S14 — Evidence Analyst Agent | Planned | Evidence-linked analysis with coverage and uncertainty. |
-| S15 — Regression Agent | Planned | Matched, frozen-version comparisons and measured regression detection. |
+| S14 — Evidence Analyst Agent | Private implementation delivered; synthetic acceptance validated | Deterministic observations, exact frame/time links, unverified hypotheses, coverage/unknowns, source hashes and JSON exports in local and connected dashboards. Human review and representative live evidence acceptance remain. See [agent guide](evidence-regression-agents.md). |
+| S15 — Regression Agent | Private implementation delivered; synthetic acceptance validated | Two actual registered SDK versions demonstrate a repeated introduced contact regression on three matched synthetic seeds. Explicit thresholds/minimum pairs, measured spread, inconclusive outcomes and reproduction links preserve unknowns. Remote execution retains its baseline-only boundary; live/hardware comparisons remain. See [agent guide](evidence-regression-agents.md). |
 | S16 — Sensor-based driving agents | Planned | Supported camera/LiDAR policy inputs, control and hardware validation. |
 | S17 — Hugging Face integration | Planned | Verified revision-pinned downloads and managed asset lifecycle supporting S7. |
 | S18 — OpenAI integration | Planned | Optional bounded experiment planning and evidence analysis. |
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
+
+- S14/S15 review saved evidence without running a controller or creating new
+  experiments. The two report engines pass 24 focused tests, with five new relay
+  cases and 19 guided-workflow checks in the final 48-test run. A broader backend
+  run passes 355 tests. All 381 frontend unit tests, 27 local browser journeys,
+  contract checks and both builds pass. Connected-browser feature acceptance
+  also passes; GitHub validation follows the push. See the
+  [scoped review-agent record](validation/s14-s15-review-agents-20261031.json).
+  Relay checks cover old-companion negotiation, owner/generation isolation and
+  revoked evidence permission. Reviews verify recorded scores against saved
+  traces and share a bounded read budget, including actual read sizes on growing
+  files. A regression review requires a fresh explicit action when switching
+  suite results. Missing evidence remains unknown. Current tests use synthetic
+  evidence; no learned-model, live CARLA or independent human-review claim is made.
 
 - The connected-browser CI follow-up exposed a second issue: leaving an evidence
   view can leave its transfer slot occupied briefly, so an immediate suite save

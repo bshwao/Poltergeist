@@ -124,6 +124,11 @@ def _comparison(operation, trials, children, jobs, request, *, role="compare", n
 
 
 def build_suite_report(persistence, operation_id):
+    return read_suite_evidence(persistence, operation_id)[0]
+
+
+def read_suite_evidence(persistence, operation_id):
+    """Return the audited report and its children from one database snapshot."""
     from shared.models.experimentation import SuiteCaseComparison, SuiteReport
     from shared.models.optimization import ComparisonRequest
     with persistence.database.session(write=False) as session:
@@ -146,4 +151,4 @@ def build_suite_report(persistence, operation_id):
             role="suite", number_offset=index * per_case, candidate_offset=index * len(request.seeds))
         cases.append(SuiteCaseComparison(case_index=index, name=case.name, groups=report.groups,
             paired_comparisons=report.paired_comparisons, notes=report.notes))
-    return SuiteReport(evidence=OptimizationView(operation=operation, trials=trials), cases=cases)
+    return SuiteReport(evidence=OptimizationView(operation=operation, trials=trials), cases=cases), children, jobs

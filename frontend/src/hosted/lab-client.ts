@@ -3,6 +3,8 @@ import type { RequestOptions, ScenarioPagination } from "../services/api";
 import type { LabClient } from "../services/lab-client";
 import type { BrowserDeviceView, DiscoveryPlan, DiscoveryProposal, GuidanceFeedback, LabReply, LabCommand, SimulationLaunch, SuiteSave, SavedSuite, SimulationOptions, OptimizationRecord } from "../types/generated";
 import { createHostedClient, HostedError } from "./client";
+import type { RegressionPolicy } from "../types/generated";
+import { isRegressionPolicy } from "../services/analysis-contract";
 
 const stable = (value: unknown): unknown => Array.isArray(value) ? value.map(stable) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, stable(v)])) : value;
 type LabAction = LabCommand["action"];
@@ -18,7 +20,8 @@ function waitForTransfer(delay: number, signal: AbortSignal): Promise<void> {
 }
 
 /** Serial, fenced RPCs. Ambiguous writes retain their original request identity. */
-export function createHostedLabClient(client: ReturnType<typeof createHostedClient>, target: BrowserDeviceView, live: () => boolean, authFailed?: (error: HostedError) => void) {
+export function createHostedLabClient(client: ReturnType<typeof createHostedClient>, target: BrowserDeviceView, live: () => boolean, authFailed?: (error: HostedError) => void,
+  analysisEnabled: () => boolean = () => target.connection?.analysis_supported === true) {
   let serial: Promise<unknown> = Promise.resolve(), disposed = false;
   const pending = new Map<string, string>(), modes = new Map<string, "test" | "carla">();
   const controllers = new Set<AbortController>();
@@ -26,6 +29,7 @@ export function createHostedLabClient(client: ReturnType<typeof createHostedClie
   const safeOptions = (options: SimulationOptions): SimulationOptions => ({ ...options,
     max_ticks: options.max_ticks === 100000 ? Math.min(10000, target.device.policy.max_ticks) : options.max_ticks });
   const invalid = (): never => { throw new ApiError("The companion returned inconsistent experiment evidence."); };
+  const requireAnalysis = () => { if (!analysisEnabled()) throw new ApiError("Update and reconnect this companion to enable evidence analysis and regression review.", 503); };
   function call(action: LabAction, options: RequestOptions = {}, mode: "test" | "carla" | null = null, requestId?: string): Promise<LabResult> {
     let key: string;
     try { key = JSON.stringify(stable([action, mode])); } catch { return Promise.reject(new ApiError("Use a valid JSON experiment request.", 422)); }
@@ -44,6 +48,7 @@ export function createHostedLabClient(client: ReturnType<typeof createHostedClie
         for (let attempt = 0; ; attempt++) {
           if (disposed || controller.signal.aborted) throw new DOMException("Request cancelled", "AbortError");
           if (!live()) throw new ApiError("Connect the selected companion and approve execution and evidence access before continuing.", 503);
+          if (command.action.kind === "analysis_get" || command.action.kind === "regression_report") requireAnalysis();
           try {
             const reply = await client.lab(target.device.device_id, command, controller.signal);
             if (disposed || controller.signal.aborted) throw new DOMException("Request cancelled", "AbortError");
@@ -126,6 +131,13 @@ export function createHostedLabClient(client: ReturnType<typeof createHostedClie
     async getSimulationResult(id, options = {}) { const record = await adapter.getSimulation(id, options); if (!record.result) throw new ApiError("The finalized run result is not available yet.", 409); return record.result; },
     async cancelSimulation(id, options = {}) { const result = await call({ kind: "run_cancel", id, expected_revision: null }, options); if (result.kind !== "run" || result.record.simulation.id !== id) return invalid(); return result.record; },
     async getReplayHighlights(id, options = {}) { const result = await call({ kind: "highlights", id, expected_revision: null }, options); if (result.kind !== "highlights" || result.highlights.simulation_id !== id) return invalid(); return result.highlights; },
+    async getEvidenceAnalysis(id, options = {}) { requireAnalysis(); const result = await call({ kind: "analysis_get", id, expected_revision: null }, options); if (result.kind !== "analysis" || result.analysis.simulation_id !== id) return invalid(); return result.analysis; },
+    async getRegressionReport(id, policy: RegressionPolicy = { minimum_pairs: 3, thresholds: { severity: 5, collision_count: 0 } }, options = {}) {
+      if (!isRegressionPolicy(policy)) throw new ApiError("Choose valid regression thresholds and at least two matched pairs.", 422);
+      requireAnalysis(); const result = await call({ kind: "regression_report", id, policy }, options);
+      if (result.kind !== "regression" || result.report.operation_id !== id || JSON.stringify(stable(result.report.policy)) !== JSON.stringify(stable(policy))) return invalid();
+      return result.report;
+    },
     async saveGuidanceFeedback(input: GuidanceFeedback, options = {}) { const result = await call({ kind: "feedback", feedback: input }, options); if (result.kind !== "feedback" || result.feedback.feedback.simulation_id !== input.simulation_id) return invalid(); return result.feedback; },
   };
   return Object.assign(adapter, {

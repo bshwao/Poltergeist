@@ -1,0 +1,115 @@
+{
+  "schema_version": "poltergeist-review-agents-validation-v1",
+  "recorded_at": "2026-10-31T08:03:20.030509-04:00",
+  "branch": "codex/s14-s15-evidence-regression-agents",
+  "source_parent": "50593bf24101cf8a0b6572ba44315fc9929b5133",
+  "candidate_source_blobs": {
+    "backend/routes/experimentation.py": "c5a4faaa56c0f85ae52dbde3e67fae733da41b14",
+    "backend/services/comparison_service.py": "1d7b36894e0fe99948f561be527fb3d976f2ce21",
+    "backend/services/evidence_analysis_service.py": "35fe6af5045c8756c8f6262242fdf20e34194897",
+    "backend/services/experimentation_service.py": "8ecf380194a8a95153925840635a3be18747cc7b",
+    "backend/services/regression_service.py": "8479e3a7eb43ece601446b4bffcdabf38b22aa65",
+    "companion/relay_client.py": "2d271f7130e42f1c4d517b5311d71be403e4a8dc",
+    "companion/remote_lab.py": "ce13c5b6ddc82e44d0d5fb4ca21b37c425c56d73",
+    "companion/remote_service.py": "fbd0a957a51f205448d92ddefeee630fc3cd3edf",
+    "coordinator/relay.py": "3c552ea2f8201e696532ccce64221b0a198e2fa9",
+    "frontend/e2e/review-agents.spec.ts": "a066205ded58ce88ef9d7dbfbe3bf0f16897752a",
+    "frontend/hosted-e2e/lab.spec.ts": "e3b1332e0e7e5dbe8d02a3563f8be20e40d6bc4a",
+    "frontend/src/components/EvidenceAnalystPanel.tsx": "ce67296ba67eb19279b60adac291d985915da210",
+    "frontend/src/components/RegressionPanel.tsx": "c6713a9540c584142b1e8465bb7dec5653a9f3ab",
+    "frontend/src/components/SuiteManager.tsx": "f60ebfbabad9837cf33fb09175d65bceae0ee69e",
+    "frontend/src/components/lab-download.ts": "b6fb5f23a28b7f321f02055a91c44cc9d35fdab7",
+    "frontend/src/hosted/LabWorkspace.tsx": "b877f136982e33736234d385e5bde1ffc889b420",
+    "frontend/src/hosted/client.ts": "725aea29ef51f0d5717a6ddb1f3af9f41e4e5d5e",
+    "frontend/src/hosted/lab-client.ts": "8373655df46e3c55e57fe8267fbfe11ff048dde1",
+    "frontend/src/lab.css": "49534b97bd0505d5f6bbd0b7b1203e06fa92b305",
+    "frontend/src/pages/GuidedLab.tsx": "0f2f1cc4acca505eac154b153a7120a65ab315c5",
+    "frontend/src/pages/Simulations.tsx": "e5c504d6fc47fa1cc17db2b1e7fecff6f1ecffc0",
+    "frontend/src/services/analysis-contract.ts": "134c5057ad1b6e75a400fe812e6987730906368f",
+    "frontend/src/services/api.ts": "82451b199abf5f5c4eedb6c5a13acaff56902c80",
+    "frontend/src/services/lab-client.ts": "bea2e69606261479a19d4f799f82894f98084e5e",
+    "frontend/src/types/generated.ts": "3c509ca7abf73c1938e4923d7919359e65f962a6",
+    "frontend/tests/fixtures/review.json": "b8bb066255c1866016693a5eeff6ac6bdeea6f85",
+    "frontend/tests/review-agents.test.mjs": "884bbcd913d3c412cc23efedb24b8a881c8a3641",
+    "shared/contracts.py": "4776f74bd876bcf9e8f66cb31fd0ba5848b2b60e",
+    "shared/models/analysis.py": "f28497f4dd20adde4bed8f07cec5fbe025207ed0",
+    "shared/models/browser.py": "d28615ffa768c897ca04a128ab75b9f3637db7b8",
+    "shared/models/lab.py": "7e8ce596003798393215aef3bed79bb679e61ef8",
+    "shared/models/remote.py": "2be70e3bf9358e709034ce2fe839bf801c6b9e3c",
+    "tests/test_coordinator_browser.py": "f90e8f05eb811765408eea08635236f11456a646",
+    "tests/test_evidence_analyst.py": "541495615cc19deab0b5169490b8f3d7a7fe6900",
+    "tests/test_regression_agent.py": "267a6d7a4a611b917ed43d09c80ab8947e42df3d",
+    "tests/test_review_relay.py": "5352904b65daabd9d09955cfdd8b93c4f901d3bd"
+  },
+  "features": [
+    "S14 deterministic saved-evidence observations, exact frame/time links, unverified hypotheses, coverage, hashes and JSON export",
+    "S15 frozen registered artifact versions, matched saved-suite pairs, explicit native-unit thresholds/minimum pairs, descriptive spread and inconclusive outcomes",
+    "Read-only local and consented owner-scoped remote review with negotiated old-companion compatibility"
+  ],
+  "local_validation": {
+    "broader_backend_before_final_read_clamp": 355,
+    "final_report_budget_and_guided_checks": 48,
+    "report_engine_cases": 24,
+    "new_relay_cases": 5,
+    "guided_cases": 19,
+    "frontend_unit": 381,
+    "local_browser": 27,
+    "connected_browser": 3,
+    "contracts_check": true,
+    "production_builds": [
+      "local",
+      "hosted"
+    ]
+  },
+  "introduced_regression_fixture": {
+    "adapter": "normal deterministic synthetic kinematics",
+    "controllers": "two actual SDK subprocess packages: brake-only reference v1.0 and throttle-only candidate v2.0",
+    "cases": 1,
+    "seeds": [
+      7,
+      11,
+      13
+    ],
+    "executions": 6,
+    "observed_pairs": 3,
+    "reference_contact_episodes": [
+      0,
+      0,
+      0
+    ],
+    "candidate_contact_episodes": [
+      1,
+      1,
+      1
+    ],
+    "decision": "regression_observed",
+    "review_starts_new_executions": false,
+    "scope": "Trusted hand-written fixture controllers, not learned-model inference or live CARLA driving"
+  },
+  "retained_corrections": [
+    "Initial relay-test fixture/launch input and offline capability expectation were corrected; final owner/capability tests pass.",
+    "Initial browser assertion expected hash navigation from a local inline frame button; the corrected test verifies the exact native frame selected in the telemetry viewer.",
+    "Editing runtime source during an earlier browser run correctly triggered a frozen SDK fingerprint rejection and an inconclusive report. A stable-source rerun passes all 27 browser tests.",
+    "A regression test demonstrated that switching suites carried forward the previous deliberate review action. Scoping the panel to the suite identity now requires a fresh action; all 381 unit tests pass.",
+    "A counted growing-stream test demonstrated a one-byte read overrun (710 bytes for a 709-byte allowance). Reads now fit the remaining allowance before consuming data; the final 48-test run passes.",
+    "The first connected-browser process disappeared without a terminal result. It is not counted as a pass; the complete rerun passes all three tests."
+  ],
+  "limits": {
+    "shared_telemetry_bytes": 134217728,
+    "shared_telemetry_frames": 100001,
+    "default_minimum_pairs": 3,
+    "default_thresholds": {
+      "severity": 5.0,
+      "collision_count": 0.0
+    },
+    "missing_observations": "unknown, never zero",
+    "remote_execution": "unchanged built-in baseline only"
+  },
+  "acceptance_remaining": [
+    "Independent human evidence review",
+    "Representative live CARLA/hardware version comparisons",
+    "Current installed/native acceptance",
+    "Public deployment, signing and external beta remain separate earlier roadmap gates"
+  ],
+  "scope": "Synthetic local and private HTTPS/WSS fixtures. No user-window control, paid API, production deployment, signed release or independent-machine acceptance is claimed."
+}

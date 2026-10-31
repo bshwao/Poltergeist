@@ -1572,6 +1572,270 @@
       "title": "AgentStepResult",
       "type": "object"
     },
+    "AnalysisContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/EvidenceAnalysis"
+        },
+        "policy": {
+          "$ref": "#/$defs/RegressionPolicy"
+        },
+        "regression": {
+          "$ref": "#/$defs/RegressionReport"
+        }
+      },
+      "required": [
+        "analysis",
+        "regression",
+        "policy"
+      ],
+      "title": "AnalysisContracts",
+      "type": "object"
+    },
+    "AnalysisCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_trace": {
+          "default": "not_reviewed",
+          "enum": [
+            "not_reviewed",
+            "unavailable"
+          ],
+          "title": "Decision Trace",
+          "type": "string"
+        },
+        "interventions_recorded": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interventions Recorded"
+        },
+        "safety_complete": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Safety Complete"
+        },
+        "telemetry_frames": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Telemetry Frames"
+        },
+        "telemetry_gaps": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Telemetry Gaps"
+        }
+      },
+      "required": [
+        "telemetry_frames",
+        "telemetry_gaps",
+        "safety_complete",
+        "interventions_recorded",
+        "decision_trace"
+      ],
+      "title": "AnalysisCoverage",
+      "type": "object"
+    },
+    "AnalysisHypothesis": {
+      "additionalProperties": false,
+      "properties": {
+        "references": {
+          "items": {
+            "$ref": "#/$defs/AnalysisReference"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "References",
+          "type": "array"
+        },
+        "review": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Review",
+          "type": "string"
+        },
+        "statement": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        },
+        "status": {
+          "const": "unverified",
+          "default": "unverified",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "statement",
+        "review",
+        "references"
+      ],
+      "title": "AnalysisHypothesis",
+      "type": "object"
+    },
+    "AnalysisObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "enum": [
+            "complete",
+            "partial",
+            "unavailable"
+          ],
+          "title": "Coverage",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "execution",
+            "contact",
+            "braking",
+            "intervention",
+            "traffic_rule",
+            "coverage"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "references": {
+          "items": {
+            "$ref": "#/$defs/AnalysisReference"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "References",
+          "type": "array"
+        },
+        "statement": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Statement",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "kind",
+        "statement",
+        "value",
+        "unit",
+        "coverage",
+        "references"
+      ],
+      "title": "AnalysisObservation",
+      "type": "object"
+    },
+    "AnalysisReference": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Field",
+          "type": "string"
+        },
+        "frame": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frame"
+        },
+        "source": {
+          "enum": [
+            "telemetry",
+            "result",
+            "control_audit"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "time_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time S"
+        }
+      },
+      "required": [
+        "source",
+        "field",
+        "frame",
+        "time_s"
+      ],
+      "title": "AnalysisReference",
+      "type": "object"
+    },
     "AnalyticsSummary": {
       "additionalProperties": false,
       "properties": {
@@ -2638,6 +2902,11 @@
     "BrowserConnectionView": {
       "additionalProperties": false,
       "properties": {
+        "analysis_supported": {
+          "default": false,
+          "title": "Analysis Supported",
+          "type": "boolean"
+        },
         "baseline_only": {
           "const": true,
           "default": true,
@@ -2730,7 +2999,8 @@
         "carla_readiness",
         "evidence_supported",
         "recordings_supported",
-        "lab_supported"
+        "lab_supported",
+        "analysis_supported"
       ],
       "title": "BrowserConnectionView",
       "type": "object"
@@ -2967,6 +3237,11 @@
     "ClientReady": {
       "additionalProperties": false,
       "properties": {
+        "analysis_supported": {
+          "default": false,
+          "title": "Analysis Supported",
+          "type": "boolean"
+        },
         "connection_generation": {
           "maximum": 9223372036854775807,
           "minimum": 1,
@@ -5445,6 +5720,138 @@
       "title": "EventBehavior",
       "type": "object"
     },
+    "EvidenceAnalysis": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "$ref": "#/$defs/AnalysisCoverage"
+        },
+        "execution_status": {
+          "$ref": "#/$defs/SimulationStatus"
+        },
+        "hypotheses": {
+          "items": {
+            "$ref": "#/$defs/AnalysisHypothesis"
+          },
+          "maxItems": 4,
+          "title": "Hypotheses",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 600,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "method": {
+          "const": "recorded-evidence-rules-v1",
+          "default": "recorded-evidence-rules-v1",
+          "title": "Method",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "test",
+            "carla"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/AnalysisObservation"
+          },
+          "maxItems": 32,
+          "title": "Observations",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "poltergeist-evidence-analysis-v1",
+          "default": "poltergeist-evidence-analysis-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "source_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Digest"
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "complete",
+            "partial",
+            "unavailable"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "telemetry_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Telemetry Digest"
+        },
+        "unresolved_questions": {
+          "items": {
+            "maxLength": 600,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Unresolved Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "method",
+        "simulation_id",
+        "mode",
+        "execution_status",
+        "state",
+        "source_digest",
+        "telemetry_digest",
+        "summary",
+        "coverage",
+        "observations",
+        "hypotheses",
+        "unresolved_questions",
+        "limitations"
+      ],
+      "title": "EvidenceAnalysis",
+      "type": "object"
+    },
     "EvidenceFrame": {
       "additionalProperties": false,
       "properties": {
@@ -6247,6 +6654,117 @@
         "created_at"
       ],
       "title": "FailureReport",
+      "type": "object"
+    },
+    "FrozenController": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_index": {
+          "minimum": 0,
+          "title": "Agent Index",
+          "type": "integer"
+        },
+        "configuration_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Configuration Digest"
+        },
+        "dependencies_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Dependencies Digest"
+        },
+        "execution_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Execution Digest"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "python_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Python Digest"
+        },
+        "registration_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Registration Id"
+        },
+        "snapshot_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Snapshot Digest"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version"
+        }
+      },
+      "required": [
+        "agent_index",
+        "registration_id",
+        "name",
+        "version",
+        "snapshot_digest",
+        "execution_digest",
+        "python_digest",
+        "dependencies_digest",
+        "configuration_digest"
+      ],
+      "title": "FrozenController",
       "type": "object"
     },
     "GalleryScenario": {
@@ -7235,6 +7753,26 @@
       "type": "object"
     },
     "JsonValue": {},
+    "LabAnalysisResult": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/EvidenceAnalysis"
+        },
+        "kind": {
+          "const": "analysis",
+          "default": "analysis",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "analysis"
+      ],
+      "title": "LabAnalysisResult",
+      "type": "object"
+    },
     "LabApprove": {
       "additionalProperties": false,
       "properties": {
@@ -7267,6 +7805,7 @@
         "action": {
           "discriminator": {
             "mapping": {
+              "analysis_get": "#/$defs/LabIdentity",
               "discovery_report": "#/$defs/LabIdentity",
               "feedback": "#/$defs/LabFeedback",
               "feedbacks": "#/$defs/LabPage",
@@ -7280,6 +7819,7 @@
               "plan_get": "#/$defs/LabIdentity",
               "plan_propose": "#/$defs/LabPropose",
               "plans": "#/$defs/LabPage",
+              "regression_report": "#/$defs/LabRegression",
               "run_cancel": "#/$defs/LabIdentity",
               "run_get": "#/$defs/LabIdentity",
               "run_launch": "#/$defs/LabLaunch",
@@ -7330,6 +7870,9 @@
             },
             {
               "$ref": "#/$defs/LabFrame"
+            },
+            {
+              "$ref": "#/$defs/LabRegression"
             }
           ],
           "title": "Action"
@@ -7646,7 +8189,8 @@
             "operation_resume",
             "run_get",
             "run_cancel",
-            "highlights"
+            "highlights",
+            "analysis_get"
           ],
           "title": "Kind",
           "type": "string"
@@ -7833,6 +8377,52 @@
       "title": "LabPropose",
       "type": "object"
     },
+    "LabRegression": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "regression_report",
+          "default": "regression_report",
+          "title": "Kind",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/RegressionPolicy"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "policy"
+      ],
+      "title": "LabRegression",
+      "type": "object"
+    },
+    "LabRegressionResult": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "regression",
+          "default": "regression",
+          "title": "Kind",
+          "type": "string"
+        },
+        "report": {
+          "$ref": "#/$defs/RegressionReport"
+        }
+      },
+      "required": [
+        "kind",
+        "report"
+      ],
+      "title": "LabRegressionResult",
+      "type": "object"
+    },
     "LabReply": {
       "additionalProperties": false,
       "properties": {
@@ -7850,6 +8440,7 @@
         "result": {
           "discriminator": {
             "mapping": {
+              "analysis": "#/$defs/LabAnalysisResult",
               "deleted": "#/$defs/LabDeletedResult",
               "discovery": "#/$defs/LabDiscoveryResult",
               "feedback": "#/$defs/LabFeedbackResult",
@@ -7860,6 +8451,7 @@
               "operation": "#/$defs/LabOperationResult",
               "plan": "#/$defs/LabPlanResult",
               "plans": "#/$defs/LabPlansResult",
+              "regression": "#/$defs/LabRegressionResult",
               "run": "#/$defs/LabRunResult",
               "suite": "#/$defs/LabSuiteResult",
               "suite_report": "#/$defs/LabSuiteReportResult",
@@ -7913,6 +8505,12 @@
             },
             {
               "$ref": "#/$defs/LabDeletedResult"
+            },
+            {
+              "$ref": "#/$defs/LabAnalysisResult"
+            },
+            {
+              "$ref": "#/$defs/LabRegressionResult"
             }
           ],
           "title": "Result"
@@ -9484,6 +10082,512 @@
         "created_at"
       ],
       "title": "RegisteredAgent",
+      "type": "object"
+    },
+    "RegressionAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "case_index": {
+          "minimum": 0,
+          "title": "Case Index",
+          "type": "integer"
+        },
+        "case_name": {
+          "minLength": 1,
+          "title": "Case Name",
+          "type": "string"
+        },
+        "compared_agent_index": {
+          "minimum": 0,
+          "title": "Compared Agent Index",
+          "type": "integer"
+        },
+        "decision": {
+          "enum": [
+            "regression_observed",
+            "no_regression_observed",
+            "inconclusive"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "explanation": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "maximum_change": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Maximum Change"
+        },
+        "mean_change": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Mean Change"
+        },
+        "metric": {
+          "enum": [
+            "severity",
+            "collision_count",
+            "min_ttc_s",
+            "min_clearance_m",
+            "max_deceleration_mps2",
+            "hard_braking_count",
+            "traffic_violation_count"
+          ],
+          "title": "Metric",
+          "type": "string"
+        },
+        "minimum_change": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Minimum Change"
+        },
+        "observed_pairs": {
+          "minimum": 0,
+          "title": "Observed Pairs",
+          "type": "integer"
+        },
+        "planned_pairs": {
+          "minimum": 0,
+          "title": "Planned Pairs",
+          "type": "integer"
+        },
+        "sample_stddev": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sample Stddev"
+        },
+        "threshold": {
+          "minimum": 0,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "worsening_direction": {
+          "enum": [
+            "higher",
+            "lower"
+          ],
+          "title": "Worsening Direction",
+          "type": "string"
+        },
+        "worsening_pairs": {
+          "minimum": 0,
+          "title": "Worsening Pairs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "case_index",
+        "case_name",
+        "compared_agent_index",
+        "metric",
+        "unit",
+        "worsening_direction",
+        "threshold",
+        "decision",
+        "planned_pairs",
+        "observed_pairs",
+        "worsening_pairs",
+        "mean_change",
+        "minimum_change",
+        "maximum_change",
+        "sample_stddev",
+        "explanation"
+      ],
+      "title": "RegressionAssessment",
+      "type": "object"
+    },
+    "RegressionPair": {
+      "additionalProperties": false,
+      "properties": {
+        "case_index": {
+          "minimum": 0,
+          "title": "Case Index",
+          "type": "integer"
+        },
+        "comparable": {
+          "title": "Comparable",
+          "type": "boolean"
+        },
+        "compared_agent_index": {
+          "minimum": 0,
+          "title": "Compared Agent Index",
+          "type": "integer"
+        },
+        "compared_simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Compared Simulation Id"
+        },
+        "compared_values": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "severity",
+              "collision_count",
+              "min_ttc_s",
+              "min_clearance_m",
+              "max_deceleration_mps2",
+              "hard_braking_count",
+              "traffic_violation_count"
+            ]
+          },
+          "title": "Compared Values",
+          "type": "object"
+        },
+        "differences": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "severity",
+              "collision_count",
+              "min_ttc_s",
+              "min_clearance_m",
+              "max_deceleration_mps2",
+              "hard_braking_count",
+              "traffic_violation_count"
+            ]
+          },
+          "title": "Differences",
+          "type": "object"
+        },
+        "reason": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "reference_simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reference Simulation Id"
+        },
+        "reference_values": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "severity",
+              "collision_count",
+              "min_ttc_s",
+              "min_clearance_m",
+              "max_deceleration_mps2",
+              "hard_braking_count",
+              "traffic_violation_count"
+            ]
+          },
+          "title": "Reference Values",
+          "type": "object"
+        },
+        "repeat_index": {
+          "minimum": 0,
+          "title": "Repeat Index",
+          "type": "integer"
+        },
+        "seed": {
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "case_index",
+        "compared_agent_index",
+        "seed",
+        "repeat_index",
+        "reference_simulation_id",
+        "compared_simulation_id",
+        "comparable",
+        "reason",
+        "differences",
+        "reference_values",
+        "compared_values"
+      ],
+      "title": "RegressionPair",
+      "type": "object"
+    },
+    "RegressionPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "minimum_pairs": {
+          "default": 3,
+          "maximum": 200,
+          "minimum": 2,
+          "title": "Minimum Pairs",
+          "type": "integer"
+        },
+        "thresholds": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxProperties": 7,
+          "minProperties": 1,
+          "propertyNames": {
+            "enum": [
+              "severity",
+              "collision_count",
+              "min_ttc_s",
+              "min_clearance_m",
+              "max_deceleration_mps2",
+              "hard_braking_count",
+              "traffic_violation_count"
+            ]
+          },
+          "title": "Thresholds",
+          "type": "object"
+        }
+      },
+      "required": [
+        "minimum_pairs",
+        "thresholds"
+      ],
+      "title": "RegressionPolicy",
+      "type": "object"
+    },
+    "RegressionReport": {
+      "additionalProperties": false,
+      "properties": {
+        "assessments": {
+          "items": {
+            "$ref": "#/$defs/RegressionAssessment"
+          },
+          "maxItems": 980,
+          "title": "Assessments",
+          "type": "array"
+        },
+        "context_notes": {
+          "items": {
+            "maxLength": 600,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Context Notes",
+          "type": "array"
+        },
+        "controllers": {
+          "items": {
+            "$ref": "#/$defs/FrozenController"
+          },
+          "maxItems": 8,
+          "title": "Controllers",
+          "type": "array"
+        },
+        "evidence_review": {
+          "$ref": "#/$defs/RegressionReviewCoverage"
+        },
+        "execution_status": {
+          "title": "Execution Status",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 600,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "method": {
+          "const": "matched-observation-rules-v1",
+          "default": "matched-observation-rules-v1",
+          "title": "Method",
+          "type": "string"
+        },
+        "operation_id": {
+          "format": "uuid",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "pairs": {
+          "items": {
+            "$ref": "#/$defs/RegressionPair"
+          },
+          "maxItems": 200,
+          "title": "Pairs",
+          "type": "array"
+        },
+        "plan_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Plan Digest",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/RegressionPolicy"
+        },
+        "schema_version": {
+          "const": "poltergeist-regression-v1",
+          "default": "poltergeist-regression-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "regression_observed",
+            "no_regression_observed",
+            "inconclusive",
+            "pending"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "method",
+        "operation_id",
+        "execution_status",
+        "source_digest",
+        "plan_digest",
+        "policy",
+        "state",
+        "summary",
+        "evidence_review",
+        "context_notes",
+        "controllers",
+        "pairs",
+        "assessments",
+        "limitations"
+      ],
+      "title": "RegressionReport",
+      "type": "object"
+    },
+    "RegressionReviewCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "available_runs": {
+          "minimum": 0,
+          "title": "Available Runs",
+          "type": "integer"
+        },
+        "byte_limit": {
+          "minimum": 0,
+          "title": "Byte Limit",
+          "type": "integer"
+        },
+        "bytes_read": {
+          "minimum": 0,
+          "title": "Bytes Read",
+          "type": "integer"
+        },
+        "frame_limit": {
+          "minimum": 0,
+          "title": "Frame Limit",
+          "type": "integer"
+        },
+        "frames_read": {
+          "minimum": 0,
+          "title": "Frames Read",
+          "type": "integer"
+        },
+        "limited_runs": {
+          "minimum": 0,
+          "title": "Limited Runs",
+          "type": "integer"
+        },
+        "unavailable_runs": {
+          "minimum": 0,
+          "title": "Unavailable Runs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "available_runs",
+        "unavailable_runs",
+        "limited_runs",
+        "frames_read",
+        "bytes_read",
+        "frame_limit",
+        "byte_limit"
+      ],
+      "title": "RegressionReviewCoverage",
       "type": "object"
     },
     "RelativeSpawn": {
@@ -11299,6 +12403,11 @@
     "ServerHello": {
       "additionalProperties": false,
       "properties": {
+        "analysis_supported": {
+          "default": false,
+          "title": "Analysis Supported",
+          "type": "boolean"
+        },
         "connection_generation": {
           "maximum": 9223372036854775807,
           "minimum": 1,
@@ -12739,6 +13848,9 @@
     "agent": {
       "$ref": "#/$defs/AgentContracts"
     },
+    "analysis": {
+      "$ref": "#/$defs/AnalysisContracts"
+    },
     "api": {
       "$ref": "#/$defs/ApiContracts"
     },
@@ -12797,7 +13909,8 @@
     "coordination",
     "remote",
     "browser",
-    "experimentation"
+    "experimentation",
+    "analysis"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

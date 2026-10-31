@@ -28,6 +28,11 @@ test("paired-computer guidance, suite comparisons and bounded discovery use the 
   await page.getByRole("button", { name: "Run one synthetic experiment", exact: true }).click();
   await expect(page.getByRole("heading", { name: "3. Explain what was recorded" })).toBeVisible();
   expect((await control("state")).runs).toBe(1);
+  const analyst = page.getByRole("region", { name: "Evidence Analyst", exact: true });
+  await analyst.getByRole("button", { name: "Analyze recorded evidence", exact: true }).click();
+  await expect(analyst.getByRole("button", { name: "Download evidence analysis" })).toBeVisible();
+  await expect(analyst).toContainText("Synthetic mode");
+  expect((await control("state")).runs).toBe(1);
   const highlight = page.getByRole("region", { name: "Replay highlights" }).getByRole("link", { name: /^Inspect frame / }).first();
   await expect(highlight).toBeVisible(); await highlight.click();
   await expect(page.getByRole("region", { name: "Selected recorded frame" })).toBeVisible();
@@ -54,6 +59,12 @@ test("paired-computer guidance, suite comparisons and bounded discovery use the 
   await expect(page.getByRole("heading", { name: "Suite run · completed", exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Comparison for Sudden Braking" })).toContainText("1 / 1");
   expect((await control("state")).runs).toBe(2);
+  const regression = page.getByRole("region", { name: "Regression Agent", exact: true });
+  await regression.getByRole("button", { name: "Review version regression", exact: true }).click();
+  await expect(regression.getByRole("heading", { name: "Inconclusive", exact: true })).toBeVisible();
+  await expect(regression).toContainText("Built-in baseline");
+  expect((await control("state")).runs).toBe(2);
+  await auditAccessibility(page, testInfo, "hosted-regression-review");
   await page.reload(); await expect(page.getByRole("heading", { name: "Suite run · completed", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Past results for Paired computer suite", exact: true }).click();
   await expect(page.getByRole("link", { name: /^Review suite comparison / })).toBeVisible();
