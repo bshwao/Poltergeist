@@ -46,6 +46,43 @@ def _control(value):
     return None if value is None else (value.mode, value.controller, value.navigation)
 
 
+def _pair_context_reason(left, right, mode):
+    if left is None or right is None or left.result is None or right.result is None:
+        return "The matched pair has not finalized"
+    if any(child.simulation.status != "completed" for child in (left, right)):
+        return "The pair includes an unfinished, failed or cancelled execution"
+    before, after = left.result.runtime, right.result.runtime
+    if before is None or after is None:
+        return "Pair has no comparable recorded runtime"
+    if any(getattr(before, field) != getattr(after, field)
+           for field in ("adapter", "map_name", "fixed_delta_seconds", "client_version", "server_version")):
+        return "Recorded runtime versions or map/timestep differ"
+    if mode == "carla" and any(runtime.client_version is None or runtime.server_version is None for runtime in (before, after)):
+        return "CARLA version evidence is incomplete"
+    return None
+
+
+def _metric_observed(metrics, metric):
+    """Require the selected measurement's whole-window coverage, not another's."""
+    coverage = metrics.coverage
+    if not coverage.total_frames or coverage.has_gaps or getattr(metrics, metric) is None:
+        return False
+    if metric == "severity":
+        return coverage.complete
+    fields = {
+        "collision_count": "collision_frames", "traffic_violation_count": "traffic_rule_frames",
+        "max_deceleration_mps2": "braking_frames", "hard_braking_count": "braking_frames",
+        "min_clearance_m": "clearance_frames", "min_ttc_s": "ttc_frames",
+    }
+    if getattr(coverage, fields[metric]) != coverage.total_frames:
+        return False
+    if metric == "min_clearance_m":
+        return coverage.clearance_pairs == coverage.actor_pairs
+    if metric == "min_ttc_s":
+        return coverage.ttc_pairs == coverage.actor_pairs
+    return True
+
+
 def _spread(values):
     if not values:
         return None, None
@@ -79,8 +116,8 @@ def build_regression_report(persistence, operation_id, policy=None):
     if distinct_versions:
         for identity, child in children.items():
             result = child.result
-            if result is None or child.simulation.status != "completed" or not result.metrics.coverage.complete:
-                validated[identity] = "Run is incomplete or lacks full recorded safety coverage"
+            if result is None or child.simulation.status != "completed":
+                validated[identity] = "Run is incomplete or has no saved result"
                 continue
             try:
                 reviewed, frames, fingerprint = read_review_evidence(persistence, identity, budget=budget)
@@ -109,10 +146,8 @@ def build_regression_report(persistence, operation_id, policy=None):
                     reason = "Two frozen registered controller versions are required"
                 elif controller.execution_digest == controllers[0].execution_digest:
                     reason = "The recorded controller artifacts/configuration are identical"
-                elif pair.severity_difference is None:
-                    reason = pair.reason
-                elif left is None or right is None or left.result is None or right.result is None:
-                    reason = "The matched pair has not finalized"
+                elif context_reason := _pair_context_reason(left, right, operation.execution.mode):
+                    reason = context_reason
                 elif validated.get(pair.reference_simulation_id) or validated.get(pair.compared_simulation_id):
                     reason = validated.get(pair.reference_simulation_id) or validated.get(pair.compared_simulation_id)
                 elif not all(trials[identity].assessed for identity in (pair.reference_simulation_id, pair.compared_simulation_id)):
@@ -129,17 +164,26 @@ def build_regression_report(persistence, operation_id, policy=None):
                     reason = "Recorded resolved spawn transforms differ"
                 elif any(child.result.metrics.evaluation_settings != operation.execution.evaluation_settings for child in (left, right)):
                     reason = "Recorded scoring settings are missing or differ from the frozen plan"
-                differences, reference_values, compared_values = {}, {}, {}
+                differences, reference_values, compared_values, unavailable = {}, {}, {}, []
                 for metric in policy.thresholds:
                     before = None if left is None or left.result is None else getattr(left.result.metrics, metric)
                     after = None if right is None or right.result is None else getattr(right.result.metrics, metric)
-                    change = None if reason or before is None or after is None else after - before
+                    observed = not reason and all(_metric_observed(child.result.metrics, metric) for child in (left, right))
+                    change = after - before if observed else None
                     differences[metric] = change if change is None or isfinite(change) else None
                     reference_values[metric], compared_values[metric] = before, after
+                    if not reason and differences[metric] is None:
+                        unavailable.append(metric)
+                comparable = not reason and any(value is not None for value in differences.values())
+                if reason is None:
+                    reason = ("Matched frozen inputs, runtime, spawns, control and scoring; complete coverage for available selected measurements."
+                        if comparable else "No selected measurement has complete coverage and available values in both runs.")
+                    if unavailable:
+                        reason += f" Unavailable selected measurements: {', '.join(unavailable)} (incomplete coverage or missing values)."
                 item = RegressionPair(case_index=case.case_index, compared_agent_index=comparison.compared_agent_index,
                     seed=pair.seed, repeat_index=pair.repeat_index, reference_simulation_id=pair.reference_simulation_id,
-                    compared_simulation_id=pair.compared_simulation_id, comparable=reason is None,
-                    reason=reason or "Matched frozen recipe/seed/repetition, observed coverage, runtime and input contract",
+                    compared_simulation_id=pair.compared_simulation_id, comparable=comparable,
+                    reason=reason,
                     differences=differences, reference_values=reference_values, compared_values=compared_values)
                 pairs.append(item)
                 case_pairs.append(item)
@@ -191,7 +235,8 @@ def build_regression_report(persistence, operation_id, policy=None):
             frame_limit=100001, byte_limit=MAX_REVIEW_BYTES),
         limitations=["This is an observed, threshold-based pattern in matched frozen trials, not a probability of failure, a causal attribution or a general safety ranking.",
             "Raw differences are compared minus reference. Lower TTC/clearance is worse; other selected metrics worsen when higher.",
-            "A negative/clear result requires every planned pair and at least the policy's minimum count. Missing, failed, cancelled, corrupted or incompatible evidence is not zero.",
+            "Each selected measurement requires its own complete frame/pair coverage and no timeline gaps. Severity requires complete safety coverage. Missing observations never become zero.",
+            "A negative/clear result requires every planned pair and at least the policy's minimum count. Failed, cancelled, corrupted or incompatible evidence is unavailable.",
             "A positive pattern requires every observed paired change to exceed the threshold and at least the minimum count. Mixed patterns are inconclusive; sample spread is descriptive.",
             "Frozen snapshots describe the executed artifacts/configuration. They do not establish that those files remain installed or that model weights alone caused a difference.",
             "Reproduce using the frozen suite request and version snapshots in its existing evidence export; later edits or deletion of a reusable definition do not replace that journal.",

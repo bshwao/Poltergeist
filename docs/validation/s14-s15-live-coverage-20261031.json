@@ -1,0 +1,568 @@
+{
+  "schema_version": "poltergeist-review-live-validation-v1",
+  "recorded_at": "2026-10-31T23:15:54.812266+00:00",
+  "branch": "codex/s14-s15-live-evidence-validation",
+  "source_parent": "ac2ff5cff813507cd1bc9d2639dc652fdf70e9e4",
+  "candidate_source_blobs": {
+    "backend/services/evidence_analysis_service.py": "1c468173c284430908d27c16bfb372011b496938",
+    "backend/services/regression_service.py": "fe80cfdd69e59e0895a0af5fa9f85d261015aa77",
+    "frontend/src/components/RegressionPanel.tsx": "d077e72de709fafd297a5d9733806b2c01e77559"
+  },
+  "passed": true,
+  "scope": "Same-laptop, CLI-only packaged CARLA SDK fixtures. Hand-written brake/throttle controllers; no learned inference, native GUI, independent human or external-machine acceptance.",
+  "fixes": [
+    "S14 rule-event coverage accounts for unchecked channels even when a frame records an empty event list.",
+    "S15 compares only measurements with their own complete frame/pair coverage, no timeline gaps and verified values in both runs. Severity still needs complete safety coverage."
+  ],
+  "runtime": {
+    "server_version": "0.9.16",
+    "client_version": "0.9.16",
+    "map": "Carla/Maps/Town10HD_Opt",
+    "port": 2018
+  },
+  "hardware": {
+    "cpu": {
+      "Name": "AMD Ryzen 7 260 w/ Radeon 780M Graphics"
+    },
+    "available_gpus": [
+      {
+        "Name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+        "DriverVersion": "32.0.15.8205"
+      },
+      {
+        "Name": "AMD Radeon(TM) 780M Graphics",
+        "DriverVersion": "32.0.21030.13004"
+      }
+    ],
+    "os": {
+      "Caption": "Microsoft Windows 11 Home",
+      "Version": "10.0.26300",
+      "BuildNumber": "26300",
+      "RAM_GiB": 15.31
+    },
+    "active_gpu": "Not independently recorded"
+  },
+  "portable": {
+    "all_sources_match": true,
+    "matched_modules": 207,
+    "archive_bytes": 87921337,
+    "archive_sha256": "900f37c96a9fb708a4e70913387e12d14ce259596e315d0eb3d2fa402cfd8062"
+  },
+  "integrity_before": {
+    "schema_version": "poltergeist-portable-integrity-v1",
+    "passed": true,
+    "files": 6308,
+    "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+  },
+  "integrity_after": {
+    "schema_version": "poltergeist-portable-integrity-v1",
+    "passed": true,
+    "files": 6308,
+    "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+  },
+  "recipe": {
+    "kind": "suite",
+    "name": "Frozen SDK CARLA version comparison",
+    "mode": "carla",
+    "options": {
+      "no_rendering_mode": true,
+      "carla_quality": "Low"
+    },
+    "agents": [
+      "a4b599e5-b9d8-40b4-8f18-50d89744c5d4",
+      "4f209439-8888-43fc-802c-357ccd78fcf6"
+    ],
+    "seeds": [
+      7,
+      11,
+      13
+    ],
+    "cases": [
+      {
+        "name": "Stationary lead on fixed road spawn",
+        "scenario": {
+          "name": "Recorded CARLA lead contact",
+          "map": "Town10HD_Opt",
+          "duration_s": 4.0,
+          "fixed_delta_seconds": 0.05,
+          "actors": [
+            {
+              "id": "ego",
+              "type": "ego_vehicle",
+              "blueprint": "vehicle.tesla.model3",
+              "speed_mps": 4.0,
+              "spawn_point_index": 0
+            },
+            {
+              "id": "lead",
+              "type": "lead_vehicle",
+              "blueprint": "vehicle.tesla.model3",
+              "speed_mps": 0.0,
+              "relative_spawn": {
+                "anchor_actor_id": "ego",
+                "offset_m": {
+                  "x": 8.0
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "operation_id": "a7be2d3e-b842-4071-8e71-ecab002f5e90",
+  "policy": {
+    "minimum_pairs": 3,
+    "thresholds": {
+      "severity": 5.0,
+      "collision_count": 0.0
+    }
+  },
+  "state": "regression_observed",
+  "plan_digest": "8e8c55169c31db9ddac7866f1c686d2f8f92f6d206ea1750aaba21d4a3f93819",
+  "source_digest": "3dc035f803ffd93682f2b4f53315f15a50594582285790d4c3c95151b0349bdb",
+  "controllers": [
+    {
+      "agent_index": 0,
+      "registration_id": "a4b599e5-b9d8-40b4-8f18-50d89744c5d4",
+      "name": "Live review fixture",
+      "version": "1.0",
+      "snapshot_digest": "c8c90b6760e85b4a65ff2ce13116b2cf2d36bacb7be2bebb85523c91890b0921",
+      "execution_digest": "6c539488007a27a12b8e7116c70153c48fd112d7301e1f2b15e2501c002d089f",
+      "python_digest": "337ef2b4fbf07f8c456a2ac0d7ab2ae1dfb11199ccccfffab9b240ec030221e1",
+      "dependencies_digest": "473d19fc4470cd6d91900f1ec37e651b1578bbce6d2115f4cc0eda91ea3ffad0",
+      "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "agent_index": 1,
+      "registration_id": "4f209439-8888-43fc-802c-357ccd78fcf6",
+      "name": "Live review fixture",
+      "version": "2.0",
+      "snapshot_digest": "af70a8f84378f1bed0e727b1261f88a2a7c34e78ae24050e26f9c92274fae512",
+      "execution_digest": "ca8ceaa155ee3f20d82d9d4e3b08e83a70d1e24e329b05e8b1a2c97799d6df13",
+      "python_digest": "337ef2b4fbf07f8c456a2ac0d7ab2ae1dfb11199ccccfffab9b240ec030221e1",
+      "dependencies_digest": "473d19fc4470cd6d91900f1ec37e651b1578bbce6d2115f4cc0eda91ea3ffad0",
+      "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  ],
+  "assessments": [
+    {
+      "case_index": 0,
+      "case_name": "Stationary lead on fixed road spawn",
+      "compared_agent_index": 1,
+      "metric": "severity",
+      "unit": "0\u2013100 heuristic",
+      "worsening_direction": "higher",
+      "threshold": 5.0,
+      "decision": "inconclusive",
+      "planned_pairs": 3,
+      "observed_pairs": 0,
+      "worsening_pairs": 0,
+      "mean_change": null,
+      "minimum_change": null,
+      "maximum_change": null,
+      "sample_stddev": null,
+      "explanation": "0 of 0 observed pairs exceed the worsening threshold; 3 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+    },
+    {
+      "case_index": 0,
+      "case_name": "Stationary lead on fixed road spawn",
+      "compared_agent_index": 1,
+      "metric": "collision_count",
+      "unit": "episodes",
+      "worsening_direction": "higher",
+      "threshold": 0.0,
+      "decision": "regression_observed",
+      "planned_pairs": 3,
+      "observed_pairs": 3,
+      "worsening_pairs": 3,
+      "mean_change": 1.0,
+      "minimum_change": 1.0,
+      "maximum_change": 1.0,
+      "sample_stddev": 0.0,
+      "explanation": "3 of 3 observed pairs exceed the worsening threshold; 0 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+    }
+  ],
+  "pairs": [
+    {
+      "case_index": 0,
+      "compared_agent_index": 1,
+      "seed": 7,
+      "repeat_index": 0,
+      "reference_simulation_id": "b3fbec2b-2226-4db0-b3d4-362f92c0e5d3",
+      "compared_simulation_id": "a143e866-cd50-46cf-9f5a-f1a971b9df83",
+      "comparable": true,
+      "reason": "Matched frozen inputs, runtime, spawns, control and scoring; complete coverage for available selected measurements. Unavailable selected measurements: severity (incomplete coverage or missing values).",
+      "differences": {
+        "severity": null,
+        "collision_count": 1.0
+      },
+      "reference_values": {
+        "severity": null,
+        "collision_count": 0.0
+      },
+      "compared_values": {
+        "severity": 100.0,
+        "collision_count": 1.0
+      }
+    },
+    {
+      "case_index": 0,
+      "compared_agent_index": 1,
+      "seed": 11,
+      "repeat_index": 0,
+      "reference_simulation_id": "f070e7ee-eacb-4184-b226-13d449321c44",
+      "compared_simulation_id": "bc7f2b26-4de4-44f2-9497-cdc84078f9dc",
+      "comparable": true,
+      "reason": "Matched frozen inputs, runtime, spawns, control and scoring; complete coverage for available selected measurements. Unavailable selected measurements: severity (incomplete coverage or missing values).",
+      "differences": {
+        "severity": null,
+        "collision_count": 1.0
+      },
+      "reference_values": {
+        "severity": null,
+        "collision_count": 0.0
+      },
+      "compared_values": {
+        "severity": 100.0,
+        "collision_count": 1.0
+      }
+    },
+    {
+      "case_index": 0,
+      "compared_agent_index": 1,
+      "seed": 13,
+      "repeat_index": 0,
+      "reference_simulation_id": "acaf4db9-55a0-46b3-9751-16114ea47087",
+      "compared_simulation_id": "7c4a2b3b-0f89-4672-884f-1a45a06b2623",
+      "comparable": true,
+      "reason": "Matched frozen inputs, runtime, spawns, control and scoring; complete coverage for available selected measurements. Unavailable selected measurements: severity (incomplete coverage or missing values).",
+      "differences": {
+        "severity": null,
+        "collision_count": 1.0
+      },
+      "reference_values": {
+        "severity": null,
+        "collision_count": 0.0
+      },
+      "compared_values": {
+        "severity": 100.0,
+        "collision_count": 1.0
+      }
+    }
+  ],
+  "evidence_review": {
+    "available_runs": 6,
+    "unavailable_runs": 0,
+    "limited_runs": 0,
+    "frames_read": 486,
+    "bytes_read": 846378,
+    "frame_limit": 100001,
+    "byte_limit": 134217728
+  },
+  "runs": [
+    {
+      "simulation_id": "b3fbec2b-2226-4db0-b3d4-362f92c0e5d3",
+      "agent_index": 0,
+      "seed": 7,
+      "frames": 81,
+      "verified_references": 3,
+      "contact_frames": 0.0,
+      "collision_count": 0,
+      "severity": null,
+      "analysis_state": "partial",
+      "telemetry_digest": "92233317fa76e2a0937bf08411e1616d9164e99c14e3e29a0ae5154c29089fdb",
+      "contact_coverage": "complete",
+      "rule_coverage": "partial",
+      "rule_frames": 80,
+      "contact_references": [
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 192563,
+          "time_s": 0.0
+        }
+      ],
+      "braking": {
+        "kind": "braking",
+        "statement": "Peak measured deceleration is 47.6 m/s\u00b2 across 81 of 81 eligible motion observations.",
+        "value": 47.609726684202634,
+        "unit": "m/s\u00b2",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "ego",
+            "frame": 192563,
+            "time_s": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "simulation_id": "a143e866-cd50-46cf-9f5a-f1a971b9df83",
+      "agent_index": 1,
+      "seed": 7,
+      "frames": 81,
+      "verified_references": 6,
+      "contact_frames": 65.0,
+      "collision_count": 1,
+      "severity": 100.0,
+      "analysis_state": "partial",
+      "telemetry_digest": "43f1b717c05a8957947c10dde397af5a6587f43ed8f2ab0ec89daf55474c94b5",
+      "contact_coverage": "complete",
+      "rule_coverage": "partial",
+      "rule_frames": 80,
+      "contact_references": [
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 193709,
+          "time_s": 0.7000000104308128
+        },
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 193712,
+          "time_s": 0.850000012665987
+        },
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 193713,
+          "time_s": 0.9000000134110451
+        }
+      ],
+      "braking": {
+        "kind": "braking",
+        "statement": "Peak measured deceleration is 14.7 m/s\u00b2 across 81 of 81 eligible motion observations.",
+        "value": 14.669076311730073,
+        "unit": "m/s\u00b2",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "ego",
+            "frame": 193695,
+            "time_s": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "simulation_id": "f070e7ee-eacb-4184-b226-13d449321c44",
+      "agent_index": 0,
+      "seed": 11,
+      "frames": 81,
+      "verified_references": 3,
+      "contact_frames": 0.0,
+      "collision_count": 0,
+      "severity": null,
+      "analysis_state": "partial",
+      "telemetry_digest": "6a979419ce559976b90e5d213d33978ae5cc7eec1ca65eca99a28c39efa44b41",
+      "contact_coverage": "complete",
+      "rule_coverage": "partial",
+      "rule_frames": 80,
+      "contact_references": [
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 194816,
+          "time_s": 0.0
+        }
+      ],
+      "braking": {
+        "kind": "braking",
+        "statement": "Peak measured deceleration is 47.6 m/s\u00b2 across 81 of 81 eligible motion observations.",
+        "value": 47.609726684202634,
+        "unit": "m/s\u00b2",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "ego",
+            "frame": 194816,
+            "time_s": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "simulation_id": "bc7f2b26-4de4-44f2-9497-cdc84078f9dc",
+      "agent_index": 1,
+      "seed": 11,
+      "frames": 81,
+      "verified_references": 6,
+      "contact_frames": 65.0,
+      "collision_count": 1,
+      "severity": 100.0,
+      "analysis_state": "partial",
+      "telemetry_digest": "a4dbb573ac8f855a37cf730dc6ef776208fde8cae05594818c48a0ad9b3d909e",
+      "contact_coverage": "complete",
+      "rule_coverage": "partial",
+      "rule_frames": 80,
+      "contact_references": [
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 195942,
+          "time_s": 0.7000000104308128
+        },
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 195945,
+          "time_s": 0.850000012665987
+        },
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 195946,
+          "time_s": 0.9000000134110451
+        }
+      ],
+      "braking": {
+        "kind": "braking",
+        "statement": "Peak measured deceleration is 14.7 m/s\u00b2 across 81 of 81 eligible motion observations.",
+        "value": 14.669076311730073,
+        "unit": "m/s\u00b2",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "ego",
+            "frame": 195928,
+            "time_s": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "simulation_id": "acaf4db9-55a0-46b3-9751-16114ea47087",
+      "agent_index": 0,
+      "seed": 13,
+      "frames": 81,
+      "verified_references": 3,
+      "contact_frames": 0.0,
+      "collision_count": 0,
+      "severity": null,
+      "analysis_state": "partial",
+      "telemetry_digest": "32dd3fec4fbcf8f82de5d8b2545f556eba254869c8ef7e7fabfc27436f61da04",
+      "contact_coverage": "complete",
+      "rule_coverage": "partial",
+      "rule_frames": 80,
+      "contact_references": [
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 197020,
+          "time_s": 0.0
+        }
+      ],
+      "braking": {
+        "kind": "braking",
+        "statement": "Peak measured deceleration is 47.6 m/s\u00b2 across 81 of 81 eligible motion observations.",
+        "value": 47.609726684202634,
+        "unit": "m/s\u00b2",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "ego",
+            "frame": 197020,
+            "time_s": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "simulation_id": "7c4a2b3b-0f89-4672-884f-1a45a06b2623",
+      "agent_index": 1,
+      "seed": 13,
+      "frames": 81,
+      "verified_references": 6,
+      "contact_frames": 65.0,
+      "collision_count": 1,
+      "severity": 100.0,
+      "analysis_state": "partial",
+      "telemetry_digest": "cad950499a72a26cf620b715f3ab55d8d7aed216b355aa1eedce1791d567accb",
+      "contact_coverage": "complete",
+      "rule_coverage": "partial",
+      "rule_frames": 80,
+      "contact_references": [
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 198249,
+          "time_s": 0.7000000104308128
+        },
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 198252,
+          "time_s": 0.850000012665987
+        },
+        {
+          "source": "telemetry",
+          "field": "collisions",
+          "frame": 198253,
+          "time_s": 0.9000000134110451
+        }
+      ],
+      "braking": {
+        "kind": "braking",
+        "statement": "Peak measured deceleration is 14.7 m/s\u00b2 across 81 of 81 eligible motion observations.",
+        "value": 14.669076311730073,
+        "unit": "m/s\u00b2",
+        "coverage": "complete",
+        "references": [
+          {
+            "source": "telemetry",
+            "field": "ego",
+            "frame": 198235,
+            "time_s": 0.0
+          }
+        ]
+      }
+    }
+  ],
+  "review_creates_executions": false,
+  "telemetry_changed": false,
+  "world_restored": true,
+  "local_validation": {
+    "focused_before_fix": 29,
+    "first_coverage_suite": 40,
+    "broader_backend": 116,
+    "additional_incomplete_geometry_motion": 4,
+    "frontend_unit": 382,
+    "local_browser_journeys": 1,
+    "private_https_wss_browser_journeys": 1,
+    "contracts_check": true,
+    "production_builds": [
+      "local",
+      "hosted"
+    ]
+  },
+  "retained_findings_and_corrections": [
+    "The initial ac2ff5c package completed six CARLA runs but excluded every pair because whole-safety coverage was incomplete. All six had 81/81 contact frames and 80/81 fully checked rule frames. Its failed acceptance receipt is retained.",
+    "An initial assertion expected a complete S14 live report; partial is correct when initial rule checks are unknown. The report now also labels this per-observation rule coverage explicitly.",
+    "The rebuilt package completed six new runs. Its first receipt stopped on a test-script seed lookup; seeds are read from saved scenarios. Those executions were retained and reviewed again without new simulations.",
+    "The first cold-review check also fetched ordinary /simulations endpoints, which construct the existing worker. The corrected script reads source records through persistence and checks the analysis/regression routes alone; neither executor starts.",
+    "The additional geometry test initially used bounding_box instead of bounding_box_extent. Its corrected four-case run passes; the earlier failed log is retained.",
+    "Initial browser fixture startup used system Python without dependencies. Setting POLTERGEIST_TEST_PYTHON to the source environment produced both passing journeys. The hosted run logged Windows connection-reset callbacks during fixture teardown and exited successfully."
+  ],
+  "limits": [
+    "One development laptop, four-second fixed-spawn SDK fixtures, three matched seeds with identical geometry; not independent road environments.",
+    "Hand-written brake/throttle controllers; no learned-model inference, camera/LiDAR policy or internal model-reasoning validation.",
+    "Rule and severity coverage remain incomplete. Contact regression does not clear unknown or unselected measurements.",
+    "Initial spawn/settling transients can dominate observed peak deceleration; recorded frame links do not establish braking quality.",
+    "Unsigned private portable bundle; no installed GUI, independent human review, representative hardware matrix, public deployment or release signing acceptance."
+  ],
+  "acceptance_remaining": [
+    "Independent human evidence review",
+    "Representative live cases and learned-model/hardware comparisons",
+    "Current installed/native workflow acceptance",
+    "Earlier roadmap signing, external-machine and deployment gates"
+  ],
+  "private_evidence": "Raw telemetry, frozen suite journal, package, failed receipts and passing read-only receipt retained in ignored validation-evidence; no normal profile data was changed."
+}

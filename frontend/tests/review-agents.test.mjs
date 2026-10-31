@@ -6,6 +6,7 @@ import TestRenderer, { act } from "react-test-renderer";
 import { loadComponents } from "../scripts/load-components.mjs";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/review.json", import.meta.url), "utf8"));
+const livePartial = JSON.parse(await readFile(new URL("./fixtures/review-live-partial.json", import.meta.url), "utf8"));
 const experiments = JSON.parse(await readFile(new URL("./fixtures/experimentation.json", import.meta.url), "utf8"));
 const loaded = await loadComponents("pages/GuidedLab.tsx");
 const { isEvidenceAnalysis, isRegressionReport, isRegressionPolicy } = await loaded.moduleAt("services/analysis-contract.ts");
@@ -111,6 +112,20 @@ test("invalid review policies are rejected before making a request", async t => 
   await act(async () => minimum.props.onChange({ target: { value: "1" } }));
   await act(async () => button(view, "Review version regression").props.onClick());
   assert.equal(calls, 0); assert.match(text(view.toJSON()), /2–200 matched pairs/);
+});
+
+test("recorded CARLA contacts remain reviewable while severity coverage is unknown", async t => {
+  assert.equal(isRegressionReport(livePartial), true);
+  const view = await render(t, RegressionPanel, { operationId: livePartial.operation_id,
+    client: { getRegressionReport: async () => livePartial } });
+  await act(async () => button(view, "Review version regression").props.onClick());
+  const rows = view.root.findAllByType("tr");
+  const severity = rows.find(row => text(row).includes("Heuristic severity"));
+  const contacts = rows.find(row => text(row).includes("Contact episodes"));
+  assert.match(text(severity), /0 \/ 3.*Unavailable.*Inconclusive/);
+  assert.match(text(contacts), /3 \/ 3.*Worsening pattern observed/);
+  assert.match(text(view.toJSON()), /Unchecked channels remain unknown; severity needs complete safety coverage/);
+  assert.match(text(view.toJSON()), /Unavailable selected measurements: severity/);
 });
 
 test("switching saved suite results requires a fresh deliberate regression review", async t => {

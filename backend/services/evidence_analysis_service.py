@@ -67,11 +67,17 @@ def build_evidence_analysis(persistence, simulation_id):
         observed = [frame for frame in frames if getattr(frame, field) is not None]
         events = [frame for frame in observed if getattr(frame, field)]
         coverage = "complete" if frames and len(observed) == len(frames) else "partial" if observed else "unavailable"
+        rule_coverage = ""
+        if kind == "traffic_rule" and observed:
+            checked = result.metrics.coverage.traffic_rule_frames
+            if checked < len(frames):
+                coverage = "partial"
+            rule_coverage = f" All rule channels were checked on {checked} of {len(frames)} reviewed frames; unchecked channels remain unknown."
         if not observed:
             record(kind, f"There are no reviewed {label} observations; absence of an event cannot be established.",
                 [summary_ref("metrics.coverage")], coverage="unavailable")
         else:
-            record(kind, f"{len(events)} recorded frames contain {label} events among {len(observed)} observed frames out of {len(frames)} reviewed frames. These are frame counts, not distinct event episodes.",
+            record(kind, f"{len(events)} recorded frames contain {label} events among {len(observed)} observed frames out of {len(frames)} reviewed frames. These are frame counts, not distinct event episodes.{rule_coverage}",
                 [reference(frame, field) for frame in (events[:3] or observed[:1])],
                 value=float(len(events)), unit="frames with events", coverage=coverage)
     peak = behavior.braking.max_deceleration

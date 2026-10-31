@@ -79,6 +79,25 @@ def test_unobserved_contacts_remain_unknown(settings):
         assert value["state"] == "partial" and not value["coverage"]["safety_complete"]
 
 
+def test_empty_event_lists_do_not_claim_full_coverage_for_unchecked_rule_channels(settings):
+    class InitialRulesUnknown(ContactAdapter):
+        def open(self, recipe):
+            frame = super().open(recipe)
+            frame.rule_checks = []
+            return frame
+    with client_for(settings, InitialRulesUnknown) as client:
+        record = launch(client)
+        report = client.get(f"/experimentation/analysis/{record['simulation']['id']}").json()
+        rules = next(item for item in report["observations"] if item["kind"] == "traffic_rule")
+        contact = next(item for item in report["observations"] if item["kind"] == "contact")
+        count = report["coverage"]["telemetry_frames"]
+        assert rules["coverage"] == "partial" and rules["value"] == 0
+        assert f"All rule channels were checked on {count - 1} of {count}" in rules["statement"]
+        assert "unchecked channels remain unknown" in rules["statement"]
+        assert contact["coverage"] == "complete"
+        assert report["state"] == "partial" and report["coverage"]["safety_complete"] is False
+
+
 def test_valid_json_trace_that_contradicts_saved_coverage_is_not_analyzed(settings):
     with client_for(settings) as client:
         record = launch(client)

@@ -403,10 +403,11 @@ Depends on S6–S8; an optional language interface comes from S18.
 
 ### S14 — Evidence Analyst Agent
 
-**Status: private implementation; synthetic acceptance validated.** Deterministic saved-run
+**Status: private implementation; synthetic and initial same-laptop CARLA checks validated.** Deterministic saved-run
 reviews link observations to exact frames, label unverified hypotheses and
 preserve missing evidence. Local and negotiated connected-dashboard panels and
-JSON exports use the same contracts. Independent human review and representative
+JSON exports use the same contracts. Empty rule-event lists preserve unchecked
+channels as partial coverage. Independent human review and broader representative
 live evidence acceptance remain. See the [agent guide](evidence-regression-agents.md).
 
 - Summarize recorded contacts, braking and interventions with exact frame links
@@ -419,13 +420,15 @@ and preserve unknowns on incomplete or unavailable runs. Depends on S8.
 
 ### S15 — Regression Agent
 
-**Status: private implementation; synthetic acceptance validated.** Saved-suite reviews use
+**Status: private implementation; synthetic and initial same-laptop CARLA checks validated.** Saved-suite reviews use
 frozen registered artifacts, matched pairs, explicit thresholds/minimum counts,
 descriptive spread and honest inconclusive outcomes. They launch no new runs.
 Registered comparisons are local; remote execution retains its baseline-only
 boundary. Two registered SDK versions demonstrate a repeated introduced contact
-regression on three matched synthetic seeds. Representative live/hardware
-comparisons remain. See the [agent guide](evidence-regression-agents.md).
+regression on three matched synthetic seeds and three fixed-spawn CARLA seed
+pairs. Coverage is specific to each measurement: contacts remain reviewable while
+unknown rule channels keep severity inconclusive. Broader representative
+live/hardware comparisons remain. See the [agent guide](evidence-regression-agents.md).
 
 - Compare frozen model versions on matched saved recipes and seeds, recording
   input/execution differences, sample counts, uncertainty and incomplete results.

@@ -60,6 +60,7 @@ export function RegressionPanel({ operationId, active = true, available = true, 
           <span>Version {item.version ?? "not recorded"} · Artifact/configuration <code title={item.execution_digest ?? undefined}>{item.execution_digest ? item.execution_digest.slice(0, 12) + "…" : "not recorded"}</code></span></li>)}</ul>
         {report.context_notes.length > 0 && <ul className="notice">{report.context_notes.map(item => <li key={item}>{item}</li>)}</ul>}
         <p>Verified saved traces: {report.evidence_review.available_runs}. Unavailable: {report.evidence_review.unavailable_runs}. Review-limited: {report.evidence_review.limited_runs}. Missing observations are excluded from differences.</p>
+        <p>Each measurement needs complete coverage of its own observations. Unchecked channels remain unknown; severity needs complete safety coverage.</p>
         {report.assessments.length ? <>
           <div className="table-scroll" tabIndex={0} role="region" aria-label="Regression assessments"><table className="data-table"><thead><tr><th>Case / candidate</th><th>Measurement / threshold</th><th>Matched pairs</th><th>Mean change</th><th>Sample spread</th><th>Review</th></tr></thead>
             <tbody>{report.assessments.slice(page * 20, page * 20 + 20).map((item, index) => <tr key={index}>

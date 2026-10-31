@@ -1,16 +1,18 @@
 # S0–S19 progress notes
 
-Updated October 31, 2026. Current work: **S9 coordinator latency and runtime dependency consistency**
-after merging S14/S15, alongside the open installed/native acceptance
+Updated October 31, 2026. Current work: **S14/S15 live evidence and frozen-version review validation**,
+alongside the open installed/native acceptance
 gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/s9-relay-capacity-latency`, based on GitHub `main`
-at `11bd256`. That S14/S15 revision passed all five CI jobs and was
-fast-forwarded into GitHub and the original local main checkout. Earlier branch
+Current branch: `codex/s14-s15-live-evidence-validation`, based on GitHub `main`
+at `ac2ff5c`. The S14/S15 implementation at `11bd256` and subsequent S9
+checkpoint at `ac2ff5c` passed all five CI jobs and were fast-forwarded into
+GitHub and the original local main checkout. The 100-device S9 latency gate
+remains open. Earlier branch
 and CI references describe their recorded checkpoints.
 The S11 foundation is merged; its five-job branch validation passed.
 The earlier `codex/s7-managed-ai` branch is preserved separately.
@@ -40,14 +42,26 @@ private prototype does not close independent-machine or release validation.
 | **S11 — Visual design and usability** | **In progress; shared foundation implemented** | Shared light browser palette, readable typography, connection states, keyboard skip links/table scrolling and native tab traversal. Browser accessibility checks and companion regression tests cover this first checkpoint. Full workflow visual review, additional display/theme coverage and first-run testers remain. See [S11 plan](visual-usability.md). |
 | S12 — Guided experimentation and adoption | Application delivered; independent tester gate open | Guided first experiment, sixteen illustrated scenes, saved suites, per-case matched comparisons, exact-frame highlights and deliberate feedback in both dashboards. Desktop/mobile browser journeys and accessibility checks pass. Actual new-tester feedback and verified follow-up changes remain. See [workflow guide](guided-experimentation.md). |
 | S13 — Failure Discovery Agent | Private implementation delivered; locally validated | Digest/revision-bound approval, frozen candidates/agents/settings, execution/simulated/absolute-wall budgets, exact confirmation repeats and complete negative/unknown journals. Registered local agents and scoped remote consent/ownership checks pass. Current live CARLA attempts retained startup/RPC failures as unknown; no driving failure was claimed. |
-| S14 — Evidence Analyst Agent | Private implementation delivered; synthetic acceptance validated | Deterministic observations, exact frame/time links, unverified hypotheses, coverage/unknowns, source hashes and JSON exports in local and connected dashboards. Human review and representative live evidence acceptance remain. See [agent guide](evidence-regression-agents.md). |
-| S15 — Regression Agent | Private implementation delivered; synthetic acceptance validated | Two actual registered SDK versions demonstrate a repeated introduced contact regression on three matched synthetic seeds. Explicit thresholds/minimum pairs, measured spread, inconclusive outcomes and reproduction links preserve unknowns. Remote execution retains its baseline-only boundary; live/hardware comparisons remain. See [agent guide](evidence-regression-agents.md). |
+| S14 — Evidence Analyst Agent | Private implementation; synthetic and initial same-laptop CARLA checks validated | Exact native frame/time links and contact counts match saved CARLA evidence. Empty event lists now retain unchecked rule channels as partial coverage. Independent human review and broader representative evidence remain. See [agent guide](evidence-regression-agents.md). |
+| S15 — Regression Agent | Private implementation; synthetic and initial same-laptop CARLA checks validated | Two registered SDK fixtures show a contact regression in all three matched fixed-spawn CARLA pairs. Measurement-specific coverage preserves inconclusive severity/rules. Remote execution retains its baseline-only boundary; representative model/hardware comparisons remain. See [agent guide](evidence-regression-agents.md). |
 | S16 — Sensor-based driving agents | Planned | Supported camera/LiDAR policy inputs, control and hardware validation. |
 | S17 — Hugging Face integration | Planned | Verified revision-pinned downloads and managed asset lifecycle supporting S7. |
 | S18 — OpenAI integration | Planned | Optional bounded experiment planning and evidence analysis. |
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
+
+- S14/S15 live CARLA validation exposed two coverage issues. S14 now distinguishes
+  empty event lists from fully checked rule channels. S15 validates each selected
+  measurement independently, retaining full observation requirements for its
+  channels and keeping severity dependent on complete safety coverage. The
+  reference brake-only and candidate throttle-only SDK packages ran on three
+  fixed-spawn CARLA seeds; all three contact differences are +1 episode, while
+  severity remains inconclusive because initial rule coverage is incomplete.
+  The checks use an isolated private runtime/profile and cold saved-evidence
+  reviews. Independent human, learned-model and broader hardware acceptance
+  remain open. See [live evidence and limits](evidence-regression-agents.md) and
+  the [validation receipt](validation/s14-s15-live-coverage-20261031.json).
 
 - S9 now reuses path names while checking fresh filesystem metadata on every
   transaction, keeps command readback on the relay loop, and combines adjacent
@@ -644,5 +658,5 @@ unchanged.
 
 Visual design, guided workflows, experiment agents and external connections are
 numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
-[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14–S19 remain planned work;
+[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16–S19 remain planned work;
 existing S0–S10 identifiers and completion gates are preserved.

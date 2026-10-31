@@ -15,7 +15,8 @@ from backend.config import Settings
 from backend.main import create_app
 from backend.models import SimulationRecord as SimulationRow
 from backend.services import experimentation_service as evidence, regression_service as regression
-from shared.models import CollisionEvent
+from evaluation import evaluate_safety
+from shared.models import CollisionEvent, TelemetryFrame
 from shared.models.optimization import ComparisonAgent
 from simulator import SimulationRunner
 from simulator.test_adapter import TestSimulationAdapter
@@ -115,6 +116,98 @@ def changed_child(fixture, change):
     validated = type(record.result).model_validate(body)
     with persistence.database.session() as session:
         session.execute(update(SimulationRow).where(SimulationRow.id == identity).values(result=validated.model_dump_json()))
+
+
+def rewrite_observations(fixture, change, *, agent_index=None):
+    """Make internally consistent partial observations in this test's clone."""
+    api, _, journal, *_ = fixture
+    persistence = api.app.state.runtime.persistence()
+    for trial in journal["evidence"]["trials"]:
+        if agent_index is not None and trial["agent_index"] != agent_index:
+            continue
+        identity = trial["simulation_id"]
+        result = persistence.get_simulation(identity).result
+        reference = next(item for item in result.artifacts if item.kind == "telemetry")
+        path = persistence.artifacts.validate_reference(reference, identity)
+        frames = [TelemetryFrame.model_validate_json(line) for line in path.read_text(encoding="utf-8").splitlines()]
+        change(frames)
+        result.metrics = evaluate_safety(frames, settings=result.metrics.evaluation_settings)
+        path.write_text("".join(frame.model_dump_json() + "\n" for frame in frames), encoding="utf-8")
+        with persistence.database.session() as session:
+            session.execute(update(SimulationRow).where(SimulationRow.id == identity).values(result=result.model_dump_json()))
+
+
+def test_unknown_initial_rules_do_not_hide_fully_observed_contact_regression(client):
+    # CARLA's initial frame cannot yet establish interval-based traffic rules.
+    rewrite_observations(client, lambda frames: setattr(frames[0], "rule_checks", []))
+    value = review(client)
+    assert value["state"] == "regression_observed"
+    assert value["evidence_review"]["available_runs"] == 6
+    contact, severity = (next(item for item in value["assessments"] if item["metric"] == name)
+                         for name in ("collision_count", "severity"))
+    assert contact["decision"] == "regression_observed" and contact["observed_pairs"] == contact["worsening_pairs"] == 3
+    assert severity["decision"] == "inconclusive" and severity["observed_pairs"] == 0
+    assert all(pair["comparable"] and pair["differences"] == {"severity": None, "collision_count": 1.0}
+               and "severity" in pair["reason"] for pair in value["pairs"])
+    assert review(client, {"minimum_pairs": 3, "thresholds": {"severity": 0.0}})["state"] == "inconclusive"
+    # Clearing selected contacts does not clear the unselected, unknown rules.
+    assert review(client, {"minimum_pairs": 3, "thresholds": {"collision_count": 1.0}})["state"] == "no_regression_observed"
+
+
+@pytest.mark.parametrize("field,metric", [("collisions", "collision_count"), ("traffic_violations", "traffic_violation_count")])
+def test_selected_event_metric_still_requires_every_frame_in_both_runs(client, field, metric):
+    rewrite_observations(client, lambda frames: setattr(frames[0], field, None), agent_index=1)
+    value = review(client, {"minimum_pairs": 3, "thresholds": {metric: 0.0}})
+    assert value["state"] == "inconclusive"
+    assert value["assessments"][0]["observed_pairs"] == 0
+    assert all(not pair["comparable"] and pair["differences"][metric] is None and metric in pair["reason"]
+               for pair in value["pairs"])
+    assert value["evidence_review"]["available_runs"] == 6
+
+
+def test_unknown_velocity_prevents_ttc_comparison_but_preserves_observed_clearance(client):
+    def missing_motion(frames):
+        for frame in frames:
+            frame.ego.velocity_mps = None
+            frame.ego.acceleration_mps2 = None
+    rewrite_observations(client, missing_motion)
+    value = review(client, {"minimum_pairs": 3, "thresholds": {"min_ttc_s": 0.0, "min_clearance_m": 0.0}})
+    ttc, clearance = (next(item for item in value["assessments"] if item["metric"] == name)
+                      for name in ("min_ttc_s", "min_clearance_m"))
+    assert ttc["observed_pairs"] == 0 and ttc["decision"] == "inconclusive"
+    assert clearance["observed_pairs"] == 3
+    assert all(pair["comparable"] and pair["differences"]["min_ttc_s"] is None
+               and pair["differences"]["min_clearance_m"] is not None for pair in value["pairs"])
+
+
+@pytest.mark.parametrize("metric,fields", [("min_clearance_m", ("bounding_box_extent",)),
+    ("min_ttc_s", ("velocity_mps",)), ("max_deceleration_mps2", ("velocity_mps", "acceleration_mps2")),
+    ("hard_braking_count", ("velocity_mps", "acceleration_mps2"))])
+def test_partial_geometry_or_motion_cannot_be_compared_as_a_complete_measurement(client, metric, fields):
+    def missing_initial_sample(frames):
+        for field in fields:
+            setattr(frames[0].ego, field, None)
+    rewrite_observations(client, missing_initial_sample, agent_index=1)
+    value = review(client, {"minimum_pairs": 3, "thresholds": {metric: 0.0}})
+    assert value["state"] == "inconclusive" and value["assessments"][0]["observed_pairs"] == 0
+    assert all(not pair["comparable"] and pair["differences"][metric] is None for pair in value["pairs"])
+    # Later observations still produce values; they cannot clear missing samples.
+    assert all(pair["compared_values"][metric] is not None for pair in value["pairs"])
+
+
+@pytest.mark.parametrize("metric", ["collision_count", "traffic_violation_count", "max_deceleration_mps2",
+    "hard_braking_count", "min_clearance_m", "min_ttc_s", "severity"])
+def test_timeline_gaps_cannot_clear_any_selected_measurement(metric):
+    from shared.models import SafetyMetrics
+    # A gap is disqualifying even when all observed samples have known values.
+    metrics = SafetyMetrics.model_validate({name: 1 for name in ("collision_count", "traffic_violation_count",
+        "max_deceleration_mps2", "hard_braking_count", "min_clearance_m", "min_ttc_s", "severity")})
+    metrics.coverage = metrics.coverage.model_copy(update={"total_frames": 2, "collision_frames": 2,
+        "traffic_rule_frames": 2, "braking_frames": 2, "clearance_frames": 2, "ttc_frames": 2,
+        "actor_pairs": 2, "clearance_pairs": 2, "ttc_pairs": 2})
+    assert regression._metric_observed(metrics, metric)
+    metrics.coverage.has_gaps = True
+    assert not regression._metric_observed(metrics, metric)
 
 
 def test_introduced_registered_controller_regression_is_traced_to_frozen_pairs(client):

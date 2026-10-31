@@ -1,0 +1,167 @@
+{
+  "schema_version": "poltergeist-regression-v1",
+  "method": "matched-observation-rules-v1",
+  "operation_id": "c14663ad-fd22-4081-a80c-94d2e6e6aad9",
+  "execution_status": "completed",
+  "source_digest": "053cbfd8fa94fec993ccf7948a37a5735932d675d7e1de954dc404a8e40e8e59",
+  "plan_digest": "b2d7b1b47eaaa6d4dd91a54ea712728342f67c6954d68b0bf228bebd804da4b4",
+  "policy": {
+    "minimum_pairs": 3,
+    "thresholds": {
+      "severity": 5.0,
+      "collision_count": 0.0
+    }
+  },
+  "state": "regression_observed",
+  "summary": "1 case/controller/metric comparisons show a repeated worsening pattern under the selected policy. Unresolved or unselected measurements are not cleared by this report.",
+  "evidence_review": {
+    "available_runs": 6,
+    "unavailable_runs": 0,
+    "limited_runs": 0,
+    "frames_read": 486,
+    "bytes_read": 845847,
+    "frame_limit": 100001,
+    "byte_limit": 134217728
+  },
+  "context_notes": [],
+  "controllers": [
+    {
+      "agent_index": 0,
+      "registration_id": "c457afdd-307e-4b46-bf0b-dc5173736968",
+      "name": "Live review fixture",
+      "version": "1.0",
+      "snapshot_digest": "55270b7ab2f704bc9f9ebbe25f3d3b4ba911eeef44df36579c8e726d9c3bcc89",
+      "execution_digest": "6c539488007a27a12b8e7116c70153c48fd112d7301e1f2b15e2501c002d089f",
+      "python_digest": "337ef2b4fbf07f8c456a2ac0d7ab2ae1dfb11199ccccfffab9b240ec030221e1",
+      "dependencies_digest": "e5c3afa20a1b478ff4fd70ffecf5d59357435da4ccac2cb5c97c301c6f9b0627",
+      "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "agent_index": 1,
+      "registration_id": "c61694d0-345c-4315-9103-885a8cae7575",
+      "name": "Live review fixture",
+      "version": "2.0",
+      "snapshot_digest": "c0ae6d5aa4f2f75aab971ba990572fbea675cb1507bf697c7652558977084b3a",
+      "execution_digest": "ca8ceaa155ee3f20d82d9d4e3b08e83a70d1e24e329b05e8b1a2c97799d6df13",
+      "python_digest": "337ef2b4fbf07f8c456a2ac0d7ab2ae1dfb11199ccccfffab9b240ec030221e1",
+      "dependencies_digest": "e5c3afa20a1b478ff4fd70ffecf5d59357435da4ccac2cb5c97c301c6f9b0627",
+      "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  ],
+  "pairs": [
+    {
+      "case_index": 0,
+      "compared_agent_index": 1,
+      "seed": 7,
+      "repeat_index": 0,
+      "reference_simulation_id": "d3c6acea-40ff-4856-975b-b385ee22e6bc",
+      "compared_simulation_id": "bf2e0414-7d24-4b03-8261-01e0407c7987",
+      "comparable": true,
+      "reason": "Matched frozen inputs, runtime, spawns, control and scoring; complete coverage for available selected measurements. Unavailable selected measurements: severity (incomplete coverage or missing values).",
+      "differences": {
+        "severity": null,
+        "collision_count": 1.0
+      },
+      "reference_values": {
+        "severity": null,
+        "collision_count": 0.0
+      },
+      "compared_values": {
+        "severity": 100.0,
+        "collision_count": 1.0
+      }
+    },
+    {
+      "case_index": 0,
+      "compared_agent_index": 1,
+      "seed": 11,
+      "repeat_index": 0,
+      "reference_simulation_id": "edaf87b7-98bb-481a-ae79-9afaf52d3cbb",
+      "compared_simulation_id": "f9253775-1b0c-4864-bca7-97d7b7c119a2",
+      "comparable": true,
+      "reason": "Matched frozen inputs, runtime, spawns, control and scoring; complete coverage for available selected measurements. Unavailable selected measurements: severity (incomplete coverage or missing values).",
+      "differences": {
+        "severity": null,
+        "collision_count": 1.0
+      },
+      "reference_values": {
+        "severity": null,
+        "collision_count": 0.0
+      },
+      "compared_values": {
+        "severity": 100.0,
+        "collision_count": 1.0
+      }
+    },
+    {
+      "case_index": 0,
+      "compared_agent_index": 1,
+      "seed": 13,
+      "repeat_index": 0,
+      "reference_simulation_id": "ca6ab391-9a61-4eb5-83e1-fa36e73699bb",
+      "compared_simulation_id": "52421aaa-f431-45b6-ad94-ffe310fbbf87",
+      "comparable": true,
+      "reason": "Matched frozen inputs, runtime, spawns, control and scoring; complete coverage for available selected measurements. Unavailable selected measurements: severity (incomplete coverage or missing values).",
+      "differences": {
+        "severity": null,
+        "collision_count": 1.0
+      },
+      "reference_values": {
+        "severity": null,
+        "collision_count": 0.0
+      },
+      "compared_values": {
+        "severity": 100.0,
+        "collision_count": 1.0
+      }
+    }
+  ],
+  "assessments": [
+    {
+      "case_index": 0,
+      "case_name": "Stationary lead on fixed road spawn",
+      "compared_agent_index": 1,
+      "metric": "severity",
+      "unit": "0\u2013100 heuristic",
+      "worsening_direction": "higher",
+      "threshold": 5.0,
+      "decision": "inconclusive",
+      "planned_pairs": 3,
+      "observed_pairs": 0,
+      "worsening_pairs": 0,
+      "mean_change": null,
+      "minimum_change": null,
+      "maximum_change": null,
+      "sample_stddev": null,
+      "explanation": "0 of 0 observed pairs exceed the worsening threshold; 3 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+    },
+    {
+      "case_index": 0,
+      "case_name": "Stationary lead on fixed road spawn",
+      "compared_agent_index": 1,
+      "metric": "collision_count",
+      "unit": "episodes",
+      "worsening_direction": "higher",
+      "threshold": 0.0,
+      "decision": "regression_observed",
+      "planned_pairs": 3,
+      "observed_pairs": 3,
+      "worsening_pairs": 3,
+      "mean_change": 1.0,
+      "minimum_change": 1.0,
+      "maximum_change": 1.0,
+      "sample_stddev": 0.0,
+      "explanation": "3 of 3 observed pairs exceed the worsening threshold; 0 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+    }
+  ],
+  "limitations": [
+    "This is an observed, threshold-based pattern in matched frozen trials, not a probability of failure, a causal attribution or a general safety ranking.",
+    "Raw differences are compared minus reference. Lower TTC/clearance is worse; other selected metrics worsen when higher.",
+    "Each selected measurement requires its own complete frame/pair coverage and no timeline gaps. Severity requires complete safety coverage. Missing observations never become zero.",
+    "A negative/clear result requires every planned pair and at least the policy's minimum count. Failed, cancelled, corrupted or incompatible evidence is unavailable.",
+    "A positive pattern requires every observed paired change to exceed the threshold and at least the minimum count. Mixed patterns are inconclusive; sample spread is descriptive.",
+    "Frozen snapshots describe the executed artifacts/configuration. They do not establish that those files remain installed or that model weights alone caused a difference.",
+    "Reproduce using the frozen suite request and version snapshots in its existing evidence export; later edits or deletion of a reusable definition do not replace that journal.",
+    "Synthetic fixtures check this workflow. CARLA, hardware and learned inference can vary between repeated seeds."
+  ]
+}

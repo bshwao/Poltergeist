@@ -16,6 +16,11 @@ episodes. Frame references retain the recorded frame number and time, including
 frame zero. The run viewer opens those saved frames; control-audit references
 open its separate decision/control view.
 
+An empty rule-event list does not establish that every rule channel was checked.
+The rule observation also reports how many reviewed frames have complete rule
+checks. Unchecked channels keep the observation partial, even when no events
+were recorded.
+
 An intervention immediately preceding measured braking may produce a question
 for review. Temporal proximity does not establish causation, and the report never
 claims to know what a model perceived or why it acted. Proposed/applied controls
@@ -41,11 +46,23 @@ scoring settings independently of later edits to the reusable suite definition.
 Reviewing that journal starts no additional execution.
 
 Each candidate is compared with the reference on the same case, seed and
-repetition. Completed, assessed runs need validated saved telemetry and complete
-recorded safety coverage. Recorded simulator runtime, resolved spawns, agent
+repetition. Completed, assessed runs need validated saved telemetry. Each selected
+measurement needs complete coverage of its own observations in both runs, with
+no timeline gaps. Contact and rule episodes require their respective event
+channels on every frame; braking requires every motion sample; clearance/TTC
+require every relevant frame and actor pair. Severity still requires complete
+safety coverage. A missing value remains unavailable even with complete channel
+coverage. Recorded simulator runtime, resolved spawns, agent
 input sources/sensors/assistance, control authority, navigation and scoring must
 also be compatible. Missing, failed, cancelled, corrupted or incompatible results
 remain unavailable pairs, with their reason and both run links.
+
+For example, CARLA can record contacts on every frame while the initial frame
+has incomplete rule checks. The contact difference can then be reviewed, while
+severity and rule-episode comparisons remain inconclusive. A pair is marked
+comparable when at least one selected measurement is available; other selected
+differences remain null and are named in the pair's explanation. Verified-trace
+counts describe validated saved files, not complete coverage of every measurement.
 
 Controller identity uses frozen code/model/configuration fingerprints. Changing
 only a human-readable name, version label or registration ID does not create a
@@ -121,11 +138,45 @@ not authorize remote arbitrary Python packages or grant new device scopes.
 
 ## Validation scope
 
+### October 31, 2026: initial live CARLA check
+
+Two frozen, registered SDK fixture packages ran locally with CARLA client/server
+**0.9.16**, `Town10HD_Opt`, Low startup graphics and offscreen rendering. The
+reference always brakes; the candidate always throttles. Each runs the same
+four-second recipe at 0.05-second steps on seeds **7, 11 and 13**: a fixed ego
+spawn and a stationary vehicle eight metres ahead. These are hand-written test
+controllers, not trained driving models.
+
+| Saved measurement | Reference | Candidate | Review |
+| --- | --- | --- | --- |
+| Contact episodes in the three seed pairs | 0, 0, 0 | 1, 1, 1 | +1 episode in every pair; contact regression observed under the default zero-episode threshold |
+| Contact-channel coverage per run | 81/81 frames | 81/81 frames | Complete for this saved interval |
+| Complete rule-channel coverage per run | 80/81 frames | 80/81 frames | Initial rule checks incomplete; rule comparisons remain inconclusive |
+| Severity comparison | Unavailable | Recorded contact score, incomplete safety coverage | No severity difference or regression decision inferred |
+
+The Evidence Analyst's contact-frame counts, SHA-256 fingerprints and native
+frame/time links are checked against all six saved traces. Its rule observations
+remain partial, with the 80/81 denominator visible. Cold reviews verify 486 frames
+without starting either executor, adding runs or changing telemetry.
+Each candidate trace contains 65 frames with recorded contact events; the saved
+episode count is one, illustrating why the two counts remain distinct.
+Bundle integrity and restoration of the CARLA actor set, world settings and weather are
+checked separately. The [receipt](validation/s14-s15-live-coverage-20261031.json)
+records the source blobs, package identity, measured values and validation scope.
+
+Fixed spawns make the three seed pairs repeat the same geometry; they are not
+three independent road environments. Initial spawn/settling acceleration can
+dominate peak-deceleration measurements, so those frame links do not establish a
+controller's braking quality. This one development laptop does not establish
+learned-model performance, general road safety or representative hardware support.
+
+### Other automated coverage
+
 The automated checks cover exact frame-zero links, unavailable/corrupted traces,
 bounded reads, actual registered SDK packages, introduced synthetic regressions,
 threshold boundaries, minimum counts, renamed identical artifacts, matched-input
 checks, owner isolation, revoked consent, older-companion negotiation, explicit
 review actions, exports and responsive browser accessibility. Reports are
 deterministic and synthetic results are labelled. Independent human review,
-current packaged-client acceptance and representative live CARLA/hardware
+current installed/native acceptance and broader representative CARLA/hardware
 comparisons remain separate acceptance work; these checks do not complete them.
