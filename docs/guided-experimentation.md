@@ -110,6 +110,13 @@ conditions; they do not infer model reasoning or general safety.
 
 ## Connected website boundary
 
+When a previous evidence read is finishing, guided actions wait briefly for the
+computer's transfer slot. Only an explicit `transfer_busy` refusal before relay
+admission is retried automatically: at most four attempts within twelve seconds,
+honoring Retry-After with one frozen request identity and payload. Cancellation,
+lost approval or a retired workspace prevents further dispatch. Network failures,
+uncertain writes and other refusals still require deliberate review/retry.
+
 Guided actions use `POST /v1/devices/{device_id}/experimentation`, an ephemeral,
 negotiated HTTPS/WSS channel. It requires the current account/device generation,
 browser CSRF protection, the relevant local execution/read/cancel grant and local

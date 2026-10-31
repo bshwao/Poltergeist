@@ -1,0 +1,66 @@
+{
+  "schema_version": "poltergeist-main-integration-v1",
+  "recorded_at": "2026-10-31T00:30:59.404548-04:00",
+  "base_main": "82c10066a2b7f73b93f2c9370b4b62b0c5bc1cae",
+  "merge_revision": "a8cd15f100b3c0e213603db2a5c7a6b83f80d8e6",
+  "preserved_capacity_checkpoint": "e3cdeb627d8b0b57a517577ee603acba742e697f",
+  "source_parent": "50155e76137f4402b030c3be6b356b27b5d39576",
+  "candidate_source_blobs": {
+    "coordinator/app.py": "2ca6f71bb0463d1bb84c547399ca3203361045f1",
+    "coordinator/auth.py": "8696b74af65f71965d5ead31ab98efbe570ef26d",
+    "coordinator/commands.py": "4c48d9ba8bf7524c99a9aa4105c6dfa8e3e291d2",
+    "coordinator/relay.py": "d51b2b239031c9311041586818935dae2f11c21d",
+    "frontend/src/styles.css": "4c0f8a8bb59bbe2e08532519b43e2bfcfa471532",
+    "frontend/e2e/accessibility.spec.ts": "02856c966ee5b95be470b733ac430aabc6551033",
+    "frontend/src/hosted/lab-client.ts": "edf1b7f019d628739a6a56c64a0f49e4e78177ad",
+    "frontend/hosted-e2e/lab.spec.ts": "d04e5e8795b48d926c8b44c2078a2cc5e1146148",
+    "frontend/tests/hosted-lab.test.mjs": "e831298549645fd52ea0a21113cecc483e8f49f5",
+    "tests/test_experimentation.py": "dcb64e35969652ef0a1c1b8fbb89bdff097e0c2e"
+  },
+  "retained_failures": [
+    {
+      "run_id": 41101132251,
+      "source": "82c1006",
+      "job": "dashboard",
+      "failure": "Discovery report sidebar text extended beyond its dark surface; color contrast failed."
+    },
+    {
+      "source": "a8cd15f plus new regression",
+      "failure": "At 1280x600 the sidebar footer could not scroll into the viewport."
+    },
+    {
+      "source": "a8cd15f",
+      "failure": "SDK test observer stopped at 30 seconds while the approved 120-second operation still had one confirmation in progress.",
+      "isolated_before_change": "Passed in 36.10 seconds; complete test includes discovery and suite comparison."
+    },
+    {
+      "run_id": 41167705358,
+      "source": "50155e7",
+      "job": "dashboard",
+      "failure": "Hosted suite saving received transfer_busy while a previous evidence read still occupied the device slot."
+    }
+  ],
+  "local_validation": {
+    "backend": {
+      "passed": 295,
+      "skipped": 2,
+      "skip_reason": "Windows symlink creation requires platform privileges"
+    },
+    "frontend_unit": 370,
+    "local_browser": 26,
+    "connected_browser": 3,
+    "builds": [
+      "local",
+      "hosted"
+    ],
+    "contracts_check": true,
+    "transfer_refusal_regression": "Injected HTTP 429 transfer_busy; identical frozen request bytes across retries; suite saved and remaining guided workflow completed.",
+    "scope": "Disposable synthetic and HTTPS/WSS fixtures; no native window control, signed release, public deployment, physical-PC or CARLA acceptance claimed."
+  },
+  "capacity": {
+    "source_revision": "50155e76137f4402b030c3be6b356b27b5d39576",
+    "users_25": "s9-atomic-browser-25-20261031.json",
+    "users_100": "s9-atomic-browser-100-20261031.json",
+    "higher_capacity_latency_passed": false
+  }
+}

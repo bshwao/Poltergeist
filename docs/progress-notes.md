@@ -33,7 +33,7 @@ private prototype does not close independent-machine or release validation.
 | **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | **S7 — Managed AI installations** | **CPU implementation delivered; independent-machine gate open** | Separate pinned interpreter/dependencies, verified weights, actual import/inference checks, explicit local registration, starter choice, repair/removal and execution use leases. See [managed AI installations](managed-ai.md) and [environment validation](validation/s7-environment.md). |
 | S8 — Evidence delivery | Private implementation; live review locally validated | Explicit evidence/capture approval, negotiated pull-only pages/chunks, hashes, versioned cursors, disk budgets, ZIP export and tombstones. Website camera/LiDAR review: 60 simulated seconds, 2,402 samples, 303 MB captured, 2.13 MB reviewed. Representative hardware/production-duration gates remain. See [checkpoint](evidence-capacity-release.md). |
-| S9 — Multi-user capacity | 25-device simulated target met; 100-device latency failed | Protocol 2 completes 500/500 commands with 25/25 denials at p95 1.34 s. At 100 devices, all 500 commands and 100 denials pass but p95 6.92 s fails the unchanged two-second target. Atomic browser-command transactions pass 128 focused checks; fresh capacity measurements remain pending. Physical-PC/provider acceptance remains open. |
+| S9 — Multi-user capacity | 25-device simulated target met; 100-device latency failed | The combined S12/S13 source completes 500/500 commands with 25/25 denials at p95 1.41 s. At 100 devices, all 500 commands and 100 denials pass but p95 9.08 s fails the unchanged two-second target. Earlier measurements, including the 6.92 s failure, remain recorded. Physical-PC/provider acceptance remains open. |
 | S10 — Distribution and release | Private tooling; signing and external acceptance deferred | Pinned publisher verification, installer/uninstaller signing adapter, signed metadata, explicit bounded HTTPS delivery, staged cohorts, native update/rollback review, closed-process helper, backups and compatible rollback. Publisher/feed configuration is unset; actual signed acceptance, deployed delivery and [external beta](private-beta.md) remain open. |
 | **S11 — Visual design and usability** | **In progress; shared foundation implemented** | Shared light browser palette, readable typography, connection states, keyboard skip links/table scrolling and native tab traversal. Browser accessibility checks and companion regression tests cover this first checkpoint. Full workflow visual review, additional display/theme coverage and first-run testers remain. See [S11 plan](visual-usability.md). |
 | S12 — Guided experimentation and adoption | Application delivered; independent tester gate open | Guided first experiment, sixteen illustrated scenes, saved suites, per-case matched comparisons, exact-frame highlights and deliberate feedback in both dashboards. Desktop/mobile browser journeys and accessibility checks pass. Actual new-tester feedback and verified follow-up changes remain. See [workflow guide](guided-experimentation.md). |
@@ -46,6 +46,16 @@ private prototype does not close independent-machine or release validation.
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
+
+- The connected-browser CI follow-up exposed a second issue: leaving an evidence
+  view can leave its transfer slot occupied briefly, so an immediate suite save
+  received `transfer_busy`. Guided RPCs now honor that explicit pre-admission
+  refusal with a bounded wait and the same frozen request bytes/identity; they
+  never automatically replay network failures or uncertain writes. Cancellation
+  and approval changes stop retries. All 370 frontend unit tests, the three
+  connected-browser journeys (including an injected busy refusal), both builds
+  and contract checks pass. The integrated backend run passes 295 tests with two
+  Windows symlink-privilege skips. The 26 local-browser checks also pass.
 
 - Pulled the S12/S13 workflows from `82c1006` and retained the capacity work.
   That main revision's four Python CI jobs passed; its dashboard job failed

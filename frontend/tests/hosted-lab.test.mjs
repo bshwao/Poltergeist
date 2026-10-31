@@ -49,6 +49,65 @@ test("mutations are serial and disposed contexts cannot dispatch queued actions"
   await assert.rejects(first, error => error.name === "AbortError");
   await assert.rejects(second, error => error.name === "AbortError"); assert.equal(seen.length, 1);
 });
+
+test("a busy evidence slot retries the frozen write and honors its wait", async () => {
+  const entered = deferred(), commands = [], started = performance.now();
+  const input = structuredClone(fixture.plan.proposal);
+  const adapter = createHostedLabClient({ lab: async (_, command) => {
+    commands.push(JSON.stringify(command));
+    if (commands.length === 1) { entered.resolve(); throw new HostedError("transfer_busy", 429, .05); }
+    return reply(command, { kind: "plan", plan: fixture.plan });
+  } }, target, () => true);
+  try {
+    const result = adapter.proposeDiscovery(input);
+    await entered.promise; input.goal.description = "Edited while the original request waits";
+    await result;
+    assert.equal(commands.length, 2); assert.equal(commands[0], commands[1]);
+    assert.ok(performance.now() - started >= 50);
+  } finally { adapter.dispose(); }
+});
+
+test("busy retries stop after four attempts and never wait past their budget", async () => {
+  for (const delay of [0, 60, NaN, -1]) {
+    let count = 0;
+    const adapter = createHostedLabClient({ lab: async () => { count++; throw new HostedError("transfer_busy", 429, delay); } }, target, () => true);
+    try {
+      await assert.rejects(adapter.proposeDiscovery(fixture.plan.proposal));
+      assert.equal(count, delay === 0 ? 4 : 1);
+    } finally { adapter.dispose(); }
+  }
+});
+
+test("ambiguous failures and other refusals are never automatically replayed", async () => {
+  for (const error of [new HostedError("network_error"), new HostedError("lab_timeout", 504),
+    new HostedError("rate_limited", 429), new HostedError("transfer_busy", 503)]) {
+    let count = 0;
+    const adapter = createHostedLabClient({ lab: async () => { count++; throw error; } }, target, () => true);
+    try { await assert.rejects(adapter.proposeDiscovery(fixture.plan.proposal)); assert.equal(count, 1); }
+    finally { adapter.dispose(); }
+  }
+});
+
+test("disposing or aborting a busy wait prevents another dispatch", async () => {
+  for (const dispose of [false, true]) {
+    const entered = deferred(), controller = new AbortController(); let count = 0;
+    const adapter = createHostedLabClient({ lab: async () => { count++; entered.resolve(); throw new HostedError("transfer_busy", 429, 1); } }, target, () => true);
+    const result = adapter.proposeDiscovery(fixture.plan.proposal, { signal: controller.signal });
+    const rejection = assert.rejects(result, error => error.name === "AbortError");
+    await entered.promise;
+    if (dispose) adapter.dispose(); else controller.abort();
+    await rejection; assert.equal(count, 1); adapter.dispose();
+  }
+});
+
+test("approval lost during a busy wait prevents another dispatch", async () => {
+  let live = true, count = 0;
+  const adapter = createHostedLabClient({ lab: async () => {
+    count++; live = false; throw new HostedError("transfer_busy", 429, 0);
+  } }, target, () => live);
+  try { await assert.rejects(adapter.getGallery()); assert.equal(count, 1); }
+  finally { adapter.dispose(); }
+});
 test("paged native replies are combined with a fixed snapshot and checked cursors", async () => {
   const commands = [], when = fixture.plan.created_at;
   const adapter = createHostedLabClient({ lab: async (_, command) => {

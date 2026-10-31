@@ -222,7 +222,21 @@ applicable; no authorization or filesystem decisions are cached. A failed
 command request rolls back its session activity timestamp. Admission notifies
 the relay only after commit, and no transaction spans a body/network await.
 SQLite FULL durability and fresh per-transaction path checks remain enabled.
-Fresh capacity measurements of this change are pending.
+
+Follow-up measurements on the combined S12/S13 and transaction source at
+`50155e7`, after the owned local regression/browser processes completed:
+
+| Devices / commands | Routing and ownership | p95 latency | Traced peak | Target |
+| --- | --- | --- | --- | --- |
+| [25 / 500](validation/s9-atomic-browser-25-20261031.json) | 500 routed/completed; 25 denials | 1.41 s | 17.1 MiB | Passed |
+| [100 / 500](validation/s9-atomic-browser-100-20261031.json) | 500 routed/completed; 100 denials | 9.08 s | 49.1 MiB | **Latency failed** |
+
+The larger run recorded 283 HTTP 503 responses and completed within its existing
+retry budgets. Both fixtures cleaned up. These measurements demonstrate no
+latency improvement at 100 devices; that target remains open. They include the
+new S12/S13 models and ordinary host variance, so they do not isolate the effect
+of transaction batching. Earlier failures and successful 25-device receipts
+remain available. No timing, memory or ownership target was relaxed.
 
 Separate existing HTTPS/WSS tests cover transport security. The configured
 100-device latency target, real concurrent CARLA runs on representative PCs and

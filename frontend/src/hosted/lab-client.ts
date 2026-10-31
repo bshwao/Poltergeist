@@ -8,6 +8,15 @@ const stable = (value: unknown): unknown => Array.isArray(value) ? value.map(sta
 type LabAction = LabCommand["action"];
 type LabResult = LabReply["result"];
 
+function waitForTransfer(delay: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) { reject(new DOMException("Request cancelled", "AbortError")); return; }
+    const timer = setTimeout(() => { signal.removeEventListener("abort", abort); resolve(); }, delay);
+    const abort = () => { clearTimeout(timer); signal.removeEventListener("abort", abort); reject(new DOMException("Request cancelled", "AbortError")); };
+    signal.addEventListener("abort", abort, { once: true });
+  });
+}
+
 /** Serial, fenced RPCs. Ambiguous writes retain their original request identity. */
 export function createHostedLabClient(client: ReturnType<typeof createHostedClient>, target: BrowserDeviceView, live: () => boolean, authFailed?: (error: HostedError) => void) {
   let serial: Promise<unknown> = Promise.resolve(), disposed = false;
@@ -22,18 +31,35 @@ export function createHostedLabClient(client: ReturnType<typeof createHostedClie
     try { key = JSON.stringify(stable([action, mode])); } catch { return Promise.reject(new ApiError("Use a valid JSON experiment request.", 422)); }
     const write = writeKinds.has(action.kind);
     const identity = requestId ?? (write ? pending.get(key) : undefined) ?? crypto.randomUUID();
+    const [frozenAction, frozenMode] = JSON.parse(key);
+    const command = { kind: "lab", request_id: identity, action: frozenAction, mode: frozenMode } as LabCommand;
     if (write) pending.set(key, identity);
     const perform = async () => {
       if (disposed || options.signal?.aborted) throw new DOMException("Request cancelled", "AbortError");
       if (!live()) throw new ApiError("Connect the selected companion and approve execution and evidence access before continuing.", 503);
       const controller = new AbortController(), abort = () => controller.abort();
       options.signal?.addEventListener("abort", abort, { once: true }); controllers.add(controller);
+      const deadline = performance.now() + 12_000, timer = setTimeout(abort, 12_000);
       try {
-        const reply = await client.lab(target.device.device_id, { kind: "lab", request_id: identity, action, mode } as LabCommand, controller.signal);
-        if (disposed || options.signal?.aborted || controller.signal.aborted) throw new DOMException("Request cancelled", "AbortError");
-        if (!api.validateLabResult(reply.result)) invalid();
-        if (write) pending.delete(key);
-        return reply.result;
+        for (let attempt = 0; ; attempt++) {
+          if (disposed || controller.signal.aborted) throw new DOMException("Request cancelled", "AbortError");
+          if (!live()) throw new ApiError("Connect the selected companion and approve execution and evidence access before continuing.", 503);
+          try {
+            const reply = await client.lab(target.device.device_id, command, controller.signal);
+            if (disposed || controller.signal.aborted) throw new DOMException("Request cancelled", "AbortError");
+            if (!api.validateLabResult(reply.result)) invalid();
+            if (write) pending.delete(key);
+            return reply.result;
+          } catch (error) {
+            // This refusal occurs before relay admission. Never automatically
+            // replay an ambiguous write or replace its frozen request identity.
+            if (!(error instanceof HostedError) || error.status !== 429 || error.code !== "transfer_busy" || attempt >= 3
+                || !Number.isFinite(error.retryAfter) || error.retryAfter < 0) throw error;
+            const delay = Math.max(100, error.retryAfter * 1000);
+            if (delay >= deadline - performance.now()) throw error;
+            await waitForTransfer(delay, controller.signal);
+          }
+        }
       } catch (error) {
         if (error instanceof HostedError) {
           if (error.status === 401) authFailed?.(error);
@@ -41,7 +67,7 @@ export function createHostedLabClient(client: ReturnType<typeof createHostedClie
           throw new ApiError(error.message, error.status);
         }
         throw error;
-      } finally { options.signal?.removeEventListener("abort", abort); controllers.delete(controller); }
+      } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); controllers.delete(controller); }
     };
     const result = serial.then(perform, perform); serial = result.then(() => undefined, () => undefined);
     return result;

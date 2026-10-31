@@ -37,8 +37,19 @@ test("paired-computer guidance, suite comparisons and bounded discovery use the 
   await page.getByRole("link", { name: "Return to guided lab" }).click();
   await page.getByRole("button", { name: "Keep scenes for a comparison" }).click();
   await page.getByLabel("Suite name", { exact: true }).fill("Paired computer suite");
+  // A previous evidence read can still hold the computer's one transfer slot
+  // after navigating away. Exercise that refusal deterministically.
+  const saves: string[] = [];
+  await page.route("**/v1/devices/*/experimentation", async route => {
+    if (route.request().postDataJSON()?.action?.kind !== "suite_save") { await route.continue(); return; }
+    saves.push(route.request().postData()!);
+    if (saves.length === 1) await route.fulfill({ status: 429, headers: { "Retry-After": "1" }, json: { error: { code: "transfer_busy" } } });
+    else await route.continue();
+  });
   await page.getByRole("button", { name: "Save experiment suite", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Paired computer suite", exact: true })).toBeVisible();
+  expect(saves.length).toBeGreaterThanOrEqual(2);
+  expect(new Set(saves).size).toBe(1);
   await page.getByRole("button", { name: "Run Paired computer suite · 1 executions", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Suite run · completed", exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Comparison for Sudden Braking" })).toContainText("1 / 1");
