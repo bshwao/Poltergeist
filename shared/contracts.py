@@ -9,6 +9,7 @@ from .models.runner import RunnerContracts
 from .models.coordination import CoordinationContracts
 from .models.remote import RemoteContracts
 from .models.browser import BrowserContracts
+from .models.experimentation import ExperimentationContracts
 
 
 class PoltergeistContracts(ContractModel):
@@ -26,3 +27,4 @@ class PoltergeistContracts(ContractModel):
     coordination: CoordinationContracts
     remote: RemoteContracts
     browser: BrowserContracts
+    experimentation: ExperimentationContracts

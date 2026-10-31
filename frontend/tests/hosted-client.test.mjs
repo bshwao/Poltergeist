@@ -82,6 +82,22 @@ test("an old response stream cannot clear or replace a newer account", async () 
   assert.equal(calls, 4);
 });
 
+test("cancelling a response stream preserves cancellation instead of reporting invalid evidence", async () => {
+  let started;
+  const ready = new Promise(resolve => { started = resolve; });
+  const controller = new AbortController();
+  const client = createHostedClient(async (url, options) => new Response(new ReadableStream({
+    start(stream) {
+      options.signal.addEventListener("abort", () => stream.error(new DOMException("Cancelled", "AbortError")), { once: true });
+      started();
+    },
+  }), { headers: { "content-type": "application/json" } }));
+  const pending = client.history(device, controller.signal);
+  await ready;
+  controller.abort();
+  await assert.rejects(pending, error => error.code === "request_cancelled");
+});
+
 test("response size, shape, account ownership and command operation are checked", async () => {
   for (const body of ["x".repeat(2 * 1024 * 1024 + 1), '{"items":[],"next_before":"invalid"}']) {
     const client = createHostedClient(async () => new Response(body, { headers: { "content-type": "application/json" } }));

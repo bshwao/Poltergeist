@@ -34,6 +34,7 @@ def candidate(tmp_path):
     payload = bytes(range(256)) * 700
     now = datetime.now(UTC)
     release = ReleaseManifest(version="0.2.0", created_at=now - timedelta(minutes=1), expires_at=now + timedelta(days=1),
+        profile_schema_max=7,
         installer_bytes=len(payload), installer_sha256=sha256(payload).hexdigest(), bundle_manifest_sha256="b" * 64,
         installer_url=ORIGIN + "/Setup.exe")
     state = {"release": release, "payload": payload, "headers": {}, "status": 200, "yielded": 0}

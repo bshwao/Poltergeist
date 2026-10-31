@@ -53,7 +53,7 @@ class SearchManager:
 
     @property
     def version(self) -> str:
-        return self._sampler.version
+        return self._sampler.version + ("/duration-v1" if self._request.duration_s is not None else "")
 
     @property
     def completed_count(self) -> int:
@@ -73,9 +73,14 @@ class SearchManager:
         if self.exhausted:
             raise SearchProtocolError("Search trial budget exhausted")
         scenario = self._sampler.suggest(self._completed)
-        if self._request.driving_task is not None:
+        if self._request.driving_task is not None or self._request.duration_s is not None:
             from scenarios import validate_scenario
-            scenario = validate_scenario(scenario.model_dump(mode="python") | {"driving_task": self._request.driving_task})
+            changes = {}
+            if self._request.driving_task is not None:
+                changes["driving_task"] = self._request.driving_task
+            if self._request.duration_s is not None:
+                changes["duration_s"] = self._request.duration_s
+            scenario = validate_scenario(scenario.model_dump(mode="python") | changes)
         self._pending = True
         return scenario
 

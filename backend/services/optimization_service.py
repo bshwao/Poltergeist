@@ -1,16 +1,19 @@
 """Durable experiments coordinated through the existing simulation worker."""
 
 from collections import deque
+from contextlib import nullcontext
 import json
 from math import isfinite
+from datetime import UTC, datetime
 from threading import Condition, Event, Lock, Thread, current_thread
+from time import monotonic
 from uuid import UUID
 
 from pydantic import TypeAdapter
 
 from backend.job_repository import JobRepository
 from backend.optimization_repository import OptimizationRepository
-from backend.persistence_errors import ConflictError, PersistenceError
+from backend.persistence_errors import ConflictError, NotFoundError, PersistenceError
 from backend.repositories import FailureRepository, SimulationRepository
 from backend.services.simulation_service import QueueFullError, QueueUnavailableError
 from backend.services.agent_registry_service import AgentRegistryService
@@ -31,6 +34,10 @@ _FAILURE_POLICY_VERSION = "failure-policy-v1"
 
 
 def _engine_version(record):
+    if record.request.kind == "discover":
+        return "discovery-v1/frozen-candidates-v1"
+    if record.request.kind == "suite":
+        return "suite-v1"
     if record.request.kind == "compare":
         return "comparison-v1"
     if record.request.kind == "search":
@@ -40,8 +47,8 @@ def _engine_version(record):
 
 
 class _Stop(Exception):
-    def __init__(self, status):
-        self.status = status
+    def __init__(self, status, reason=None, *, budget_exhausted=False):
+        self.status, self.reason, self.budget_exhausted = status, reason, budget_exhausted
 
 
 def _key(model):
@@ -56,7 +63,7 @@ class OptimizationService:
     trial budget or silently switching sampler versions.
     """
 
-    def __init__(self, worker, *, max_pending=100, shutdown_timeout_s=15):
+    def __init__(self, worker, *, max_pending=100, shutdown_timeout_s=15, now=None, monotonic_clock=monotonic):
         if type(max_pending) is not int or max_pending < 1:
             raise ValueError("max_pending must be a positive integer")
         if isinstance(shutdown_timeout_s, bool) or not isinstance(shutdown_timeout_s, (int, float)) or not isfinite(shutdown_timeout_s) or shutdown_timeout_s < 0:
@@ -72,6 +79,11 @@ class OptimizationService:
         self._active_id = self._active_child = None
         self._cancel = Event()
         self._error = None
+        self._now = now or (lambda: datetime.now(UTC))
+        self._monotonic = monotonic_clock
+        self._deadline = self._deadline_monotonic = None
+        self._admissions = {}
+        self._active_admission = None
 
     def start(self):
         with self._condition:
@@ -113,15 +125,21 @@ class OptimizationService:
     def _prepare(self, request):
         request = _REQUEST.validate_python(request.model_dump(mode="python") if hasattr(request, "model_dump") else request)
         snapshot, agents = None, []
-        if request.kind in {"search", "compare"}:
+        if request.kind in {"search", "compare", "suite", "discover"}:
             execution = ExecutionSpec(mode=request.mode, options=request.options, evaluation_settings=request.evaluation_settings)
             source = None
-            if request.kind == "search":
-                candidate = SearchManager(request).suggest()  # Validate domain/dependency before saving work.
-                snapshot = self._freeze_agent(request.agent_id, candidate, request.options)
+            if request.kind in {"search", "discover"}:
+                search = request.search if request.kind == "discover" else request
+                candidate = request.scenarios[0] if request.kind == "discover" else SearchManager(search).suggest()
+                snapshot = self._freeze_agent(search.agent_id, candidate, request.options)
             else:
-                agents = [ComparisonAgent(agent_id=agent_id, snapshot=self._freeze_agent(agent_id, request.scenario, request.options))
+                scenarios = [case.scenario for case in request.cases] if request.kind == "suite" else [request.scenario]
+                agents = [ComparisonAgent(agent_id=agent_id, snapshot=self._freeze_agent(agent_id, scenarios[0], request.options))
                           for agent_id in request.agents]
+                for scenario in scenarios[1:]:
+                    for agent in agents:
+                        if self._freeze_agent(agent.agent_id, scenario, request.options) != agent.snapshot:
+                            raise ConflictError("Suite agent identity changed while validating its cases")
         else:
             with self.persistence.database.session(write=False) as session:
                 source = FailureRepository(session).get(request.failure_id)
@@ -148,16 +166,47 @@ class OptimizationService:
         self.worker._validate_agent_launch(scenario, snapshot, options)
         return snapshot
 
-    def submit(self, request):
+    def submit(self, request, *, operation_id=None, on_created=None, approved_discovery=False, expected_agent_snapshot=None, admission=None):
+        request = _REQUEST.validate_python(request.model_dump(mode="python") if hasattr(request, "model_dump") else request)
+        if request.kind == "discover" and not approved_discovery:
+            raise ConflictError("Review and approve a saved discovery plan before executing it")
+        if request.kind == "suite" and request.suite_id is not None and on_created is None:
+            raise ConflictError("Launch a saved suite through its revision-checked suite endpoint")
+        if operation_id is not None:
+            with self.persistence.database.session(write=False) as session:
+                try:
+                    existing = OptimizationRepository(session).get(operation_id)
+                except NotFoundError:
+                    existing = None
+                if existing is not None:
+                    if _key(existing.request) != _key(request):
+                        raise ConflictError("This experiment request identity already has different settings")
+                    return existing
         request, execution, source, snapshot, agents = self._prepare(request)
+        if request.kind == "discover" and snapshot != expected_agent_snapshot:
+            raise ConflictError("The discovery agent changed after plan review; create a new plan")
         with self._condition:
+            if operation_id is not None:
+                with self.persistence.database.session(write=False) as session:
+                    try:
+                        existing = OptimizationRepository(session).get(operation_id)
+                    except NotFoundError:
+                        existing = None
+                    if existing is not None:
+                        if _key(existing.request) != _key(request):
+                            raise ConflictError("This experiment request identity already has different settings")
+                        return existing
             self._available()
             if len(self._pending) >= self._max_pending:
                 raise QueueFullError("Optimization waiting queue is full")
             with self.persistence.database.session() as session:
                 record = OptimizationRepository(session).create(request, execution=execution, source_failure=source,
-                                                              agent_snapshot=snapshot, comparison_agents=agents)
+                    agent_snapshot=snapshot, comparison_agents=agents, id=operation_id)
+                if on_created is not None:
+                    on_created(session, record)
             self._pending.append(record.id)
+            if admission is not None:
+                self._admissions[record.id] = admission
             self._condition.notify()
             return record
 
@@ -170,7 +219,7 @@ class OptimizationService:
         with self.persistence.database.session(write=False) as session:
             return OptimizationRepository(session).list(limit=limit, offset=offset)
 
-    def resume(self, operation_id, *, expected_revision):
+    def resume(self, operation_id, *, expected_revision, admission=None, on_created=None):
         with self._condition:
             self._available()
             if len(self._pending) >= self._max_pending:
@@ -182,7 +231,11 @@ class OptimizationService:
                 if record.engine_version is not None and version != record.engine_version:
                     raise ConflictError("Optimization engine version changed; recorded history cannot be resumed")
                 record = repository.resume(operation_id, expected_revision=expected_revision)
+                if on_created is not None:
+                    on_created(session, record)
             self._pending.append(record.id)
+            if admission is not None:
+                self._admissions[record.id] = admission
             self._condition.notify()
             return record
 
@@ -197,12 +250,14 @@ class OptimizationService:
                 with self.persistence.database.session() as session:
                     JobRepository(session).request_cancel(trial.simulation_id)
 
-    def cancel(self, operation_id):
+    def cancel(self, operation_id, *, on_created=None):
         with self._condition:
             self._available()
             with self.persistence.database.session() as session:
                 repository = OptimizationRepository(session)
                 record = repository.request_cancel(operation_id)
+                if on_created is not None:
+                    on_created(session, record)
             if record.status in {"completed", "failed", "cancelled"}:
                 return record
             if record.id == self._active_id:
@@ -234,6 +289,8 @@ class OptimizationService:
             raise _Stop("interrupted")
         if self._cancel.is_set():
             raise _Stop("cancelled")
+        if self._deadline is not None and (self._now() >= self._deadline or self._monotonic() >= self._deadline_monotonic):
+            raise _Stop("completed", "Approved wall-time budget exhausted; cancellation requested for active work", budget_exhausted=True)
 
     def _work(self):
         try:
@@ -244,12 +301,15 @@ class OptimizationService:
                         return
                     operation_id = self._active_id = self._pending.popleft()
                     self._cancel = Event()
+                    self._deadline = self._deadline_monotonic = None
+                    self._active_admission = self._admissions.get(operation_id)
                 try:
                     self._execute(operation_id)
                 except _Stop as stop:
                     try:
                         self._cancel_children(operation_id)
-                        self._finish(operation_id, stop.status, summary="Stopped without a final reproduction decision")
+                        self._finish(operation_id, stop.status, summary=stop.reason or "Stopped without a final reproduction decision",
+                                     budget_exhausted=stop.budget_exhausted)
                     except Exception as error:
                         self._fatal(error)
                 except Exception as error:
@@ -268,6 +328,8 @@ class OptimizationService:
                 finally:
                     with self._condition:
                         self._active_id = self._active_child = None
+                        self._admissions.pop(operation_id, None)
+                        self._active_admission = None
                         self._condition.notify_all()
         finally:
             with _OWNERS_LOCK:
@@ -279,20 +341,27 @@ class OptimizationService:
             self._stopping = True
             self._condition.notify_all()
 
-    def _finish(self, operation_id, status, *, summary="", outcome=None, error=None):
+    def _finish(self, operation_id, status, *, summary="", outcome=None, error=None, budget_exhausted=False):
         with self.persistence.database.session() as session:
             repository = OptimizationRepository(session)
             current = repository.get(operation_id)
             trials = repository.trials(operation_id)
             if current.cancel_requested and status in {"completed", "interrupted", "failed"}:
                 status, outcome = "cancelled", None
-            if outcome is None:
+            if outcome is None and current.request.kind == "discover":
+                outcome = self._discovery_outcome(current, trials, summary or error or status, budget_exhausted=budget_exhausted)
+            elif outcome is None:
                 outcome = OptimizationOutcome(trials_used=len(trials), successes=sum(item.matches is True for item in trials),
                                               unknowns=sum(item.matches is None for item in trials), summary=summary or error or status)
             record = repository.transition(operation_id, status, expected_revision=current.revision,
                                            outcome=outcome, error=error if status == "failed" else None)
             if status == "completed" and current.request.kind == "reproduce":
                 FailureRepository(session).set_reproduced(current.source_failure.id, outcome.reproduced)
+            if current.request.kind == "discover":
+                from optimization.discovery import candidates
+                for candidate in candidates(current, trials):
+                    if candidate.failure_id is not None and candidate.status in {"confirmed", "not_reproduced"}:
+                        FailureRepository(session).set_reproduced(candidate.failure_id, candidate.status == "confirmed")
             return record
 
     def _execute(self, operation_id):
@@ -307,7 +376,19 @@ class OptimizationService:
             record = repository.transition(operation_id, "running", expected_revision=current.revision, engine_version=version)
         self._history = self.get(operation_id).trials
         self._cursor = 0
-        if manager is not None:
+        if record.request.kind == "discover":
+            self._deadline = record.request.deadline_at
+            self._deadline_monotonic = self._monotonic() + min(record.request.budget.max_wall_time_s, max(0, (self._deadline - self._now()).total_seconds()))
+            outcome = self._discover(record)
+        elif record.request.kind == "suite":
+            for case_index, case in enumerate(record.request.cases):
+                for seed_index, seed in enumerate(record.request.seeds):
+                    scenario = case.scenario.model_copy(update={"seed": seed})
+                    for repeat in range(record.request.repeats):
+                        for agent_index in range(len(record.comparison_agents)):
+                            self._trial(record, scenario, "suite", case_index * len(record.request.seeds) + seed_index, repeat, agent_index)
+            outcome = self._outcome(summary="Saved suite completed; compare matched agents separately for each scenario")
+        elif manager is not None:
             best = None
             for index in range(record.request.trials):
                 self._check()
@@ -338,6 +419,44 @@ class OptimizationService:
             raise ConflictError("Recorded trials extend beyond the replayed optimization decision")
         self._check()
         self._finish(operation_id, "completed", outcome=outcome)
+
+    def _discover(self, record):
+        budget = record.request.budget
+        checked = 0
+        reason = "Approved search completed"
+        exhausted = False
+        for index in range(budget.max_search_trials):
+            self._check()
+            scenario = record.request.scenarios[index]
+            if self._cursor >= len(self._history) and (
+                len(self._history) + 1 + budget.confirmation_repeats > budget.max_executions
+                or sum(t.scenario.duration_s for t in self._history) + scenario.duration_s * (1 + budget.confirmation_repeats) > budget.max_simulated_time_s + 1e-9
+            ):
+                reason, exhausted = "Remaining approved budget cannot cover another candidate and its confirmations", True
+                break
+            trial = self._trial(record, scenario, "discovery_search", index, 0)
+            if trial.matches is True:
+                for repeat in range(budget.confirmation_repeats):
+                    self._trial(record, scenario, "discovery_confirm", index, repeat)
+                checked += 1
+                if checked >= budget.max_candidates:
+                    reason = "Approved candidate confirmation limit reached"
+                    break
+        return self._discovery_outcome(record, self._history, reason, budget_exhausted=exhausted)
+
+    @staticmethod
+    def _discovery_outcome(record, trials, reason, *, budget_exhausted=False):
+        from optimization.discovery import candidates
+        findings = candidates(record, trials)
+        confirmed = [item for item in findings if item.status == "confirmed"]
+        best = confirmed[0] if confirmed else None
+        summary = f"{len(confirmed)} failure(s) confirmed by independent repetitions" if confirmed else "No failure was confirmed within this approved plan"
+        return OptimizationOutcome(trials_used=len(trials), successes=sum(t.matches is True for t in trials),
+            unknowns=sum(t.matches is None for t in trials), confirmed_failures=len(confirmed),
+            best_simulation_id=None if best is None else best.search_simulation_id,
+            best_failure_id=None if best is None else best.failure_id, best_scenario=None if best is None else best.scenario,
+            reproduced=True if confirmed else None, summary=summary + ". " + reason,
+            budget_exhausted=budget_exhausted, stop_reason=reason)
 
     def _outcome(self, best=None, *, reproduced=None, summary=""):
         trials = self._history[:self._cursor]
@@ -380,6 +499,9 @@ class OptimizationService:
                 raise ConflictError("Recorded optimization history does not match deterministic replay")
         else:
             def link(session, stored):
+                self._check()
+                if record.request.kind == "discover":
+                    self._check_discovery_reservation(record, scenario)
                 OptimizationRepository(session).add_trial(OptimizationTrial(
                     operation_id=record.id, number=number, simulation_id=stored.simulation.id, role=role,
                     candidate_index=candidate_index, repeat_index=repeat_index, scenario=scenario, agent_index=agent_index,
@@ -387,10 +509,14 @@ class OptimizationService:
             while True:
                 self._check()
                 try:
-                    snapshot = record.comparison_agents[agent_index].snapshot if record.request.kind == "compare" else record.agent_snapshot
-                    self.worker.submit(scenario, mode=record.execution.mode, options=record.execution.options,
-                                       evaluation_settings=record.execution.evaluation_settings, on_created=link,
-                                       agent_id=None if snapshot is None else snapshot.registration_id, expected_agent_snapshot=snapshot)
+                    # Remote admission owns its local approval lock before the
+                    # worker condition/database, matching Stop/Unpair lock order.
+                    with self._active_admission(record, scenario) if self._active_admission is not None else nullcontext():
+                        self._check()
+                        snapshot = record.comparison_agents[agent_index].snapshot if record.request.kind in {"compare", "suite"} else record.agent_snapshot
+                        self.worker.submit(scenario, mode=record.execution.mode, options=record.execution.options,
+                            evaluation_settings=record.execution.evaluation_settings, on_created=link,
+                            agent_id=None if snapshot is None else snapshot.registration_id, expected_agent_snapshot=snapshot)
                     break
                 except QueueFullError:
                     self._cancel.wait(0.05)
@@ -407,7 +533,7 @@ class OptimizationService:
                 if not worker_status["worker_alive"] or worker_status["error"] is not None:
                     raise QueueUnavailableError(worker_status["error"] or "Simulation worker stopped before persisting its result")
                 self._cancel.wait(0.05)
-            kind = record.request.failure_kind if record.request.kind in {"search", "compare"} else record.source_failure.kind
+            kind = record.request.goal.failure_kind if record.request.kind == "discover" else record.request.failure_kind if record.request.kind in {"search", "compare", "suite"} else record.source_failure.kind
             assessment = assess_result(child.result, kind=kind, minimum_severity=record.request.minimum_severity)
             with self.persistence.database.session() as session:
                 failure_id = None
@@ -424,3 +550,8 @@ class OptimizationService:
         self._cursor += 1
         self._active_child = None
         return trial
+
+    def _check_discovery_reservation(self, record, scenario):
+        budget = record.request.budget
+        if len(self._history) >= budget.max_executions or sum(t.scenario.duration_s for t in self._history) + scenario.duration_s > budget.max_simulated_time_s + 1e-9:
+            raise _Stop("completed", "Approved execution or simulated-time budget exhausted", budget_exhausted=True)

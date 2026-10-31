@@ -51,7 +51,7 @@ def test_initialization_is_explicit_versioned_and_idempotent(tmp_path):
     assert path.is_file()
     with database.engine.connect() as connection:
         history = connection.execute(text("SELECT revision,name,checksum FROM schema_migrations ORDER BY revision")).all()
-        assert [(row.revision, row.name) for row in history] == [(1, "initial_persistence"), (2, "simulation_jobs"), (3, "optimization_journal"), (4, "agent_registry"), (5, "remote_command_receipts"), (6, "cancellation_acceptance_snapshot")]
+        assert [(row.revision, row.name) for row in history] == [(1, "initial_persistence"), (2, "simulation_jobs"), (3, "optimization_journal"), (4, "agent_registry"), (5, "remote_command_receipts"), (6, "cancellation_acceptance_snapshot"), (7, "guided_experiments_and_discovery")]
         assert all(len(row.checksum) == 64 for row in history)
         assert set(inspect(connection).get_table_names()) == set(Base.metadata.tables) | {"schema_migrations"}
     with database.session() as session:
@@ -239,7 +239,7 @@ def test_revision_one_upgrades_without_rewriting_existing_records(tmp_path):
     database.initialize()
     try:
         with database.engine.connect() as connection:
-            assert connection.exec_driver_sql("SELECT revision FROM schema_migrations ORDER BY revision").scalars().all() == [1, 2, 3, 4, 5, 6]
+            assert connection.exec_driver_sql("SELECT revision FROM schema_migrations ORDER BY revision").scalars().all() == [1, 2, 3, 4, 5, 6, 7]
             assert connection.exec_driver_sql("SELECT COUNT(*) FROM simulation_jobs").scalar() == 0
     finally:
         database.dispose()

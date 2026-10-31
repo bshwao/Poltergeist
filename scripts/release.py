@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 
 from companion.signatures import powershell, verify_signature
 from companion.updates import ReleaseManifest, file_digest
+from backend.migrations import CURRENT_REVISION
 
 
 def signing_inputs(tool, thumbprint, timestamp_url, publisher, *, allow_http=False):
@@ -38,6 +39,7 @@ def signed_metadata(installer, bundle_digest, output, *, version, thumbprint, ti
     now = datetime.now(UTC)
     release = ReleaseManifest(version=version, created_at=now, expires_at=now + timedelta(days=14),
         installer_bytes=installer.stat().st_size, installer_sha256=file_digest(installer),
+        profile_schema_min=6, profile_schema_max=CURRENT_REVISION,
         bundle_manifest_sha256=bundle_digest, installer_url=installer_url,
         rollout_percent=rollout_percent, rollout_salt=rollout_salt)
     with output.open("x", encoding="utf-8-sig", newline="\r\n") as stream:

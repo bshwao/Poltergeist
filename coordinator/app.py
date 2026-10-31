@@ -26,6 +26,7 @@ from .relay import RelayHub
 from .settings import CoordinatorSettings, service_origin
 from .store import Store, StoreError
 from shared.models.evidence import EvidenceRequest
+from shared.models.lab import LabCommand
 from .limits import RequestLimits
 
 COOKIE = "__Host-poltergeist-session"
@@ -368,6 +369,20 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
         # how many computers it pairs. No evidence is written to coordinator SQL.
         request.app.state.limits.consume("evidence:" + str(account["account_id"]), 120)
         result = await request.app.state.relay.evidence(account["account_id"], device_id, body)
+        browser(request, write=True)
+        return result
+
+    @app.post("/v1/devices/{device_id}/experimentation")
+    async def experimentation(device_id: UUID, request: Request):
+        account = browser(request, write=True)
+        try:
+            body = parse_message(await request.body(), relay=False)
+            if not isinstance(body, LabCommand):
+                raise ValueError
+        except ValueError:
+            raise AuthError(400, "invalid_request") from None
+        request.app.state.limits.consume("lab:" + str(account["account_id"]), 120)
+        result = await request.app.state.relay.lab(account["account_id"], device_id, body)
         browser(request, write=True)
         return result
 

@@ -343,6 +343,12 @@ submit through the existing simulation routes rather than creating a second work
 
 ## Errors and limits
 
+Guided suites, explicitly approved discovery plans, exact-frame highlights and
+consented feedback use the `/experimentation` endpoints described in the
+[guided experimentation API table](guided-experimentation.md#local-api-and-storage).
+Browsing or previewing a plan starts no simulation. Discovery creation through
+the public `/optimizations` POST is excluded; saved-plan approval is required.
+
 Errors use a JSON `detail` field. Validation errors from request parsing also
 identify invalid fields. Common statuses are:
 
@@ -357,5 +363,6 @@ identify invalid fields. Common statuses are:
 List limits are 1–1000, with a nonnegative offset. This local API has no
 authentication or public-hosting configuration. The dashboard provides recipe
 forms, launches, history, results, failure evidence, comparisons, and exports.
-Search/reproduction/minimization remain available through their API. Live CARLA
-execution and container runtime integration remain unverified.
+Search/reproduction/minimization are available through the Experiments page and
+API. See [current validation and remaining gates](progress-notes.md) for the
+local/hosted execution evidence and current CARLA limitations.

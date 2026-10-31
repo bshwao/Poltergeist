@@ -37,14 +37,18 @@ def build_comparison(persistence, operation_id):
         children = {trial.simulation_id: SimulationRepository(session).get(trial.simulation_id) for trial in trials}
         jobs = {trial.simulation_id: JobRepository(session).get(trial.simulation_id) for trial in trials}
     request = operation.request
+    return _comparison(operation, trials, children, jobs, request)
+
+
+def _comparison(operation, trials, children, jobs, request, *, role="compare", number_offset=0, candidate_offset=0):
     groups = []
     indexed = {}
     for number, trial in enumerate(trials):
         count = len(request.agents)
-        if (trial.number != number or trial.role != "compare" or number >= request.trial_budget
+        if (trial.number != number + number_offset or trial.role != role or number >= request.trial_budget
                 or trial.agent_index != number % count
                 or trial.repeat_index != (number // count) % request.repeats
-                or trial.candidate_index != number // (count * request.repeats)):
+                or trial.candidate_index != candidate_offset + number // (count * request.repeats)):
             raise PersistenceError("Comparison journal differs from its recorded execution plan")
     for index, agent in enumerate(operation.comparison_agents):
         selected = [trial for trial in trials if trial.agent_index == index]
@@ -53,14 +57,14 @@ def build_comparison(persistence, operation_id):
         for trial in selected:
             child = children[trial.simulation_id]
             job = jobs[trial.simulation_id]
-            expected = request.scenario.model_copy(update={"seed": request.seeds[trial.candidate_index]})
+            expected = request.scenario.model_copy(update={"seed": request.seeds[trial.candidate_index - candidate_offset]})
             if (child.simulation.agent_snapshot != agent.snapshot or job.agent_snapshot != agent.snapshot
                     or child.simulation.agent != ("baseline" if agent.snapshot is None else "custom")
                     or child.simulation.mode != operation.execution.mode
                     or job.options != operation.execution.options or job.evaluation_settings != operation.execution.evaluation_settings
                     or child.simulation.scenario != expected):
                 raise PersistenceError("Comparison child identity or paired scenario differs from its journal")
-            indexed[(index, trial.candidate_index, trial.repeat_index)] = child
+            indexed[(index, trial.candidate_index - candidate_offset, trial.repeat_index)] = child
             statuses[child.simulation.status.value] += 1
             if child.result is not None:
                 finalized.append(child.result)
@@ -117,3 +121,29 @@ def build_comparison(persistence, operation_id):
         "Seeds do not guarantee deterministic learned inference, hardware behavior or CARLA execution. Repetitions are separate observed runs, not proof of generalization.",
         "Summary metrics are stored safety/task outcomes. Open individual run links for the Phase 8 behavior analysis, settings, interventions and frame evidence. No model or simulator is started by this report.",
     ])
+
+
+def build_suite_report(persistence, operation_id):
+    from shared.models.experimentation import SuiteCaseComparison, SuiteReport
+    from shared.models.optimization import ComparisonRequest
+    with persistence.database.session(write=False) as session:
+        repository = OptimizationRepository(session)
+        operation = repository.get(operation_id)
+        if operation.request.kind != "suite":
+            raise ConflictError("A suite report requires a suite operation")
+        trials = repository.trials(operation_id)
+        children = {t.simulation_id: SimulationRepository(session).get(t.simulation_id) for t in trials}
+        jobs = {t.simulation_id: JobRepository(session).get(t.simulation_id) for t in trials}
+    request, cases = operation.request, []
+    per_case = len(request.agents) * len(request.seeds) * request.repeats
+    if len(trials) > request.trial_budget or any(t.number != i for i, t in enumerate(trials)):
+        raise PersistenceError("Suite journal exceeds or differs from its frozen plan")
+    for index, case in enumerate(request.cases):
+        specification = ComparisonRequest(scenario=case.scenario, agents=request.agents, seeds=request.seeds,
+            repeats=request.repeats, mode=request.mode, options=request.options,
+            evaluation_settings=request.evaluation_settings, failure_kind=request.failure_kind, minimum_severity=request.minimum_severity)
+        report = _comparison(operation, trials[index * per_case:(index + 1) * per_case], children, jobs, specification,
+            role="suite", number_offset=index * per_case, candidate_offset=index * len(request.seeds))
+        cases.append(SuiteCaseComparison(case_index=index, name=case.name, groups=report.groups,
+            paired_comparisons=report.paired_comparisons, notes=report.notes))
+    return SuiteReport(evidence=OptimizationView(operation=operation, trials=trials), cases=cases)

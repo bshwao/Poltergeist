@@ -1,5 +1,8 @@
 node_modules
 dist
+dist-hosted
+test-results
+playwright-report
 .env
 .env.*
 *.tsbuildinfo

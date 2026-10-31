@@ -8,6 +8,12 @@ S0 stress presets. Synthetic and CARLA mode choices respect approved scopes;
 managed agent installation/selection remains S7 work. The result view keeps
 acceptance separate from completion and preserves zero versus unmeasured values.
 
+The source also includes **Guided lab** and **Discovery**. An updated companion
+negotiates the private experimentation channel and retains all suites, approvals
+and trial evidence locally. Execution remains baseline-only, scoped to current
+local consent and capped at twelve executions per plan. See
+[guided experimentation and discovery](guided-experimentation.md).
+
 S5 is **in progress**. Local synthetic and real CARLA browser acceptance pass.
 Public HTTPS hosting, the current packaged companion, and independent-machine
 acceptance still need verification. S4 build G

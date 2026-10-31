@@ -7,6 +7,7 @@ import { ReportDownloads } from "../components/ReportDownloads";
 import { AgentIdentity } from "../components/AgentIdentity";
 import { DecisionTimeline } from "../components/DecisionTimeline";
 import { BehaviorReview } from "../components/BehaviorReview";
+import { ReplayHighlightsPanel } from "../components/ReplayHighlights";
 import type { EvidenceFocus } from "../components/evidence-navigation";
 import { isTerminal, useSimulation } from "../hooks/useSimulation";
 import { simulationLink } from "../navigation";
@@ -18,7 +19,7 @@ const statuses: SimulationStatus[] = ["queued", "running", "completed", "failed"
 export const modeName = (mode: "carla" | "test") => mode === "test" ? "Synthetic test" : "CARLA";
 const date = (value: string | null) => value ? new Date(value).toLocaleString() : "Not recorded";
 
-export function Simulations({ active, selectedId }: { active: boolean; selectedId: string | null }) {
+export function Simulations({ active, selectedId, focusFrame }: { active: boolean; selectedId: string | null; focusFrame?: number }) {
   const prefix = useId();
   const [mode, setMode] = useState<"" | "carla" | "test">("");
   const [status, setStatus] = useState<"" | SimulationStatus>("");
@@ -56,11 +57,11 @@ export function Simulations({ active, selectedId }: { active: boolean; selectedI
       {rows.length > 0 && <div className="table-scroll"><table className="data-table"><caption className="sr-only">Run history, page {Math.floor(offset / PAGE_SIZE) + 1}</caption><thead><tr><th scope="col">Scenario / run</th><th scope="col">Mode</th><th scope="col">Agent</th><th scope="col">Status</th><th scope="col">Created</th><th scope="col">Severity</th></tr></thead><tbody>{rows.map(row => <tr key={row.simulation.id} className={row.simulation.id === selectedId ? "selected-row" : undefined}><th scope="row"><a href={simulationLink(row.simulation.id)}>{row.simulation.scenario.name}</a><small className="record-id">{row.simulation.id}</small><small>Seed {row.simulation.scenario.seed} · {row.simulation.scenario.map}</small></th><td><span className={`mode-label mode-${row.simulation.mode}`}>{modeName(row.simulation.mode)}</span></td><td><AgentIdentity simulation={row.simulation} /></td><td><span className={`status-badge status-${row.simulation.status}`}>{row.simulation.status}</span></td><td>{date(row.created_at)}</td><td>{row.result?.metrics.severity === null || !row.result ? "Unscored" : `${row.result.metrics.severity.toFixed(1)} / 100`}</td></tr>)}</tbody></table></div>}
       <div className="pagination"><button type="button" className="button secondary small" disabled={offset === 0 || loading} onClick={() => setOffset(value => Math.max(0, value - PAGE_SIZE))}>Previous runs</button><span>Page {Math.floor(offset / PAGE_SIZE) + 1} · up to {PAGE_SIZE} runs</span><button type="button" className="button secondary small" disabled={loading || !visible || visible.rows.length <= PAGE_SIZE} onClick={() => setOffset(value => value + PAGE_SIZE)}>Next runs</button></div>
     </section>
-    {selectedId ? <RunDetail key={selectedId} id={selectedId} active={active} /> : <div className="notice run-selection">Select a run to follow its progress, inspect results, and view available captures.</div>}
+    {selectedId ? <RunDetail key={selectedId} id={selectedId} active={active} initialFrame={focusFrame} /> : <div className="notice run-selection">Select a run to follow its progress, inspect results, and view available captures.</div>}
   </div>;
 }
 
-export function RunDetail({ id, active }: { id: string; active: boolean }) {
+export function RunDetail({ id, active, initialFrame }: { id: string; active: boolean; initialFrame?: number }) {
   const [focus, setFocus] = useState<(EvidenceFocus & { source: "decisions" | "telemetry" }) | null>(null);
   const findingButton = useRef<HTMLElement | null>(null);
   const showElement = (element: HTMLElement | null) => {
@@ -87,6 +88,14 @@ export function RunDetail({ id, active }: { id: string; active: boolean }) {
   const cancelRequested = Boolean(progress?.cancel_requested || record?.job?.cancel_requested);
   const terminal = status ? isTerminal(status) : false;
   const error = progress?.error ?? simulation?.error;
+  const openedFrame = useRef<string | null>(null);
+  useEffect(() => {
+    const key = `${id}/${initialFrame}`;
+    if (active && record?.result && initialFrame !== undefined && openedFrame.current !== key) {
+      openedFrame.current = key;
+      inspect("telemetry", initialFrame);
+    }
+  }, [active, id, initialFrame, record?.result]);
   const queuePosition = progress ? progress.queue_position : record?.job?.queue_position;
 
   return <section className="run-detail" aria-label="Selected simulation">
@@ -112,6 +121,7 @@ export function RunDetail({ id, active }: { id: string; active: boolean }) {
     </div>
     {record?.result && <>
       <SafetyMetrics result={record.result} />
+      <ReplayHighlightsPanel simulationId={id} active={active} inspect={frame => inspect("telemetry", frame)} />
       <div id={`behavior-${id}`} tabIndex={-1} className="evidence-destination"><BehaviorReview key={id} simulationId={id} active={active} inspect={inspect} /></div>
       <div id={`evidence-${id}-decisions`} tabIndex={-1} className="evidence-destination">{focus?.source === "decisions" && <button type="button" className="button secondary small evidence-return" onClick={returnToFinding}>Return to behavior finding</button>}<DecisionTimeline key={id} simulationId={id} active={active} focus={focus?.source === "decisions" ? focus : undefined} /></div>
       <div id={`evidence-${id}-telemetry`} tabIndex={-1} className="evidence-destination">{focus?.source === "telemetry" && <button type="button" className="button secondary small evidence-return" onClick={returnToFinding}>Return to behavior finding</button>}<MetricsChart simulationId={id} active={active} focus={focus?.source === "telemetry" ? focus : undefined} maxSampleGapS={record.result.metrics.evaluation_settings?.max_sample_gap_s ?? (record.result.runtime?.fixed_delta_seconds ?? record.result.simulation.scenario.fixed_delta_seconds) * 1.5} /></div>

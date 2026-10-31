@@ -21,6 +21,7 @@ class BrowserConnectionView(ContractModel):
     carla_readiness: Literal["unknown"] = "unknown"
     evidence_supported: bool = False
     recordings_supported: bool = False
+    lab_supported: bool = False
 
 
 class BrowserDeviceView(ContractModel):

@@ -236,8 +236,8 @@ def test_openapi_includes_discriminated_optimization_contract_without_creating_s
         schema = client.get("/openapi.json").json()
         request = schema["paths"]["/optimizations"]["post"]["requestBody"]["content"]["application/json"]["schema"]
         assert request["discriminator"]["propertyName"] == "kind"
-        assert len(request["oneOf"]) == 4
-        assert set(request["discriminator"]["mapping"]) == {"search", "compare", "reproduce", "minimize"}
+        assert len(request["oneOf"]) == 5
+        assert set(request["discriminator"]["mapping"]) == {"search", "compare", "suite", "reproduce", "minimize"}
         assert "/optimizations/{operation_id}/resume" in schema["paths"]
     assert not settings.storage_dir.exists()
     assert app.state.runtime._optimizer is None

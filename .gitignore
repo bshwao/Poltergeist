@@ -21,6 +21,7 @@ validation-tests.xml
 storage/database/*
 storage/recordings/*
 storage/telemetry/*
+storage/decisions/*
 storage/reports/*
 storage/models/*
 !storage/**/.gitkeep

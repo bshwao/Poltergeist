@@ -1,0 +1,4539 @@
+{
+  "gallery": [
+    {
+      "id": "starter-intersection",
+      "title": "Intersection",
+      "description": "Cross traffic clears well before the ego arrives.",
+      "family": "intersection",
+      "level": "starter",
+      "learning_goal": "Compare crossing arrival times and inspect recorded conflicts at the junction.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "intersection-low",
+        "template": "intersection",
+        "description": "A crossing vehicle approaches a perpendicular conflict point ahead of the ego vehicle.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "crossing_vehicle",
+            "id": "crossing",
+            "blueprint": "vehicle.audi.tt",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 30.0,
+                "y": -4.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "crossing",
+            "trigger_time_s": 0.0,
+            "speed_mps": 6.0
+          }
+        ],
+        "driving_task": null,
+        "location": "intersection",
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "crossing_speed_mps": 6.0,
+          "intersection_distance_m": 30.0,
+          "crossing_distance_m": 4.0,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "starter-pedestrian_crossing",
+      "title": "Pedestrian Crossing",
+      "description": "An early crossing and a long ego approach.",
+      "family": "pedestrian_crossing",
+      "level": "starter",
+      "learning_goal": "Watch a crossing pedestrian and identify the vehicle's measured response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "pedestrian_crossing-low",
+        "template": "pedestrian_crossing",
+        "description": "A pedestrian begins crossing from the ego vehicle's right after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 40.0,
+                "y": 3.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 1.5
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 1.5,
+          "pedestrian_distance_m": 40.0,
+          "pedestrian_lateral_offset_m": 3.0,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "starter-sudden_braking",
+      "title": "Sudden Braking",
+      "description": "A long following gap and gradual lead braking.",
+      "family": "sudden_braking",
+      "level": "starter",
+      "learning_goal": "Inspect following distance, lead braking and the ego vehicle's stopping response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "sudden_braking-low",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 35.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 8.0
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 2.0,
+            "deceleration_mps2": 3.0
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "lead_speed_mps": 8.0,
+          "lead_distance_m": 35.0,
+          "brake_delay_s": 2.0,
+          "lead_deceleration_mps2": 3.0
+        }
+      }
+    },
+    {
+      "id": "starter-occluded_pedestrian",
+      "title": "Occluded Pedestrian",
+      "description": "A distant early crossing behind a stationary roadside vehicle.",
+      "family": "occluded_pedestrian",
+      "level": "starter",
+      "learning_goal": "Investigate a geometrically occluded crossing; state agents may still receive ideal actor state.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "occluded_pedestrian-low",
+        "template": "occluded_pedestrian",
+        "description": "A pedestrian crosses from behind a stationary vehicle on the ego vehicle's right.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 40.0,
+                "y": 4.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          },
+          {
+            "type": "vehicle",
+            "id": "occluder",
+            "blueprint": "vehicle.volkswagen.t2",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 36.0,
+                "y": 3.6,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 1.4
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": true,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 1.4,
+          "pedestrian_distance_m": 40.0,
+          "pedestrian_lateral_offset_m": 4.0,
+          "crossing_delay_s": 0.0,
+          "occlusion_gap_m": 4.0
+        }
+      }
+    },
+    {
+      "id": "intersection-low",
+      "title": "Intersection · low",
+      "description": "Cross traffic clears well before the ego arrives.",
+      "family": "intersection",
+      "level": "low",
+      "learning_goal": "Compare crossing arrival times and inspect recorded conflicts at the junction.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "intersection-low",
+        "template": "intersection",
+        "description": "A crossing vehicle approaches a perpendicular conflict point ahead of the ego vehicle.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "crossing_vehicle",
+            "id": "crossing",
+            "blueprint": "vehicle.audi.tt",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 30.0,
+                "y": -4.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "crossing",
+            "trigger_time_s": 0.0,
+            "speed_mps": 6.0
+          }
+        ],
+        "driving_task": null,
+        "location": "intersection",
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "crossing_speed_mps": 6.0,
+          "intersection_distance_m": 30.0,
+          "crossing_distance_m": 4.0,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "intersection-medium",
+      "title": "Intersection · medium",
+      "description": "Similar nominal arrival times with a moderate stopping margin.",
+      "family": "intersection",
+      "level": "medium",
+      "learning_goal": "Compare crossing arrival times and inspect recorded conflicts at the junction.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "intersection-medium",
+        "template": "intersection",
+        "description": "A crossing vehicle approaches a perpendicular conflict point ahead of the ego vehicle.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 12.0
+          },
+          {
+            "type": "crossing_vehicle",
+            "id": "crossing",
+            "blueprint": "vehicle.audi.tt",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 22.0,
+                "y": -6.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "crossing",
+            "trigger_time_s": 0.0,
+            "speed_mps": 10.0
+          }
+        ],
+        "driving_task": null,
+        "location": "intersection",
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 12.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "crossing_speed_mps": 10.0,
+          "intersection_distance_m": 22.0,
+          "crossing_distance_m": 6.0,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "intersection-high",
+      "title": "Intersection · high",
+      "description": "Short approaches and closely aligned nominal arrival times.",
+      "family": "intersection",
+      "level": "high",
+      "learning_goal": "Compare crossing arrival times and inspect recorded conflicts at the junction.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "intersection-high",
+        "template": "intersection",
+        "description": "A crossing vehicle approaches a perpendicular conflict point ahead of the ego vehicle.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 25.0
+          },
+          {
+            "type": "crossing_vehicle",
+            "id": "crossing",
+            "blueprint": "vehicle.audi.tt",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 30.0,
+                "y": -3.5,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "crossing",
+            "trigger_time_s": 0.0,
+            "speed_mps": 20.0
+          }
+        ],
+        "driving_task": null,
+        "location": "intersection",
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 25.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "crossing_speed_mps": 20.0,
+          "intersection_distance_m": 30.0,
+          "crossing_distance_m": 3.5,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "pedestrian_crossing-low",
+      "title": "Pedestrian Crossing · low",
+      "description": "An early crossing and a long ego approach.",
+      "family": "pedestrian_crossing",
+      "level": "low",
+      "learning_goal": "Watch a crossing pedestrian and identify the vehicle's measured response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "pedestrian_crossing-low",
+        "template": "pedestrian_crossing",
+        "description": "A pedestrian begins crossing from the ego vehicle's right after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 40.0,
+                "y": 3.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 1.5
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 1.5,
+          "pedestrian_distance_m": 40.0,
+          "pedestrian_lateral_offset_m": 3.0,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "pedestrian_crossing-medium",
+      "title": "Pedestrian Crossing · medium",
+      "description": "A crossing timed near a moderately fast ego approach.",
+      "family": "pedestrian_crossing",
+      "level": "medium",
+      "learning_goal": "Watch a crossing pedestrian and identify the vehicle's measured response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "pedestrian_crossing-medium",
+        "template": "pedestrian_crossing",
+        "description": "A pedestrian begins crossing from the ego vehicle's right after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 10.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 22.0,
+                "y": 2.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 1.5
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 10.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 1.5,
+          "pedestrian_distance_m": 22.0,
+          "pedestrian_lateral_offset_m": 2.0,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "pedestrian_crossing-high",
+      "title": "Pedestrian Crossing · high",
+      "description": "A fast close crossing with little stopping distance.",
+      "family": "pedestrian_crossing",
+      "level": "high",
+      "learning_goal": "Watch a crossing pedestrian and identify the vehicle's measured response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "pedestrian_crossing-high",
+        "template": "pedestrian_crossing",
+        "description": "A pedestrian begins crossing from the ego vehicle's right after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 25.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 10.0,
+                "y": 2.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 5.0
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 25.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 5.0,
+          "pedestrian_distance_m": 10.0,
+          "pedestrian_lateral_offset_m": 2.0,
+          "crossing_delay_s": 0.0
+        }
+      }
+    },
+    {
+      "id": "sudden_braking-low",
+      "title": "Sudden Braking · low",
+      "description": "A long following gap and gradual lead braking.",
+      "family": "sudden_braking",
+      "level": "low",
+      "learning_goal": "Inspect following distance, lead braking and the ego vehicle's stopping response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "sudden_braking-low",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 35.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 8.0
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 2.0,
+            "deceleration_mps2": 3.0
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "lead_speed_mps": 8.0,
+          "lead_distance_m": 35.0,
+          "brake_delay_s": 2.0,
+          "lead_deceleration_mps2": 3.0
+        }
+      }
+    },
+    {
+      "id": "sudden_braking-medium",
+      "title": "Sudden Braking · medium",
+      "description": "A shorter gap and abrupt lead braking.",
+      "family": "sudden_braking",
+      "level": "medium",
+      "learning_goal": "Inspect following distance, lead braking and the ego vehicle's stopping response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "sudden_braking-medium",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 14.0
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 14.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 12.0
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 0.5,
+            "deceleration_mps2": 8.0
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 14.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "lead_speed_mps": 12.0,
+          "lead_distance_m": 14.0,
+          "brake_delay_s": 0.5,
+          "lead_deceleration_mps2": 8.0
+        }
+      }
+    },
+    {
+      "id": "sudden_braking-high",
+      "title": "Sudden Braking · high",
+      "description": "A fast ego closes a short gap as the lead brakes immediately.",
+      "family": "sudden_braking",
+      "level": "high",
+      "learning_goal": "Inspect following distance, lead braking and the ego vehicle's stopping response.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "sudden_braking-high",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 25.0
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 5.5,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 12.0
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 0.0,
+            "deceleration_mps2": 10.0
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 25.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "lead_speed_mps": 12.0,
+          "lead_distance_m": 5.5,
+          "brake_delay_s": 0.0,
+          "lead_deceleration_mps2": 10.0
+        }
+      }
+    },
+    {
+      "id": "occluded_pedestrian-low",
+      "title": "Occluded Pedestrian · low",
+      "description": "A distant early crossing behind a stationary roadside vehicle.",
+      "family": "occluded_pedestrian",
+      "level": "low",
+      "learning_goal": "Investigate a geometrically occluded crossing; state agents may still receive ideal actor state.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "occluded_pedestrian-low",
+        "template": "occluded_pedestrian",
+        "description": "A pedestrian crosses from behind a stationary vehicle on the ego vehicle's right.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 8.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 40.0,
+                "y": 4.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          },
+          {
+            "type": "vehicle",
+            "id": "occluder",
+            "blueprint": "vehicle.volkswagen.t2",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 36.0,
+                "y": 3.6,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 1.4
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": true,
+        "parameters": {
+          "ego_speed_mps": 8.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 1.4,
+          "pedestrian_distance_m": 40.0,
+          "pedestrian_lateral_offset_m": 4.0,
+          "crossing_delay_s": 0.0,
+          "occlusion_gap_m": 4.0
+        }
+      }
+    },
+    {
+      "id": "occluded_pedestrian-medium",
+      "title": "Occluded Pedestrian · medium",
+      "description": "A nearer crossing behind a stationary roadside vehicle.",
+      "family": "occluded_pedestrian",
+      "level": "medium",
+      "learning_goal": "Investigate a geometrically occluded crossing; state agents may still receive ideal actor state.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "occluded_pedestrian-medium",
+        "template": "occluded_pedestrian",
+        "description": "A pedestrian crosses from behind a stationary vehicle on the ego vehicle's right.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 13.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 24.0,
+                "y": 4.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          },
+          {
+            "type": "vehicle",
+            "id": "occluder",
+            "blueprint": "vehicle.volkswagen.t2",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 21.0,
+                "y": 3.5,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 3.0
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": true,
+        "parameters": {
+          "ego_speed_mps": 13.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 3.0,
+          "pedestrian_distance_m": 24.0,
+          "pedestrian_lateral_offset_m": 4.0,
+          "crossing_delay_s": 0.0,
+          "occlusion_gap_m": 3.0
+        }
+      }
+    },
+    {
+      "id": "occluded_pedestrian-high",
+      "title": "Occluded Pedestrian · high",
+      "description": "A fast close crossing behind a stationary roadside vehicle.",
+      "family": "occluded_pedestrian",
+      "level": "high",
+      "learning_goal": "Investigate a geometrically occluded crossing; state agents may still receive ideal actor state.",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "occluded_pedestrian-high",
+        "template": "occluded_pedestrian",
+        "description": "A pedestrian crosses from behind a stationary vehicle on the ego vehicle's right.",
+        "map": "Town10HD_Opt",
+        "seed": 7,
+        "duration_s": 8.0,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 0.0,
+          "wetness": 0.0,
+          "fog_density": 0.0,
+          "sun_altitude_deg": 70.0
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 25.0
+          },
+          {
+            "type": "pedestrian",
+            "id": "pedestrian",
+            "blueprint": "walker.pedestrian.0001",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 14.0,
+                "y": 4.5,
+                "z": 0.0
+              },
+              "yaw_offset_deg": -90.0
+            },
+            "speed_mps": 0.0
+          },
+          {
+            "type": "vehicle",
+            "id": "occluder",
+            "blueprint": "vehicle.volkswagen.t2",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 10.0,
+                "y": 3.2142857142857144,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 0.0
+          }
+        ],
+        "events": [
+          {
+            "action": "set_speed",
+            "actor_id": "pedestrian",
+            "trigger_time_s": 0.0,
+            "speed_mps": 7.0
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": null,
+        "occlusion": true,
+        "parameters": {
+          "ego_speed_mps": 25.0,
+          "precipitation_pct": 0.0,
+          "fog_density_pct": 0.0,
+          "sun_altitude_deg": 70.0,
+          "pedestrian_speed_mps": 7.0,
+          "pedestrian_distance_m": 14.0,
+          "pedestrian_lateral_offset_m": 4.5,
+          "crossing_delay_s": 0.0,
+          "occlusion_gap_m": 4.0
+        }
+      }
+    }
+  ],
+  "plan": {
+    "schema_version": "poltergeist-discovery-plan-v1",
+    "id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+    "revision": 1,
+    "proposal": {
+      "mode": "test",
+      "options": {
+        "allow_map_reload": false,
+        "no_rendering_mode": null,
+        "carla_quality": null,
+        "sensor_timeout_s": 2.0,
+        "sensor_settle_s": 0.02,
+        "max_ticks": 100000,
+        "camera": false,
+        "lidar": false,
+        "camera_width": 640,
+        "camera_height": 360
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      },
+      "goal": {
+        "description": "Find repeatable following collisions",
+        "failure_kind": "collision",
+        "template": "sudden_braking",
+        "agent_id": null,
+        "seed": 0,
+        "parameters": {
+          "brake_delay_s": 0.0
+        },
+        "ranges": {},
+        "minimum_severity": 0.0,
+        "driving_task": null,
+        "duration_s": 0.1
+      },
+      "budget": {
+        "max_executions": 6,
+        "max_search_trials": 2,
+        "confirmation_repeats": 2,
+        "required_successes": 2,
+        "max_candidates": 2,
+        "max_wall_time_s": 30.0,
+        "max_simulated_time_s": 0.6
+      }
+    },
+    "search": {
+      "mode": "test",
+      "options": {
+        "allow_map_reload": false,
+        "no_rendering_mode": null,
+        "carla_quality": null,
+        "sensor_timeout_s": 2.0,
+        "sensor_settle_s": 0.02,
+        "max_ticks": 100000,
+        "camera": false,
+        "lidar": false,
+        "camera_width": 640,
+        "camera_height": 360
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      },
+      "kind": "search",
+      "template": "sudden_braking",
+      "strategy": "random",
+      "trials": 2,
+      "seed": 0,
+      "parameters": {
+        "brake_delay_s": 0.0
+      },
+      "ranges": {},
+      "minimum_severity": 0.0,
+      "failure_kind": "collision",
+      "agent_id": null,
+      "driving_task": null,
+      "duration_s": 0.1
+    },
+    "scenarios": [
+      {
+        "schema_version": "1.0",
+        "name": "sudden_braking-0",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town03",
+        "seed": 0,
+        "duration_s": 0.1,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 75.79544029403024,
+          "wetness": 75.79544029403024,
+          "fog_density": 25.2342948498507,
+          "sun_altitude_deg": 15.891675029296334
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 21.266124436601153
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 23.222036185268642,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 13.270593312846604
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 0.0,
+            "deceleration_mps2": 8.054187301312954
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 21.266124436601153,
+          "precipitation_pct": 75.79544029403024,
+          "fog_density_pct": 25.2342948498507,
+          "sun_altitude_deg": 15.891675029296334,
+          "lead_speed_mps": 13.270593312846604,
+          "lead_distance_m": 23.222036185268642,
+          "brake_delay_s": 0.0,
+          "lead_deceleration_mps2": 8.054187301312954
+        }
+      },
+      {
+        "schema_version": "1.0",
+        "name": "sudden_braking-1",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town03",
+        "seed": 1,
+        "duration_s": 0.1,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 84.74337369372327,
+          "wetness": 84.74337369372327,
+          "fog_density": 45.82647713859684,
+          "sun_altitude_deg": 15.50690257394217
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 4.224741858697629
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 25.227097915493214,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 12.890442090206584
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 0.0,
+            "deceleration_mps2": 6.864336754504866
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 4.224741858697629,
+          "precipitation_pct": 84.74337369372327,
+          "fog_density_pct": 45.82647713859684,
+          "sun_altitude_deg": 15.50690257394217,
+          "lead_speed_mps": 12.890442090206584,
+          "lead_distance_m": 25.227097915493214,
+          "brake_delay_s": 0.0,
+          "lead_deceleration_mps2": 6.864336754504866
+        }
+      }
+    ],
+    "agent_snapshot": null,
+    "digest": "85f511649d5018195d0e394e0ea4254d074e57d4b60bfb881f0ec5c842f52e41",
+    "maximum_executions": 6,
+    "per_run_duration_s": 0.1,
+    "steps": [
+      "Search up to 2 seeded sudden braking recipes for collision.",
+      "Repeat each matching candidate 2 times with the exact recipe, seed, agent and settings.",
+      "Confirm only after at least 2 matching repetitions; check at most 2 candidates.",
+      "Stop at 6 executions, 0.6 simulated seconds or 30 wall-clock seconds, whichever limits work first.",
+      "Retain every negative, failed, inconclusive and unassessed trial, with links to recorded evidence."
+    ],
+    "limitations": [
+      "Synthetic mode checks the workflow; only CARLA mode measures simulator driving.",
+      "The typed goal selects an observed failure policy. Free text is a description, not an unbounded instruction.",
+      "Approval starts the absolute wall-clock budget, including queue time and interruptions. Cancellation and native cleanup can finish after the deadline.",
+      "Repeated seeds test repeatability for these recorded conditions; they do not establish general safety or reveal model reasoning."
+    ],
+    "created_at": "2026-10-30T16:53:59.168634Z",
+    "expires_at": "2026-10-31T16:53:59.168634Z",
+    "operation_id": null,
+    "approved_at": null,
+    "deadline_at": null
+  },
+  "approved_plan": {
+    "schema_version": "poltergeist-discovery-plan-v1",
+    "id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+    "revision": 2,
+    "proposal": {
+      "mode": "test",
+      "options": {
+        "allow_map_reload": false,
+        "no_rendering_mode": null,
+        "carla_quality": null,
+        "sensor_timeout_s": 2.0,
+        "sensor_settle_s": 0.02,
+        "max_ticks": 100000,
+        "camera": false,
+        "lidar": false,
+        "camera_width": 640,
+        "camera_height": 360
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      },
+      "goal": {
+        "description": "Find repeatable following collisions",
+        "failure_kind": "collision",
+        "template": "sudden_braking",
+        "agent_id": null,
+        "seed": 0,
+        "parameters": {
+          "brake_delay_s": 0.0
+        },
+        "ranges": {},
+        "minimum_severity": 0.0,
+        "driving_task": null,
+        "duration_s": 0.1
+      },
+      "budget": {
+        "max_executions": 6,
+        "max_search_trials": 2,
+        "confirmation_repeats": 2,
+        "required_successes": 2,
+        "max_candidates": 2,
+        "max_wall_time_s": 30.0,
+        "max_simulated_time_s": 0.6
+      }
+    },
+    "search": {
+      "mode": "test",
+      "options": {
+        "allow_map_reload": false,
+        "no_rendering_mode": null,
+        "carla_quality": null,
+        "sensor_timeout_s": 2.0,
+        "sensor_settle_s": 0.02,
+        "max_ticks": 100000,
+        "camera": false,
+        "lidar": false,
+        "camera_width": 640,
+        "camera_height": 360
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      },
+      "kind": "search",
+      "template": "sudden_braking",
+      "strategy": "random",
+      "trials": 2,
+      "seed": 0,
+      "parameters": {
+        "brake_delay_s": 0.0
+      },
+      "ranges": {},
+      "minimum_severity": 0.0,
+      "failure_kind": "collision",
+      "agent_id": null,
+      "driving_task": null,
+      "duration_s": 0.1
+    },
+    "scenarios": [
+      {
+        "schema_version": "1.0",
+        "name": "sudden_braking-0",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town03",
+        "seed": 0,
+        "duration_s": 0.1,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 75.79544029403024,
+          "wetness": 75.79544029403024,
+          "fog_density": 25.2342948498507,
+          "sun_altitude_deg": 15.891675029296334
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 21.266124436601153
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 23.222036185268642,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 13.270593312846604
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 0.0,
+            "deceleration_mps2": 8.054187301312954
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 21.266124436601153,
+          "precipitation_pct": 75.79544029403024,
+          "fog_density_pct": 25.2342948498507,
+          "sun_altitude_deg": 15.891675029296334,
+          "lead_speed_mps": 13.270593312846604,
+          "lead_distance_m": 23.222036185268642,
+          "brake_delay_s": 0.0,
+          "lead_deceleration_mps2": 8.054187301312954
+        }
+      },
+      {
+        "schema_version": "1.0",
+        "name": "sudden_braking-1",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town03",
+        "seed": 1,
+        "duration_s": 0.1,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 84.74337369372327,
+          "wetness": 84.74337369372327,
+          "fog_density": 45.82647713859684,
+          "sun_altitude_deg": 15.50690257394217
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 4.224741858697629
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 25.227097915493214,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 12.890442090206584
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 0.0,
+            "deceleration_mps2": 6.864336754504866
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 4.224741858697629,
+          "precipitation_pct": 84.74337369372327,
+          "fog_density_pct": 45.82647713859684,
+          "sun_altitude_deg": 15.50690257394217,
+          "lead_speed_mps": 12.890442090206584,
+          "lead_distance_m": 25.227097915493214,
+          "brake_delay_s": 0.0,
+          "lead_deceleration_mps2": 6.864336754504866
+        }
+      }
+    ],
+    "agent_snapshot": null,
+    "digest": "85f511649d5018195d0e394e0ea4254d074e57d4b60bfb881f0ec5c842f52e41",
+    "maximum_executions": 6,
+    "per_run_duration_s": 0.1,
+    "steps": [
+      "Search up to 2 seeded sudden braking recipes for collision.",
+      "Repeat each matching candidate 2 times with the exact recipe, seed, agent and settings.",
+      "Confirm only after at least 2 matching repetitions; check at most 2 candidates.",
+      "Stop at 6 executions, 0.6 simulated seconds or 30 wall-clock seconds, whichever limits work first.",
+      "Retain every negative, failed, inconclusive and unassessed trial, with links to recorded evidence."
+    ],
+    "limitations": [
+      "Synthetic mode checks the workflow; only CARLA mode measures simulator driving.",
+      "The typed goal selects an observed failure policy. Free text is a description, not an unbounded instruction.",
+      "Approval starts the absolute wall-clock budget, including queue time and interruptions. Cancellation and native cleanup can finish after the deadline.",
+      "Repeated seeds test repeatability for these recorded conditions; they do not establish general safety or reveal model reasoning."
+    ],
+    "created_at": "2026-10-30T16:53:59.168634Z",
+    "expires_at": "2026-10-31T16:53:59.168634Z",
+    "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+    "approved_at": "2026-10-30T16:53:59.200640Z",
+    "deadline_at": "2026-10-30T16:54:29.200640Z"
+  },
+  "discovery": {
+    "schema_version": "poltergeist-discovery-report-v1",
+    "plan": {
+      "schema_version": "poltergeist-discovery-plan-v1",
+      "id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+      "revision": 2,
+      "proposal": {
+        "mode": "test",
+        "options": {
+          "allow_map_reload": false,
+          "no_rendering_mode": null,
+          "carla_quality": null,
+          "sensor_timeout_s": 2.0,
+          "sensor_settle_s": 0.02,
+          "max_ticks": 100000,
+          "camera": false,
+          "lidar": false,
+          "camera_width": 640,
+          "camera_height": 360
+        },
+        "evaluation_settings": {
+          "method_version": "1.0",
+          "collision_episode_gap_s": 1.0,
+          "violation_episode_gap_s": 1.0,
+          "speeding_tolerance_mps": 0.5,
+          "hard_braking_threshold_mps2": 4.0,
+          "stopped_speed_mps": 0.1,
+          "max_sample_gap_s": 0.5,
+          "ttc_horizon_s": 10.0,
+          "ttc_warning_s": 3.0,
+          "clearance_warning_m": 2.0,
+          "braking_full_severity_mps2": 8.0,
+          "violations_for_full_severity": 3,
+          "ttc_weight": 45.0,
+          "clearance_weight": 25.0,
+          "braking_weight": 15.0,
+          "traffic_rule_weight": 15.0
+        },
+        "goal": {
+          "description": "Find repeatable following collisions",
+          "failure_kind": "collision",
+          "template": "sudden_braking",
+          "agent_id": null,
+          "seed": 0,
+          "parameters": {
+            "brake_delay_s": 0.0
+          },
+          "ranges": {},
+          "minimum_severity": 0.0,
+          "driving_task": null,
+          "duration_s": 0.1
+        },
+        "budget": {
+          "max_executions": 6,
+          "max_search_trials": 2,
+          "confirmation_repeats": 2,
+          "required_successes": 2,
+          "max_candidates": 2,
+          "max_wall_time_s": 30.0,
+          "max_simulated_time_s": 0.6
+        }
+      },
+      "search": {
+        "mode": "test",
+        "options": {
+          "allow_map_reload": false,
+          "no_rendering_mode": null,
+          "carla_quality": null,
+          "sensor_timeout_s": 2.0,
+          "sensor_settle_s": 0.02,
+          "max_ticks": 100000,
+          "camera": false,
+          "lidar": false,
+          "camera_width": 640,
+          "camera_height": 360
+        },
+        "evaluation_settings": {
+          "method_version": "1.0",
+          "collision_episode_gap_s": 1.0,
+          "violation_episode_gap_s": 1.0,
+          "speeding_tolerance_mps": 0.5,
+          "hard_braking_threshold_mps2": 4.0,
+          "stopped_speed_mps": 0.1,
+          "max_sample_gap_s": 0.5,
+          "ttc_horizon_s": 10.0,
+          "ttc_warning_s": 3.0,
+          "clearance_warning_m": 2.0,
+          "braking_full_severity_mps2": 8.0,
+          "violations_for_full_severity": 3,
+          "ttc_weight": 45.0,
+          "clearance_weight": 25.0,
+          "braking_weight": 15.0,
+          "traffic_rule_weight": 15.0
+        },
+        "kind": "search",
+        "template": "sudden_braking",
+        "strategy": "random",
+        "trials": 2,
+        "seed": 0,
+        "parameters": {
+          "brake_delay_s": 0.0
+        },
+        "ranges": {},
+        "minimum_severity": 0.0,
+        "failure_kind": "collision",
+        "agent_id": null,
+        "driving_task": null,
+        "duration_s": 0.1
+      },
+      "scenarios": [
+        {
+          "schema_version": "1.0",
+          "name": "sudden_braking-0",
+          "template": "sudden_braking",
+          "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+          "map": "Town03",
+          "seed": 0,
+          "duration_s": 0.1,
+          "fixed_delta_seconds": 0.05,
+          "weather": {
+            "cloudiness": 0.0,
+            "precipitation": 75.79544029403024,
+            "wetness": 75.79544029403024,
+            "fog_density": 25.2342948498507,
+            "sun_altitude_deg": 15.891675029296334
+          },
+          "actors": [
+            {
+              "type": "ego_vehicle",
+              "id": "ego",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": 0,
+              "relative_spawn": null,
+              "speed_mps": 21.266124436601153
+            },
+            {
+              "type": "lead_vehicle",
+              "id": "lead",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": null,
+              "relative_spawn": {
+                "anchor_actor_id": "ego",
+                "offset_m": {
+                  "x": 23.222036185268642,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "yaw_offset_deg": 0.0
+              },
+              "speed_mps": 13.270593312846604
+            }
+          ],
+          "events": [
+            {
+              "action": "brake",
+              "actor_id": "lead",
+              "trigger_time_s": 0.0,
+              "deceleration_mps2": 8.054187301312954
+            }
+          ],
+          "driving_task": null,
+          "location": null,
+          "event": "lead_vehicle_brakes",
+          "occlusion": false,
+          "parameters": {
+            "ego_speed_mps": 21.266124436601153,
+            "precipitation_pct": 75.79544029403024,
+            "fog_density_pct": 25.2342948498507,
+            "sun_altitude_deg": 15.891675029296334,
+            "lead_speed_mps": 13.270593312846604,
+            "lead_distance_m": 23.222036185268642,
+            "brake_delay_s": 0.0,
+            "lead_deceleration_mps2": 8.054187301312954
+          }
+        },
+        {
+          "schema_version": "1.0",
+          "name": "sudden_braking-1",
+          "template": "sudden_braking",
+          "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+          "map": "Town03",
+          "seed": 1,
+          "duration_s": 0.1,
+          "fixed_delta_seconds": 0.05,
+          "weather": {
+            "cloudiness": 0.0,
+            "precipitation": 84.74337369372327,
+            "wetness": 84.74337369372327,
+            "fog_density": 45.82647713859684,
+            "sun_altitude_deg": 15.50690257394217
+          },
+          "actors": [
+            {
+              "type": "ego_vehicle",
+              "id": "ego",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": 0,
+              "relative_spawn": null,
+              "speed_mps": 4.224741858697629
+            },
+            {
+              "type": "lead_vehicle",
+              "id": "lead",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": null,
+              "relative_spawn": {
+                "anchor_actor_id": "ego",
+                "offset_m": {
+                  "x": 25.227097915493214,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "yaw_offset_deg": 0.0
+              },
+              "speed_mps": 12.890442090206584
+            }
+          ],
+          "events": [
+            {
+              "action": "brake",
+              "actor_id": "lead",
+              "trigger_time_s": 0.0,
+              "deceleration_mps2": 6.864336754504866
+            }
+          ],
+          "driving_task": null,
+          "location": null,
+          "event": "lead_vehicle_brakes",
+          "occlusion": false,
+          "parameters": {
+            "ego_speed_mps": 4.224741858697629,
+            "precipitation_pct": 84.74337369372327,
+            "fog_density_pct": 45.82647713859684,
+            "sun_altitude_deg": 15.50690257394217,
+            "lead_speed_mps": 12.890442090206584,
+            "lead_distance_m": 25.227097915493214,
+            "brake_delay_s": 0.0,
+            "lead_deceleration_mps2": 6.864336754504866
+          }
+        }
+      ],
+      "agent_snapshot": null,
+      "digest": "85f511649d5018195d0e394e0ea4254d074e57d4b60bfb881f0ec5c842f52e41",
+      "maximum_executions": 6,
+      "per_run_duration_s": 0.1,
+      "steps": [
+        "Search up to 2 seeded sudden braking recipes for collision.",
+        "Repeat each matching candidate 2 times with the exact recipe, seed, agent and settings.",
+        "Confirm only after at least 2 matching repetitions; check at most 2 candidates.",
+        "Stop at 6 executions, 0.6 simulated seconds or 30 wall-clock seconds, whichever limits work first.",
+        "Retain every negative, failed, inconclusive and unassessed trial, with links to recorded evidence."
+      ],
+      "limitations": [
+        "Synthetic mode checks the workflow; only CARLA mode measures simulator driving.",
+        "The typed goal selects an observed failure policy. Free text is a description, not an unbounded instruction.",
+        "Approval starts the absolute wall-clock budget, including queue time and interruptions. Cancellation and native cleanup can finish after the deadline.",
+        "Repeated seeds test repeatability for these recorded conditions; they do not establish general safety or reveal model reasoning."
+      ],
+      "created_at": "2026-10-30T16:53:59.168634Z",
+      "expires_at": "2026-10-31T16:53:59.168634Z",
+      "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+      "approved_at": "2026-10-30T16:53:59.200640Z",
+      "deadline_at": "2026-10-30T16:54:29.200640Z"
+    },
+    "evidence": {
+      "operation": {
+        "id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+        "request": {
+          "mode": "test",
+          "options": {
+            "allow_map_reload": false,
+            "no_rendering_mode": null,
+            "carla_quality": null,
+            "sensor_timeout_s": 2.0,
+            "sensor_settle_s": 0.02,
+            "max_ticks": 100000,
+            "camera": false,
+            "lidar": false,
+            "camera_width": 640,
+            "camera_height": 360
+          },
+          "evaluation_settings": {
+            "method_version": "1.0",
+            "collision_episode_gap_s": 1.0,
+            "violation_episode_gap_s": 1.0,
+            "speeding_tolerance_mps": 0.5,
+            "hard_braking_threshold_mps2": 4.0,
+            "stopped_speed_mps": 0.1,
+            "max_sample_gap_s": 0.5,
+            "ttc_horizon_s": 10.0,
+            "ttc_warning_s": 3.0,
+            "clearance_warning_m": 2.0,
+            "braking_full_severity_mps2": 8.0,
+            "violations_for_full_severity": 3,
+            "ttc_weight": 45.0,
+            "clearance_weight": 25.0,
+            "braking_weight": 15.0,
+            "traffic_rule_weight": 15.0
+          },
+          "kind": "discover",
+          "plan_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+          "plan_digest": "85f511649d5018195d0e394e0ea4254d074e57d4b60bfb881f0ec5c842f52e41",
+          "goal": {
+            "description": "Find repeatable following collisions",
+            "failure_kind": "collision",
+            "template": "sudden_braking",
+            "agent_id": null,
+            "seed": 0,
+            "parameters": {
+              "brake_delay_s": 0.0
+            },
+            "ranges": {},
+            "minimum_severity": 0.0,
+            "driving_task": null,
+            "duration_s": 0.1
+          },
+          "budget": {
+            "max_executions": 6,
+            "max_search_trials": 2,
+            "confirmation_repeats": 2,
+            "required_successes": 2,
+            "max_candidates": 2,
+            "max_wall_time_s": 30.0,
+            "max_simulated_time_s": 0.6
+          },
+          "search": {
+            "mode": "test",
+            "options": {
+              "allow_map_reload": false,
+              "no_rendering_mode": null,
+              "carla_quality": null,
+              "sensor_timeout_s": 2.0,
+              "sensor_settle_s": 0.02,
+              "max_ticks": 100000,
+              "camera": false,
+              "lidar": false,
+              "camera_width": 640,
+              "camera_height": 360
+            },
+            "evaluation_settings": {
+              "method_version": "1.0",
+              "collision_episode_gap_s": 1.0,
+              "violation_episode_gap_s": 1.0,
+              "speeding_tolerance_mps": 0.5,
+              "hard_braking_threshold_mps2": 4.0,
+              "stopped_speed_mps": 0.1,
+              "max_sample_gap_s": 0.5,
+              "ttc_horizon_s": 10.0,
+              "ttc_warning_s": 3.0,
+              "clearance_warning_m": 2.0,
+              "braking_full_severity_mps2": 8.0,
+              "violations_for_full_severity": 3,
+              "ttc_weight": 45.0,
+              "clearance_weight": 25.0,
+              "braking_weight": 15.0,
+              "traffic_rule_weight": 15.0
+            },
+            "kind": "search",
+            "template": "sudden_braking",
+            "strategy": "random",
+            "trials": 2,
+            "seed": 0,
+            "parameters": {
+              "brake_delay_s": 0.0
+            },
+            "ranges": {},
+            "minimum_severity": 0.0,
+            "failure_kind": "collision",
+            "agent_id": null,
+            "driving_task": null,
+            "duration_s": 0.1
+          },
+          "scenarios": [
+            {
+              "schema_version": "1.0",
+              "name": "sudden_braking-0",
+              "template": "sudden_braking",
+              "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+              "map": "Town03",
+              "seed": 0,
+              "duration_s": 0.1,
+              "fixed_delta_seconds": 0.05,
+              "weather": {
+                "cloudiness": 0.0,
+                "precipitation": 75.79544029403024,
+                "wetness": 75.79544029403024,
+                "fog_density": 25.2342948498507,
+                "sun_altitude_deg": 15.891675029296334
+              },
+              "actors": [
+                {
+                  "type": "ego_vehicle",
+                  "id": "ego",
+                  "blueprint": "vehicle.tesla.model3",
+                  "spawn": null,
+                  "spawn_point_index": 0,
+                  "relative_spawn": null,
+                  "speed_mps": 21.266124436601153
+                },
+                {
+                  "type": "lead_vehicle",
+                  "id": "lead",
+                  "blueprint": "vehicle.tesla.model3",
+                  "spawn": null,
+                  "spawn_point_index": null,
+                  "relative_spawn": {
+                    "anchor_actor_id": "ego",
+                    "offset_m": {
+                      "x": 23.222036185268642,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "yaw_offset_deg": 0.0
+                  },
+                  "speed_mps": 13.270593312846604
+                }
+              ],
+              "events": [
+                {
+                  "action": "brake",
+                  "actor_id": "lead",
+                  "trigger_time_s": 0.0,
+                  "deceleration_mps2": 8.054187301312954
+                }
+              ],
+              "driving_task": null,
+              "location": null,
+              "event": "lead_vehicle_brakes",
+              "occlusion": false,
+              "parameters": {
+                "ego_speed_mps": 21.266124436601153,
+                "precipitation_pct": 75.79544029403024,
+                "fog_density_pct": 25.2342948498507,
+                "sun_altitude_deg": 15.891675029296334,
+                "lead_speed_mps": 13.270593312846604,
+                "lead_distance_m": 23.222036185268642,
+                "brake_delay_s": 0.0,
+                "lead_deceleration_mps2": 8.054187301312954
+              }
+            },
+            {
+              "schema_version": "1.0",
+              "name": "sudden_braking-1",
+              "template": "sudden_braking",
+              "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+              "map": "Town03",
+              "seed": 1,
+              "duration_s": 0.1,
+              "fixed_delta_seconds": 0.05,
+              "weather": {
+                "cloudiness": 0.0,
+                "precipitation": 84.74337369372327,
+                "wetness": 84.74337369372327,
+                "fog_density": 45.82647713859684,
+                "sun_altitude_deg": 15.50690257394217
+              },
+              "actors": [
+                {
+                  "type": "ego_vehicle",
+                  "id": "ego",
+                  "blueprint": "vehicle.tesla.model3",
+                  "spawn": null,
+                  "spawn_point_index": 0,
+                  "relative_spawn": null,
+                  "speed_mps": 4.224741858697629
+                },
+                {
+                  "type": "lead_vehicle",
+                  "id": "lead",
+                  "blueprint": "vehicle.tesla.model3",
+                  "spawn": null,
+                  "spawn_point_index": null,
+                  "relative_spawn": {
+                    "anchor_actor_id": "ego",
+                    "offset_m": {
+                      "x": 25.227097915493214,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "yaw_offset_deg": 0.0
+                  },
+                  "speed_mps": 12.890442090206584
+                }
+              ],
+              "events": [
+                {
+                  "action": "brake",
+                  "actor_id": "lead",
+                  "trigger_time_s": 0.0,
+                  "deceleration_mps2": 6.864336754504866
+                }
+              ],
+              "driving_task": null,
+              "location": null,
+              "event": "lead_vehicle_brakes",
+              "occlusion": false,
+              "parameters": {
+                "ego_speed_mps": 4.224741858697629,
+                "precipitation_pct": 84.74337369372327,
+                "fog_density_pct": 45.82647713859684,
+                "sun_altitude_deg": 15.50690257394217,
+                "lead_speed_mps": 12.890442090206584,
+                "lead_distance_m": 25.227097915493214,
+                "brake_delay_s": 0.0,
+                "lead_deceleration_mps2": 6.864336754504866
+              }
+            }
+          ],
+          "approved_at": "2026-10-30T16:53:59.200640Z",
+          "deadline_at": "2026-10-30T16:54:29.200640Z"
+        },
+        "execution": {
+          "mode": "test",
+          "options": {
+            "allow_map_reload": false,
+            "no_rendering_mode": null,
+            "carla_quality": null,
+            "sensor_timeout_s": 2.0,
+            "sensor_settle_s": 0.02,
+            "max_ticks": 100000,
+            "camera": false,
+            "lidar": false,
+            "camera_width": 640,
+            "camera_height": 360
+          },
+          "evaluation_settings": {
+            "method_version": "1.0",
+            "collision_episode_gap_s": 1.0,
+            "violation_episode_gap_s": 1.0,
+            "speeding_tolerance_mps": 0.5,
+            "hard_braking_threshold_mps2": 4.0,
+            "stopped_speed_mps": 0.1,
+            "max_sample_gap_s": 0.5,
+            "ttc_horizon_s": 10.0,
+            "ttc_warning_s": 3.0,
+            "clearance_warning_m": 2.0,
+            "braking_full_severity_mps2": 8.0,
+            "violations_for_full_severity": 3,
+            "ttc_weight": 45.0,
+            "clearance_weight": 25.0,
+            "braking_weight": 15.0,
+            "traffic_rule_weight": 15.0
+          }
+        },
+        "source_failure": null,
+        "agent_snapshot": null,
+        "comparison_agents": [],
+        "status": "completed",
+        "revision": 3,
+        "created_at": "2026-10-30T16:53:59.204064Z",
+        "started_at": "2026-10-30T16:53:59.229072Z",
+        "finished_at": "2026-10-30T16:54:00.995200Z",
+        "cancel_requested": false,
+        "engine_version": "discovery-v1/frozen-candidates-v1",
+        "error": null,
+        "outcome": {
+          "trials_used": 6,
+          "successes": 6,
+          "unknowns": 0,
+          "best_simulation_id": "4948a726-479a-40b3-89a8-c5bd5dd2e7b9",
+          "best_failure_id": "2a71ffd0-ec61-4ceb-b1b6-65dd68a047fa",
+          "best_scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-0",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 0,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "reproduced": true,
+          "summary": "2 failure(s) confirmed by independent repetitions. Approved candidate confirmation limit reached",
+          "confirmed_failures": 2,
+          "budget_exhausted": false,
+          "stop_reason": "Approved candidate confirmation limit reached"
+        }
+      },
+      "trials": [
+        {
+          "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+          "number": 0,
+          "simulation_id": "4948a726-479a-40b3-89a8-c5bd5dd2e7b9",
+          "role": "discovery_search",
+          "agent_index": 0,
+          "candidate_index": 0,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-0",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 0,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "2a71ffd0-ec61-4ceb-b1b6-65dd68a047fa"
+        },
+        {
+          "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+          "number": 1,
+          "simulation_id": "61e63ad6-ddab-4460-930c-8d46376f2df9",
+          "role": "discovery_confirm",
+          "agent_index": 0,
+          "candidate_index": 0,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-0",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 0,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "5db056e3-a226-4503-a575-6112df3c59a3"
+        },
+        {
+          "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+          "number": 2,
+          "simulation_id": "e2f93b76-fde4-4e4c-977d-f52d790386a1",
+          "role": "discovery_confirm",
+          "agent_index": 0,
+          "candidate_index": 0,
+          "repeat_index": 1,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-0",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 0,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "40b120bf-0133-49af-bc3c-67862f58cdd0"
+        },
+        {
+          "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+          "number": 3,
+          "simulation_id": "4ae4c1c9-d52d-4323-bc03-dd07ed0a726f",
+          "role": "discovery_search",
+          "agent_index": 0,
+          "candidate_index": 1,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-1",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 1,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 84.74337369372327,
+              "wetness": 84.74337369372327,
+              "fog_density": 45.82647713859684,
+              "sun_altitude_deg": 15.50690257394217
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 4.224741858697629
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 25.227097915493214,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 12.890442090206584
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 6.864336754504866
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 4.224741858697629,
+              "precipitation_pct": 84.74337369372327,
+              "fog_density_pct": 45.82647713859684,
+              "sun_altitude_deg": 15.50690257394217,
+              "lead_speed_mps": 12.890442090206584,
+              "lead_distance_m": 25.227097915493214,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 6.864336754504866
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "13b5024d-1a39-4844-9870-751c503b55f3"
+        },
+        {
+          "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+          "number": 4,
+          "simulation_id": "1a97f9b4-5dd4-4190-b48d-7568496246b2",
+          "role": "discovery_confirm",
+          "agent_index": 0,
+          "candidate_index": 1,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-1",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 1,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 84.74337369372327,
+              "wetness": 84.74337369372327,
+              "fog_density": 45.82647713859684,
+              "sun_altitude_deg": 15.50690257394217
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 4.224741858697629
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 25.227097915493214,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 12.890442090206584
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 6.864336754504866
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 4.224741858697629,
+              "precipitation_pct": 84.74337369372327,
+              "fog_density_pct": 45.82647713859684,
+              "sun_altitude_deg": 15.50690257394217,
+              "lead_speed_mps": 12.890442090206584,
+              "lead_distance_m": 25.227097915493214,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 6.864336754504866
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "ffe1b2e7-19b1-4fa0-a867-08dd88698461"
+        },
+        {
+          "operation_id": "1b316b92-fc6b-4bc3-ab57-c000a5bec526",
+          "number": 5,
+          "simulation_id": "01cfac98-ebd9-4939-80ed-8535466ac98e",
+          "role": "discovery_confirm",
+          "agent_index": 0,
+          "candidate_index": 1,
+          "repeat_index": 1,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-1",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 1,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 84.74337369372327,
+              "wetness": 84.74337369372327,
+              "fog_density": 45.82647713859684,
+              "sun_altitude_deg": 15.50690257394217
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 4.224741858697629
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 25.227097915493214,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 12.890442090206584
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 6.864336754504866
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 4.224741858697629,
+              "precipitation_pct": 84.74337369372327,
+              "fog_density_pct": 45.82647713859684,
+              "sun_altitude_deg": 15.50690257394217,
+              "lead_speed_mps": 12.890442090206584,
+              "lead_distance_m": 25.227097915493214,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 6.864336754504866
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "21345cab-86f0-4139-bb89-01629091af65"
+        }
+      ]
+    },
+    "candidates": [
+      {
+        "candidate_index": 0,
+        "scenario": {
+          "schema_version": "1.0",
+          "name": "sudden_braking-0",
+          "template": "sudden_braking",
+          "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+          "map": "Town03",
+          "seed": 0,
+          "duration_s": 0.1,
+          "fixed_delta_seconds": 0.05,
+          "weather": {
+            "cloudiness": 0.0,
+            "precipitation": 75.79544029403024,
+            "wetness": 75.79544029403024,
+            "fog_density": 25.2342948498507,
+            "sun_altitude_deg": 15.891675029296334
+          },
+          "actors": [
+            {
+              "type": "ego_vehicle",
+              "id": "ego",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": 0,
+              "relative_spawn": null,
+              "speed_mps": 21.266124436601153
+            },
+            {
+              "type": "lead_vehicle",
+              "id": "lead",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": null,
+              "relative_spawn": {
+                "anchor_actor_id": "ego",
+                "offset_m": {
+                  "x": 23.222036185268642,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "yaw_offset_deg": 0.0
+              },
+              "speed_mps": 13.270593312846604
+            }
+          ],
+          "events": [
+            {
+              "action": "brake",
+              "actor_id": "lead",
+              "trigger_time_s": 0.0,
+              "deceleration_mps2": 8.054187301312954
+            }
+          ],
+          "driving_task": null,
+          "location": null,
+          "event": "lead_vehicle_brakes",
+          "occlusion": false,
+          "parameters": {
+            "ego_speed_mps": 21.266124436601153,
+            "precipitation_pct": 75.79544029403024,
+            "fog_density_pct": 25.2342948498507,
+            "sun_altitude_deg": 15.891675029296334,
+            "lead_speed_mps": 13.270593312846604,
+            "lead_distance_m": 23.222036185268642,
+            "brake_delay_s": 0.0,
+            "lead_deceleration_mps2": 8.054187301312954
+          }
+        },
+        "search_simulation_id": "4948a726-479a-40b3-89a8-c5bd5dd2e7b9",
+        "failure_id": "2a71ffd0-ec61-4ceb-b1b6-65dd68a047fa",
+        "confirmation_simulation_ids": [
+          "61e63ad6-ddab-4460-930c-8d46376f2df9",
+          "e2f93b76-fde4-4e4c-977d-f52d790386a1"
+        ],
+        "status": "confirmed",
+        "required_successes": 2,
+        "matching_confirmations": 2,
+        "negative_confirmations": 0,
+        "unknown_confirmations": 0,
+        "pending_confirmations": 0,
+        "reproduction": {
+          "kind": "reproduce",
+          "failure_id": "2a71ffd0-ec61-4ceb-b1b6-65dd68a047fa",
+          "repeats": 2,
+          "required_successes": 2,
+          "minimum_severity": 0.0
+        }
+      },
+      {
+        "candidate_index": 1,
+        "scenario": {
+          "schema_version": "1.0",
+          "name": "sudden_braking-1",
+          "template": "sudden_braking",
+          "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+          "map": "Town03",
+          "seed": 1,
+          "duration_s": 0.1,
+          "fixed_delta_seconds": 0.05,
+          "weather": {
+            "cloudiness": 0.0,
+            "precipitation": 84.74337369372327,
+            "wetness": 84.74337369372327,
+            "fog_density": 45.82647713859684,
+            "sun_altitude_deg": 15.50690257394217
+          },
+          "actors": [
+            {
+              "type": "ego_vehicle",
+              "id": "ego",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": 0,
+              "relative_spawn": null,
+              "speed_mps": 4.224741858697629
+            },
+            {
+              "type": "lead_vehicle",
+              "id": "lead",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": null,
+              "relative_spawn": {
+                "anchor_actor_id": "ego",
+                "offset_m": {
+                  "x": 25.227097915493214,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "yaw_offset_deg": 0.0
+              },
+              "speed_mps": 12.890442090206584
+            }
+          ],
+          "events": [
+            {
+              "action": "brake",
+              "actor_id": "lead",
+              "trigger_time_s": 0.0,
+              "deceleration_mps2": 6.864336754504866
+            }
+          ],
+          "driving_task": null,
+          "location": null,
+          "event": "lead_vehicle_brakes",
+          "occlusion": false,
+          "parameters": {
+            "ego_speed_mps": 4.224741858697629,
+            "precipitation_pct": 84.74337369372327,
+            "fog_density_pct": 45.82647713859684,
+            "sun_altitude_deg": 15.50690257394217,
+            "lead_speed_mps": 12.890442090206584,
+            "lead_distance_m": 25.227097915493214,
+            "brake_delay_s": 0.0,
+            "lead_deceleration_mps2": 6.864336754504866
+          }
+        },
+        "search_simulation_id": "4ae4c1c9-d52d-4323-bc03-dd07ed0a726f",
+        "failure_id": "13b5024d-1a39-4844-9870-751c503b55f3",
+        "confirmation_simulation_ids": [
+          "1a97f9b4-5dd4-4190-b48d-7568496246b2",
+          "01cfac98-ebd9-4939-80ed-8535466ac98e"
+        ],
+        "status": "confirmed",
+        "required_successes": 2,
+        "matching_confirmations": 2,
+        "negative_confirmations": 0,
+        "unknown_confirmations": 0,
+        "pending_confirmations": 0,
+        "reproduction": {
+          "kind": "reproduce",
+          "failure_id": "13b5024d-1a39-4844-9870-751c503b55f3",
+          "repeats": 2,
+          "required_successes": 2,
+          "minimum_severity": 0.0
+        }
+      }
+    ],
+    "confirmed_failures": 2,
+    "executions_used": 6,
+    "simulated_time_reserved_s": 0.6000000000000001,
+    "negative_trials": 0,
+    "unknown_trials": 0,
+    "unassessed_trials": 0,
+    "summary": "2 failure(s) confirmed by independent repetitions. Approved candidate confirmation limit reached",
+    "limitations": [
+      "Synthetic mode checks the workflow; only CARLA mode measures simulator driving.",
+      "The typed goal selects an observed failure policy. Free text is a description, not an unbounded instruction.",
+      "Approval starts the absolute wall-clock budget, including queue time and interruptions. Cancellation and native cleanup can finish after the deadline.",
+      "Repeated seeds test repeatability for these recorded conditions; they do not establish general safety or reveal model reasoning."
+    ]
+  },
+  "suite": {
+    "id": "9c1758d9-d218-4cb7-9bef-c7544969a316",
+    "revision": 1,
+    "definition": {
+      "mode": "test",
+      "options": {
+        "allow_map_reload": false,
+        "no_rendering_mode": null,
+        "carla_quality": null,
+        "sensor_timeout_s": 2.0,
+        "sensor_settle_s": 0.02,
+        "max_ticks": 100000,
+        "camera": false,
+        "lidar": false,
+        "camera_width": 640,
+        "camera_height": 360
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      },
+      "kind": "suite",
+      "name": "Weekly following checks",
+      "suite_id": null,
+      "suite_revision": null,
+      "cases": [
+        {
+          "name": "Braking approach",
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-0",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 0,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          }
+        },
+        {
+          "name": "Second approach",
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "Second fixture",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 0,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          }
+        }
+      ],
+      "agents": [
+        null
+      ],
+      "seeds": [
+        7,
+        11
+      ],
+      "repeats": 1,
+      "failure_kind": null,
+      "minimum_severity": 0.0
+    },
+    "description": "Synthetic contract fixture for browser tests",
+    "created_at": "2026-10-30T16:54:01.044395Z",
+    "updated_at": "2026-10-30T16:54:01.044406Z"
+  },
+  "suite_report": {
+    "schema_version": "poltergeist-suite-report-v1",
+    "evidence": {
+      "operation": {
+        "id": "31d45cab-1e36-4e18-bb87-eec5e890a271",
+        "request": {
+          "mode": "test",
+          "options": {
+            "allow_map_reload": false,
+            "no_rendering_mode": null,
+            "carla_quality": null,
+            "sensor_timeout_s": 2.0,
+            "sensor_settle_s": 0.02,
+            "max_ticks": 100000,
+            "camera": false,
+            "lidar": false,
+            "camera_width": 640,
+            "camera_height": 360
+          },
+          "evaluation_settings": {
+            "method_version": "1.0",
+            "collision_episode_gap_s": 1.0,
+            "violation_episode_gap_s": 1.0,
+            "speeding_tolerance_mps": 0.5,
+            "hard_braking_threshold_mps2": 4.0,
+            "stopped_speed_mps": 0.1,
+            "max_sample_gap_s": 0.5,
+            "ttc_horizon_s": 10.0,
+            "ttc_warning_s": 3.0,
+            "clearance_warning_m": 2.0,
+            "braking_full_severity_mps2": 8.0,
+            "violations_for_full_severity": 3,
+            "ttc_weight": 45.0,
+            "clearance_weight": 25.0,
+            "braking_weight": 15.0,
+            "traffic_rule_weight": 15.0
+          },
+          "kind": "suite",
+          "name": "Weekly following checks",
+          "suite_id": "9c1758d9-d218-4cb7-9bef-c7544969a316",
+          "suite_revision": 1,
+          "cases": [
+            {
+              "name": "Braking approach",
+              "scenario": {
+                "schema_version": "1.0",
+                "name": "sudden_braking-0",
+                "template": "sudden_braking",
+                "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+                "map": "Town03",
+                "seed": 0,
+                "duration_s": 0.1,
+                "fixed_delta_seconds": 0.05,
+                "weather": {
+                  "cloudiness": 0.0,
+                  "precipitation": 75.79544029403024,
+                  "wetness": 75.79544029403024,
+                  "fog_density": 25.2342948498507,
+                  "sun_altitude_deg": 15.891675029296334
+                },
+                "actors": [
+                  {
+                    "type": "ego_vehicle",
+                    "id": "ego",
+                    "blueprint": "vehicle.tesla.model3",
+                    "spawn": null,
+                    "spawn_point_index": 0,
+                    "relative_spawn": null,
+                    "speed_mps": 21.266124436601153
+                  },
+                  {
+                    "type": "lead_vehicle",
+                    "id": "lead",
+                    "blueprint": "vehicle.tesla.model3",
+                    "spawn": null,
+                    "spawn_point_index": null,
+                    "relative_spawn": {
+                      "anchor_actor_id": "ego",
+                      "offset_m": {
+                        "x": 23.222036185268642,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "yaw_offset_deg": 0.0
+                    },
+                    "speed_mps": 13.270593312846604
+                  }
+                ],
+                "events": [
+                  {
+                    "action": "brake",
+                    "actor_id": "lead",
+                    "trigger_time_s": 0.0,
+                    "deceleration_mps2": 8.054187301312954
+                  }
+                ],
+                "driving_task": null,
+                "location": null,
+                "event": "lead_vehicle_brakes",
+                "occlusion": false,
+                "parameters": {
+                  "ego_speed_mps": 21.266124436601153,
+                  "precipitation_pct": 75.79544029403024,
+                  "fog_density_pct": 25.2342948498507,
+                  "sun_altitude_deg": 15.891675029296334,
+                  "lead_speed_mps": 13.270593312846604,
+                  "lead_distance_m": 23.222036185268642,
+                  "brake_delay_s": 0.0,
+                  "lead_deceleration_mps2": 8.054187301312954
+                }
+              }
+            },
+            {
+              "name": "Second approach",
+              "scenario": {
+                "schema_version": "1.0",
+                "name": "Second fixture",
+                "template": "sudden_braking",
+                "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+                "map": "Town03",
+                "seed": 0,
+                "duration_s": 0.1,
+                "fixed_delta_seconds": 0.05,
+                "weather": {
+                  "cloudiness": 0.0,
+                  "precipitation": 75.79544029403024,
+                  "wetness": 75.79544029403024,
+                  "fog_density": 25.2342948498507,
+                  "sun_altitude_deg": 15.891675029296334
+                },
+                "actors": [
+                  {
+                    "type": "ego_vehicle",
+                    "id": "ego",
+                    "blueprint": "vehicle.tesla.model3",
+                    "spawn": null,
+                    "spawn_point_index": 0,
+                    "relative_spawn": null,
+                    "speed_mps": 21.266124436601153
+                  },
+                  {
+                    "type": "lead_vehicle",
+                    "id": "lead",
+                    "blueprint": "vehicle.tesla.model3",
+                    "spawn": null,
+                    "spawn_point_index": null,
+                    "relative_spawn": {
+                      "anchor_actor_id": "ego",
+                      "offset_m": {
+                        "x": 23.222036185268642,
+                        "y": 0.0,
+                        "z": 0.0
+                      },
+                      "yaw_offset_deg": 0.0
+                    },
+                    "speed_mps": 13.270593312846604
+                  }
+                ],
+                "events": [
+                  {
+                    "action": "brake",
+                    "actor_id": "lead",
+                    "trigger_time_s": 0.0,
+                    "deceleration_mps2": 8.054187301312954
+                  }
+                ],
+                "driving_task": null,
+                "location": null,
+                "event": "lead_vehicle_brakes",
+                "occlusion": false,
+                "parameters": {
+                  "ego_speed_mps": 21.266124436601153,
+                  "precipitation_pct": 75.79544029403024,
+                  "fog_density_pct": 25.2342948498507,
+                  "sun_altitude_deg": 15.891675029296334,
+                  "lead_speed_mps": 13.270593312846604,
+                  "lead_distance_m": 23.222036185268642,
+                  "brake_delay_s": 0.0,
+                  "lead_deceleration_mps2": 8.054187301312954
+                }
+              }
+            }
+          ],
+          "agents": [
+            null
+          ],
+          "seeds": [
+            7,
+            11
+          ],
+          "repeats": 1,
+          "failure_kind": null,
+          "minimum_severity": 0.0
+        },
+        "execution": {
+          "mode": "test",
+          "options": {
+            "allow_map_reload": false,
+            "no_rendering_mode": null,
+            "carla_quality": null,
+            "sensor_timeout_s": 2.0,
+            "sensor_settle_s": 0.02,
+            "max_ticks": 100000,
+            "camera": false,
+            "lidar": false,
+            "camera_width": 640,
+            "camera_height": 360
+          },
+          "evaluation_settings": {
+            "method_version": "1.0",
+            "collision_episode_gap_s": 1.0,
+            "violation_episode_gap_s": 1.0,
+            "speeding_tolerance_mps": 0.5,
+            "hard_braking_threshold_mps2": 4.0,
+            "stopped_speed_mps": 0.1,
+            "max_sample_gap_s": 0.5,
+            "ttc_horizon_s": 10.0,
+            "ttc_warning_s": 3.0,
+            "clearance_warning_m": 2.0,
+            "braking_full_severity_mps2": 8.0,
+            "violations_for_full_severity": 3,
+            "ttc_weight": 45.0,
+            "clearance_weight": 25.0,
+            "braking_weight": 15.0,
+            "traffic_rule_weight": 15.0
+          }
+        },
+        "source_failure": null,
+        "agent_snapshot": null,
+        "comparison_agents": [
+          {
+            "agent_id": null,
+            "snapshot": null
+          }
+        ],
+        "status": "completed",
+        "revision": 3,
+        "created_at": "2026-10-30T16:54:01.068866Z",
+        "started_at": "2026-10-30T16:54:01.093327Z",
+        "finished_at": "2026-10-30T16:54:02.135102Z",
+        "cancel_requested": false,
+        "engine_version": "suite-v1",
+        "error": null,
+        "outcome": {
+          "trials_used": 4,
+          "successes": 4,
+          "unknowns": 0,
+          "best_simulation_id": null,
+          "best_failure_id": null,
+          "best_scenario": null,
+          "reproduced": null,
+          "summary": "Saved suite completed; compare matched agents separately for each scenario",
+          "confirmed_failures": 0,
+          "budget_exhausted": false,
+          "stop_reason": null
+        }
+      },
+      "trials": [
+        {
+          "operation_id": "31d45cab-1e36-4e18-bb87-eec5e890a271",
+          "number": 0,
+          "simulation_id": "34bebaa6-418d-45a0-9733-81278b1920f4",
+          "role": "suite",
+          "agent_index": 0,
+          "candidate_index": 0,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-0",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 7,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "a84623d6-f715-4740-bbaf-a8cc244bccbf"
+        },
+        {
+          "operation_id": "31d45cab-1e36-4e18-bb87-eec5e890a271",
+          "number": 1,
+          "simulation_id": "eb3fd085-9b32-4ffd-a030-a15a4901b479",
+          "role": "suite",
+          "agent_index": 0,
+          "candidate_index": 1,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "sudden_braking-0",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 11,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "99ffc254-1e00-43ec-a861-32b5ed737dff"
+        },
+        {
+          "operation_id": "31d45cab-1e36-4e18-bb87-eec5e890a271",
+          "number": 2,
+          "simulation_id": "0dbcf723-717d-41a1-8b24-a4f032e418b1",
+          "role": "suite",
+          "agent_index": 0,
+          "candidate_index": 2,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "Second fixture",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 7,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "8b9676ae-563d-4e4d-a0aa-3e9b1fdaaed8"
+        },
+        {
+          "operation_id": "31d45cab-1e36-4e18-bb87-eec5e890a271",
+          "number": 3,
+          "simulation_id": "d9700603-3714-4c45-81a4-cbabffd9c54e",
+          "role": "suite",
+          "agent_index": 0,
+          "candidate_index": 3,
+          "repeat_index": 0,
+          "scenario": {
+            "schema_version": "1.0",
+            "name": "Second fixture",
+            "template": "sudden_braking",
+            "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+            "map": "Town03",
+            "seed": 11,
+            "duration_s": 0.1,
+            "fixed_delta_seconds": 0.05,
+            "weather": {
+              "cloudiness": 0.0,
+              "precipitation": 75.79544029403024,
+              "wetness": 75.79544029403024,
+              "fog_density": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334
+            },
+            "actors": [
+              {
+                "type": "ego_vehicle",
+                "id": "ego",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": 0,
+                "relative_spawn": null,
+                "speed_mps": 21.266124436601153
+              },
+              {
+                "type": "lead_vehicle",
+                "id": "lead",
+                "blueprint": "vehicle.tesla.model3",
+                "spawn": null,
+                "spawn_point_index": null,
+                "relative_spawn": {
+                  "anchor_actor_id": "ego",
+                  "offset_m": {
+                    "x": 23.222036185268642,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "yaw_offset_deg": 0.0
+                },
+                "speed_mps": 13.270593312846604
+              }
+            ],
+            "events": [
+              {
+                "action": "brake",
+                "actor_id": "lead",
+                "trigger_time_s": 0.0,
+                "deceleration_mps2": 8.054187301312954
+              }
+            ],
+            "driving_task": null,
+            "location": null,
+            "event": "lead_vehicle_brakes",
+            "occlusion": false,
+            "parameters": {
+              "ego_speed_mps": 21.266124436601153,
+              "precipitation_pct": 75.79544029403024,
+              "fog_density_pct": 25.2342948498507,
+              "sun_altitude_deg": 15.891675029296334,
+              "lead_speed_mps": 13.270593312846604,
+              "lead_distance_m": 23.222036185268642,
+              "brake_delay_s": 0.0,
+              "lead_deceleration_mps2": 8.054187301312954
+            }
+          },
+          "assessed": true,
+          "score": 100.0,
+          "matches": true,
+          "reason": "Observed failure meets the severity threshold",
+          "failure_id": "9a499adf-9c44-456e-aa4f-03745ab8d279"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "case_index": 0,
+        "name": "Braking approach",
+        "groups": [
+          {
+            "agent_index": 0,
+            "registration_id": null,
+            "name": "Built-in baseline",
+            "version": null,
+            "planned_runs": 2,
+            "simulation_ids": [
+              "34bebaa6-418d-45a0-9733-81278b1920f4",
+              "eb3fd085-9b32-4ffd-a030-a15a4901b479"
+            ],
+            "status_counts": {
+              "completed": 2
+            },
+            "assessed_runs": 2,
+            "matching_runs": 2,
+            "negative_runs": 0,
+            "unknown_runs": 0,
+            "unassessed_runs": 0,
+            "completed_runs": 2,
+            "partial_coverage_results": 0,
+            "input_sources": {
+              "synthetic_state": 2
+            },
+            "task_outcomes": {
+              "not_recorded": 2
+            },
+            "metrics": {
+              "severity": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "0–100 heuristic",
+                "mean": 100.0,
+                "minimum": 100.0,
+                "maximum": 100.0,
+                "sample_stddev": 0.0
+              },
+              "collision_count": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "episodes",
+                "mean": 1.0,
+                "minimum": 1.0,
+                "maximum": 1.0,
+                "sample_stddev": 0.0
+              },
+              "min_ttc_s": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "s",
+                "mean": 2.0432126571482527,
+                "minimum": 2.0432126571482527,
+                "maximum": 2.0432126571482527,
+                "sample_stddev": 0.0
+              },
+              "min_clearance_m": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "m",
+                "mean": 17.98221213638662,
+                "minimum": 17.98221213638662,
+                "maximum": 17.98221213638662,
+                "sample_stddev": 0.0
+              },
+              "max_deceleration_mps2": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "m/s²",
+                "mean": 0.0,
+                "minimum": 0.0,
+                "maximum": 0.0,
+                "sample_stddev": 0.0
+              },
+              "hard_braking_count": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "episodes",
+                "mean": 0.0,
+                "minimum": 0.0,
+                "maximum": 0.0,
+                "sample_stddev": 0.0
+              },
+              "traffic_violation_count": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "episodes",
+                "mean": 1.0,
+                "minimum": 1.0,
+                "maximum": 1.0,
+                "sample_stddev": 0.0
+              },
+              "max_stopping_distance_m": {
+                "eligible_results": 2,
+                "observed_results": 0,
+                "unavailable_results": 2,
+                "unit": "m",
+                "mean": null,
+                "minimum": null,
+                "maximum": null,
+                "sample_stddev": null
+              },
+              "max_stopping_time_s": {
+                "eligible_results": 2,
+                "observed_results": 0,
+                "unavailable_results": 2,
+                "unit": "s",
+                "mean": null,
+                "minimum": null,
+                "maximum": null,
+                "sample_stddev": null
+              }
+            }
+          }
+        ],
+        "paired_comparisons": [],
+        "notes": [
+          "Agents receive matched scenario/seed/repetition cells through one serial queue, in the recorded agent order. This is not a real-world safety ranking or a causal experiment.",
+          "Metric distributions include completed runs with available values. Failed/cancelled or null-valued finalized runs are unavailable; unfinalized runs are outside the denominator. Completed partial-coverage measures are retained and their count is explicit.",
+          "Each metric has its own observed denominator. Missing values never become zero. Standard deviation is descriptive sample spread and is unavailable with fewer than two observations.",
+          "Paired severity differences require completed, fully observed runs and compatible recorded runtimes. Positive differences mean a higher heuristic severity than agent zero, not a failure probability.",
+          "Different observation sources, route ownership or control authority can change the information/assistance available to an agent. Inspect input-source counts and the frozen snapshots before interpreting differences.",
+          "Seeds do not guarantee deterministic learned inference, hardware behavior or CARLA execution. Repetitions are separate observed runs, not proof of generalization.",
+          "Summary metrics are stored safety/task outcomes. Open individual run links for the Phase 8 behavior analysis, settings, interventions and frame evidence. No model or simulator is started by this report."
+        ]
+      },
+      {
+        "case_index": 1,
+        "name": "Second approach",
+        "groups": [
+          {
+            "agent_index": 0,
+            "registration_id": null,
+            "name": "Built-in baseline",
+            "version": null,
+            "planned_runs": 2,
+            "simulation_ids": [
+              "0dbcf723-717d-41a1-8b24-a4f032e418b1",
+              "d9700603-3714-4c45-81a4-cbabffd9c54e"
+            ],
+            "status_counts": {
+              "completed": 2
+            },
+            "assessed_runs": 2,
+            "matching_runs": 2,
+            "negative_runs": 0,
+            "unknown_runs": 0,
+            "unassessed_runs": 0,
+            "completed_runs": 2,
+            "partial_coverage_results": 0,
+            "input_sources": {
+              "synthetic_state": 2
+            },
+            "task_outcomes": {
+              "not_recorded": 2
+            },
+            "metrics": {
+              "severity": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "0–100 heuristic",
+                "mean": 100.0,
+                "minimum": 100.0,
+                "maximum": 100.0,
+                "sample_stddev": 0.0
+              },
+              "collision_count": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "episodes",
+                "mean": 1.0,
+                "minimum": 1.0,
+                "maximum": 1.0,
+                "sample_stddev": 0.0
+              },
+              "min_ttc_s": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "s",
+                "mean": 2.0432126571482527,
+                "minimum": 2.0432126571482527,
+                "maximum": 2.0432126571482527,
+                "sample_stddev": 0.0
+              },
+              "min_clearance_m": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "m",
+                "mean": 17.98221213638662,
+                "minimum": 17.98221213638662,
+                "maximum": 17.98221213638662,
+                "sample_stddev": 0.0
+              },
+              "max_deceleration_mps2": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "m/s²",
+                "mean": 0.0,
+                "minimum": 0.0,
+                "maximum": 0.0,
+                "sample_stddev": 0.0
+              },
+              "hard_braking_count": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "episodes",
+                "mean": 0.0,
+                "minimum": 0.0,
+                "maximum": 0.0,
+                "sample_stddev": 0.0
+              },
+              "traffic_violation_count": {
+                "eligible_results": 2,
+                "observed_results": 2,
+                "unavailable_results": 0,
+                "unit": "episodes",
+                "mean": 1.0,
+                "minimum": 1.0,
+                "maximum": 1.0,
+                "sample_stddev": 0.0
+              },
+              "max_stopping_distance_m": {
+                "eligible_results": 2,
+                "observed_results": 0,
+                "unavailable_results": 2,
+                "unit": "m",
+                "mean": null,
+                "minimum": null,
+                "maximum": null,
+                "sample_stddev": null
+              },
+              "max_stopping_time_s": {
+                "eligible_results": 2,
+                "observed_results": 0,
+                "unavailable_results": 2,
+                "unit": "s",
+                "mean": null,
+                "minimum": null,
+                "maximum": null,
+                "sample_stddev": null
+              }
+            }
+          }
+        ],
+        "paired_comparisons": [],
+        "notes": [
+          "Agents receive matched scenario/seed/repetition cells through one serial queue, in the recorded agent order. This is not a real-world safety ranking or a causal experiment.",
+          "Metric distributions include completed runs with available values. Failed/cancelled or null-valued finalized runs are unavailable; unfinalized runs are outside the denominator. Completed partial-coverage measures are retained and their count is explicit.",
+          "Each metric has its own observed denominator. Missing values never become zero. Standard deviation is descriptive sample spread and is unavailable with fewer than two observations.",
+          "Paired severity differences require completed, fully observed runs and compatible recorded runtimes. Positive differences mean a higher heuristic severity than agent zero, not a failure probability.",
+          "Different observation sources, route ownership or control authority can change the information/assistance available to an agent. Inspect input-source counts and the frozen snapshots before interpreting differences.",
+          "Seeds do not guarantee deterministic learned inference, hardware behavior or CARLA execution. Repetitions are separate observed runs, not proof of generalization.",
+          "Summary metrics are stored safety/task outcomes. Open individual run links for the Phase 8 behavior analysis, settings, interventions and frame evidence. No model or simulator is started by this report."
+        ]
+      }
+    ]
+  },
+  "run": {
+    "simulation": {
+      "id": "4948a726-479a-40b3-89a8-c5bd5dd2e7b9",
+      "scenario": {
+        "schema_version": "1.0",
+        "name": "sudden_braking-0",
+        "template": "sudden_braking",
+        "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+        "map": "Town03",
+        "seed": 0,
+        "duration_s": 0.1,
+        "fixed_delta_seconds": 0.05,
+        "weather": {
+          "cloudiness": 0.0,
+          "precipitation": 75.79544029403024,
+          "wetness": 75.79544029403024,
+          "fog_density": 25.2342948498507,
+          "sun_altitude_deg": 15.891675029296334
+        },
+        "actors": [
+          {
+            "type": "ego_vehicle",
+            "id": "ego",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": 0,
+            "relative_spawn": null,
+            "speed_mps": 21.266124436601153
+          },
+          {
+            "type": "lead_vehicle",
+            "id": "lead",
+            "blueprint": "vehicle.tesla.model3",
+            "spawn": null,
+            "spawn_point_index": null,
+            "relative_spawn": {
+              "anchor_actor_id": "ego",
+              "offset_m": {
+                "x": 23.222036185268642,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "yaw_offset_deg": 0.0
+            },
+            "speed_mps": 13.270593312846604
+          }
+        ],
+        "events": [
+          {
+            "action": "brake",
+            "actor_id": "lead",
+            "trigger_time_s": 0.0,
+            "deceleration_mps2": 8.054187301312954
+          }
+        ],
+        "driving_task": null,
+        "location": null,
+        "event": "lead_vehicle_brakes",
+        "occlusion": false,
+        "parameters": {
+          "ego_speed_mps": 21.266124436601153,
+          "precipitation_pct": 75.79544029403024,
+          "fog_density_pct": 25.2342948498507,
+          "sun_altitude_deg": 15.891675029296334,
+          "lead_speed_mps": 13.270593312846604,
+          "lead_distance_m": 23.222036185268642,
+          "brake_delay_s": 0.0,
+          "lead_deceleration_mps2": 8.054187301312954
+        }
+      },
+      "agent": "baseline",
+      "agent_snapshot": null,
+      "mode": "test",
+      "status": "completed",
+      "progress": 1.0,
+      "created_at": "2026-10-30T16:53:59.247659Z",
+      "started_at": "2026-10-30T16:53:59.300134Z",
+      "finished_at": "2026-10-30T16:53:59.344819Z",
+      "error": null
+    },
+    "result": {
+      "simulation": {
+        "id": "4948a726-479a-40b3-89a8-c5bd5dd2e7b9",
+        "scenario": {
+          "schema_version": "1.0",
+          "name": "sudden_braking-0",
+          "template": "sudden_braking",
+          "description": "A moving lead vehicle ahead of the ego vehicle brakes sharply after a delay.",
+          "map": "Town03",
+          "seed": 0,
+          "duration_s": 0.1,
+          "fixed_delta_seconds": 0.05,
+          "weather": {
+            "cloudiness": 0.0,
+            "precipitation": 75.79544029403024,
+            "wetness": 75.79544029403024,
+            "fog_density": 25.2342948498507,
+            "sun_altitude_deg": 15.891675029296334
+          },
+          "actors": [
+            {
+              "type": "ego_vehicle",
+              "id": "ego",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": 0,
+              "relative_spawn": null,
+              "speed_mps": 21.266124436601153
+            },
+            {
+              "type": "lead_vehicle",
+              "id": "lead",
+              "blueprint": "vehicle.tesla.model3",
+              "spawn": null,
+              "spawn_point_index": null,
+              "relative_spawn": {
+                "anchor_actor_id": "ego",
+                "offset_m": {
+                  "x": 23.222036185268642,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "yaw_offset_deg": 0.0
+              },
+              "speed_mps": 13.270593312846604
+            }
+          ],
+          "events": [
+            {
+              "action": "brake",
+              "actor_id": "lead",
+              "trigger_time_s": 0.0,
+              "deceleration_mps2": 8.054187301312954
+            }
+          ],
+          "driving_task": null,
+          "location": null,
+          "event": "lead_vehicle_brakes",
+          "occlusion": false,
+          "parameters": {
+            "ego_speed_mps": 21.266124436601153,
+            "precipitation_pct": 75.79544029403024,
+            "fog_density_pct": 25.2342948498507,
+            "sun_altitude_deg": 15.891675029296334,
+            "lead_speed_mps": 13.270593312846604,
+            "lead_distance_m": 23.222036185268642,
+            "brake_delay_s": 0.0,
+            "lead_deceleration_mps2": 8.054187301312954
+          }
+        },
+        "agent": "baseline",
+        "agent_snapshot": null,
+        "mode": "test",
+        "status": "completed",
+        "progress": 1.0,
+        "created_at": "2026-10-30T16:53:59.247659Z",
+        "started_at": "2026-10-30T16:53:59.300134Z",
+        "finished_at": "2026-10-30T16:53:59.344819Z",
+        "error": null
+      },
+      "metrics": {
+        "collision_count": 1,
+        "traffic_violation_count": 1,
+        "min_clearance_m": 17.98221213638662,
+        "min_ttc_s": 2.0432126571482527,
+        "max_deceleration_mps2": 0.0,
+        "hard_braking_count": 0,
+        "max_stopping_distance_m": null,
+        "max_stopping_time_s": null,
+        "severity": 100.0,
+        "coverage": {
+          "total_frames": 3,
+          "collision_frames": 3,
+          "traffic_rule_frames": 3,
+          "braking_frames": 3,
+          "clearance_frames": 3,
+          "ttc_frames": 3,
+          "actor_pairs": 3,
+          "clearance_pairs": 3,
+          "ttc_pairs": 3,
+          "has_gaps": false
+        },
+        "evaluation_settings": {
+          "method_version": "1.0",
+          "collision_episode_gap_s": 1.0,
+          "violation_episode_gap_s": 1.0,
+          "speeding_tolerance_mps": 0.5,
+          "hard_braking_threshold_mps2": 4.0,
+          "stopped_speed_mps": 0.1,
+          "max_sample_gap_s": 0.5,
+          "ttc_horizon_s": 10.0,
+          "ttc_warning_s": 3.0,
+          "clearance_warning_m": 2.0,
+          "braking_full_severity_mps2": 8.0,
+          "violations_for_full_severity": 3,
+          "ttc_weight": 45.0,
+          "clearance_weight": 25.0,
+          "braking_weight": 15.0,
+          "traffic_rule_weight": 15.0
+        }
+      },
+      "telemetry_frames": 3,
+      "measured_duration_s": 0.1,
+      "artifacts": [
+        {
+          "kind": "telemetry",
+          "path": "telemetry/4948a726-479a-40b3-89a8-c5bd5dd2e7b9/c118124f-2d48-47d7-ae8d-130c5366fa1c/frames.ndjson",
+          "media_type": "application/x-ndjson"
+        },
+        {
+          "kind": "decisions",
+          "path": "decisions/4948a726-479a-40b3-89a8-c5bd5dd2e7b9/a1c97800-afc3-476d-95d8-d5501e6a048c/timeline.ndjson",
+          "media_type": "application/x-ndjson"
+        }
+      ],
+      "runtime": {
+        "adapter": "test",
+        "server_version": null,
+        "client_version": null,
+        "map_name": "test:Town03",
+        "fixed_delta_seconds": 0.05,
+        "seed": 0,
+        "resolved_spawns": {
+          "ego": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": 0.0
+            }
+          },
+          "lead": {
+            "position": {
+              "x": 23.222036185268642,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch_deg": 0.0,
+              "yaw_deg": 0.0,
+              "roll_deg": -0.0
+            }
+          }
+        },
+        "sensor_samples_count": 0
+      },
+      "driving_outcome": null,
+      "control_audit": {
+        "mode": "scripted",
+        "controller": "baseline",
+        "navigation": "legacy_assisted",
+        "interventions": []
+      },
+      "agent_inputs": {
+        "observation_mode": "simulator_state",
+        "source": "synthetic_state",
+        "ego_state_source": "simulator_state",
+        "sensors": [],
+        "ground_truth_actor_inputs": true,
+        "assistance": []
+      }
+    },
+    "scenario_id": null,
+    "revision": 3,
+    "created_at": "2026-10-30T16:53:59.247659Z",
+    "updated_at": "2026-10-30T16:53:59.428306Z",
+    "job": {
+      "cancel_requested": false,
+      "queue_position": null,
+      "options": {
+        "allow_map_reload": false,
+        "no_rendering_mode": null,
+        "carla_quality": null,
+        "sensor_timeout_s": 2.0,
+        "sensor_settle_s": 0.02,
+        "max_ticks": 100000,
+        "camera": false,
+        "lidar": false,
+        "camera_width": 640,
+        "camera_height": 360
+      },
+      "evaluation_settings": {
+        "method_version": "1.0",
+        "collision_episode_gap_s": 1.0,
+        "violation_episode_gap_s": 1.0,
+        "speeding_tolerance_mps": 0.5,
+        "hard_braking_threshold_mps2": 4.0,
+        "stopped_speed_mps": 0.1,
+        "max_sample_gap_s": 0.5,
+        "ttc_horizon_s": 10.0,
+        "ttc_warning_s": 3.0,
+        "clearance_warning_m": 2.0,
+        "braking_full_severity_mps2": 8.0,
+        "violations_for_full_severity": 3,
+        "ttc_weight": 45.0,
+        "clearance_weight": 25.0,
+        "braking_weight": 15.0,
+        "traffic_rule_weight": 15.0
+      },
+      "agent_snapshot": null
+    }
+  },
+  "highlights": {
+    "simulation_id": "4948a726-479a-40b3-89a8-c5bd5dd2e7b9",
+    "mode": "test",
+    "highlights": [
+      {
+        "kind": "collision",
+        "frame": 0,
+        "time_s": 0.0,
+        "title": "Recorded contact",
+        "description": "A collision sensor recorded contact at this frame. Inspect the participants and controls in the evidence.",
+        "source": "telemetry"
+      },
+      {
+        "kind": "near_miss",
+        "frame": 0,
+        "time_s": 0.0,
+        "title": "Evaluator conflict threshold",
+        "description": "Recorded geometry crossed an evaluator threshold near lead. This does not establish that the agent perceived the hazard.",
+        "source": "telemetry"
+      },
+      {
+        "kind": "finish",
+        "frame": 2,
+        "time_s": 0.1,
+        "title": "Last recorded frame",
+        "description": "Execution ended as completed. Recorded severity is 100.0 / 100; this is a heuristic, not a safety certification.",
+        "source": "telemetry"
+      }
+    ],
+    "total_frames": 3,
+    "coverage_complete": true,
+    "explanation": "Synthetic fixtures illustrate the workflow; these are not measurements of real CARLA driving.",
+    "limitations": [
+      "Highlights are selected evidence, not a complete replay or an explanation of model reasoning.",
+      "Missing observations and partial coverage remain unknown. A run without a highlighted failure does not establish safety.",
+      "Highlights validate saved telemetry. Individual recording checksums are verified separately when recordings are inspected.",
+      "Camera and LiDAR recordings, when captured, remain available through the run's recording viewer."
+    ]
+  },
+  "feedback": {
+    "id": "27069034-bde6-4e20-8e9b-2ee674970b42",
+    "feedback": {
+      "simulation_id": "4948a726-479a-40b3-89a8-c5bd5dd2e7b9",
+      "could_explain_outcome": true,
+      "confusing_step": "Synthetic fixture feedback",
+      "reason_to_return": "Compare the next controller version",
+      "consent_to_save": true
+    },
+    "created_at": "2026-10-30T16:54:02.154577Z"
+  }
+}

@@ -4,6 +4,10 @@ import type { DecisionPage } from "../types/generated";
 import type { BehaviorAnalysis } from "../types/generated";
 import { isBehaviorAnalysis } from "./behavior-contract";
 import { experimentContracts } from "./experiment-contract";
+import { labContracts } from "./lab-contract";
+import type { DiscoveryPlan, DiscoveryProposal, DiscoveryReport, GalleryScenario, GuidanceFeedback, ReplayHighlights, SavedFeedback, SavedSuite, SuiteReport, SuiteSave } from "../types/generated";
+import type { LabReply } from "../types/generated";
+type LabResult = LabReply["result"];
 import { isReadinessReport } from "./readiness-contract";
 import type { ReadinessReport } from "../types/generated";
 import type { ComparisonReport, OptimizationRecord, OptimizationView } from "../types/generated";
@@ -750,7 +754,57 @@ export function createApiClient(baseUrl = API_BASE_URL) {
   }
 
   const experiments = experimentContracts({ scenario: isScenario, options: isOptions, evaluation: isEvaluation, snapshot: isAgentSnapshot, failure: isFailure });
+  const lab = labContracts({ scenario: isScenario, snapshot: isAgentSnapshot }, experiments);
+  const validLabResult = (value: unknown): value is LabResult => {
+    if (!isObject(value)) return false;
+    switch (value.kind) {
+      case "gallery": return lab.gallery(value.items);
+      case "suites": case "plans": case "feedbacks": return Array.isArray(value.items) && value.items.length <= 20
+        && isTimestamp(value.snapshot_at) && (value.next_offset === null || integer(value.next_offset))
+        && value.items.every(v => value.kind === "suites" ? lab.suite(v) : value.kind === "plans" ? lab.plan(v) : lab.feedback(v));
+      case "suite_runs": return Array.isArray(value.items) && value.items.length <= 20 && isTimestamp(value.snapshot_at)
+        && (value.next_offset === null || integer(value.next_offset)) && value.items.every(v => experiments.record(v) && v.request.kind === "suite");
+      case "suite": return lab.suite(value.suite);
+      case "plan": return lab.plan(value.plan);
+      case "operation": return experiments.record(value.operation);
+      case "discovery": return isObject(value.report) && isObject(value.report.plan) && isUuid(value.report.plan.id) && lab.discovery(value.report, value.report.plan.id);
+      case "suite_report": return isObject(value.report) && isObject(value.report.evidence) && isObject(value.report.evidence.operation) && isUuid(value.report.evidence.operation.id) && lab.suiteReport(value.report, value.report.evidence.operation.id);
+      case "run": return isSimulationRecord(value.record);
+      case "highlights": return isObject(value.highlights) && isUuid(value.highlights.simulation_id) && lab.highlights(value.highlights, value.highlights.simulation_id);
+      case "frame": return isUuid(value.simulation_id) && isObject(value.frame) && integer(value.frame.frame) && nonnegative(value.frame.time_s)
+        && (value.frame.speed_mps === null || nonnegative(value.frame.speed_mps)) && isControl(value.frame.control)
+        && (value.frame.collisions === null || integer(value.frame.collisions)) && (value.frame.traffic_violations === null || integer(value.frame.traffic_violations));
+      case "feedback": return lab.feedback(value.feedback);
+      case "deleted": return isUuid(value.id);
+      default: return false;
+    }
+  };
   return {
+    validateLabResult: validLabResult,
+    getGallery: (options: RequestOptions = {}) => request<GalleryScenario[]>("/experimentation/gallery", options, lab.gallery),
+    listSuites: (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<SavedSuite[]>(`/experimentation/suites${paginationQuery(pagination)}`, options, v => Array.isArray(v) && v.every(row => lab.suite(row))),
+    getSuite: (id: string, options: RequestOptions = {}) => request<SavedSuite>(`/experimentation/suites/${checkedId(id)}`, options, v => lab.suite(v, id)),
+    saveSuite: (input: SuiteSave, options: RequestOptions = {}) => request<SavedSuite>("/experimentation/suites", options, v => lab.suite(v), "POST", input, 201),
+    updateSuite: (id: string, input: SuiteSave, revision: number, options: RequestOptions = {}) => request<SavedSuite>(`/experimentation/suites/${checkedId(id)}`, options, v => lab.suite(v, id), "PUT", { ...input, expected_revision: checkedRevision(revision) }),
+    deleteSuite: (id: string, revision: number, options: RequestOptions = {}) => request<void>(`/experimentation/suites/${checkedId(id)}?expected_revision=${checkedRevision(revision)}`, options, () => true, "DELETE", undefined, 204),
+    runSuite: (id: string, revision: number, requestId: string, options: RequestOptions = {}) => request<OptimizationRecord>(`/experimentation/suites/${checkedId(id)}/runs`, options,
+      v => experiments.record(v) && v.request.kind === "suite" && v.request.suite_id === id && v.request.suite_revision === revision && v.id === requestId,
+      "POST", { expected_revision: checkedRevision(revision), request_id: checkedId(requestId) }, 202),
+    listSuiteRuns: (id: string, pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<OptimizationRecord[]>(`/experimentation/suites/${checkedId(id)}/runs${paginationQuery(pagination)}`, options,
+      v => Array.isArray(v) && v.every(row => experiments.record(row) && row.request.kind === "suite" && row.request.suite_id === id)),
+    getSuiteReport: (id: string, options: RequestOptions = {}) => request<SuiteReport>(`/experimentation/suite-runs/${checkedId(id)}`, options, v => lab.suiteReport(v, id)),
+    suiteExportUrl: (id: string) => `${base}/experimentation/suites/${checkedId(id)}?download=true`,
+    suiteReportExportUrl: (id: string) => `${base}/experimentation/suite-runs/${checkedId(id)}?download=true`,
+    proposeDiscovery: (input: DiscoveryProposal, options: RequestOptions = {}) => request<DiscoveryPlan>("/experimentation/discovery/plans", options, v => lab.plan(v), "POST", input, 201),
+    listDiscoveryPlans: (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<DiscoveryPlan[]>(`/experimentation/discovery/plans${paginationQuery(pagination)}`, options, v => Array.isArray(v) && v.every(row => lab.plan(row))),
+    getDiscoveryPlan: (id: string, options: RequestOptions = {}) => request<DiscoveryPlan>(`/experimentation/discovery/plans/${checkedId(id)}`, options, v => lab.plan(v, id)),
+    approveDiscovery: (plan: DiscoveryPlan, options: RequestOptions = {}) => request<OptimizationRecord>(`/experimentation/discovery/plans/${checkedId(plan.id)}/approve`, options,
+      v => experiments.record(v) && v.request.kind === "discover" && v.request.plan_id === plan.id && v.request.plan_digest === plan.digest,
+      "POST", { expected_revision: checkedRevision(plan.revision), digest: plan.digest, approve: true }, 202),
+    getDiscoveryReport: (id: string, options: RequestOptions = {}) => request<DiscoveryReport>(`/experimentation/discovery/plans/${checkedId(id)}/report`, options, v => lab.discovery(v, id)),
+    discoveryExportUrl: (id: string) => `${base}/experimentation/discovery/plans/${checkedId(id)}/report?download=true`,
+    getReplayHighlights: (id: string, options: RequestOptions = {}) => request<ReplayHighlights>(`/experimentation/highlights/${checkedId(id)}`, options, v => lab.highlights(v, id)),
+    saveGuidanceFeedback: (input: GuidanceFeedback, options: RequestOptions = {}) => request<SavedFeedback>("/experimentation/feedback", options, v => lab.feedback(v) && v.feedback.simulation_id === input.simulation_id, "POST", input, 201),
     listOptimizations: (pagination: ScenarioPagination = {}, options: RequestOptions = {}) => request<OptimizationRecord[]>(`/optimizations${paginationQuery(pagination)}`, options, v => Array.isArray(v) && v.every(experiments.record)),
     createOptimization: (input: unknown, options: RequestOptions = {}) => request<OptimizationRecord>("/optimizations", options, experiments.record, "POST", input, 202),
     getOptimization: (id: string, options: RequestOptions = {}) => request<OptimizationView>(`/optimizations/${checkedId(id)}`, options, v => experiments.view(v, id)),

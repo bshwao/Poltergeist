@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { auditAccessibility } from "../test-support/accessibility";
 
 for (const width of [1440, 390]) {
-  for (const route of ["overview", "scenarios", "agents", "experiments", "simulations", "failures"]) {
+  for (const route of ["overview", "lab", "discovery", "scenarios", "agents", "experiments", "simulations", "failures"]) {
     test(`accessible ${route} layout at ${width}px`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/#${route}`);
