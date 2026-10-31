@@ -1,0 +1,92 @@
+{
+  "schema_version": "poltergeist-relay-overhead-checkpoint-v1",
+  "recorded_at": "2026-10-31T20:02:11.397250+00:00",
+  "source_parent": "11bd256dbca56acbada2221a53331353c70d5914",
+  "branch": "codex/s9-relay-capacity-latency",
+  "candidate_source_blobs": {
+    "coordinator/app.py": "85416e0caf54ad8be28cd90242532c3993c3a494",
+    "coordinator/store.py": "391124f5d2b8dbca1709b589f375e60108da1b37",
+    "coordinator/commands.py": "dabbecac651253ba307ca8d2a8f232a718398f87",
+    "coordinator/relay.py": "0dc9914b52410a174607d858fdf83a5cf13b1a47",
+    "pyproject.toml": "eb3c5af64502e0c4c9b85a5e5dcddaaf32b1dee1",
+    "requirements.lock": "e2ada958065c94d28f1d5a3a9847528f4310bcf2",
+    "requirements-core.lock": "e026f0d9679500a0bd9f540f80f3b46cd74faf44",
+    "packaging/windows-x64/inputs.json": "225804ebe3d57c73040e41955878c147b2851dd6",
+    "tests/test_coordinator_path_checks.py": "daeb75fdb9566d742785e0eabc959c462adaf8b1",
+    "tests/test_coordinator_delivery_transactions.py": "338fcbef8ab62e69f6d23eb3151d2286cb28ed37",
+    "tests/test_portable.py": "9414bfe912d090bac9994e48326df7db6cbb2cc3",
+    "tests/test_relay_resume.py": "6e0a30c8eb198a3a1c8726f3379fe3961280da1f"
+  },
+  "implementation": [
+    "Reuse immutable path names; fresh filesystem metadata checks before every transaction",
+    "Keep command readback on the relay loop with the existing atomic session/read transaction",
+    "Combine pending selection with full live-connection validation; recheck full policy/grants before each send",
+    "Declare sniffio explicitly, pin its portable wheel, and regenerate the core dependency closure"
+  ],
+  "validation": {
+    "path_auth_and_command": {
+      "tests": 45,
+      "passed": 45,
+      "failures": []
+    },
+    "readback_and_deadlines": {
+      "tests": 16,
+      "passed": 16,
+      "failures": []
+    },
+    "broad_recovery_initial": {
+      "tests": 93,
+      "passed": 92,
+      "failures": [
+        "test_policy_is_rechecked_after_each_awaited_send"
+      ]
+    },
+    "corrected_delivery": {
+      "tests": 6,
+      "passed": 6,
+      "failures": []
+    },
+    "runtime_packaging_and_delivery": {
+      "tests": 48,
+      "passed": 48,
+      "failures": []
+    },
+    "hosted_browser": 3
+  },
+  "capacity": {
+    "protocol": 2,
+    "commands_per_measurement": 500,
+    "final_25_p95_s": 0.6409999999996217,
+    "final_25_passed": true,
+    "final_100_p95_s": 4.311999999999898,
+    "final_100_passed": false,
+    "target_p95_s": 2.0,
+    "target_traced_python_bytes": 134217728,
+    "all_routing_and_owner_denials_correct": true,
+    "all_fixture_cleanup_completed": true
+  },
+  "dependency_diagnostic": {
+    "not_acceptance": true,
+    "function": "httpcore._synchronization.current_async_library",
+    "asyncio_calls": 1000,
+    "tracemalloc_enabled": true,
+    "without_sniffio_s": 0.9859256999998252,
+    "with_sniffio_s": 0.0092637000002469,
+    "sniffio_version": "1.3.1",
+    "pypi": "https://pypi.org/project/sniffio/1.3.1/",
+    "wheel_sha256": "2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"
+  },
+  "retained_corrections": [
+    "Two call-profile attempts had incomplete workloads (0 and 72 commands) and are excluded from acceptance.",
+    "One new delivery test used an incomplete fake connection. The final six-case rerun uses the real connection type and passes.",
+    "The first offline lock regeneration lacked cached httpx2 metadata. Constrained online regeneration succeeded without changing any existing version.",
+    "The prior core lock omitted the already-declared HTTPX dependency. The regenerated lock includes it and a new cross-file contract prevents recurrence."
+  ],
+  "remaining": [
+    "100-device two-second latency target",
+    "Representative physical PCs and concurrent CARLA/GPU workload",
+    "TLS/WAN and provider sizing/cost acceptance",
+    "Earlier native, signing, deployment and external-beta gates"
+  ],
+  "scope": "Private single-process SQLite coordinator, simulated companions and loopback HTTP/WS. No user-window control, production deployment, native signing, learned inference or physical-PC acceptance is claimed."
+}

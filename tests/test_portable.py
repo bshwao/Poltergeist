@@ -144,6 +144,23 @@ def test_all_external_inputs_are_pinned_https_hashes_and_runtime_is_not_a_venv()
         assert int(entry["sha256"], 16) >= 0
 
 
+def test_core_lock_and_portable_inputs_cover_declared_runtime_dependencies():
+    import tomllib
+    from packaging.requirements import Requirement
+    from packaging.utils import canonicalize_name
+
+    root = build_portable.ROOT
+    project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    declared = {canonicalize_name(Requirement(value).name) for value in project["project"]["dependencies"]}
+    locked = {canonicalize_name(Requirement(line).name) for line in
+        (root / "requirements-core.lock").read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")}
+    inputs = json.loads(build_portable.INPUTS.read_text(encoding="utf-8"))
+    bundled = {canonicalize_name(entry["name"]) for entry in inputs["wheels"] if entry["role"] == "runtime"}
+    assert declared <= locked
+    assert declared <= bundled
+
+
 def test_runner_boundary_reuses_recipe_contracts_and_rejects_code_paths():
     recipe = {"name": "Boundary check", "actors": [{"id": "ego", "type": "ego_vehicle"}]}
     request = RunnerExecuteRequest(request_id=uuid4(), mode="test", scenario=recipe)

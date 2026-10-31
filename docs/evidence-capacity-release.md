@@ -1,6 +1,6 @@
 # S8–S10 implementation and acceptance
 
-Updated October 29, 2026. This is a private implementation checkpoint. Public
+Updated October 31, 2026. This is a private implementation checkpoint. Public
 hosting remains deferred. Independent PCs, a real publisher identity and external
 beta acceptance are release gates; this document does not claim their completion.
 
@@ -241,6 +241,56 @@ remain available. No timing, memory or ownership target was relaxed.
 Separate existing HTTPS/WSS tests cover transport security. The configured
 100-device latency target, real concurrent CARLA runs on representative PCs and
 hosted costs remain unvalidated. A small three-user smoke benchmark runs in core CI.
+
+The next S9 checkpoint starts from merged S14/S15 source `11bd256`. An unchanged
+protocol-2 baseline again completed all 500 commands and 100 ownership denials,
+but p95 7.84 s failed the two-second target. The following changes retain that
+target, the 64-active-request guard, the 228 transport threshold and FULL durability:
+
+- The store reuses immutable path component names. Every transaction still
+  performs fresh `lstat` checks on the database and each ancestor; filesystem
+  results are never cached. Changing the configured path refreshes the names.
+- Command readback runs its short transaction on the relay loop, like admission,
+  avoiding a worker-thread round trip for the same serialized SQLite connection.
+- Pending delivery combines full connection validation and its query/update in
+  one transaction. Every subsequent send checks the entire current policy,
+  grants, credential and connection generation again. No transaction spans an
+  await, and failed commits roll back delivery timestamps.
+- HTTPcore's async backend detector repeatedly attempts to import `sniffio`.
+  The current environment lacked it. The core dependencies now explicitly include
+  [sniffio 1.3.1](https://pypi.org/project/sniffio/1.3.1/), with its wheel hash pinned
+  in the portable inputs. Regenerating the core lock also restored the declared
+  HTTPX dependency and its existing pinned transitive packages. No existing
+  package version was upgraded. A cross-file contract checks that declared
+  runtime dependencies appear in both the core lock and portable manifest.
+
+Sequential loopback measurements on this Windows laptop:
+
+| Variant / devices / commands | p95 latency | HTTP overload retries | Result |
+| --- | --- | --- | --- |
+| [Unchanged `11bd256` / 100 / 500](validation/s9-11bd256-baseline-100-20261031.json) | 7.84 s | 289 | Latency failed |
+| [Path names reused / 100 / 500](validation/s9-path-components-100-20261031.json) | 6.80 s | 294 | Latency failed |
+| [Readback on relay loop / 100 / 500](validation/s9-relay-loop-100-20261031.json) | 7.27 s | 71 | Latency failed |
+| [Explicit async detector dependency / 100 / 500](validation/s9-runtime-dependency-100-20261031.json) | 4.36 s | 71 | Latency failed |
+| [Combined delivery transactions / 100 / 500](validation/s9-delivery-transactions-100-20261031.json) | 4.31 s | 70 | **Latency still failed** |
+| [Final source / 25 / 500](validation/s9-delivery-transactions-25-20261031.json) | **0.641 s** | **0** | **Passed** |
+
+Every row completed all 500 commands, returned all cross-owner denials and
+cleaned up. The final traced peaks were 49,637,963 bytes at 100 devices and
+17,030,936 bytes at 25 devices, below the unchanged 128 MiB limit. The final
+100-device workload took 19.03 s. Host activity outside the owned fixtures was
+not measured; these sequential points do not isolate every change or establish a
+provider sizing guarantee. Earlier slower results remain recorded.
+
+A separate diagnostic measured 1,000 backend-detection calls under tracemalloc:
+0.986 s without `sniffio`, 0.0093 s with it. That microbenchmark is not acceptance
+evidence. Two instrumented call-profile attempts produced incomplete workloads;
+neither is counted as a latency pass. See the
+[scoped overhead checkpoint](validation/s9-relay-overhead-20261031.json).
+
+The 100-device latency target remains open. Representative physical PCs,
+concurrent CARLA/GPU work, TLS/WAN overhead and deployed hosting costs remain
+separate gates. Public hosting is still deferred.
 
 ## S10: signing and safe update tooling
 

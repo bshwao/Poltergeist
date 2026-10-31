@@ -1,15 +1,15 @@
 # S0–S19 progress notes
 
-Updated October 31, 2026. Current work: **S14 Evidence Analyst and S15 Regression Agent**
-on the merged S12/S13 and S9 foundation, alongside the open installed/native acceptance
+Updated October 31, 2026. Current work: **S9 coordinator latency and runtime dependency consistency**
+after merging S14/S15, alongside the open installed/native acceptance
 gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/s14-s15-evidence-regression-agents`, based on GitHub `main`
-at `50593bf`. That integrated revision passed all five CI jobs and was
+Current branch: `codex/s9-relay-capacity-latency`, based on GitHub `main`
+at `11bd256`. That S14/S15 revision passed all five CI jobs and was
 fast-forwarded into GitHub and the original local main checkout. Earlier branch
 and CI references describe their recorded checkpoints.
 The S11 foundation is merged; its five-job branch validation passed.
@@ -35,7 +35,7 @@ private prototype does not close independent-machine or release validation.
 | **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | **S7 — Managed AI installations** | **CPU implementation delivered; independent-machine gate open** | Separate pinned interpreter/dependencies, verified weights, actual import/inference checks, explicit local registration, starter choice, repair/removal and execution use leases. See [managed AI installations](managed-ai.md) and [environment validation](validation/s7-environment.md). |
 | S8 — Evidence delivery | Private implementation; live review locally validated | Explicit evidence/capture approval, negotiated pull-only pages/chunks, hashes, versioned cursors, disk budgets, ZIP export and tombstones. Website camera/LiDAR review: 60 simulated seconds, 2,402 samples, 303 MB captured, 2.13 MB reviewed. Representative hardware/production-duration gates remain. See [checkpoint](evidence-capacity-release.md). |
-| S9 — Multi-user capacity | 25-device simulated target met; 100-device latency failed | The combined S12/S13 source completes 500/500 commands with 25/25 denials at p95 1.41 s. At 100 devices, all 500 commands and 100 denials pass but p95 9.08 s fails the unchanged two-second target. Earlier measurements, including the 6.92 s failure, remain recorded. Physical-PC/provider acceptance remains open. |
+| S9 — Multi-user capacity | 25-device simulated target met; 100-device latency failed | The latest checkpoint completes 500/500 commands with 25/25 denials at p95 0.641 s. At 100 devices, all 500 commands and 100 denials pass but p95 4.31 s still fails the unchanged two-second target. Earlier 9.08 s, 7.84 s and 6.92 s failures remain recorded. Physical-PC/provider acceptance remains open. |
 | S10 — Distribution and release | Private tooling; signing and external acceptance deferred | Pinned publisher verification, installer/uninstaller signing adapter, signed metadata, explicit bounded HTTPS delivery, staged cohorts, native update/rollback review, closed-process helper, backups and compatible rollback. Publisher/feed configuration is unset; actual signed acceptance, deployed delivery and [external beta](private-beta.md) remain open. |
 | **S11 — Visual design and usability** | **In progress; shared foundation implemented** | Shared light browser palette, readable typography, connection states, keyboard skip links/table scrolling and native tab traversal. Browser accessibility checks and companion regression tests cover this first checkpoint. Full workflow visual review, additional display/theme coverage and first-run testers remain. See [S11 plan](visual-usability.md). |
 | S12 — Guided experimentation and adoption | Application delivered; independent tester gate open | Guided first experiment, sixteen illustrated scenes, saved suites, per-case matched comparisons, exact-frame highlights and deliberate feedback in both dashboards. Desktop/mobile browser journeys and accessibility checks pass. Actual new-tester feedback and verified follow-up changes remain. See [workflow guide](guided-experimentation.md). |
@@ -49,12 +49,27 @@ private prototype does not close independent-machine or release validation.
 
 ## Latest work
 
+- S9 now reuses path names while checking fresh filesystem metadata on every
+  transaction, keeps command readback on the relay loop, and combines adjacent
+  delivery checks without caching authorization. Full policy/grant checks still
+  occur before pending work is marked and before each send. Explicit `sniffio`
+  avoids repeated missing-module searches in HTTPcore; the core and portable
+  dependency lists now match the declared HTTP client requirements. At 100
+  devices the final p95 is 4.31 s, still above two seconds, with all 500 commands
+  and 100 denials correct. At 25 devices p95 0.641 s passes with no retries.
+  See [all measurements and limits](evidence-capacity-release.md) and the
+  [scoped checkpoint](validation/s9-relay-overhead-20261031.json). This does not
+  close the 100-device or external hardware/provider gates.
+
 - S14/S15 review saved evidence without running a controller or creating new
   experiments. The two report engines pass 24 focused tests, with five new relay
   cases and 19 guided-workflow checks in the final 48-test run. A broader backend
   run passes 355 tests. All 381 frontend unit tests, 27 local browser journeys,
   contract checks and both builds pass. Connected-browser feature acceptance
-  also passes; GitHub validation follows the push. See the
+  also passes. All five GitHub jobs passed at `11bd256`, which was fast-forwarded
+  into GitHub and the original local main checkout. Its private portable CLI
+  checks match 207 device-source modules and verify 6,293 files before and after
+  the synthetic SDK/review workflow. See the
   [scoped review-agent record](validation/s14-s15-review-agents-20261031.json).
   Relay checks cover old-companion negotiation, owner/generation isolation and
   revoked evidence permission. Reviews verify recorded scores against saved

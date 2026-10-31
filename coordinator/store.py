@@ -105,13 +105,17 @@ class Store:
         self.path = Path(path)
         if not self.path.is_absolute():
             raise ValueError("Coordinator database path must be absolute")
+        self._path_chain = (self.path, *self.path.parents)
         self._initialized = False
         self._closed = False
         self._lock = RLock()
         self._anchor = None
 
     def _plain_path(self):
-        for part in (self.path, *self.path.parents):
+        # Reuse immutable names, never filesystem metadata or a prior check.
+        if self._path_chain[0] is not self.path:
+            self._path_chain = (self.path, *self.path.parents)
+        for part in self._path_chain:
             try:
                 info = part.lstat()
             except FileNotFoundError:

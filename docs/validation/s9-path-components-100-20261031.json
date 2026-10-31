@@ -1,0 +1,61 @@
+{
+  "schema_version": "poltergeist-capacity-v1",
+  "protocol_version": 2,
+  "transport": "loopback HTTP/WS fixture",
+  "users": 100,
+  "connected_devices": 100,
+  "rounds_per_device": 5,
+  "completed_commands": 500,
+  "routed_commands": 500,
+  "cross_owner_denials": 100,
+  "elapsed_s": 31.686999999999898,
+  "commands_per_s": 15.779341685864916,
+  "latency_p50_s": 4.5,
+  "latency_p95_s": 6.7970000000000255,
+  "latency_max_s": 8.125,
+  "latency_measurement_complete": true,
+  "http_payload_bytes": 343498,
+  "http_status_counts": {
+    "404": 100,
+    "503": 294,
+    "202": 500,
+    "200": 500
+  },
+  "http_retry_count": 294,
+  "http_retry_wait_s": 301.17427225497534,
+  "max_connections": 100,
+  "failure_phase": null,
+  "failure_code": null,
+  "passed": false,
+  "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+  "python_peak_bytes": 51666636,
+  "cleanup_completed": true,
+  "database_bytes": 1179648,
+  "server_concurrency_limit": 228,
+  "provisional_targets": {
+    "p95_latency_s": 2.0,
+    "python_peak_bytes": 134217728
+  },
+  "target_failures": [
+    "latency"
+  ],
+  "source_parent": "11bd256dbca56acbada2221a53331353c70d5914",
+  "worktree_variant": "immutable path component reuse",
+  "source_blobs": {
+    "coordinator/app.py": "2ca6f71bb0463d1bb84c547399ca3203361045f1",
+    "coordinator/store.py": "391124f5d2b8dbca1709b589f375e60108da1b37",
+    "coordinator/commands.py": "4c48d9ba8bf7524c99a9aa4105c6dfa8e3e291d2",
+    "coordinator/relay.py": "3c552ea2f8201e696532ccce64221b0a198e2fa9"
+  },
+  "measured_at": "2026-10-31T12:37:14.717062+00:00",
+  "python": "3.12.15 (main, Oct 14 2026, 01:08:45) [MSC v.1944 64 bit (AMD64)]",
+  "sqlite": "3.53.1",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "runtime_packages": {
+    "httpx": "0.28.1",
+    "httpcore": "1.0.9",
+    "anyio": "4.15.1",
+    "sniffio": null
+  },
+  "host_context": "Sequential owned loopback capacity fixtures. Other host activity was not measured. Final recovery tests finished before the full-checkpoint runs; no user windows were controlled."
+}

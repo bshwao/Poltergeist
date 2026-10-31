@@ -238,25 +238,34 @@ class CommandService:
     def pending(self, credential, expected):
         with self.store.transaction() as connection:
             row = self._credential(connection, credential, expected=expected)
-            commands = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND status='queued' "
-                "ORDER BY created_at,id LIMIT 32", (row["id"], row["ownership_generation"])).fetchall()
-            pending = []
-            for stored in commands:
-                command = _stored(COMMAND_ADAPTER, stored["payload_json"])
-                try:
-                    self._owner(connection, row["owner_id"], row["id"], scope=command_scope(command))
-                except AuthError:
-                    rejected = CommandRejected(request_id=command.request_id, code="permission_denied")
-                    connection.execute("UPDATE commands SET status='rejected',reply_json=?,error_code='permission_denied',"
-                        "updated_at=?,completed_at=? WHERE id=?", (canonical_json(rejected), self.now(), self.now(), stored["id"]))
-                    continue
-                connection.execute("UPDATE commands SET delivered_at=? WHERE id=?", (self.now(), stored["id"]))
-                pending.append(command)
-            return pending
+            return self._pending(connection, row)
+
+    def pending_for_delivery(self, credential, expected):
+        """Check the full live connection and select work in one transaction."""
+        with self.store.transaction() as connection:
+            row = self._connection_current(connection, credential, expected)
+            return self._pending(connection, row)
+
+    def _pending(self, connection, row):
+        commands = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND status='queued' "
+            "ORDER BY created_at,id LIMIT 32", (row["id"], row["ownership_generation"])).fetchall()
+        pending = []
+        for stored in commands:
+            command = _stored(COMMAND_ADAPTER, stored["payload_json"])
+            try:
+                self._owner(connection, row["owner_id"], row["id"], scope=command_scope(command))
+            except AuthError:
+                rejected = CommandRejected(request_id=command.request_id, code="permission_denied")
+                connection.execute("UPDATE commands SET status='rejected',reply_json=?,error_code='permission_denied',"
+                    "updated_at=?,completed_at=? WHERE id=?", (canonical_json(rejected), self.now(), self.now(), stored["id"]))
+                continue
+            connection.execute("UPDATE commands SET delivered_at=? WHERE id=?", (self.now(), stored["id"]))
+            pending.append(command)
+        return pending
 
     def delivery_allowed(self, credential, expected, request_id):
         with self.store.transaction(write=False) as connection:
-            row = self._credential(connection, credential, expected=expected)
+            row = self._connection_current(connection, credential, expected)
             stored = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND request_id=?",
                 (row["id"], row["ownership_generation"], str(request_id))).fetchone()
             if stored is None or stored["status"] != "queued":

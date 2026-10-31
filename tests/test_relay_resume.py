@@ -54,7 +54,7 @@ def test_server_does_not_deliver_queued_work_after_a_scheduling_gap():
             if touched:
                 raise AssertionError("Expired delivery loop continued")
         def clear(self): pass
-    commands = NS(pending=lambda *args: touched.append("pending") or [],
+    commands = NS(pending_for_delivery=lambda *args: touched.append("pending") or [],
                   connection_current=lambda *args: touched.append("auth"))
     current = NS(wake=Wake(), ready=True, enabled=True, last_received=0., ping=None,
                  credential="private-fixture", identity={})
@@ -70,7 +70,7 @@ def test_server_rechecks_deadline_after_pending_read_before_sending_a_command():
     def pending(*args):
         clock[0] = 90.
         return [command]
-    commands = NS(pending=pending, connection_current=lambda *args: None,
+    commands = NS(pending_for_delivery=pending, connection_current=lambda *args: None,
                   delivery_allowed=lambda *args: True)
     class Wake:
         async def wait(self): pass

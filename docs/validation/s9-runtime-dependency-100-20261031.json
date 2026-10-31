@@ -1,0 +1,61 @@
+{
+  "schema_version": "poltergeist-capacity-v1",
+  "protocol_version": 2,
+  "transport": "loopback HTTP/WS fixture",
+  "users": 100,
+  "connected_devices": 100,
+  "rounds_per_device": 5,
+  "completed_commands": 500,
+  "routed_commands": 500,
+  "cross_owner_denials": 100,
+  "elapsed_s": 20.202999999999975,
+  "commands_per_s": 24.748799683215395,
+  "latency_p50_s": 3.063000000000102,
+  "latency_p95_s": 4.358999999999924,
+  "latency_max_s": 4.407000000000153,
+  "latency_measurement_complete": true,
+  "http_payload_bytes": 325435,
+  "http_status_counts": {
+    "503": 71,
+    "404": 100,
+    "202": 500,
+    "200": 500
+  },
+  "http_retry_count": 71,
+  "http_retry_wait_s": 72.62748935696463,
+  "max_connections": 100,
+  "failure_phase": null,
+  "failure_code": null,
+  "passed": false,
+  "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs",
+  "python_peak_bytes": 49401569,
+  "cleanup_completed": true,
+  "database_bytes": 1179648,
+  "server_concurrency_limit": 228,
+  "provisional_targets": {
+    "p95_latency_s": 2.0,
+    "python_peak_bytes": 134217728
+  },
+  "target_failures": [
+    "latency"
+  ],
+  "source_parent": "11bd256dbca56acbada2221a53331353c70d5914",
+  "worktree_variant": "explicit sniffio plus readback/path changes",
+  "source_blobs": {
+    "coordinator/app.py": "85416e0caf54ad8be28cd90242532c3993c3a494",
+    "coordinator/store.py": "391124f5d2b8dbca1709b589f375e60108da1b37",
+    "coordinator/commands.py": "4c48d9ba8bf7524c99a9aa4105c6dfa8e3e291d2",
+    "coordinator/relay.py": "3c552ea2f8201e696532ccce64221b0a198e2fa9"
+  },
+  "measured_at": "2026-10-31T12:46:08.309783+00:00",
+  "python": "3.12.15 (main, Oct 14 2026, 01:08:45) [MSC v.1944 64 bit (AMD64)]",
+  "sqlite": "3.53.1",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "runtime_packages": {
+    "httpx": "0.28.1",
+    "httpcore": "1.0.9",
+    "anyio": "4.15.1",
+    "sniffio": "1.3.1"
+  },
+  "host_context": "Sequential owned loopback capacity fixtures. Other host activity was not measured. Final recovery tests finished before the full-checkpoint runs; no user windows were controlled."
+}

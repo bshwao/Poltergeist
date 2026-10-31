@@ -404,7 +404,9 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
                 (store.path, store.path.with_name(store.path.name + "-wal")) if path.exists())}
 
     @app.get("/v1/devices/{device_id}/commands/{request_id}")
-    def command_status(device_id: UUID, request_id: UUID, request: Request):
+    async def command_status(device_id: UUID, request_id: UUID, request: Request):
+        # Like admission, keep this short transaction on the relay loop. A
+        # worker thread would contend with delivery for the same store lock.
         browser(request, authenticated=False)
         with store.transaction() as connection:
             account = browser(request, connection=connection)

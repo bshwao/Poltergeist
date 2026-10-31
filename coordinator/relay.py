@@ -196,13 +196,14 @@ class RelayHub:
             current.wake.clear()
             if not current.ready or not current.enabled:
                 continue
-            self._require_live(current)
-            for command in self.commands.pending(current.credential, current.identity):
+            self._check_deadline(current)
+            for command in self.commands.pending_for_delivery(current.credential, current.identity):
                 if command.request_id in current.sent:
                     continue
-                self._require_live(current)
+                self._check_deadline(current)
                 # Recheck immediately before each send, never cache the handshake
                 # grant decision across an await or another command delivery.
+                # delivery_allowed checks the full connection in its transaction.
                 if not self.commands.delivery_allowed(current.credential, current.identity, command.request_id):
                     continue
                 message = RelayCommand(**current.envelope(), command=command)
