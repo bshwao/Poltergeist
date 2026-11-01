@@ -4,7 +4,6 @@ from collections import deque
 import hashlib
 from types import SimpleNamespace
 
-import numpy as np
 import pytest
 
 from companion.model_catalog import aim_manifest
@@ -68,6 +67,7 @@ def observation():
 
 
 def test_released_rgb_crop_and_training_pixel_scale_are_preserved():
+    np = pytest.importorskip("numpy")
     image = camera_rgb(frame())
     assert image.shape == (3, 256, 256) and image.dtype == np.float32 and image.flags.c_contiguous
     assert list(image[:, 0, 0]) == [255., 37., 11.]

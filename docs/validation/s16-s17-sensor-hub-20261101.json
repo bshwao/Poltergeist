@@ -305,6 +305,16 @@
       "path": "validation-evidence/s16-owned-server-20261101/receipt.json",
       "bytes": 266,
       "sha256": "9ff863f8a3b1772fa314946dabe9c4e888fe336d3b0e7517fc0fb11466483b2a"
+    },
+    {
+      "path": "validation-evidence/s16-camera-pixel-tests-20261101.xml",
+      "bytes": 2498,
+      "sha256": "1deca6be4db75c3742f93c44bb6345f67aade16f2986aa09cfec712fb53d1e38"
+    },
+    {
+      "path": "validation-evidence/s16-camera-core-only-tests-20261101.xml",
+      "bytes": 2732,
+      "sha256": "7a14b869e2bb9034bcec247fc2ff8548e4fb7887131150ef260992d91d195000"
     }
   ],
   "final_focused_tests": {
@@ -415,5 +425,11 @@
   "retained_environment_faults": [
     "Windows refused the owned staging-to-runtime rename (WinError 5); the app did not grant readiness. The normal install/resume action rebuilt from verified archives.",
     "A later observer reached its deadline across a large clock/elapsed-time gap. It requested pause and released the controller; no driving result was claimed. The final observer temporarily inhibited idle sleep, without changing system power policy."
-  ]
+  ],
+  "ci_collection_repair": {
+    "first_run": "https://github.com/bshwao/Poltergeist/actions/runs/41360566585",
+    "failure": "Minimal core installations lacked optional NumPy; the pixel test imported it at collection time.",
+    "change": "Only the pixel-specific test now skips without NumPy. Startup, route, calibration rejection and weight guards still run.",
+    "local_validation": "16 passed with NumPy; 15 passed and 1 skipped with NumPy imports deliberately unavailable. This simulates dependency absence; it is not independent-machine acceptance."
+  }
 }
