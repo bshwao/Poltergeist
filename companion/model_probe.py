@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 from time import monotonic
 
-from shared.models import ActorState, AgentObservation, AgentReset, AgentRoadRaster, AgentSceneContext, Transform, Vector3
+from shared.models import ActorState, AgentObservation, AgentReset, AgentRoadRaster, AgentSceneContext, DrivingTask, Transform, Vector3
 from simulator.agents.process import ProcessAgent, AgentProcessOptions
 from simulator.agents.process_group import AgentProcessGroup
 from .model_assets import AssetError, _check_pause
@@ -26,8 +26,8 @@ for name, distribution in installed.items():
   if r.marker and not r.marker.evaluate({'extra': ''}): continue
   key = canonicalize_name(r.name)
   if key not in installed or installed[key].version not in r.specifier: raise RuntimeError('Incomplete pinned dependency closure: ' + name + ' -> ' + raw)
-import torch, numpy, scipy, timm, transformers, omegaconf, pydantic
-for module in (torch, numpy, scipy, timm, transformers, omegaconf, pydantic):
+import torch, torchvision, numpy, scipy, timm, transformers, omegaconf, pydantic
+for module in (torch, torchvision, numpy, scipy, timm, transformers, omegaconf, pydantic):
  if not pathlib.Path(module.__file__).is_relative_to(site): raise RuntimeError('Model dependency escaped its capsule')
 assert sys.version_info[:3] == (3,12,10)
 assert torch.version.cuda is None
@@ -70,16 +70,34 @@ print(json.dumps({'python': sys.version.split()[0], 'torch': torch.__version__, 
     agent.set_cancellation(cancelled)
     try:
         agent.load(agent.package.manifest.configuration)
-        agent.reset(AgentReset(protocol_version="1.2", seed=7, map_name="synthetic", ego_actor_id="ego", fixed_delta_seconds=.05))
         pose = lambda x: Transform(position=Vector3(x=float(x)))
-        observed = AgentObservation(protocol_version="1.2", frame=1, time_s=0., dt_s=.05,
-            ego=ActorState(actor_id="ego", transform=pose(0), velocity_mps=Vector3(x=2.)), actors=[], target_speed_mps=5.,
-            scene=AgentSceneContext(source="synthetic", route=[pose(x) for x in range(41)], objects=[], speed_limit_mps=50/3.6,
-                road_raster=AgentRoadRaster(width=128, height=128, pixels_per_meter=2., classes=[1] * 16384, ego_row=64., ego_column=64.)))
+        if getattr(environment, "kind", "plant") == "aim":
+            from simulator.agent_sensors import resolve_sensor_specs
+            from simulator.sensor_fixtures import build_sensor_fixture
+            sensors = resolve_sensor_specs(agent.package.manifest.sensors)
+            task = DrivingTask(destination=pose(20), target_speed_mps=4.)
+            agent.reset(AgentReset(protocol_version="1.3", seed=7, map_name="synthetic", ego_actor_id="ego",
+                fixed_delta_seconds=.05, destination=task.destination, route=[pose(0), pose(20)], driving_task=task, sensors=sensors))
+            observed = AgentObservation(protocol_version="1.3", observation_mode="sensors", frame=1, time_s=0., dt_s=.05,
+                ego=ActorState(actor_id="ego", transform=pose(0), velocity_mps=Vector3(x=2.)), driving_task=task,
+                ego_state_source="simulated_ego_kinematics", sensor_source="deterministic_fixture",
+                sensors=build_sensor_fixture(sensors, 1, 0.))
+        else:
+            agent.reset(AgentReset(protocol_version="1.2", seed=7, map_name="synthetic", ego_actor_id="ego", fixed_delta_seconds=.05))
+            observed = AgentObservation(protocol_version="1.2", frame=1, time_s=0., dt_s=.05,
+                ego=ActorState(actor_id="ego", transform=pose(0), velocity_mps=Vector3(x=2.)), actors=[], target_speed_mps=5.,
+                scene=AgentSceneContext(source="synthetic", route=[pose(x) for x in range(41)], objects=[], speed_limit_mps=50/3.6,
+                    road_raster=AgentRoadRaster(width=128, height=128, pixels_per_meter=2., classes=[1] * 16384, ego_row=64., ego_column=64.)))
         result = agent.step(observed)
         metadata = result.diagnostics.metadata
         if metadata["device"] != "cpu" or metadata["inference_wall_time_s"] <= 0:
             raise AssetError("The managed model did not produce a measured CPU inference")
+        if getattr(environment, "kind", "plant") == "aim":
+            from simulator.agents.aim.checkpoint import CHECKPOINT_SHA256
+            if (metadata["checkpoint_sha256"] != CHECKPOINT_SHA256 or metadata["parameter_count"] != 21470722
+                    or metadata["input_source"] != "deterministic_fixture"
+                    or metadata["camera_sha256"] != observed.sensors[0].sha256):
+                raise AssetError("AIM inference did not preserve the pinned model and declared camera input")
         return {"imports": imports, "checkpoint_sha256": metadata["checkpoint_sha256"],
                 "inference_wall_time_s": metadata["inference_wall_time_s"], "control": result.control.model_dump(mode="json"),
                 "scope": "Actual pretrained inference from a synthetic observation; driving and real-time performance are separate checks."}

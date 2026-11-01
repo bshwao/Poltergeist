@@ -33,6 +33,7 @@ def setup_adapter(monkeypatch):
         frame = 50
         actor_states = [ActorState(actor_id="driver", transform=Transform(), velocity_mps=Vector3(), acceleration_mps2=Vector3())]
         def tick(self):
+            log.append(("tick", self.frame + 1))
             self.frame += 1
             return self.frame
         def get_snapshot(self):
@@ -87,9 +88,15 @@ def setup_adapter(monkeypatch):
     monkeypatch.setattr(module, "ActorManager", Actors)
     monkeypatch.setattr(module, "SensorManager", Sensors)
     monkeypatch.setattr(module, "RuleMonitor", Rules)
-    client = NS(get_server_version=lambda: "0.9.16", get_client_version=lambda: "0.9.16")
+    def acknowledge(commands, do_tick):
+        assert do_tick is False and len(commands) == 1
+        assert commands[0].actor_id == ego.id
+        log.append(("control", commands[0].control))
+        return [NS(has_error=lambda: False)]
+    client = NS(get_server_version=lambda: "0.9.16", get_client_version=lambda: "0.9.16", apply_batch_sync=acknowledge)
     carla = NS(VehicleControl=lambda **kwargs: kwargs, LaneType=NS(Driving="Driving"),
-               Location=NS, Rotation=NS, Transform=lambda location, rotation: NS(location=location, rotation=rotation))
+               Location=NS, Rotation=NS, Transform=lambda location, rotation: NS(location=location, rotation=rotation),
+               command=NS(ApplyVehicleControl=lambda actor_id, control: NS(actor_id=actor_id, control=control)))
     adapter = CarlaSimulationAdapter(client=client, carla_module=carla, evaluation_settings=EvaluationSettings(speeding_tolerance_mps=1))
     return adapter, scenario, log, world, client, module
 
@@ -116,6 +123,35 @@ def test_wrong_carla_version_fails_before_world_mutations(setup_adapter):
         adapter.open(scenario)
     adapter.close()
     assert log == []
+
+
+def test_ego_control_is_acknowledged_before_the_single_world_tick(setup_adapter):
+    adapter, scenario, log, world, _, _ = setup_adapter
+    adapter.open(scenario)
+    log.clear()
+    before = world.frame
+    control = ControlInput(throttle=.75, steer=-.2)
+    try:
+        adapter.step(control, {})
+        assert world.frame == before + 1
+        assert log[0][0] == "npc" and log[1] == ("control", control.model_dump())
+        assert log[2] == ("tick", before + 1)
+    finally:
+        adapter.close()
+
+
+@pytest.mark.parametrize("response", [[], [NS(has_error=lambda: True)], [NS(has_error=lambda: False)] * 2])
+def test_missing_or_rejected_control_acknowledgement_never_advances_the_world(setup_adapter, response):
+    adapter, scenario, log, world, client, _ = setup_adapter
+    adapter.open(scenario)
+    before = world.frame
+    client.apply_batch_sync = lambda *args: response
+    try:
+        with pytest.raises(SimulationError, match="did not acknowledge"):
+            adapter.step(ControlInput(throttle=.75), {})
+        assert world.frame == before
+    finally:
+        adapter.close()
 
 
 @pytest.mark.parametrize("quality", [None, "Low", "Epic"])

@@ -8,7 +8,9 @@ outstanding product, signing and external acceptance gates. **S11 visual design
 and usability is in progress**. S12's guided workflows are implemented, with
 independent new-tester acceptance open; S13's bounded discovery implementation
 is locally validated. S14/S15 have locally validated private implementations;
-S16–S19 remain planned. See [evidence and regression agents](evidence-regression-agents.md),
+S16's managed camera policy and S17's curated Hub lifecycle are locally validated
+private implementations, with broader machine and release gates open. S18/S19 remain planned. See [camera policy](sensor-driving-policy.md),
+[evidence and regression agents](evidence-regression-agents.md),
 [guided experimentation and discovery](guided-experimentation.md), the
 [S8–S10 checkpoint](evidence-capacity-release.md) and the
 [S11 implementation and review plan](visual-usability.md). See the dated
@@ -111,7 +113,8 @@ is deferred. S6 remains in progress; S7 has an external acceptance gate; S8–S1
 have private implementations described below. S11 is in progress; S12 has
 implemented guided workflows and an open human-adoption gate; S13 has a locally
 validated bounded discovery engine. S14/S15 have locally validated saved-evidence
-review implementations; S16 onward remain **planned**. Earlier phases may build
+review implementations; S16/S17 have locally validated private integrations;
+S18/S19 remain **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -440,6 +443,15 @@ Depends on reliable execution, managed agents and evidence; S19 adds CI reportin
 
 ### S16 — Sensor-based driving agents
 
+**Status: private AIM camera implementation; packaged CPU inference and real
+CARLA control locally validated.** Eighty native control reads match the learned
+outputs; the initially stationary ego moves 1.31 m with real front-camera inputs.
+Policy p95 is 92 ms with zero one-second budget misses. Model choice persists, camera inputs
+exclude other actors' ground truth, checkpoint bytes are pinned and restricted-load
+verified, and timing failures stop the run without substituting another policy.
+Broader hardware, trained LiDAR and upstream checkpoint-terms review remain.
+See [policy inputs, provenance and limits](sensor-driving-policy.md).
+
 - Integrate supported trained camera/LiDAR driving policies through the existing
   agent worker, validating real sensor inputs and actual model vehicle control.
 - Verify dependencies, weights, licenses and hardware timing independently of
@@ -450,6 +462,13 @@ hardware with verified inputs/control, bounded timing and reproducible results.
 Depends on S7 and S8; this does not imply general road-safety validation.
 
 ### S17 — Hugging Face integration
+
+**Status: private implementation; public-source lifecycle locally validated.**
+The curated PlanT revision, size, LFS hash and license are confirmed against fixed
+pins. Real anonymous pause/reopen/resume/full verification/removal pass through
+the Companion controller. Explicit optional account storage uses separate Windows
+DPAPI protection and origin-scoped credentials. Actual gated-account and independent
+machine acceptance remain. See [managed AI](managed-ai.md).
 
 - Add curated revision-pinned model downloads supporting S7, with verified
   hashes/licenses, caching, progress and bounded resumable transfer.

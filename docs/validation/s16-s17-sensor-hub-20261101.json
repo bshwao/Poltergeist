@@ -1,0 +1,419 @@
+{
+  "schema_version": "poltergeist-sensor-hub-validation-v1",
+  "recorded_at": "2026-11-01T23:05:33.751531+00:00",
+  "branch": "codex/s16-s17-sensor-policy-huggingface",
+  "source_parent": "f14668603077c4fa15237170294e02d91569128a",
+  "passed": true,
+  "scope": "Same-laptop CLI-only packaged Companion, pinned managed CPU inference and one short rendered CARLA route. No native visual or independent-machine acceptance.",
+  "hardware": {
+    "cpu": {
+      "Name": "AMD Ryzen 7 260 w/ Radeon 780M Graphics"
+    },
+    "available_gpus": [
+      {
+        "Name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+        "DriverVersion": "32.0.15.8205"
+      },
+      {
+        "Name": "AMD Radeon(TM) 780M Graphics",
+        "DriverVersion": "32.0.21030.13004"
+      }
+    ],
+    "os": {
+      "Caption": "Microsoft Windows 11 Home",
+      "Version": "10.0.26300",
+      "BuildNumber": "26300",
+      "RAM_GiB": 15.31
+    },
+    "active_gpu": "Not independently recorded"
+  },
+  "portable": {
+    "sha256": "94e1817e14e3461628ff2c1c482f2731637589b7a80b64e4afe8994fc95d3c2d",
+    "bytes": 87940531,
+    "matched_application_modules": 215
+  },
+  "python_tests": {
+    "tests": 3526,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 39,
+    "scope": "Base S16/S17 source suite before the control-ack fix, excluding native GUI. Final focused tests and full platform matrices are recorded separately."
+  },
+  "s16": {
+    "carla": {
+      "port": 2020,
+      "client": "0.9.16",
+      "server": "0.9.16",
+      "map": "Carla/Maps/Town10HD_Opt",
+      "owned_process_group": false,
+      "initial_no_rendering": true
+    },
+    "readiness": {
+      "imports": {
+        "python": "3.12.10",
+        "torch": "2.6.0+cpu",
+        "device": "cpu",
+        "packages": {
+          "annotated-types": "0.8.0",
+          "antlr4-python3-runtime": "4.9.3",
+          "certifi": "2026.10.23",
+          "charset-normalizer": "3.5.2",
+          "colorama": "0.4.6",
+          "filelock": "4.2.4",
+          "fsspec": "2026.9.0",
+          "huggingface-hub": "0.36.2",
+          "idna": "3.20",
+          "jinja2": "3.1.6",
+          "markupsafe": "3.0.4",
+          "mpmath": "1.3.0",
+          "networkx": "3.7",
+          "numpy": "2.2.4",
+          "omegaconf": "2.3.0",
+          "packaging": "26.3",
+          "pillow": "13.0.0",
+          "pydantic": "2.14.1",
+          "pydantic-core": "2.50.1",
+          "pyyaml": "6.0.3",
+          "regex": "2026.9.29",
+          "requests": "2.34.2",
+          "safetensors": "0.8.0",
+          "scipy": "1.15.2",
+          "setuptools": "84.2.1",
+          "sympy": "1.13.1",
+          "timm": "1.0.19",
+          "tokenizers": "0.21.4",
+          "torch": "2.6.0+cpu",
+          "torchvision": "0.21.0+cpu",
+          "tqdm": "4.70.1",
+          "transformers": "4.49.0",
+          "typing-extensions": "4.16.0",
+          "typing-inspection": "0.4.4",
+          "urllib3": "2.8.0"
+        }
+      },
+      "checkpoint_sha256": "176d7a613bd476dd3be5863d42be4a1ea5d6697781c835d9e2a65e17cd89d748",
+      "inference_wall_time_s": 0.19879589999618474,
+      "control": {
+        "throttle": 0.75,
+        "steer": 0.019604857795638964,
+        "brake": 0.0,
+        "hand_brake": false,
+        "reverse": false
+      },
+      "scope": "Actual pretrained inference from a synthetic observation; driving and real-time performance are separate checks."
+    },
+    "decisions": 80,
+    "native_controls_verified": 80,
+    "ego_displacement_m": 1.3086715675839793,
+    "camera_evidence": [
+      {
+        "native_frame": 525688,
+        "sha256": "0d065e577524f54b73152c061b10f98dccccec1d02ba16d353a3f1351615e906",
+        "pixel_std": 39.131944243716454
+      }
+    ],
+    "inference": {
+      "samples": 80,
+      "p50_s": 0.07985515000473242,
+      "p95_s": 0.09029598500201245,
+      "p99_s": 0.10012234699708639,
+      "max_s": 0.1052895000029821,
+      "mean_s": 0.08095349249961145,
+      "budget_s": 1.0,
+      "budget_misses": 0,
+      "budget_miss_fraction": 0.0
+    },
+    "policy_step": {
+      "samples": 80,
+      "p50_s": 0.08210834999044891,
+      "p95_s": 0.09234712500401657,
+      "p99_s": 0.10334615500032662,
+      "max_s": 0.11139269999694079,
+      "mean_s": 0.08315668999894114,
+      "budget_s": 1.0,
+      "budget_misses": 0,
+      "budget_miss_fraction": 0.0
+    },
+    "world_restored": true,
+    "controller_closed": true,
+    "integrity_before": {
+      "schema_version": "poltergeist-portable-integrity-v1",
+      "passed": true,
+      "files": 6317,
+      "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+    },
+    "integrity_after": {
+      "schema_version": "poltergeist-portable-integrity-v1",
+      "passed": true,
+      "files": 6317,
+      "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+    },
+    "idle_sleep_inhibited": true,
+    "owned_carla_group_stopped": null,
+    "scenario": {
+      "name": "Managed AIM actual RGB control proof",
+      "map": "Town10HD_Opt",
+      "seed": 7,
+      "duration_s": 4.0,
+      "fixed_delta_seconds": 0.05,
+      "actors": [
+        {
+          "id": "ego",
+          "type": "ego_vehicle",
+          "blueprint": "vehicle.tesla.model3",
+          "spawn_point_index": 0,
+          "speed_mps": 0.0
+        }
+      ],
+      "driving_task": {
+        "route_owner": "framework",
+        "destination": {
+          "position": {
+            "x": -45.35525894165039,
+            "y": 8.249773979187012,
+            "z": 0.0
+          },
+          "rotation": {
+            "yaw_deg": -84.68067932128906
+          }
+        },
+        "target_speed_mps": 4.0,
+        "stop_on_completion": false
+      }
+    },
+    "native_control_tolerance": 2e-05,
+    "native_control_max_absolute_difference": 1.862645149230957e-08,
+    "server_cleanup": {
+      "reused_private_helper": true,
+      "owned_group_stopped": true,
+      "report": {
+        "path": "validation-evidence/s16-owned-server-20261101/receipt.json",
+        "bytes": 266,
+        "sha256": "9ff863f8a3b1772fa314946dabe9c4e888fe336d3b0e7517fc0fb11466483b2a"
+      }
+    }
+  },
+  "s17": {
+    "source": {
+      "id": "plant2-e81b261f8b92",
+      "name": "PlanT 2.0 CPU",
+      "provider": "huggingface",
+      "repository": "SimonGer/PlanT2",
+      "revision": "e81b261f8b92b20225d020fe9b7a0470c1434d96",
+      "filename": "epoch=029_final_1.ckpt",
+      "size": 446559352,
+      "sha256": "2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4",
+      "license": "apache-2.0",
+      "model_url": "https://huggingface.co/SimonGer/PlanT2/tree/e81b261f8b92b20225d020fe9b7a0470c1434d96",
+      "verified": true,
+      "gated": false
+    },
+    "paused_bytes": 265818,
+    "resumed_and_verified_bytes": 446559352,
+    "sha256": "2f896d8d7640d4b7b68bcef8615a73e9761e850870a24f914c4c908f0f2199f4",
+    "owned_remove_preserves_other_files": true,
+    "requests": [
+      {
+        "range": null,
+        "status": 200,
+        "content_range": null
+      },
+      {
+        "range": null,
+        "status": 200,
+        "content_range": null
+      },
+      {
+        "range": "bytes=265818-",
+        "status": 206,
+        "content_range": "bytes 265818-446559351/446559352"
+      }
+    ],
+    "integrity_before": {
+      "schema_version": "poltergeist-portable-integrity-v1",
+      "passed": true,
+      "files": 6317,
+      "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+    },
+    "integrity_after": {
+      "schema_version": "poltergeist-portable-integrity-v1",
+      "passed": true,
+      "files": 6317,
+      "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+    },
+    "controller_closed": true,
+    "native_dummy_dpapi_save_read_clear": true,
+    "protected_dummy_token_controller_reopen": true,
+    "account_scope": "Generated dummy token saved, read back and cleared before transfer. No personal token or actual gated-model access."
+  },
+  "initial_failures": [
+    {
+      "scope": "Retained harness failure: omitted configured CARLA endpoint and tried localhost:2000. Corrected observer forwards production settings.",
+      "controller_closed": true,
+      "owned_carla_group_stopped": true
+    },
+    {
+      "scope": "Rendered learned driving exposed an asynchronous control/tick ordering failure. Separate rendered diagnostics reproduced three previous-input readbacks in 229 ordinary calls; zero in 229 acknowledged calls. Production now waits for acknowledgement before ticking.",
+      "controller_closed": true,
+      "owned_carla_group_stopped": true
+    }
+  ],
+  "remaining_gates": [
+    "Independent machines and representative driving-quality/hardware coverage",
+    "Native installed-app visual acceptance",
+    "Separate upstream AIM checkpoint redistribution terms review",
+    "Trained LiDAR policies and managed CUDA are not implemented",
+    "Actual gated-model/personal-account access acceptance"
+  ],
+  "private_reports": [
+    {
+      "path": "validation-evidence/s16-managed-c-20261101/acceptance-06fe6e79bd5648658128b621991baf14.json",
+      "bytes": 63185,
+      "sha256": "b2ae62f24c7ba127a2d7fb5233e2182e71d810525234033264961ccc3ea0c96e"
+    },
+    {
+      "path": "validation-evidence/s17-hub-packaged-d-lifecycle-20261101.json",
+      "bytes": 1924,
+      "sha256": "cea6e6722a552a2b542400fafb67e4fa877b30acb5e824e5da7577efbd403162"
+    },
+    {
+      "path": "validation-evidence/s17-hub-credential-reopen-20261101.json",
+      "bytes": 252,
+      "sha256": "16394a771e5d6da00fc1e8ded3e369b263dcb8f8bd078b71aab1f8a48ec06791"
+    },
+    {
+      "path": "validation-evidence/s16-s17-candidate-code-20261101.json",
+      "bytes": 22685,
+      "sha256": "4831f0ca4a375f213324f2d2c2ee9966630df10cd4704b77b0aa7119bb7f5bc8"
+    },
+    {
+      "path": "validation-evidence/s16-s17-python-tests-20261101.xml",
+      "bytes": 519079,
+      "sha256": "ede8bc29099d3f03fadf20dab8dca5e10e441a5f212bb21440122f48e4af7a90"
+    },
+    {
+      "path": "validation-evidence/s16-s17-control-fix-tests-20261101.xml",
+      "bytes": 27926,
+      "sha256": "afddf84361bfd7b6fbc82f305ba70363fddeb768f991c5c7385546654148234e"
+    },
+    {
+      "path": "validation-evidence/s16-managed-c-20261101/native-controls.json",
+      "bytes": 21834,
+      "sha256": "13dd417f661c4325a5257d1ec646e9860cde1bc0cca2c2e16ae30e51cb6d6491"
+    },
+    {
+      "path": "validation-evidence/s16-owned-server-20261101/receipt.json",
+      "bytes": 266,
+      "sha256": "9ff863f8a3b1772fa314946dabe9c4e888fe336d3b0e7517fc0fb11466483b2a"
+    }
+  ],
+  "final_focused_tests": {
+    "tests": 189,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "control_transport_diagnostic": {
+    "ordinary_samples": 229,
+    "ordinary_previous_input_mismatches": 3,
+    "acknowledged_samples": 229,
+    "acknowledged_mismatches": 0,
+    "report": {
+      "path": "validation-evidence/s16-control-diagnostic-c-20261101/receipt.json",
+      "bytes": 1844,
+      "sha256": "7b88f0c256411c1888d7063262771a14662f6db7deec5c107115f7bcff56ff96"
+    }
+  },
+  "retained_attempts": [
+    {
+      "path": "validation-evidence/s16-managed-a-20261101/acceptance-fcf50a5ae95645f0a5ebbfa5e77db82c.json",
+      "bytes": 62284,
+      "sha256": "7d02930813e6bb4a028bd40680c3d07ce4db694aaf31c159ab0af0bf7f6d5da0",
+      "passed": false,
+      "failure": {
+        "phase": "enable_and_execute",
+        "kind": "RuntimeError",
+        "detail": "CARLA run did not complete: initialization: RuntimeError: time-out of 10000ms while waiting for the simulator, make sure the simulator is ready and connected to localhost:2000"
+      },
+      "controller_closed": true,
+      "owned_carla_group_stopped": true,
+      "started_at": "2026-11-01T06:23:18.381909+00:00",
+      "finished_at": "2026-11-01T06:34:23.215569+00:00"
+    },
+    {
+      "path": "validation-evidence/s16-managed-b-20261101/acceptance-545ae7637bf94a6182b0ad3a9977ef93.json",
+      "bytes": 62222,
+      "sha256": "e458b3e359437755b37bb65859d5b803188f9f9765d89eee1e20b45fec14cc2a",
+      "passed": false,
+      "failure": {
+        "phase": "enable_and_execute",
+        "kind": "RuntimeError",
+        "detail": "CARLA run did not complete: execution: RuntimeError: Native CARLA control differs from the proposed model control"
+      },
+      "controller_closed": true,
+      "owned_carla_group_stopped": true,
+      "started_at": "2026-11-01T06:36:36.170979+00:00",
+      "finished_at": "2026-11-01T06:59:50.258007+00:00"
+    },
+    {
+      "path": "validation-evidence/s16-managed-c-20261101/acceptance-06fe6e79bd5648658128b621991baf14.json",
+      "bytes": 63185,
+      "sha256": "b2ae62f24c7ba127a2d7fb5233e2182e71d810525234033264961ccc3ea0c96e",
+      "passed": true,
+      "failure": null,
+      "controller_closed": true,
+      "owned_carla_group_stopped": null,
+      "started_at": "2026-11-01T22:50:48.494270+00:00",
+      "finished_at": "2026-11-01T23:01:35.179911+00:00"
+    },
+    {
+      "path": "validation-evidence/s16-managed-c-20261101/acceptance-bba4172d862c4e869dfb4a3fca050aab.json",
+      "bytes": 2594,
+      "sha256": "962c561e306ed96498c036de20cdc2d69c114539002b1b0b736ee0db28d492f3",
+      "passed": false,
+      "failure": {
+        "phase": "carla_start_or_reuse",
+        "kind": "RuntimeError",
+        "detail": "Owned CARLA process exited before readiness"
+      },
+      "controller_closed": true,
+      "owned_carla_group_stopped": true,
+      "started_at": "2026-11-01T22:35:57.078677+00:00",
+      "finished_at": "2026-11-01T22:45:01.885123+00:00"
+    },
+    {
+      "path": "validation-evidence/s16-managed-c-20261101/acceptance-da4076236acd4e31966293f4a390bba7.json",
+      "bytes": 822,
+      "sha256": "028c726f04310ecaa8e74774ce49fcebc4611fbcb905de83149217520f0f30d4",
+      "passed": false,
+      "failure": {
+        "phase": "managed_runtime_and_inference",
+        "kind": "RuntimeError",
+        "detail": "Managed action observer deadline; pause requested"
+      },
+      "controller_closed": true,
+      "owned_carla_group_stopped": null,
+      "started_at": "2026-11-01T07:20:39.329427+00:00",
+      "finished_at": "2026-11-01T08:41:19.195677+00:00"
+    },
+    {
+      "path": "validation-evidence/s16-managed-c-20261101/acceptance-e90dc6f8115741f6b9a5eb4dcdd850ec.json",
+      "bytes": 808,
+      "sha256": "8297c1afd35eea5e070de3fb4565eaf168eae1f9b00d6373cd78a017e3db7b46",
+      "passed": false,
+      "failure": {
+        "phase": "managed_runtime_and_inference",
+        "kind": "RuntimeError",
+        "detail": "Managed AIM inference was not ready"
+      },
+      "controller_closed": true,
+      "owned_carla_group_stopped": null,
+      "started_at": "2026-11-01T07:17:34.477286+00:00",
+      "finished_at": "2026-11-01T07:18:55.797967+00:00"
+    }
+  ],
+  "retained_environment_faults": [
+    "Windows refused the owned staging-to-runtime rename (WinError 5); the app did not grant readiness. The normal install/resume action rebuilt from verified archives.",
+    "A later observer reached its deadline across a large clock/elapsed-time gap. It requested pause and released the controller; no driving result was claimed. The final observer temporarily inhibited idle sleep, without changing system power policy."
+  ]
+}

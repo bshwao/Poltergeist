@@ -184,10 +184,17 @@ class CarlaSimulationAdapter:
 
     def step(self, control: ControlInput, commands: Mapping[str, ActorCommand]) -> TelemetryFrame:
         self.actor_manager.control_npcs(commands, self.scenario.fixed_delta_seconds)
-        self.ego.apply_control(self.carla.VehicleControl(
+        native = self.carla.VehicleControl(
             throttle=control.throttle, steer=control.steer, brake=control.brake,
             hand_brake=control.hand_brake, reverse=control.reverse,
-        ))
+        )
+        # Actor.apply_control is asynchronous. A tick can overtake that request
+        # under rendered sensor workloads, applying the previous frame's input.
+        responses = self.client.apply_batch_sync([
+            self.carla.command.ApplyVehicleControl(self.ego.id, native),
+        ], False)
+        if len(responses) != 1 or responses[0].has_error():
+            raise SimulationError("CARLA did not acknowledge the ego control; the world was not advanced")
         expected_frame = self.world.tick()
         snapshot = self.world.get_snapshot()
         if snapshot.frame != expected_frame:

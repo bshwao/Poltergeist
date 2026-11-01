@@ -46,6 +46,8 @@ class ModelAsset:
     url: str
     size: int
     sha256: str
+    range_start: int | None = None
+    source_size: int | None = None
 
     def __post_init__(self):
         if not re.fullmatch(r"[a-z0-9-]{1,80}", self.id):
@@ -59,6 +61,12 @@ class ModelAsset:
             raise ValueError("Invalid model asset size")
         if not re.fullmatch(r"[0-9a-f]{64}", self.sha256):
             raise ValueError("Invalid model asset digest")
+        if (self.range_start is None) != (self.source_size is None):
+            raise ValueError("A model file range requires its source size")
+        if self.range_start is not None and (type(self.range_start) is not int or type(self.source_size) is not int
+                or self.range_start < 0 or not self.size <= self.source_size <= 64 * 1024**3
+                or self.range_start + self.size > self.source_size):
+            raise ValueError("Invalid pinned model file range")
 
 
 def _https(url):
@@ -113,8 +121,11 @@ class AssetStore:
         self._lease = WorkerLease(SimpleNamespace(file_path=self.directory / "transfer"))
 
     def _identity(self):
-        return {"schema": "poltergeist-model-asset-v1", "id": self.asset.id,
-                "filename": self.asset.filename, "size": self.asset.size, "sha256": self.asset.sha256}
+        value = {"schema": "poltergeist-model-asset-v1", "id": self.asset.id,
+                 "filename": self.asset.filename, "size": self.asset.size, "sha256": self.asset.sha256}
+        if self.asset.range_start is not None:
+            value.update(range_start=self.asset.range_start, source_size=self.asset.source_size)
+        return value
 
     def _guard(self):
         _plain(self.directory, directory=True)
@@ -220,7 +231,9 @@ class AssetStore:
         if shutil.disk_usage(self.directory).free < required:
             raise AssetError("There is not enough free space for the remaining model download")
         headers = {"User-Agent": "Poltergeist-models/0.1", "Accept-Encoding": "identity"}
-        if offset:
+        if self.asset.range_start is not None:
+            headers["Range"] = f"bytes={self.asset.range_start + offset}-{self.asset.range_start + self.asset.size - 1}"
+        elif offset:
             headers["Range"] = f"bytes={offset}-"
         request = urllib.request.Request(self.asset.url, headers=headers)
         try:
@@ -231,10 +244,14 @@ class AssetStore:
                 if response.headers.get("Content-Encoding", "identity").lower() != "identity":
                     raise AssetError("The model server returned an encoded response")
                 if status == 206:
-                    expected = f"bytes {offset}-{self.asset.size - 1}/{self.asset.size}"
+                    start = (self.asset.range_start or 0) + offset
+                    end = (self.asset.range_start or 0) + self.asset.size - 1
+                    expected = f"bytes {start}-{end}/{self.asset.source_size or self.asset.size}"
                     if response.headers.get("Content-Range") != expected:
                         raise AssetError("The model server returned an inconsistent resume range")
                 elif status == 200:
+                    if self.asset.range_start is not None:
+                        raise AssetError("The model source did not honor the pinned file range; no full archive was downloaded")
                     offset = 0  # Range ignored: safely restart, never append a full response.
                     if shutil.disk_usage(self.directory).free < self.asset.size + CHUNK:
                         raise AssetError("There is not enough free space to restart the model download")

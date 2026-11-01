@@ -134,6 +134,9 @@ def test_closed_window_releases_tk_variables_on_gui_thread(window):
     pump_until(root, lambda: desktop._future is None)
     references = [weakref.ref(desktop.executable), weakref.ref(desktop.message), weakref.ref(desktop.setup.map_name),
         weakref.ref(desktop.models.status), weakref.ref(desktop.models.detail),
+        weakref.ref(desktop.models.model_choice), weakref.ref(desktop.models.model_title),
+        weakref.ref(desktop.models.model_source), weakref.ref(desktop.models.model_description),
+        weakref.ref(desktop.models.source_status),
         weakref.ref(desktop.updates.status), weakref.ref(desktop.updates.candidate), weakref.ref(desktop.updates.progress),
         weakref.ref(desktop.pairing.origin), weakref.ref(desktop.pairing.allow_remote_execution),
         weakref.ref(desktop.pairing.allow_raw_capture), weakref.ref(desktop.pairing.allow_evidence_read),
@@ -192,6 +195,59 @@ def test_model_controls_prepare_owned_weights_without_enabling_uninstalled_ai(wi
     desktop.models.buttons[3].invoke()
     pump_until(root, lambda: desktop._future is None and controller.model_status()["state"] == "absent")
     assert not controller._models._store.path.exists()
+
+
+def test_model_choice_source_check_and_execution_lock_are_wired_to_native_controls(window, monkeypatch):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    desktop.stop_button.invoke()
+    pump_until(root, lambda: desktop._future is None and controller._runtime is None)
+    panel = desktop.models
+    panel.sync_controls()
+    panel.model_choice.set("AIM camera (CPU)")
+    panel.model_selector.event_generate("<<ComboboxSelected>>")
+    pump_until(root, lambda: desktop._future is None and controller.model_status()["selected_model"]["id"] == "aim")
+    panel.sync_controls()
+    assert "AIM" in panel.model_title.get() and "disabled" in panel.source_check_button.state()
+    assert not (controller.profile / "models").exists()
+    desktop.start_button.invoke()
+    pump_until(root, lambda: desktop._future is None and controller._runtime is not None)
+    panel.sync_controls()
+    assert "disabled" in panel.model_selector.state()
+    desktop.stop_button.invoke()
+    pump_until(root, lambda: desktop._future is None and controller._runtime is None)
+    panel.sync_controls()
+    assert "disabled" not in panel.model_selector.state()
+    panel.model_choice.set("PlanT 2.0 (CPU)")
+    panel.model_selector.event_generate("<<ComboboxSelected>>")
+    pump_until(root, lambda: desktop._future is None and controller.model_status()["selected_model"]["id"] == "plant")
+    monkeypatch.setattr(controller._models.hub_source, "verify_source", lambda **kwargs: {"verified": True})
+    panel.sync_controls()
+    panel.source_check_button.invoke()
+    pump_until(root, lambda: desktop._future is None and controller.model_status()["source"]["state"] == "verified")
+    panel.sync_controls()
+    assert "confirmed" in panel.source_status.get()
+    assert not controller.model_status()["inference_ready"]
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Native Windows protected provider credentials")
+def test_hub_account_dialog_masks_token_and_forget_clears_only_its_provider_record(window, monkeypatch):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    options = []
+    def dialog(*args, **kwargs):
+        options.append(kwargs)
+        return "hf_native_ui_fixture_token"
+    monkeypatch.setattr("companion.model_ui.simpledialog.askstring", dialog)
+    buttons = {button.cget("text"): button for button in desktop.models.buttons}
+    buttons["Configure account…"].invoke()
+    pump_until(root, lambda: desktop._future is None and controller.model_status()["account"]["configured"])
+    assert options[0]["show"] == "*"
+    vault = controller.profile / "providers/huggingface/remote-enrollment.bin"
+    assert vault.is_file() and b"hf_native_ui_fixture_token" not in vault.read_bytes()
+    buttons["Forget account"].invoke()
+    pump_until(root, lambda: desktop._future is None and not controller.model_status()["account"]["configured"])
+    assert not vault.exists() and not (controller.profile / "models").exists()
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Native Windows protected enrollment")

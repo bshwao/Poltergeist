@@ -4,17 +4,21 @@ Status: private Windows x64 prototype, with S2 desktop execution and S3 installe
 and onboarding under validation. The companion executes local work and preserves
 it across restarts. See the [installer/setup guide](installer-onboarding.md) and
 [current progress](progress-notes.md). S4 source adds account pairing and an
-explicit consent-based relay connection. S7 adds a managed PlanT CPU environment,
-verified inference and local agent selection. Public release and the S1 independent-machine and
+explicit consent-based relay connection. S7 adds managed CPU environments,
+verified inference and local agent selection; S16 adds AIM camera driving and
+S17 adds the curated Hugging Face provider. Public release and the S1 independent-machine and
 redistribution gates remain open.
 
-Open **AI models**, or choose **Manage AI…** beside the Agent selector, to download
-the official PlanT weights or **Install / resume AI** to prepare its separate CPU
-interpreter/dependencies and check real inference. After **AI ready**, explicitly
-enable the trusted pack, then select Managed PlanT for a CARLA run. The same tab
+Stop the local runtime and open **AI models**, or choose **Manage AI…** beside the
+Agent selector. Choose PlanT or AIM camera, then **Install / resume AI** to prepare
+its official pinned weights, separate CPU interpreter/dependencies and real
+inference check. After **AI ready**, explicitly enable the trusted pack, then
+select that model for a compatible CARLA run. The same tab
 offers readiness checks, pause/resume, owned repair/removal and the included
 teaching starter. Weights alone do not establish readiness. See
-[managed AI installations](managed-ai.md).
+[managed AI installations](managed-ai.md) and [camera policy](sensor-driving-policy.md).
+Public Hugging Face downloads work anonymously; optional account controls save a
+protected read token separately from device enrollment.
 
 ## Open the application
 

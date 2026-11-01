@@ -1,6 +1,6 @@
 # S0–S19 progress notes
 
-Updated October 31, 2026. Current work: **S14/S15 live evidence and frozen-version review validation**,
+Updated November 1, 2026. Current checkpoint: **S16 managed camera policy and S17 Hugging Face integration locally validated**,
 alongside the open installed/native acceptance
 gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
@@ -8,10 +8,9 @@ with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/s14-s15-live-evidence-validation`, based on GitHub `main`
-at `ac2ff5c`. The S14/S15 implementation at `11bd256` and subsequent S9
-checkpoint at `ac2ff5c` passed all five CI jobs and were fast-forwarded into
-GitHub and the original local main checkout. The 100-device S9 latency gate
+Current branch: `codex/s16-s17-sensor-policy-huggingface`, based on GitHub `main`
+at `f146686`. The S14/S15 coverage checkpoint passed all five CI jobs and was
+fast-forwarded into GitHub and the original local main checkout. The 100-device S9 latency gate
 remains open. Earlier branch
 and CI references describe their recorded checkpoints.
 The S11 foundation is merged; its five-job branch validation passed.
@@ -44,13 +43,43 @@ private prototype does not close independent-machine or release validation.
 | S13 — Failure Discovery Agent | Private implementation delivered; locally validated | Digest/revision-bound approval, frozen candidates/agents/settings, execution/simulated/absolute-wall budgets, exact confirmation repeats and complete negative/unknown journals. Registered local agents and scoped remote consent/ownership checks pass. Current live CARLA attempts retained startup/RPC failures as unknown; no driving failure was claimed. |
 | S14 — Evidence Analyst Agent | Private implementation; synthetic and initial same-laptop CARLA checks validated | Exact native frame/time links and contact counts match saved CARLA evidence. Empty event lists now retain unchecked rule channels as partial coverage. Independent human review and broader representative evidence remain. See [agent guide](evidence-regression-agents.md). |
 | S15 — Regression Agent | Private implementation; synthetic and initial same-laptop CARLA checks validated | Two registered SDK fixtures show a contact regression in all three matched fixed-spawn CARLA pairs. Measurement-specific coverage preserves inconclusive severity/rules. Remote execution retains its baseline-only boundary; representative model/hardware comparisons remain. See [agent guide](evidence-regression-agents.md). |
-| S16 — Sensor-based driving agents | Planned | Supported camera/LiDAR policy inputs, control and hardware validation. |
-| S17 — Hugging Face integration | Planned | Verified revision-pinned downloads and managed asset lifecycle supporting S7. |
+| S16 — Sensor-based driving agents | Private camera implementation; packaged inference and real CARLA control locally validated | Managed AIM front-RGB policy: 80/80 native controls match, initially stationary ego moves 1.31 m, policy p95 92 ms with zero one-second budget misses, and world settings restore. Broader hardware, native visual acceptance, trained LiDAR and public checkpoint-terms review remain. See [camera policy](sensor-driving-policy.md). |
+| S17 — Hugging Face integration | Private implementation; real public-source lifecycle locally validated | Curated immutable PlanT pin, bounded metadata confirmation, protected explicit account controls, resumable/hash-verified assets and owned repair/removal. Real anonymous transfer/reopen/removal and native dummy-token protection pass. Actual gated-account and independent-machine acceptance remain. See [managed AI](managed-ai.md). |
 | S18 — OpenAI integration | Planned | Optional bounded experiment planning and evidence analysis. |
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
 
+- S16 adds the official pretrained AIM image-to-waypoint baseline independently
+  of PlanT. The app persists the selected model, prepares its pinned CPU pack,
+  verifies actual learned inference and registers both readiness and weight
+  identities. Native sensor frames, hashes, predicted waypoints, timing and
+  proposed/applied controls remain in the ordinary decision evidence.
+  Rendered validation exposed a shared CARLA control-delivery problem: 3 of 229
+  ordinary asynchronous submissions reported the previous input in an isolated
+  diagnostic. All 229 acknowledged submissions matched. Ego commands now wait
+  for acknowledgement before the single world tick; missing/rejected responses
+  fail without advancing the world. The final focused suite passes 187 tests
+  with two native symlink capability skips. The preceding full source suite
+  passed 3,487 tests with 39 optional/platform skips, excluding native GUI cases.
+  The final packaged run passes 80 real RGB decisions and native control reads
+  on CARLA 0.9.16 / Town10HD_Opt, Low graphics, with the separate Torch 2.6 CPU
+  pack. Ego displacement is 1.3087 m from rest; policy p95 is 0.09235 s and maximum
+  0.11139 s against the unchanged one-second budget. Actors/settings/weather
+  restore, the controller closes, and the separate owned server helper stops.
+  All 6,317 bundle files remain unchanged. See the
+  [validation record](validation/s16-s17-sensor-hub-20261101.json), including
+  retained startup/assembly/observer failures. This does not establish 20 Hz
+  wall-time driving, road safety or independent-machine acceptance.
+- S17 adds a curated Hub provider without changing existing PlanT cache ownership.
+  Source metadata must match the built-in revision, filename, size, LFS digest
+  and license. Optional account credentials use a separate current-user DPAPI
+  record and never follow redirects. A real public transfer paused at 265,818
+  bytes, reopened, received the exact remaining range with HTTP 206 and verified
+  all 446,559,352 bytes before owned removal. The final isolated portable build
+  repeated that lifecycle; its 6,317 integrity files remained unchanged and all
+  215 shipped application Python modules matched source. The source check alone never grants inference
+  readiness. No personal token or gated-model access was used.
 - S14/S15 live CARLA validation exposed two coverage issues. S14 now distinguishes
   empty event lists from fully checked rule channels. S15 validates each selected
   measurement independently, retaining full observation requirements for its
@@ -658,5 +687,5 @@ unchanged.
 
 Visual design, guided workflows, experiment agents and external connections are
 numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
-[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16–S19 remain planned work;
+[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16/S17 have locally validated private integrations; S18/S19 remain planned;
 existing S0–S10 identifiers and completion gates are preserved.

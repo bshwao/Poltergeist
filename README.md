@@ -61,7 +61,8 @@ results can be interpreted in context.
   identity, checking static readiness, and selecting a controller when launching
   a scenario.
 - A maintained pretrained PlanT 2.0 integration using structured simulator state,
-  plus synchronized RGB camera and LiDAR inputs for compatible sensor agents.
+  a managed [AIM camera policy](docs/sensor-driving-policy.md) using learned RGB
+  waypoints, plus synchronized RGB camera and LiDAR inputs for compatible agents.
 - A saved decision timeline linking each agent input to its proposed/applied
   controls, diagnostics, interventions and following measured frame, with exact
   sensor-input inspection in the dashboard.
@@ -75,13 +76,15 @@ results can be interpreted in context.
 
 Registered agents can
 be launched through the dashboard or API. The included sensor pilot is a
-rule-based teaching example. PlanT is the trained reference model and uses
-structured state rather than camera-based perception.
+rule-based teaching example. PlanT uses structured state; AIM uses front-camera
+pixels with declared ideal ego kinematics and a supplied route.
 
 The private Windows Companion also provides [managed AI installation](docs/managed-ai.md):
-a separate, pinned PlanT CPU interpreter/dependency pack, verified weights and
-real inference checks before explicit local registration. Independent-machine
-and public-release validation remain separate gates.
+separate pinned CPU environments, verified weights and real inference checks
+before explicit local registration. The curated Hugging Face source supports
+revision checks, resumable downloads and optional protected account configuration.
+Independent-machine, checkpoint redistribution and public-release validation
+remain separate gates.
 
 ## Where the project is going
 

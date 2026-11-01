@@ -128,10 +128,14 @@ def unpack(archive, destination, kind, cancelled=lambda: False):
 
 
 class ModelEnvironment:
-    def __init__(self, profile):
+    def __init__(self, profile, *, kind="plant"):
+        if kind not in {"plant", "aim"}:
+            raise ValueError("Unknown supported model environment")
+        self.kind = kind
+        self.name = "PlanT" if kind == "plant" else "AIM camera"
         self.profile = Path(profile)
         self.lock = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
-        self.directory = self.profile / "environments" / self.lock["id"]
+        self.directory = self.profile / "environments" / (self.lock["id"] if kind == "plant" else "aim-cpu-win64-v1")
         self.runtime = self.directory / "runtime"
         self.python = self.runtime / "python.exe"
         self.package = self.runtime / "agent"
@@ -139,10 +143,13 @@ class ModelEnvironment:
         self.receipt = self.directory / "ready.json"
         self._lease = WorkerLease(SimpleNamespace(file_path=self.directory / "environment"))
         self.identity = {"schema": self.lock["schema"], "lock_sha256": digest(LOCK_PATH)}
+        if kind == "aim":
+            from simulator.agents.aim.checkpoint import SOURCE_REVISION, CHECKPOINT_SHA256
+            self.identity.update(model="aim", policy_revision=SOURCE_REVISION, checkpoint_sha256=CHECKPOINT_SHA256)
 
     def supported(self):
         if os.name != "nt" or platform.machine().lower() not in {"amd64", "x86_64"}:
-            raise AssetError("The managed PlanT pack supports Windows x64 CPU only")
+            raise AssetError(f"The managed {self.name} pack supports Windows x64 CPU only")
 
     @contextmanager
     def owned(self):
@@ -213,7 +220,7 @@ class ModelEnvironment:
             self._delete(self.runtime)
             entries = [self.lock["runtime"], *self.lock["packages"]]
             if shutil.disk_usage(self.directory).free < 3 * 1024**3:
-                raise AssetError("Allow at least 3 GiB free disk space to prepare PlanT")
+                raise AssetError(f"Allow at least 3 GiB free disk space to prepare {self.name}")
             archives = []
             all_bytes, done = sum(e["size"] for e in entries), 0
             for entry in entries:
@@ -252,6 +259,10 @@ class ModelEnvironment:
                         "version": "0.1.0", "entry_point": "agent:ReferenceAgent", "observation_mode": "simulator_state",
                         "control_mode": "vehicle_control", "navigation_mode": "provided_route", "required_features": ["structured_scene"],
                         "sensors": [], "assets": [], "configuration": {"device": "cpu", "torch_threads": 2, "cuda_graphs": False, "checkpoint_path": str(weights)}}
+            if self.kind == "aim":
+                from .model_catalog import aim_manifest
+                manifest = aim_manifest(weights)
+                (package / "agent.py").write_text("from simulator.agents.aim import AIMCameraAgent\nclass AIMAgent(AIMCameraAgent):\n    pass\n", encoding="utf-8")
             (package / "agent.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
             notices = staging / "notices"
             notices.mkdir()
@@ -260,6 +271,10 @@ class ModelEnvironment:
             for name in ("LICENSE.plant-model", "LICENSE.antlr"):
                 shutil.copy2(Path(__file__).with_name(name), notices / name)
             (notices / "MODEL.txt").write_text("PlanT 2.0: Apache-2.0 model, revision e81b261f8b92b20225d020fe9b7a0470c1434d96.\nAdapted integration: MIT (LICENSE.plant2). Dependency license texts remain in site-packages/*.dist-info.\nCPU pack; no CUDA or real-time performance guarantee.\n", encoding="utf-8")
+            if self.kind == "aim":
+                from simulator.agents.aim.checkpoint import SOURCE_REVISION, CHECKPOINT_SHA256
+                shutil.copy2(APP_ROOT / "simulator/agents/aim/LICENSE.aim", notices / "LICENSE.aim")
+                (notices / "MODEL.txt").write_text(f"AIM camera policy from autonomousvision/transfuser {SOURCE_REVISION}.\nIntegration code: MIT (LICENSE.aim). Checkpoint distributed in the official project archive; no separate checkpoint license declaration was found. No checkpoint redistribution license is inferred.\nPinned checkpoint SHA-256: {CHECKPOINT_SHA256}.\nThe shared CPU dependency lock also carries PlanT-related dependency notices; those do not license the AIM weights.\nCPU pack; no CUDA, road-safety or real-time guarantee.\n", encoding="utf-8")
             _check_pause(cancelled)
             staging.rename(self.runtime)
             progress("checking_environment", 0, 1)

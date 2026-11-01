@@ -37,19 +37,21 @@ def asset_server(tls, *, mode="normal", body=DATA):
                 self.end_headers()
                 return
             offset = int(self.headers["Range"].split("=")[1].split("-")[0]) if self.headers.get("Range") else 0
+            ending = self.headers["Range"].split("-", 1)[1] if self.headers.get("Range") else ""
+            end = int(ending) if ending else len(body) - 1
             if mode == "ignore_range":
-                offset = 0
-            status = 206 if offset else 200
+                offset, end = 0, len(body) - 1
+            status = 206 if self.headers.get("Range") and mode != "ignore_range" else 200
             self.send_response(status)
             if status == 206:
                 start = offset + 1 if mode == "bad_range" else offset
-                self.send_header("Content-Range", f"bytes {start}-{len(body)-1}/{len(body)}")
+                self.send_header("Content-Range", f"bytes {start}-{end}/{len(body)}")
             if mode == "encoded":
                 self.send_header("Content-Encoding", "gzip")
             if mode != "excess":
-                self.send_header("Content-Length", str(len(body) - offset + (1 if mode == "bad_size" else 0)))
+                self.send_header("Content-Length", str(end - offset + 1 + (1 if mode == "bad_size" else 0)))
             self.end_headers()
-            sent = body[offset:] + (b"x" if mode == "excess" else b"")
+            sent = body[offset:end + 1] + (b"x" if mode == "excess" else b"")
             if mode == "truncated":
                 sent = sent[:CHUNK]
             try:
@@ -334,3 +336,45 @@ def test_catalogue_rejects_unsafe_or_unpinned_asset_metadata(changes):
     valid = dict(id="fixture", filename="weights.ckpt", url="https://example.invalid/m", size=1, sha256="a" * 64)
     with pytest.raises(ValueError):
         ModelAsset(**(valid | changes))
+
+
+def test_pinned_archive_member_range_pauses_resumes_and_publishes_only_verified_member_bytes(tmp_path, tls):
+    start, size = 19, CHUNK + 100000
+    expected = DATA[start:start + size]
+    with asset_server(tls) as (whole, open_request, observed):
+        asset = replace(whole, id="stored-member", size=size, sha256=hashlib.sha256(expected).hexdigest(),
+                        range_start=start, source_size=len(DATA))
+        paused = Event()
+        store = AssetStore(tmp_path, asset, _open=open_request)
+        def progress(state, count, total):
+            assert count <= total == size
+            if state == "downloading" and count >= CHUNK:
+                paused.set()
+        with pytest.raises(DownloadPaused):
+            store.download(cancelled=paused.is_set, progress=progress)
+        assert not store.path.exists() and store.partial.read_bytes() == expected[:CHUNK]
+        reopened = AssetStore(tmp_path, asset, _open=open_request)
+        assert reopened.download().read_bytes() == expected
+        assert observed[0]["range"] == f"bytes={start}-{start + size - 1}"
+        assert observed[-1]["range"] == f"bytes={start + CHUNK}-{start + size - 1}"
+
+
+def test_ignored_member_range_preserves_the_partial_without_downloading_an_archive(tmp_path, tls):
+    with asset_server(tls, mode="ignore_range") as (whole, open_request, _):
+        asset = replace(whole, id="stored-member", size=100, sha256=hashlib.sha256(DATA[19:119]).hexdigest(),
+                        range_start=19, source_size=len(DATA))
+        store = AssetStore(tmp_path, asset, _open=open_request)
+        store._own()
+        try: store.partial.write_bytes(DATA[19:29])
+        finally: store._lease.release()
+        with pytest.raises(AssetError, match="pinned file range"):
+            store.download()
+        assert store.partial.read_bytes() == DATA[19:29] and not store.path.exists()
+
+
+@pytest.mark.parametrize("changes", [{"range_start": 0}, {"source_size": 20},
+    {"range_start": -1, "source_size": 20}, {"range_start": True, "source_size": 20},
+    {"range_start": 20, "source_size": 20}, {"range_start": 0, "source_size": 2**50}])
+def test_invalid_member_ranges_are_rejected_before_network(changes):
+    with pytest.raises(ValueError, match="range"):
+        ModelAsset("member", "model.pth", "https://example.invalid/archive.zip", 10, "a" * 64, **changes)

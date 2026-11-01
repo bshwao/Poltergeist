@@ -396,16 +396,21 @@ class CompanionController:
         if mode not in {"test", "carla"}:
             raise ValueError("Choose Synthetic test or CARLA")
         runtime = self._running()
+        options = SimulationOptions(carla_quality=self.config.carla_quality)
         if agent_id is not None:
             registered = runtime.registry().get(UUID(str(agent_id)))
             environment = self._model_manager().environment
             if Path(registered.snapshot.python_executable) == environment.python:
-                if mode != "carla":
+                if mode != "carla" and environment.kind == "plant":
                     raise ValueError("Managed PlanT needs CARLA's observed road raster. Choose CARLA; synthetic test mode does not provide it.")
                 self._acquire_model_use()
+            if mode == "carla" and any(sensor.type == "sensor.camera.rgb" for sensor in registered.snapshot.manifest.sensors):
+                # Selecting a camera policy explicitly requires rendered pixels.
+                # WorldManager scopes and restores this setting for the run.
+                options = options.model_copy(update={"no_rendering_mode": False})
         recipe = validate_scenario(scenario)
         return runtime.worker().submit(recipe, mode=mode, agent_id=agent_id,
-            options=SimulationOptions(carla_quality=self.config.carla_quality))
+            options=options)
 
     def cancel(self, simulation_id):
         return self._running().worker().cancel(UUID(str(simulation_id)))
@@ -441,7 +446,19 @@ class CompanionController:
         return self._models
 
     def model_status(self):
-        return self._model_manager().snapshot()
+        return {**self._model_manager().snapshot(), "runtime_running": self._runtime is not None or self._model_use is not None}
+
+    def select_model(self, kind):
+        self._require_open()
+        if self._runtime is not None or self._model_use is not None:
+            raise ConflictError("Stop the local runtime before selecting a different AI model")
+        self._model_manager().select_model(kind)
+
+    def configure_huggingface(self, token):
+        self._model_manager().configure_huggingface(token)
+
+    def clear_huggingface(self):
+        self._model_manager().clear_huggingface()
 
     def prepare_model(self, action, *, repair=False):
         self._require_open()
@@ -469,7 +486,8 @@ class CompanionController:
             registry = self._running().registry()
             for registered in registry.list(active=True, limit=100):
                 if (registered.snapshot.package_path == str(manager.environment.package)
-                        and registered.snapshot.python_executable == str(manager.environment.python)):
+                        and registered.snapshot.python_executable == str(manager.environment.python)
+                        and any(item.path == str(manager._store.path) for item in registered.snapshot.model_files)):
                     try:
                         registry.verify(registered.snapshot)
                         return registered
@@ -477,7 +495,7 @@ class CompanionController:
                         pass  # Preserve history; register the newly prepared identity.
             from shared.models.registry import AgentExecutionOptions
             return registry.register(AgentRegistration(package_path=str(manager.environment.package),
-                python_executable=str(manager.environment.python), model_files=[str(manager.environment.receipt)],
+                python_executable=str(manager.environment.python), model_files=[str(manager.environment.receipt), str(manager._store.path)],
                 process_options=AgentExecutionOptions(load_timeout_s=180., reset_timeout_s=30., step_timeout_s=15.),
                 trusted_local_code=True))
         except BaseException:

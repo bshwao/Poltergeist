@@ -266,6 +266,9 @@ recorded, and a local CLI trace preserves exact inputs/actions. See
 [sensor agents and launch commands](sensor-agents.md). Registration, queued agent
 selection are described in Phase 5 below; dashboard controls are described in Phase 6.
 
+The later S16 roadmap adds a separate managed [AIM camera policy](sensor-driving-policy.md)
+with pretrained image-to-waypoint inference; the teaching pilot remains rule-based.
+
 ## Phase 5 handoff
 
 The persistent local registry records a trusted package, its selected worker
