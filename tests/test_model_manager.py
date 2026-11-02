@@ -8,6 +8,7 @@ import pytest
 from backend.persistence_errors import ConflictError
 from companion.controller import CompanionController
 from companion.model_assets import AssetStore
+from companion.model_manager import ModelManager
 from test_model_assets import asset_server, DATA
 from test_relay_client import tls
 
@@ -106,3 +107,42 @@ def test_model_operations_require_open_profile_and_known_local_action(tmp_path):
         assert not (tmp_path / "models").exists()
     finally:
         assert controller.close()
+
+
+@pytest.mark.parametrize("kind", ["plant", "aim"])
+def test_removing_environment_preserves_weights_and_resets_readiness_progress(tmp_path, kind):
+    manager = ModelManager(tmp_path)
+    try:
+        manager.select_model(kind)
+        store = manager._store
+        with manager.environment.owned():
+            manager.environment.runtime.mkdir()
+            manager.environment.python.write_bytes(b"fixture interpreter; never executed")
+        store._own()
+        try:
+            store.path.write_bytes(b"retained fixture checkpoint; not verified")
+        finally:
+            store._lease.release()
+        manager._readiness = {"fixture": True}
+        manager._status.update(state="ready", bytes=1, total=1)
+        manager.start("remove_environment")
+        deadline = monotonic() + 15
+        while manager.snapshot()["busy"] and monotonic() < deadline:
+            Event().wait(.01)
+        value = manager.snapshot()
+        assert not value["busy"]
+        assert value["state"] == "environment_removed"
+        assert "Saved weights are kept" in value["message"]
+        assert not value["inference_ready"]
+        assert value["bytes"] == 0 and value["total"] == store.asset.size
+        assert store.path.read_bytes() == b"retained fixture checkpoint; not verified"
+        assert not manager.environment.python.exists()
+        # Only an explicit weight inspection can certify the retained bytes.
+        manager.start("inspect")
+        deadline = monotonic() + 15
+        while manager.snapshot()["busy"] and monotonic() < deadline:
+            Event().wait(.01)
+        assert manager.snapshot()["state"] == "error"
+        assert "size does not match" in manager.snapshot()["message"]
+    finally:
+        assert manager.close()

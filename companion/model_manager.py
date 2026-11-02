@@ -104,7 +104,8 @@ class ModelManager:
                 self._source_status = {"state": "checking", "message": "Checking pinned Hugging Face source and access…"}
             else:
                 self._readiness = None
-                self._status.update(state="starting", message="")
+                self._status = {"state": "starting", "bytes": 0,
+                                "total": self._store.asset.size, "message": ""}
             self._future = self._executor.submit(self._work, action, repair)
 
     def _work(self, action, repair):
@@ -133,7 +134,11 @@ class ModelManager:
                 return
             elif action == "remove_environment":
                 self.environment.remove()
-                state, count = "absent", 0
+                with self._lock:
+                    self._status.update(state="environment_removed", bytes=0,
+                        total=self._store.asset.size,
+                        message="AI environment removed. Saved weights are kept. Choose Install / resume AI to prepare this model again.")
+                return
             elif action == "download":
                 self._store.download(cancelled=self._pause.is_set, progress=self._progress, repair=repair)
                 state, count = "weights_ready", self._store.asset.size
@@ -146,7 +151,7 @@ class ModelManager:
                        if state == "weights_ready" else "No weights installed." if state == "absent"
                        else "A partial download is saved. Resume to continue.")
             with self._lock:
-                self._status.update(state=state, bytes=count, message=message)
+                self._status.update(state=state, bytes=count, total=self._store.asset.size, message=message)
         except DownloadPaused:
             with self._lock:
                 if action == "check_source":

@@ -48,6 +48,10 @@ class ScrollPanel:
         visit(self.content)
 
     def _focus(self, event):
+        # Tk also sends FocusIn to ancestors of the focused control. Scrolling
+        # a tall container into view can immediately hide its focused child.
+        if str(self.canvas.tk.call("focus")) != str(event.widget):
+            return
         top = event.widget.winfo_rooty() - self.canvas.winfo_rooty()
         bottom = top + event.widget.winfo_height()
         height = self.canvas.winfo_height()

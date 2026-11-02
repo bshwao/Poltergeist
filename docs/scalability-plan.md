@@ -443,6 +443,10 @@ Depends on reliable execution, managed agents and evidence; S19 adds CI reportin
 
 ### S16 — Sensor-based driving agents
 
+Completion review: **implemented and locally validated, with acceptance gates
+open**. See the [S16/S17 review](validation/s16-s17-completion-review-20261101.md)
+for the delivered scope, remaining gates and model-panel polish.
+
 **Status: private AIM camera implementation; packaged CPU inference and real
 CARLA control locally validated.** Eighty native control reads match the learned
 outputs; the initially stationary ego moves 1.31 m with real front-camera inputs.
@@ -462,6 +466,11 @@ hardware with verified inputs/control, bounded timing and reproducible results.
 Depends on S7 and S8; this does not imply general road-safety validation.
 
 ### S17 — Hugging Face integration
+
+Completion review: **implemented and locally validated, with acceptance gates
+open**. The supported public-model lifecycle is delivered; this does not close
+gated-account or independent-machine acceptance. See the
+[S16/S17 review](validation/s16-s17-completion-review-20261101.md).
 
 **Status: private implementation; public-source lifecycle locally validated.**
 The curated PlanT revision, size, LFS hash and license are confirmed against fixed

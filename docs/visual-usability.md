@@ -78,6 +78,15 @@ companion callback regression checks are in `tests/test_companion_ui.py`.
 
 ## S11.2 — Principal workflow visual review
 
+The [S16/S17 completion review](validation/s16-s17-completion-review-20261101.md)
+adds grouped AI model controls, explicit preparation guidance, keyboard focus
+scrolling and accurate environment-removal states. Native callback checks cover
+both supported window sizes. The user stopped the computer-use review before
+usable panel captures were established; that attempt does not close visual
+acceptance. The new focus test exposed ancestor notifications scrolling a
+container over its focused control. The shared scroll handler now ignores those
+notifications; model and existing Local execution keyboard checks pass.
+
 Continue with populated scenario editing, model preparation, experiment progress,
 failure investigation and recording review. Review loading, empty, offline,
 error and recovery states for each workflow. Exercise keyboard-only entry,

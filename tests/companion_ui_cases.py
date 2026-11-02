@@ -136,6 +136,7 @@ def test_closed_window_releases_tk_variables_on_gui_thread(window):
         weakref.ref(desktop.models.status), weakref.ref(desktop.models.detail),
         weakref.ref(desktop.models.model_choice), weakref.ref(desktop.models.model_title),
         weakref.ref(desktop.models.model_source), weakref.ref(desktop.models.model_description),
+        weakref.ref(desktop.models.guidance),
         weakref.ref(desktop.models.source_status),
         weakref.ref(desktop.updates.status), weakref.ref(desktop.updates.candidate), weakref.ref(desktop.updates.progress),
         weakref.ref(desktop.pairing.origin), weakref.ref(desktop.pairing.allow_remote_execution),
@@ -204,6 +205,7 @@ def test_model_choice_source_check_and_execution_lock_are_wired_to_native_contro
     pump_until(root, lambda: desktop._future is None and controller._runtime is None)
     panel = desktop.models
     panel.sync_controls()
+    assert "Install / resume AI" in panel.guidance.get()
     panel.model_choice.set("AIM camera (CPU)")
     panel.model_selector.event_generate("<<ComboboxSelected>>")
     pump_until(root, lambda: desktop._future is None and controller.model_status()["selected_model"]["id"] == "aim")
@@ -214,10 +216,15 @@ def test_model_choice_source_check_and_execution_lock_are_wired_to_native_contro
     pump_until(root, lambda: desktop._future is None and controller._runtime is not None)
     panel.sync_controls()
     assert "disabled" in panel.model_selector.state()
+    assert "Stop the local runtime" in panel.guidance.get()
+    assert all(button.instate(["disabled"]) for button in panel._requires_stopped)
+    assert not panel.buttons[0].instate(["disabled"])
+    assert not panel.buttons[1].instate(["disabled"])
     desktop.stop_button.invoke()
     pump_until(root, lambda: desktop._future is None and controller._runtime is None)
     panel.sync_controls()
     assert "disabled" not in panel.model_selector.state()
+    assert all(not button.instate(["disabled"]) for button in panel._requires_stopped)
     panel.model_choice.set("PlanT 2.0 (CPU)")
     panel.model_selector.event_generate("<<ComboboxSelected>>")
     pump_until(root, lambda: desktop._future is None and controller.model_status()["selected_model"]["id"] == "plant")
@@ -228,6 +235,46 @@ def test_model_choice_source_check_and_execution_lock_are_wired_to_native_contro
     panel.sync_controls()
     assert "confirmed" in panel.source_status.get()
     assert not controller.model_status()["inference_ready"]
+
+
+def test_model_actions_fit_and_scroll_into_keyboard_view_at_supported_window_sizes(window):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    desktop.stop_button.invoke()
+    pump_until(root, lambda: desktop._future is None and controller._runtime is None)
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    root.focus_force()
+    panel = desktop.models
+    desktop._tabs.select(panel.frame)
+    try:
+        for size in ("960x800", "700x600"):
+            root.geometry(size)
+            root.update()
+            for kind in ("plant", "aim"):
+                controller.select_model(kind)
+                panel.sync_controls()
+                root.update()
+                for button in [panel.model_selector, *panel.buttons, panel.enable_button, panel.starter_button]:
+                    assert button.winfo_rootx() >= panel.canvas.winfo_rootx()
+                    assert button.winfo_rootx() + button.winfo_width() <= panel.canvas.winfo_rootx() + panel.canvas.winfo_width()
+                    if button.instate(["disabled"]):
+                        continue
+                    button.focus_force()
+                    root.update()
+                    assert root.focus_get() is button
+                    assert button.winfo_rooty() >= panel.canvas.winfo_rooty()
+                    assert button.winfo_rooty() + button.winfo_height() <= panel.canvas.winfo_rooty() + panel.canvas.winfo_height()
+                panel.canvas.focus_force()
+                panel.canvas.event_generate("<Home>")
+                root.update()
+                assert panel.canvas.yview()[0] == 0
+                panel.canvas.event_generate("<Next>")
+                root.update()
+                assert panel.canvas.yview()[0] > 0
+    finally:
+        root.withdraw()
+    assert errors == []
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Native Windows protected provider credentials")

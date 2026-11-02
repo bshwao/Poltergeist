@@ -689,3 +689,29 @@ Visual design, guided workflows, experiment agents and external connections are
 numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
 [product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16/S17 have locally validated private integrations; S18/S19 remain planned;
 existing S0–S10 identifiers and completion gates are preserved.
+
+## November 1 — S16/S17 completion review and model-panel polish
+
+Reviewed `main` at `86d89f0` against the S11–S19 roadmap and the existing
+packaged camera/Hub validation. S16's AIM camera CPU integration and S17's curated
+public Hub lifecycle are implemented and locally validated; broader acceptance
+and release gates remain open. Trained LiDAR is absent, and S18/S19 remain
+planned. The [completion review](validation/s16-s17-completion-review-20261101.md)
+lists the delivered scope and remaining gates for all nine milestones.
+
+The native model panel now groups weight/source/environment actions in two
+columns, explains the next preparation step and disables mutations/readiness
+checks that require a stopped runtime. It uses the shared keyboard-aware scroll
+surface. A new native test found ancestor focus notifications scrolling the
+container over the focused control; the shared handler now scrolls only the
+actual focus target. Removing a managed environment reports retained weights,
+clears inference readiness and resets progress without certifying retained bytes.
+
+Validation covers 263 focused source cases and seven distinct native cases after
+the documented rechecks. Initial sandbox TLS/temp-directory restrictions, the
+new undersized-checkpoint test's corrected expectation and the initial native
+focus failure remain recorded. Both models' controls fit and scroll at 700 × 600
+and 960 × 800; existing Local execution scrolling and protected account callbacks
+pass. No pretrained inference, public-Hub download or CARLA drive was repeated.
+The user stopped computer use before usable panel captures were established;
+native installed-app visual and independent-machine acceptance remain open.

@@ -31,6 +31,13 @@ neither camera perception nor a road-safety validation claim.
 
 ## Through the app
 
+The panel groups model weights, source/account controls and the AI environment.
+**Install / resume AI** is the full preparation path; downloading weights alone
+does not check inference. Next-step guidance explains readiness and enabling.
+Tab keeps focused controls in view; focus the scroll surface to use Page Up/Down
+or Home/End. Actions that require a stopped local runtime are disabled while it
+runs. Source checks, weight downloads and weight inspection remain available.
+
 - **Check pinned source** checks the curated PlanT Hugging Face revision, file
   size, LFS SHA-256 and declared license against the built-in pins. It never
   resolves `main`, changes a pin, or marks saved weights/inference ready. Failed
@@ -103,7 +110,9 @@ registration; changed inputs require a new registration, preserving history.
 
 **Repair AI…** rebuilds the owned environment from verified downloads and repairs
 damaged assets. **Remove AI…** removes its interpreter, dependencies and cached
-environment assets. Weight removal remains separate. Stop the local runtime before
+environment assets. Its completion state explicitly says saved weights are kept;
+those bytes are not marked verified by removing the environment. Weight removal
+remains separate. Stop the local runtime before
 preparation, readiness checks, repair or removal. An OS lease excludes mutation
 through execution until the worker stops. Missing or damaged packs fail explicitly
 without switching to the baseline. Interrupted assembly is never executable;
@@ -145,6 +154,10 @@ CARLA controls, reports and persistence-reopen evidence in that profile. Omit
 road observations or another controller for a failed run.
 
 ## Validation
+
+The [November 1 completion review](validation/s16-s17-completion-review-20261101.md)
+separates implemented S16/S17 scope from remaining acceptance gates and records
+the native model-panel usability and environment-removal corrections.
 
 S17's November 1, 2026 check repeated the real public lifecycle through the final
 portable build's isolated interpreter: confirm pinned Hub metadata, pause at
