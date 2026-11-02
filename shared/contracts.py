@@ -12,6 +12,7 @@ from .models.browser import BrowserContracts
 from .models.experimentation import ExperimentationContracts
 from .models.analysis import AnalysisContracts
 from .models.assistant import AssistantContracts
+from .models.github import GitHubContracts
 
 
 class PoltergeistContracts(ContractModel):
@@ -32,3 +33,4 @@ class PoltergeistContracts(ContractModel):
     experimentation: ExperimentationContracts
     analysis: AnalysisContracts
     assistant: AssistantContracts
+    github: GitHubContracts

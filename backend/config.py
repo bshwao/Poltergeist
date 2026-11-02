@@ -59,6 +59,17 @@ class Settings(BaseSettings):
     openai_model: str = Field(default="", max_length=120, pattern=r"^[A-Za-z0-9._:-]*$")
     openai_daily_request_limit: int = Field(default=10, ge=1, le=1000)
     openai_daily_output_token_limit: int = Field(default=8192, ge=16, le=1000000)
+    github_enabled: bool = False
+    github_checks_token: SecretStr | None = None
+    github_repository: str = Field(default="", max_length=200, pattern=r"^(?:[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*)?$")
+    github_app_id: int | None = Field(default=None, ge=1)
+    github_check_name: str = Field(default="Poltergeist regression", min_length=1, max_length=80, pattern=r"^[A-Za-z0-9][A-Za-z0-9 ._/-]*$")
+    github_daily_publish_limit: int = Field(default=20, ge=1, le=1000)
+
+    @field_validator("github_app_id", mode="before")
+    @classmethod
+    def optional_github_app_id(cls, value):
+        return None if value == "" else value
 
     @field_validator("carla_executable", mode="before")
     @classmethod

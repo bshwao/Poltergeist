@@ -25,20 +25,21 @@ def main(argv=None):
     if not directory.is_relative_to(root):
         raise ValueError("Browser evidence must stay inside its output root")
     assistant_fixture = os.environ.get("POLTERGEIST_ASSISTANT_FIXTURE") == "1"
-    if not assistant_fixture and validate_installation(["--mode", "test", "--sensors", "--duration", ".15", "--seeds", "7", "--output", str(directory)]):
+    github_fixture = os.environ.get("POLTERGEIST_GITHUB_FIXTURE") == "1"
+    if not (assistant_fixture or github_fixture) and validate_installation(["--mode", "test", "--sensors", "--duration", ".15", "--seeds", "7", "--output", str(directory)]):
         return 1
     settings = Settings(_env_file=None, database_url=f"sqlite:///{(directory / 'database' / 'runs.db').as_posix()}",
         storage_dir=directory / "artifacts", api_host="127.0.0.1", api_port=args.port,
         cors_origins=[args.origin], simulation_shutdown_timeout_s=5.)
-    if assistant_fixture:
-        # S18 reviews saved baseline evidence; its fixture does not require a
-        # separate SDK package or the installation benchmark to succeed first.
+    if assistant_fixture or github_fixture:
+        # Integration UI fixtures review saved synthetic evidence. Their
+        # controlled providers do not need the SDK installation benchmark.
         from fastapi.testclient import TestClient
         from threading import Event
         from time import monotonic
         with TestClient(create_app(settings)) as seed:
             launched = seed.post("/simulations", json={"mode": "test", "scenario": {
-                "name": "S18 saved baseline evidence", "duration_s": .15,
+                "name": "Integration browser baseline evidence", "duration_s": .15,
                 "actors": [{"id": "ego", "type": "ego_vehicle", "speed_mps": 2.}]}})
             launched.raise_for_status()
             identity = launched.json()["simulation"]["id"]
@@ -48,7 +49,7 @@ def main(argv=None):
                 if state == "completed":
                     break
                 if state in {"failed", "cancelled"} or monotonic() >= deadline:
-                    raise RuntimeError("S18 baseline fixture did not complete")
+                    raise RuntimeError("Integration baseline fixture did not complete")
                 Event().wait(.01)
     application = create_app(settings)
     if assistant_fixture:

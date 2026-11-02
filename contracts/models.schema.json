@@ -3815,6 +3815,101 @@
       "title": "CommandRejected",
       "type": "object"
     },
+    "CommitBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "title": "Commit",
+          "type": "string"
+        },
+        "model_paths": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Model Paths",
+          "type": "array"
+        },
+        "package_prefix": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Package Prefix",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commit",
+        "package_prefix",
+        "model_paths"
+      ],
+      "title": "CommitBinding",
+      "type": "object"
+    },
+    "CommitProof": {
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "title": "Commit",
+          "type": "string"
+        },
+        "crlf_files": {
+          "title": "Crlf Files",
+          "type": "integer"
+        },
+        "external_models": {
+          "title": "External Models",
+          "type": "integer"
+        },
+        "inventory_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Inventory Digest",
+          "type": "string"
+        },
+        "lfs_pins": {
+          "title": "Lfs Pins",
+          "type": "integer"
+        },
+        "manifest_pins": {
+          "title": "Manifest Pins",
+          "type": "integer"
+        },
+        "package_files": {
+          "title": "Package Files",
+          "type": "integer"
+        },
+        "package_prefix": {
+          "title": "Package Prefix",
+          "type": "string"
+        },
+        "raw_files": {
+          "title": "Raw Files",
+          "type": "integer"
+        },
+        "tree": {
+          "pattern": "^[0-9a-f]{40}$",
+          "title": "Tree",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commit",
+        "tree",
+        "package_prefix",
+        "package_files",
+        "external_models",
+        "raw_files",
+        "crlf_files",
+        "lfs_pins",
+        "manifest_pins",
+        "inventory_digest"
+      ],
+      "title": "CommitProof",
+      "type": "object"
+    },
     "ComparisonAgent": {
       "additionalProperties": false,
       "properties": {
@@ -7260,6 +7355,455 @@
         "scenario"
       ],
       "title": "GalleryScenario",
+      "type": "object"
+    },
+    "GitHubApproval": {
+      "additionalProperties": false,
+      "properties": {
+        "approve": {
+          "const": true,
+          "title": "Approve",
+          "type": "boolean"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "digest",
+        "approve"
+      ],
+      "title": "GitHubApproval",
+      "type": "object"
+    },
+    "GitHubContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "approval": {
+          "$ref": "#/$defs/GitHubApproval"
+        },
+        "inputs": {
+          "$ref": "#/$defs/GitHubInputs"
+        },
+        "publication": {
+          "$ref": "#/$defs/GitHubPublication"
+        },
+        "request": {
+          "$ref": "#/$defs/GitHubPreviewRequest"
+        },
+        "status": {
+          "$ref": "#/$defs/GitHubStatus"
+        }
+      },
+      "required": [
+        "request",
+        "approval",
+        "publication",
+        "status",
+        "inputs"
+      ],
+      "title": "GitHubContracts",
+      "type": "object"
+    },
+    "GitHubControllerInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_index": {
+          "title": "Agent Index",
+          "type": "integer"
+        },
+        "models": {
+          "items": {
+            "$ref": "#/$defs/GitHubModelInput"
+          },
+          "maxItems": 256,
+          "title": "Models",
+          "type": "array"
+        },
+        "package_files": {
+          "title": "Package Files",
+          "type": "integer"
+        },
+        "package_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Package Path"
+        },
+        "supported": {
+          "title": "Supported",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "agent_index",
+        "supported",
+        "package_path",
+        "package_files",
+        "models"
+      ],
+      "title": "GitHubControllerInputs",
+      "type": "object"
+    },
+    "GitHubInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "controllers": {
+          "items": {
+            "$ref": "#/$defs/GitHubControllerInputs"
+          },
+          "maxItems": 8,
+          "title": "Controllers",
+          "type": "array"
+        },
+        "operation_id": {
+          "format": "uuid",
+          "title": "Operation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_id",
+        "controllers"
+      ],
+      "title": "GitHubInputs",
+      "type": "object"
+    },
+    "GitHubModelInput": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "index",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "GitHubModelInput",
+      "type": "object"
+    },
+    "GitHubPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "app_id": {
+          "title": "App Id",
+          "type": "integer"
+        },
+        "candidate": {
+          "$ref": "#/$defs/CommitProof"
+        },
+        "candidate_index": {
+          "title": "Candidate Index",
+          "type": "integer"
+        },
+        "conclusion": {
+          "enum": [
+            "success",
+            "failure",
+            "action_required",
+            "cancelled"
+          ],
+          "title": "Conclusion",
+          "type": "string"
+        },
+        "context_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Context Digest",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "disclose": {
+          "items": {
+            "enum": [
+              "metrics",
+              "fingerprints",
+              "run_ids",
+              "scenarios"
+            ],
+            "type": "string"
+          },
+          "title": "Disclose",
+          "type": "array"
+        },
+        "execution_status": {
+          "title": "Execution Status",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "operation_id": {
+          "format": "uuid",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "payload": {
+          "title": "Payload",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/RegressionPolicy"
+        },
+        "reference": {
+          "$ref": "#/$defs/CommitProof"
+        },
+        "repository": {
+          "title": "Repository",
+          "type": "string"
+        },
+        "source_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "operation_id",
+        "repository",
+        "app_id",
+        "candidate_index",
+        "policy",
+        "execution_status",
+        "conclusion",
+        "digest",
+        "source_digest",
+        "context_digest",
+        "created_at",
+        "expires_at",
+        "reference",
+        "candidate",
+        "disclose",
+        "payload"
+      ],
+      "title": "GitHubPreview",
+      "type": "object"
+    },
+    "GitHubPreviewRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate": {
+          "$ref": "#/$defs/CommitBinding"
+        },
+        "candidate_index": {
+          "default": 1,
+          "maximum": 7,
+          "minimum": 1,
+          "title": "Candidate Index",
+          "type": "integer"
+        },
+        "details_url": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Details Url"
+        },
+        "disclose": {
+          "items": {
+            "enum": [
+              "metrics",
+              "fingerprints",
+              "run_ids",
+              "scenarios"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Disclose",
+          "type": "array"
+        },
+        "operation_id": {
+          "format": "uuid",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/RegressionPolicy"
+        },
+        "reference": {
+          "$ref": "#/$defs/CommitBinding"
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "operation_id",
+        "candidate_index",
+        "policy",
+        "reference",
+        "candidate",
+        "disclose",
+        "details_url"
+      ],
+      "title": "GitHubPreviewRequest",
+      "type": "object"
+    },
+    "GitHubPublication": {
+      "additionalProperties": false,
+      "properties": {
+        "check_run_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Check Run Id"
+        },
+        "check_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Check Url"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "preview": {
+          "$ref": "#/$defs/GitHubPreview"
+        },
+        "schema_version": {
+          "const": "poltergeist-github-check-v1",
+          "default": "poltergeist-github-check-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "preview",
+            "publishing",
+            "published",
+            "failed",
+            "uncertain"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "preview",
+        "state",
+        "message",
+        "check_run_id",
+        "check_url"
+      ],
+      "title": "GitHubPublication",
+      "type": "object"
+    },
+    "GitHubStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "app_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "App Id"
+        },
+        "check_name": {
+          "title": "Check Name",
+          "type": "string"
+        },
+        "configured": {
+          "title": "Configured",
+          "type": "boolean"
+        },
+        "daily_publish_limit": {
+          "title": "Daily Publish Limit",
+          "type": "integer"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "repository": {
+          "title": "Repository",
+          "type": "string"
+        },
+        "scope": {
+          "const": "local_api_only",
+          "default": "local_api_only",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "configured",
+        "repository",
+        "app_id",
+        "check_name",
+        "daily_publish_limit",
+        "scope"
+      ],
+      "title": "GitHubStatus",
       "type": "object"
     },
     "GuidanceFeedback": {
@@ -14308,6 +14852,9 @@
     "failure": {
       "$ref": "#/$defs/FailureReport"
     },
+    "github": {
+      "$ref": "#/$defs/GitHubContracts"
+    },
     "metrics": {
       "$ref": "#/$defs/SafetyMetrics"
     },
@@ -14353,7 +14900,8 @@
     "browser",
     "experimentation",
     "analysis",
-    "assistant"
+    "assistant",
+    "github"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

@@ -11,7 +11,9 @@ is locally validated. S14/S15 have locally validated private implementations;
 S16's managed camera policy and S17's curated Hub lifecycle are locally validated
 private implementations, with broader machine and release gates open. S18 has an
 optional local implementation with explicit disclosure and usage approval; live
-provider acceptance remains open. S19 remains planned. See [OpenAI assistance](openai-assistance.md), [camera policy](sensor-driving-policy.md),
+provider acceptance remains open. S19 has a local commit-verified publishing
+implementation, with live App/CI acceptance open. See [GitHub checks](github-reporting.md),
+[OpenAI assistance](openai-assistance.md), [camera policy](sensor-driving-policy.md),
 [evidence and regression agents](evidence-regression-agents.md),
 [guided experimentation and discovery](guided-experimentation.md), the
 [S8–S10 checkpoint](evidence-capacity-release.md) and the
@@ -117,7 +119,7 @@ implemented guided workflows and an open human-adoption gate; S13 has a locally
 validated bounded discovery engine. S14/S15 have locally validated saved-evidence
 review implementations; S16/S17 have locally validated private integrations;
 S18 has an optional local implementation with live-account acceptance open;
-S19 remains **planned**. Earlier phases may build
+S19 has a local publishing implementation with live App/CI acceptance open. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -512,6 +514,16 @@ execution and usage limits, decline unsupported actions and produce reviewable
 plans and evidence-linked reports. Supports S13–S14; no arbitrary shell access.
 
 ### S19 — GitHub integration
+
+**Status: private local implementation delivered.** The dashboard and CLI verify
+both frozen registered packages and model pins against exact repository commits,
+then require review of the exact selected disclosure and explicit digest-bound
+approval. Policy/candidate-specific check names and measured status mappings
+preserve incomplete/failed evidence. A separate durable journal reserves writes
+before network access and supports read-only reconciliation after uncertainty.
+The hosted relay has no publishing actions. Live GitHub App publication and
+branch-protection acceptance remain open; see [setup and scope](github-reporting.md)
+and the [validation receipt](validation/s19-github-reporting-20261101.md).
 
 - Associate regression results with exact model commits and expose reliable
   report/check status mappings for reviewed experiment suites.

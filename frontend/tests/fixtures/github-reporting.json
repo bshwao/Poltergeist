@@ -1,0 +1,331 @@
+{
+  "scope": "Controlled S15 report and Git object fixtures; no live GitHub or new driving",
+  "status": {
+    "enabled": true,
+    "configured": true,
+    "repository": "fixture/driving-models",
+    "app_id": 42,
+    "check_name": "Poltergeist regression",
+    "daily_publish_limit": 20,
+    "scope": "local_api_only"
+  },
+  "inputs": {
+    "operation_id": "3b15cc16-82f5-4aa4-88e8-c78a9accbfd0",
+    "controllers": [
+      {
+        "agent_index": 0,
+        "supported": true,
+        "package_path": "C:/fixture/registered-package",
+        "package_files": 2,
+        "models": []
+      },
+      {
+        "agent_index": 1,
+        "supported": true,
+        "package_path": "C:/fixture/registered-package",
+        "package_files": 2,
+        "models": []
+      }
+    ]
+  },
+  "report": {
+    "schema_version": "poltergeist-regression-v1",
+    "method": "matched-observation-rules-v1",
+    "operation_id": "3b15cc16-82f5-4aa4-88e8-c78a9accbfd0",
+    "execution_status": "completed",
+    "source_digest": "837eacf23a85ed803590ff00c9990d7ad81520b36326824ac16c1682d583644c",
+    "plan_digest": "7940063bbb4ffe03907853162a343dbacfa777dcdb2a3c964979a2d72a04fef0",
+    "policy": {
+      "minimum_pairs": 3,
+      "thresholds": {
+        "severity": 5.0,
+        "collision_count": 0.0
+      }
+    },
+    "state": "regression_observed",
+    "summary": "2 case/controller/metric comparisons show a repeated worsening pattern under the selected policy. Unresolved or unselected measurements are not cleared by this report.",
+    "evidence_review": {
+      "available_runs": 6,
+      "unavailable_runs": 0,
+      "limited_runs": 0,
+      "frames_read": 18,
+      "bytes_read": 19935,
+      "frame_limit": 100001,
+      "byte_limit": 134217728
+    },
+    "context_notes": [],
+    "controllers": [
+      {
+        "agent_index": 0,
+        "registration_id": "beb70be0-0208-467a-bab9-d58d8bcfce69",
+        "name": "PRIVATE REFERENCE NAME",
+        "version": "1.0",
+        "snapshot_digest": "3fd2bb4318b93f6bdf3b3c33c4c8739ca3fd4299ff13c5664b85528bb778889a",
+        "execution_digest": "894d9698e15ff1b20fbc2bba35acaba844989560f556eb8a4f2a950e9246767b",
+        "python_digest": "f9475ecd98ef320792a4946b80b1915500a318e9ad537097b8188c28fd659928",
+        "dependencies_digest": "26d636f63e96c143232e8bda13c57fbc39bcb6219f4725782f8ecaee846e46d7",
+        "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      {
+        "agent_index": 1,
+        "registration_id": "ace23e28-3b2b-4f1d-993b-ad76144bf5f0",
+        "name": "PRIVATE CANDIDATE NAME",
+        "version": "2.0",
+        "snapshot_digest": "f5475a01288505757642614e9241edfb3785677735e94128b8ec827a89a9d37f",
+        "execution_digest": "8940e3f5f0eeea2b06fabe32c19cbef2479816e0f8153a6137cf53da007b1ad0",
+        "python_digest": "f9475ecd98ef320792a4946b80b1915500a318e9ad537097b8188c28fd659928",
+        "dependencies_digest": "26d636f63e96c143232e8bda13c57fbc39bcb6219f4725782f8ecaee846e46d7",
+        "configuration_digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    ],
+    "pairs": [
+      {
+        "case_index": 0,
+        "compared_agent_index": 1,
+        "seed": 7,
+        "repeat_index": 0,
+        "reference_simulation_id": "514a93d3-c6a9-479a-8c7a-6c3ee8857c6e",
+        "compared_simulation_id": "f1a8ffad-c073-4935-867c-04564ded1dd0",
+        "comparable": true,
+        "reason": "Matched frozen recipe/seed/repetition, observed coverage, runtime and input contract",
+        "differences": {
+          "severity": 81.79342431761788,
+          "collision_count": 1.0
+        },
+        "reference_values": {
+          "severity": 18.20657568238213,
+          "collision_count": 0.0
+        },
+        "compared_values": {
+          "severity": 100.0,
+          "collision_count": 1.0
+        }
+      },
+      {
+        "case_index": 0,
+        "compared_agent_index": 1,
+        "seed": 11,
+        "repeat_index": 0,
+        "reference_simulation_id": "d104179d-7243-4bf7-970e-1523ef404612",
+        "compared_simulation_id": "74cdca32-375b-40af-9b13-d2c583b4ce1c",
+        "comparable": true,
+        "reason": "Matched frozen recipe/seed/repetition, observed coverage, runtime and input contract",
+        "differences": {
+          "severity": 81.79342431761788,
+          "collision_count": 1.0
+        },
+        "reference_values": {
+          "severity": 18.20657568238213,
+          "collision_count": 0.0
+        },
+        "compared_values": {
+          "severity": 100.0,
+          "collision_count": 1.0
+        }
+      },
+      {
+        "case_index": 0,
+        "compared_agent_index": 1,
+        "seed": 13,
+        "repeat_index": 0,
+        "reference_simulation_id": "e991dfe6-728f-4b6e-ad51-75f7e9eb5ec7",
+        "compared_simulation_id": "93d357bc-ae79-4e44-b6bc-b50c9f05e138",
+        "comparable": true,
+        "reason": "Matched frozen recipe/seed/repetition, observed coverage, runtime and input contract",
+        "differences": {
+          "severity": 81.79342431761788,
+          "collision_count": 1.0
+        },
+        "reference_values": {
+          "severity": 18.20657568238213,
+          "collision_count": 0.0
+        },
+        "compared_values": {
+          "severity": 100.0,
+          "collision_count": 1.0
+        }
+      }
+    ],
+    "assessments": [
+      {
+        "case_index": 0,
+        "case_name": "PRIVATE CASE NAME",
+        "compared_agent_index": 1,
+        "metric": "severity",
+        "unit": "0\u2013100 heuristic",
+        "worsening_direction": "higher",
+        "threshold": 5.0,
+        "decision": "regression_observed",
+        "planned_pairs": 3,
+        "observed_pairs": 3,
+        "worsening_pairs": 3,
+        "mean_change": 81.79342431761788,
+        "minimum_change": 81.79342431761788,
+        "maximum_change": 81.79342431761788,
+        "sample_stddev": 0.0,
+        "explanation": "3 of 3 observed pairs exceed the worsening threshold; 0 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+      },
+      {
+        "case_index": 0,
+        "case_name": "PRIVATE CASE NAME",
+        "compared_agent_index": 1,
+        "metric": "collision_count",
+        "unit": "episodes",
+        "worsening_direction": "higher",
+        "threshold": 0.0,
+        "decision": "regression_observed",
+        "planned_pairs": 3,
+        "observed_pairs": 3,
+        "worsening_pairs": 3,
+        "mean_change": 1.0,
+        "minimum_change": 1.0,
+        "maximum_change": 1.0,
+        "sample_stddev": 0.0,
+        "explanation": "3 of 3 observed pairs exceed the worsening threshold; 0 planned pairs are unavailable. At least 3 observed pairs with a consistent pattern are required. Differences and spread are descriptive, not statistical significance."
+      }
+    ],
+    "limitations": [
+      "This is an observed, threshold-based pattern in matched frozen trials, not a probability of failure, a causal attribution or a general safety ranking.",
+      "Raw differences are compared minus reference. Lower TTC/clearance is worse; other selected metrics worsen when higher.",
+      "A negative/clear result requires every planned pair and at least the policy's minimum count. Missing, failed, cancelled, corrupted or incompatible evidence is not zero.",
+      "A positive pattern requires every observed paired change to exceed the threshold and at least the minimum count. Mixed patterns are inconclusive; sample spread is descriptive.",
+      "Frozen snapshots describe the executed artifacts/configuration. They do not establish that those files remain installed or that model weights alone caused a difference.",
+      "Reproduce using the frozen suite request and version snapshots in its existing evidence export; later edits or deletion of a reusable definition do not replace that journal.",
+      "Synthetic fixtures check this workflow. CARLA, hardware and learned inference can vary between repeated seeds."
+    ]
+  },
+  "request": {
+    "request_id": "37134dad-52cd-4f18-87e0-fd3ba71e19ed",
+    "operation_id": "3b15cc16-82f5-4aa4-88e8-c78a9accbfd0",
+    "candidate_index": 1,
+    "policy": {
+      "minimum_pairs": 3,
+      "thresholds": {
+        "severity": 5.0,
+        "collision_count": 0.0
+      }
+    },
+    "reference": {
+      "commit": "1111111111111111111111111111111111111111",
+      "package_prefix": "pkg",
+      "model_paths": []
+    },
+    "candidate": {
+      "commit": "2222222222222222222222222222222222222222",
+      "package_prefix": "pkg",
+      "model_paths": []
+    },
+    "disclose": [],
+    "details_url": null
+  },
+  "preview": {
+    "schema_version": "poltergeist-github-check-v1",
+    "id": "37134dad-52cd-4f18-87e0-fd3ba71e19ed",
+    "preview": {
+      "id": "37134dad-52cd-4f18-87e0-fd3ba71e19ed",
+      "operation_id": "3b15cc16-82f5-4aa4-88e8-c78a9accbfd0",
+      "repository": "fixture/driving-models",
+      "app_id": 42,
+      "candidate_index": 1,
+      "policy": {
+        "minimum_pairs": 3,
+        "thresholds": {
+          "severity": 5.0,
+          "collision_count": 0.0
+        }
+      },
+      "execution_status": "completed",
+      "conclusion": "failure",
+      "digest": "05760ab39ffd08b7335907ccb2242b125ffeb4227cf062c5e4a6340378632cb7",
+      "source_digest": "837eacf23a85ed803590ff00c9990d7ad81520b36326824ac16c1682d583644c",
+      "context_digest": "18e8314c3762877092474b66b2419b3300cc69aa0ad5e730cafa4b9ae58a0d17",
+      "created_at": "2026-11-02T01:47:48.623271Z",
+      "expires_at": "2026-11-02T02:47:48.623271Z",
+      "reference": {
+        "commit": "1111111111111111111111111111111111111111",
+        "tree": "daa581c705ac447d56e0e969b5f71772dd45690a",
+        "package_prefix": "pkg",
+        "package_files": 2,
+        "external_models": 0,
+        "raw_files": 2,
+        "crlf_files": 0,
+        "lfs_pins": 0,
+        "manifest_pins": 0,
+        "inventory_digest": "366a38cc02b2839fed90b22b35e9f202561f1b2813785657e6d0d06c341a040a"
+      },
+      "candidate": {
+        "commit": "2222222222222222222222222222222222222222",
+        "tree": "5842289329cd643190140968f9f195d75ad65f78",
+        "package_prefix": "pkg",
+        "package_files": 2,
+        "external_models": 0,
+        "raw_files": 2,
+        "crlf_files": 0,
+        "lfs_pins": 0,
+        "manifest_pins": 0,
+        "inventory_digest": "68df2ec2f82453e9939f09c351bde8f0fde5cf6f29cf4dc78117a2f3e8da3fd2"
+      },
+      "disclose": [],
+      "payload": "{\"conclusion\":\"failure\",\"external_id\":\"poltergeist:b165a0cf5f70e93b7bc2e09aacb010a996d0d621831db8868db1335783f5393a\",\"head_sha\":\"2222222222222222222222222222222222222222\",\"name\":\"Poltergeist regression / 300125593997 / c1\",\"output\":{\"summary\":\"Measured regression observed.\\n\\nReference commit: `1111111111111111111111111111111111111111`. Candidate commit: `2222222222222222222222222222222222222222`.\\n\\nScope: selected candidate and selected measurement policy only. Missing or unselected evidence is not cleared; this is not a safety or causal claim.\\n\\nCommit verification covers package inputs and declared external-model pins. Runtime, environment and effective configuration remain identified by the frozen local suite, not certified as Git contents.\\n\\nFull reproduction requires the retained frozen suite journal. No raw traces, recordings, credentials, configuration values or local filesystem paths are uploaded.\",\"title\":\"Measured regression observed\"},\"status\":\"completed\"}"
+    },
+    "state": "preview",
+    "message": "Commit/package/model pins verified. Review the exact outgoing check JSON; nothing has been published.",
+    "check_run_id": null,
+    "check_url": null
+  },
+  "published": {
+    "schema_version": "poltergeist-github-check-v1",
+    "id": "37134dad-52cd-4f18-87e0-fd3ba71e19ed",
+    "preview": {
+      "id": "37134dad-52cd-4f18-87e0-fd3ba71e19ed",
+      "operation_id": "3b15cc16-82f5-4aa4-88e8-c78a9accbfd0",
+      "repository": "fixture/driving-models",
+      "app_id": 42,
+      "candidate_index": 1,
+      "policy": {
+        "minimum_pairs": 3,
+        "thresholds": {
+          "severity": 5.0,
+          "collision_count": 0.0
+        }
+      },
+      "execution_status": "completed",
+      "conclusion": "failure",
+      "digest": "05760ab39ffd08b7335907ccb2242b125ffeb4227cf062c5e4a6340378632cb7",
+      "source_digest": "837eacf23a85ed803590ff00c9990d7ad81520b36326824ac16c1682d583644c",
+      "context_digest": "18e8314c3762877092474b66b2419b3300cc69aa0ad5e730cafa4b9ae58a0d17",
+      "created_at": "2026-11-02T01:47:48.623271Z",
+      "expires_at": "2026-11-02T02:47:48.623271Z",
+      "reference": {
+        "commit": "1111111111111111111111111111111111111111",
+        "tree": "daa581c705ac447d56e0e969b5f71772dd45690a",
+        "package_prefix": "pkg",
+        "package_files": 2,
+        "external_models": 0,
+        "raw_files": 2,
+        "crlf_files": 0,
+        "lfs_pins": 0,
+        "manifest_pins": 0,
+        "inventory_digest": "366a38cc02b2839fed90b22b35e9f202561f1b2813785657e6d0d06c341a040a"
+      },
+      "candidate": {
+        "commit": "2222222222222222222222222222222222222222",
+        "tree": "5842289329cd643190140968f9f195d75ad65f78",
+        "package_prefix": "pkg",
+        "package_files": 2,
+        "external_models": 0,
+        "raw_files": 2,
+        "crlf_files": 0,
+        "lfs_pins": 0,
+        "manifest_pins": 0,
+        "inventory_digest": "68df2ec2f82453e9939f09c351bde8f0fde5cf6f29cf4dc78117a2f3e8da3fd2"
+      },
+      "disclose": [],
+      "payload": "{\"conclusion\":\"failure\",\"external_id\":\"poltergeist:b165a0cf5f70e93b7bc2e09aacb010a996d0d621831db8868db1335783f5393a\",\"head_sha\":\"2222222222222222222222222222222222222222\",\"name\":\"Poltergeist regression / 300125593997 / c1\",\"output\":{\"summary\":\"Measured regression observed.\\n\\nReference commit: `1111111111111111111111111111111111111111`. Candidate commit: `2222222222222222222222222222222222222222`.\\n\\nScope: selected candidate and selected measurement policy only. Missing or unselected evidence is not cleared; this is not a safety or causal claim.\\n\\nCommit verification covers package inputs and declared external-model pins. Runtime, environment and effective configuration remain identified by the frozen local suite, not certified as Git contents.\\n\\nFull reproduction requires the retained frozen suite journal. No raw traces, recordings, credentials, configuration values or local filesystem paths are uploaded.\",\"title\":\"Measured regression observed\"},\"status\":\"completed\"}"
+    },
+    "state": "published",
+    "message": "The exact approved check is published on the verified candidate commit. No simulation or repository code was changed.",
+    "check_run_id": 1,
+    "check_url": "https://github.com/fixture/driving-models/runs/1"
+  }
+}

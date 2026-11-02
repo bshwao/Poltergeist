@@ -5,6 +5,7 @@ import type { RegressionPolicy } from "../types/generated";
 import { useLabReport } from "../hooks/useLab";
 import { simulationLink } from "../navigation";
 import { saveLabJson } from "./lab-download";
+import { GitHubPublisher } from "./GitHubPublisher";
 
 const measurements = [
   { key: "severity", label: "Heuristic severity", unit: "points", initial: "5" },
@@ -82,6 +83,7 @@ export function RegressionPanel({ operationId, active = true, available = true, 
         <details><summary>Reproduction, source identity and limits</summary><ul>{report.limitations.map(item => <li key={item}>{item}</li>)}</ul>
           <p>Frozen suite fingerprint: <code>{report.plan_digest}</code></p><p>Reviewed source fingerprint: <code>{report.source_digest}</code></p><p>Download the existing suite comparison evidence as the complete frozen reproduction journal.</p></details>
         <button type="button" className="button secondary" onClick={() => saveLabJson(report, `poltergeist-regression-${operationId}.json`)}>Download regression review</button>
+        {client === api && !state.error && <GitHubPublisher key={operationId} report={report} active={active} />}
       </div>}
     </div>
   </section>;

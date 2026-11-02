@@ -6,6 +6,8 @@ import { isBehaviorAnalysis } from "./behavior-contract";
 import { experimentContracts } from "./experiment-contract";
 import { labContracts } from "./lab-contract";
 import { isAssistantRecord, isAssistantStatus } from "./assistant-contract";
+import { isGitHubInputs, isGitHubPublication, isGitHubStatus } from "./github-contract";
+import type { GitHubApproval, GitHubInputs, GitHubPreviewRequest, GitHubPublication, GitHubStatus } from "../types/generated";
 import type { AssistantApproval, AssistantRecord, AssistantRequest, AssistantStatus } from "../types/generated";
 import { isEvidenceAnalysis, isRegressionPolicy, isRegressionReport } from "./analysis-contract";
 import type { EvidenceAnalysis, RegressionPolicy, RegressionReport } from "../types/generated";
@@ -813,6 +815,23 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     getEvidenceAnalysis: (id: string, options: RequestOptions = {}) => request<EvidenceAnalysis>(`/experimentation/analysis/${checkedId(id)}`, options,
       v => isEvidenceAnalysis(v) && v.simulation_id.toLowerCase() === id.toLowerCase()),
     getAssistantStatus: (options: RequestOptions = {}) => request<AssistantStatus>("/assistant/status", options, isAssistantStatus),
+    getGitHubStatus: (options: RequestOptions = {}) => request<GitHubStatus>("/github/status", options, isGitHubStatus),
+    getGitHubInputs: (id: string, options: RequestOptions = {}) => request<GitHubInputs>(`/github/inputs/${checkedId(id)}`, options,
+      v => isGitHubInputs(v) && v.operation_id === id),
+    previewGitHubCheck: (input: GitHubPreviewRequest, options: RequestOptions = {}) => request<GitHubPublication>("/github/previews", options,
+      v => isGitHubPublication(v) && v.id === input.request_id && v.state === "preview" && v.preview.operation_id === input.operation_id
+        && v.preview.candidate_index === input.candidate_index && v.preview.reference.commit === input.reference.commit && v.preview.candidate.commit === input.candidate.commit
+        && canonicalJson(v.preview.policy) === canonicalJson(input.policy) && canonicalJson(v.preview.disclose) === canonicalJson(input.disclose)
+        && v.preview.reference.package_prefix === input.reference.package_prefix.trim() && v.preview.candidate.package_prefix === input.candidate.package_prefix.trim(),
+      "POST", input, 201),
+    getGitHubPublication: (id: string, options: RequestOptions = {}) => request<GitHubPublication>(`/github/publications/${checkedId(id)}`, options,
+      v => isGitHubPublication(v) && v.id === id),
+    listGitHubPublications: (options: RequestOptions = {}) => request<GitHubPublication[]>("/github/publications", options,
+      v => Array.isArray(v) && v.length <= 30 && v.every(isGitHubPublication)),
+    publishGitHubCheck: (id: string, input: GitHubApproval, options: RequestOptions = {}) => request<GitHubPublication>(`/github/publications/${checkedId(id)}/publish`, options,
+      v => isGitHubPublication(v) && v.id === id && v.preview.digest === input.digest, "POST", input),
+    reconcileGitHubCheck: (id: string, options: RequestOptions = {}) => request<GitHubPublication>(`/github/publications/${checkedId(id)}/reconcile`, options,
+      v => isGitHubPublication(v) && v.id === id, "POST", {}),
     previewAssistant: (input: AssistantRequest, options: RequestOptions = {}) => request<AssistantRecord>("/assistant/previews", options,
       v => isAssistantRecord(v, lab.plan) && v.id === input.request_id && v.preview.kind === input.kind && v.state === "preview", "POST", input, 201),
     listAssistantRequests: (options: RequestOptions = {}) => request<AssistantRecord[]>("/assistant/requests", options,

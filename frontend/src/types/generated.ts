@@ -3244,11 +3244,133 @@ export type RequestId10 = string;
 export type Description7 = string;
 export type Description8 = string;
 export type ExpectedRevision5 = number;
+export type Approve2 = true;
+export type Digest4 = string;
+/**
+ * @maxItems 8
+ */
+export type Controllers1 =
+  | []
+  | [GitHubControllerInputs]
+  | [GitHubControllerInputs, GitHubControllerInputs]
+  | [GitHubControllerInputs, GitHubControllerInputs, GitHubControllerInputs]
+  | [GitHubControllerInputs, GitHubControllerInputs, GitHubControllerInputs, GitHubControllerInputs]
+  | [
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs
+    ]
+  | [
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs
+    ]
+  | [
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs
+    ]
+  | [
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs,
+      GitHubControllerInputs
+    ];
+export type AgentIndex3 = number;
+export type Index = number;
+export type Sha2566 = string;
+export type SizeBytes2 = number;
+/**
+ * @maxItems 256
+ */
+export type Models = GitHubModelInput[];
+export type PackageFiles = number;
+export type PackagePath2 = string | null;
+export type Supported = boolean;
+export type OperationId3 = string;
+export type CheckRunId = number | null;
+export type CheckUrl = string | null;
+export type Id16 = string;
+export type Message2 = string;
+export type AppId = number;
+export type Commit = string;
+export type CrlfFiles = number;
+export type ExternalModels = number;
+export type InventoryDigest = string;
+export type LfsPins = number;
+export type ManifestPins = number;
+export type PackageFiles1 = number;
+export type PackagePrefix = string;
+export type RawFiles = number;
+export type Tree = string;
+export type CandidateIndex2 = number;
+export type Conclusion = "success" | "failure" | "action_required" | "cancelled";
+export type ContextDigest = string;
+export type CreatedAt13 = string;
+export type Digest5 = string;
+export type Disclose = ("metrics" | "fingerprints" | "run_ids" | "scenarios")[];
+export type ExecutionStatus1 = string;
+export type ExpiresAt5 = string;
+export type Id17 = string;
+export type OperationId4 = string;
+export type Payload1 = string;
+export type Repository = string;
+export type SourceDigest3 = string;
+export type SchemaVersion10 = "poltergeist-github-check-v1";
+export type State9 = "preview" | "publishing" | "published" | "failed" | "uncertain";
+export type Commit1 = string;
+/**
+ * @maxItems 256
+ */
+export type ModelPaths = string[];
+export type PackagePrefix1 = string;
+export type CandidateIndex3 = number;
+export type DetailsUrl = string | null;
+/**
+ * @maxItems 4
+ */
+export type Disclose1 =
+  | []
+  | ["metrics" | "fingerprints" | "run_ids" | "scenarios"]
+  | ["metrics" | "fingerprints" | "run_ids" | "scenarios", "metrics" | "fingerprints" | "run_ids" | "scenarios"]
+  | [
+      "metrics" | "fingerprints" | "run_ids" | "scenarios",
+      "metrics" | "fingerprints" | "run_ids" | "scenarios",
+      "metrics" | "fingerprints" | "run_ids" | "scenarios"
+    ]
+  | [
+      "metrics" | "fingerprints" | "run_ids" | "scenarios",
+      "metrics" | "fingerprints" | "run_ids" | "scenarios",
+      "metrics" | "fingerprints" | "run_ids" | "scenarios",
+      "metrics" | "fingerprints" | "run_ids" | "scenarios"
+    ];
+export type OperationId5 = string;
+export type RequestId11 = string;
+export type AppId1 = number | null;
+export type CheckName = string;
+export type Configured1 = boolean;
+export type DailyPublishLimit = number;
+export type Enabled1 = boolean;
+export type Repository1 = string;
+export type Scope1 = "local_api_only";
 export type Request1 =
   SearchRequest | ComparisonRequest | SuiteRequest | DiscoveryRequest | ReproductionRequest | MinimizeRequest;
 export type ExpectedRevision6 = number;
 export type Detail = string;
-export type Id16 = string;
+export type Id18 = string;
 export type Label1 = string;
 export type NextStep = string | null;
 /**
@@ -3260,8 +3382,8 @@ export type Checks = ReadinessCheck[];
 export type Summary5 = string;
 export type CarlaConnectionRequested = boolean;
 export type CheckedAt1 = string;
-export type SchemaVersion10 = "poltergeist-readiness-v1";
-export type Scope1 = "local_core";
+export type SchemaVersion11 = "poltergeist-readiness-v1";
+export type Scope2 = "local_core";
 export type Command = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest | LabCommand;
 export type AgentId7 = null;
 export type Kind39 = "execute";
@@ -3269,20 +3391,20 @@ export type Mode15 = "test" | "carla";
 export type Camera1 = boolean;
 export type Lidar1 = boolean;
 export type MaxTicks2 = number;
-export type RequestId11 = string;
-export type Kind40 = "cancel";
 export type RequestId12 = string;
+export type Kind40 = "cancel";
+export type RequestId13 = string;
 export type SimulationId16 = string;
 export type Kind41 = "status";
-export type RequestId13 = string;
-export type Kind42 = "result";
 export type RequestId14 = string;
+export type Kind42 = "result";
+export type RequestId15 = string;
 export type SimulationId17 = string;
 export type ArtifactIndex2 = number;
 export type Kind43 = "evidence";
 export type Limit2 = number;
 export type Offset3 = number;
-export type RequestId15 = string;
+export type RequestId16 = string;
 export type Resource1 = "telemetry" | "recordings" | "samples" | "sample";
 export type SampleCursor = number | null;
 export type SampleIndex2 = number;
@@ -3308,7 +3430,7 @@ export type Kind45 = "suites" | "plans" | "feedbacks";
 export type Limit3 = number;
 export type Offset4 = number;
 export type ExpectedRevision7 = number | null;
-export type Id17 = string;
+export type Id19 = string;
 export type Kind46 =
   | "suite_get"
   | "suite_delete"
@@ -3323,28 +3445,28 @@ export type Kind46 =
   | "highlights"
   | "analysis_get";
 export type Before1 = string | null;
-export type Id18 = string;
+export type Id20 = string;
 export type Kind47 = "suite_runs";
 export type Limit4 = number;
 export type Offset5 = number;
 export type Kind48 = "suite_save";
-export type Id19 = string;
+export type Id21 = string;
 export type Kind49 = "suite_update";
-export type Id20 = string;
+export type Id22 = string;
 export type Kind50 = "suite_run";
 export type Kind51 = "plan_propose";
-export type Id21 = string;
+export type Id23 = string;
 export type Kind52 = "plan_approve";
 export type Kind53 = "feedback";
 export type Kind54 = "run_launch";
 export type Frame12 = number;
-export type Id22 = string;
+export type Id24 = string;
 export type Kind55 = "frame_get";
-export type Id23 = string;
+export type Id25 = string;
 export type Kind56 = "regression_report";
 export type Kind57 = "lab";
 export type Mode16 = ("test" | "carla") | null;
-export type RequestId16 = string;
+export type RequestId17 = string;
 export type Envelope = ServerHello | ClientReady | RelayCommand | RelayReply | RelayPing | RelayPong;
 export type AnalysisSupported1 = boolean;
 export type ConnectionGeneration = number;
@@ -3397,7 +3519,7 @@ export type ProtocolVersion12 = "poltergeist-relay-v1";
 export type Reply2 =
   ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply | LabReply;
 export type ProtocolVersion13 = "poltergeist-runner-v1";
-export type RequestId17 = string;
+export type RequestId18 = string;
 export type SimulationId19 = string;
 export type CheckedAt2 = string;
 export type ExecutionModes = ("test" | "carla")[];
@@ -3411,7 +3533,7 @@ export type SdkProtocols = ("1.0" | "1.1" | "1.2" | "1.3")[];
 export type AgentId8 = string | null;
 export type Mode17 = "test" | "carla";
 export type ProtocolVersion15 = "poltergeist-runner-v1";
-export type RequestId18 = string;
+export type RequestId19 = string;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -3427,6 +3549,7 @@ export interface PoltergeistContracts {
   coordination: CoordinationContracts;
   experimentation: ExperimentationContracts;
   failure: FailureReport;
+  github: GitHubContracts;
   metrics: SafetyMetrics;
   optimization: OptimizationContracts;
   readiness: ReadinessReport;
@@ -6052,6 +6175,141 @@ export interface SuiteUpdate {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubContracts".
+ */
+export interface GitHubContracts {
+  approval: GitHubApproval;
+  inputs: GitHubInputs;
+  publication: GitHubPublication;
+  request: GitHubPreviewRequest;
+  status: GitHubStatus;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubApproval".
+ */
+export interface GitHubApproval {
+  approve: Approve2;
+  digest: Digest4;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubInputs".
+ */
+export interface GitHubInputs {
+  controllers: Controllers1;
+  operation_id: OperationId3;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubControllerInputs".
+ */
+export interface GitHubControllerInputs {
+  agent_index: AgentIndex3;
+  models: Models;
+  package_files: PackageFiles;
+  package_path: PackagePath2;
+  supported: Supported;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubModelInput".
+ */
+export interface GitHubModelInput {
+  index: Index;
+  sha256: Sha2566;
+  size_bytes: SizeBytes2;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubPublication".
+ */
+export interface GitHubPublication {
+  check_run_id: CheckRunId;
+  check_url: CheckUrl;
+  id: Id16;
+  message: Message2;
+  preview: GitHubPreview;
+  schema_version: SchemaVersion10;
+  state: State9;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubPreview".
+ */
+export interface GitHubPreview {
+  app_id: AppId;
+  candidate: CommitProof;
+  candidate_index: CandidateIndex2;
+  conclusion: Conclusion;
+  context_digest: ContextDigest;
+  created_at: CreatedAt13;
+  digest: Digest5;
+  disclose: Disclose;
+  execution_status: ExecutionStatus1;
+  expires_at: ExpiresAt5;
+  id: Id17;
+  operation_id: OperationId4;
+  payload: Payload1;
+  policy: RegressionPolicy;
+  reference: CommitProof;
+  repository: Repository;
+  source_digest: SourceDigest3;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CommitProof".
+ */
+export interface CommitProof {
+  commit: Commit;
+  crlf_files: CrlfFiles;
+  external_models: ExternalModels;
+  inventory_digest: InventoryDigest;
+  lfs_pins: LfsPins;
+  manifest_pins: ManifestPins;
+  package_files: PackageFiles1;
+  package_prefix: PackagePrefix;
+  raw_files: RawFiles;
+  tree: Tree;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubPreviewRequest".
+ */
+export interface GitHubPreviewRequest {
+  candidate: CommitBinding;
+  candidate_index: CandidateIndex3;
+  details_url: DetailsUrl;
+  disclose: Disclose1;
+  operation_id: OperationId5;
+  policy: RegressionPolicy;
+  reference: CommitBinding;
+  request_id: RequestId11;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "CommitBinding".
+ */
+export interface CommitBinding {
+  commit: Commit1;
+  model_paths: ModelPaths;
+  package_prefix: PackagePrefix1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "GitHubStatus".
+ */
+export interface GitHubStatus {
+  app_id: AppId1;
+  check_name: CheckName;
+  configured: Configured1;
+  daily_publish_limit: DailyPublishLimit;
+  enabled: Enabled1;
+  repository: Repository1;
+  scope: Scope1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationContracts".
  */
 export interface OptimizationContracts {
@@ -6076,8 +6334,8 @@ export interface ReadinessReport {
   carla: WorkflowReadiness;
   carla_connection_requested: CarlaConnectionRequested;
   checked_at: CheckedAt1;
-  schema_version: SchemaVersion10;
-  scope: Scope1;
+  schema_version: SchemaVersion11;
+  scope: Scope2;
   synthetic: WorkflowReadiness;
 }
 /**
@@ -6095,7 +6353,7 @@ export interface WorkflowReadiness {
  */
 export interface ReadinessCheck {
   detail: Detail;
-  id: Id16;
+  id: Id18;
   label: Label1;
   next_step: NextStep;
   status: ReadinessStatus;
@@ -6120,7 +6378,7 @@ export interface ExecuteCommand {
   kind: Kind39;
   mode: Mode15;
   options: RemoteRunOptions;
-  request_id: RequestId11;
+  request_id: RequestId12;
   scenario: Scenario;
 }
 /**
@@ -6138,7 +6396,7 @@ export interface RemoteRunOptions {
  */
 export interface CancelCommand {
   kind: Kind40;
-  request_id: RequestId12;
+  request_id: RequestId13;
   simulation_id: SimulationId16;
 }
 /**
@@ -6147,7 +6405,7 @@ export interface CancelCommand {
  */
 export interface StatusCommand {
   kind: Kind41;
-  request_id: RequestId13;
+  request_id: RequestId14;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -6155,7 +6413,7 @@ export interface StatusCommand {
  */
 export interface ResultCommand {
   kind: Kind42;
-  request_id: RequestId14;
+  request_id: RequestId15;
   simulation_id: SimulationId17;
 }
 /**
@@ -6167,7 +6425,7 @@ export interface EvidenceRequest {
   kind: Kind43;
   limit: Limit2;
   offset: Offset3;
-  request_id: RequestId15;
+  request_id: RequestId16;
   resource: Resource1;
   sample_cursor?: SampleCursor;
   sample_index: SampleIndex2;
@@ -6182,7 +6440,7 @@ export interface LabCommand {
   action: Action2;
   kind: Kind57;
   mode: Mode16;
-  request_id: RequestId16;
+  request_id: RequestId17;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -6207,7 +6465,7 @@ export interface LabPage {
  */
 export interface LabIdentity {
   expected_revision: ExpectedRevision7;
-  id: Id17;
+  id: Id19;
   kind: Kind46;
 }
 /**
@@ -6216,7 +6474,7 @@ export interface LabIdentity {
  */
 export interface LabSuiteRuns {
   before: Before1;
-  id: Id18;
+  id: Id20;
   kind: Kind47;
   limit: Limit4;
   offset: Offset5;
@@ -6234,7 +6492,7 @@ export interface LabSuiteSave {
  * via the `definition` "LabSuiteUpdate".
  */
 export interface LabSuiteUpdate {
-  id: Id19;
+  id: Id21;
   kind: Kind49;
   save: SuiteUpdate;
 }
@@ -6243,7 +6501,7 @@ export interface LabSuiteUpdate {
  * via the `definition` "LabSuiteRun".
  */
 export interface LabSuiteRun {
-  id: Id20;
+  id: Id22;
   kind: Kind50;
   launch: SuiteLaunch;
 }
@@ -6261,7 +6519,7 @@ export interface LabPropose {
  */
 export interface LabApprove {
   approval: DiscoveryApproval;
-  id: Id21;
+  id: Id23;
   kind: Kind52;
 }
 /**
@@ -6286,7 +6544,7 @@ export interface LabLaunch {
  */
 export interface LabFrame {
   frame: Frame12;
-  id: Id22;
+  id: Id24;
   kind: Kind55;
 }
 /**
@@ -6294,7 +6552,7 @@ export interface LabFrame {
  * via the `definition` "LabRegression".
  */
 export interface LabRegression {
-  id: Id23;
+  id: Id25;
   kind: Kind56;
   policy: RegressionPolicy;
 }
@@ -6399,7 +6657,7 @@ export interface RunnerContracts {
  */
 export interface RunnerCancelRequest {
   protocol_version: ProtocolVersion13;
-  request_id: RequestId17;
+  request_id: RequestId18;
   simulation_id: SimulationId19;
 }
 /**
@@ -6429,6 +6687,6 @@ export interface RunnerExecuteRequest {
   mode: Mode17;
   options: SimulationOptions;
   protocol_version: ProtocolVersion15;
-  request_id: RequestId18;
+  request_id: RequestId19;
   scenario: Scenario;
 }

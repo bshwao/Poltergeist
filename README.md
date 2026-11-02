@@ -58,6 +58,9 @@ results can be interpreted in context.
 - Optional [OpenAI assistance](docs/openai-assistance.md) in the local dashboard:
   reviewed disclosures, durable usage limits, discovery drafts requiring separate
   execution approval, and question-guided selection of verified evidence.
+- Optional [GitHub regression checks](docs/github-reporting.md) from the local
+  dashboard or CLI: verified frozen packages/model pins, exact commits, selected
+  evidence, explicit publication approval and read-only recovery after lost replies.
 - A Python agent SDK and external worker for trusted local packages, with
   command-line execution and a persistent registry for queued experiments.
 - An Agents page for registering local packages, inspecting their saved

@@ -1,7 +1,8 @@
 # S0–S19 progress notes
 
-Updated November 1, 2026. Current checkpoint: **S18 optional local OpenAI assistance implemented**, with
-live provider-account acceptance open. **S16 managed camera policy and S17 Hugging Face integration are locally validated**,
+Updated November 1, 2026. Current checkpoint: **S19 optional local GitHub regression checks implemented**,
+with live App/CI acceptance open. **S18 optional local OpenAI assistance is implemented**,
+with live provider-account acceptance open. **S16 managed camera policy and S17 Hugging Face integration are locally validated**,
 alongside the open installed/native acceptance
 gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
@@ -47,7 +48,7 @@ private prototype does not close independent-machine or release validation.
 | S16 — Sensor-based driving agents | Private camera implementation; packaged inference and real CARLA control locally validated | Managed AIM front-RGB policy: 80/80 native controls match, initially stationary ego moves 1.31 m, policy p95 92 ms with zero one-second budget misses, and world settings restore. Broader hardware, native visual acceptance, trained LiDAR and public checkpoint-terms review remain. See [camera policy](sensor-driving-policy.md). |
 | S17 — Hugging Face integration | Private implementation; real public-source lifecycle locally validated | Curated immutable PlanT pin, bounded metadata confirmation, protected explicit account controls, resumable/hash-verified assets and owned repair/removal. Real anonymous transfer/reopen/removal and native dummy-token protection pass. Actual gated-account and independent-machine acceptance remain. See [managed AI](managed-ai.md). |
 | S18 — OpenAI integration | Private local implementation delivered | Exact selected/redacted disclosure, one-call approval, durable usage reservations, checked discovery drafts and verified observation selection. Live account acceptance remains open; the account/device relay exposes no external-disclosure actions. See [OpenAI assistance](openai-assistance.md). |
-| S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
+| S19 — GitHub integration | Private local implementation delivered | Frozen package/model pins verified against both full commits, exact selected-disclosure approval, policy-specific CI conclusions, durable publication reservations and read-only reconciliation. Live App/branch-protection acceptance remains open. See [GitHub checks](github-reporting.md). |
 
 ## Latest work
 
@@ -688,7 +689,7 @@ unchanged.
 
 Visual design, guided workflows, experiment agents and external connections are
 numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
-[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16/S17 have locally validated private integrations; S18 has an optional local implementation with live-account acceptance open; S19 remains planned;
+[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16/S17 have locally validated private integrations; S18 has an optional local implementation with live-account acceptance open; S19 has a local publishing implementation with live App/CI acceptance open;
 existing S0–S10 identifiers and completion gates are preserved.
 
 ## November 1 — S16/S17 completion review and model-panel polish
@@ -742,3 +743,28 @@ load deadline; both failures remain recorded and no SDK deadline was relaxed.
 The explicit assistant browser fixture uses its own saved baseline evidence,
 leaving the normal SDK installation checks intact. See
 [OpenAI assistance](openai-assistance.md) for configuration and supported scope.
+
+## November 1 — S19 local GitHub regression checks
+
+The local saved-suite regression review now offers exact-commit GitHub Checks
+publication, with a CLI for a trusted CI handoff. Both frozen registered packages
+and declared external-model pins must match immutable Git objects. The user
+selects private evidence, inspects the exact outgoing JSON and approves its
+digest before publication. Runtime/configuration and reproduction limits remain
+explicit. Pending/unknown coverage cannot become a green check, and each
+policy/candidate has its own check context.
+
+A separate durable journal reserves publication before the network write,
+enforces daily attempt limits and supports read-only reconciliation after lost
+responses or restart. Identical remote checks can be recovered by deterministic
+identity; independently concurrent publishers still require a shared journal or
+CI concurrency. Explicit repository-scoped App credentials are required. The
+hosted relay exposes no publishing actions, and the integration is off by default.
+
+The [S19 validation record](validation/s19-github-reporting-20261101.md) records
+177 passing Python cases, 393 frontend checks, both production builds, generated
+contract checks and three desktop/mobile browser journeys with full-page
+accessibility scans. An aliased preview policy and an incorrect browser-fixture
+HTTP status were corrected with their failures retained. No App configuration
+was available and no live GitHub check was published. Live App/branch-protection
+acceptance remains open; see [setup and operational limits](github-reporting.md).

@@ -24,5 +24,6 @@ storage/telemetry/*
 storage/decisions/*
 storage/reports/*
 storage/models/*
+storage/github-publications.sqlite3*
 !storage/**/.gitkeep
 
