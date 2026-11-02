@@ -68,6 +68,7 @@ All paths in this table are under the ignored local evidence directory
 | Contract consistency | PASS, exit 0 | `frontend-contracts.log`, `frontend-checks.json` |
 | Frontend production build/typecheck | PASS, exit 0 | `frontend-build.log`, `frontend-checks.json` |
 | Focused backend tests | 516 PASS, 2 skipped, exit 0 | `backend-preflight.log`, `backend-preflight.xml`, `backend-checks.json`; core/API/evidence/agent/model/provider boundary tests; no native GUI or live CARLA acceptance |
+| Latest-main integration CI (`af964a1`) | All five jobs PASS: dashboard and Windows/Linux on Python 3.12/3.14 | [Workflow run](https://github.com/bshwao/Poltergeist/actions/runs/41506657613), `github-ci-jobs-af964a1.json`; includes `894d826` in a separate review checkout; automated evidence only, not current human-browser acceptance |
 
 The backend skips are the optional Optuna case (package absent) and a native
 symbolic-link case (privilege unavailable). Neither is counted as a pass. The
@@ -80,6 +81,14 @@ focused subset, not a claim that the entire repository test suite ran.
 The automated synthetic validator's operation/run IDs and full settings are in
 its `validation.json`, `accepted-operation.json` and `comparison.json`; they
 are not the tester's first experiment and do not appear in acceptance history.
+
+Disposable U8/U15 inputs are now prepared under this session's `fixtures/`:
+`missing-dependency`, `missing-model` and `invalid-suite.json`. Static preflight
+confirmed valid dependency-fixture package metadata and absent intentional import,
+the missing-model asset rejection, and malformed suite JSON (`fixtures/preflight.json`).
+No fixture was registered or launched through the acceptance API. These checks
+prepare the negative paths; their human outcomes remain NOT RUN. Installed
+dependencies and existing model files were not altered.
 
 ## Human observations and current checkpoint
 
@@ -100,8 +109,9 @@ in chat on November 2, 2026; assistant diagnostics have their own UTC timestamps
 | A7 save | “The recipe saved successfully” | PASS for displayed save confirmation |
 | A8 synthetic launch | “Run accepted appears” | PASS for visible admission receipt only |
 | A9 run detail/status | Tester reports “Completed” after Track this run | PASS for opening the completed run |
-| A9 frozen settings | Requested comparison of name, seed, duration, mode and controller | NOT RUN / awaiting observation |
-| A10–A14 evidence review through export/reopen | No observation yet | NOT RUN |
+| A9 frozen settings | “All recorded settings match” for the requested name, seed, duration, mode and controller | PASS |
+| A10 safety metrics and coverage | Requested actual collision count, minimum TTC, minimum clearance and gaps | NOT RUN / awaiting observation |
+| A11–A14 detailed evidence through export/reopen | No observation yet | NOT RUN |
 
 Confirmed input values: Town10HD_Opt, seed 101, duration 10 s, ego/lead speeds
 12 m/s, lead distance 20 m, brake delay 2 s, lead deceleration 6 m/s²,
@@ -118,8 +128,9 @@ mark the user's run-detail, timeline or report tests as passed. The stored
 start/finish timestamps span about 1.95 seconds; this is a synthetic execution
 record, not CARLA/GPU performance or the user's perceived UI latency.
 
-Next pending action: open **Recorded recipe and execution settings** and compare
-the saved name, seed 101, duration 10 s, Synthetic test and baseline controller.
+The tester confirmed the frozen name, seed 101, duration 10 s, Synthetic test
+and baseline controller. Next pending action: read **Safety metrics** and report
+actual collisions, minimum TTC/clearance and any gaps or missing coverage.
 Ask for the observed result before advancing a manual verdict.
 
 ## Required manual coverage
