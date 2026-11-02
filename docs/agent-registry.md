@@ -244,8 +244,11 @@ assets and compatible worker environment if you need to execute that selection
 again. Existing CLI package execution remains available; see the
 [SDK commands](agent-sdk.md#run-an-agent-in-a-separate-process).
 
-Agent-aware automated comparisons, reproduction/search and minimization remain
-Phase 9. Automated reproduction or minimization of custom-agent failures is
-rejected explicitly until that support exists. Retaining a snapshot makes the
-selected controller inspectable; it does not by itself make every existing
-batch or optimization workflow agent aware.
+Agent-aware comparisons, repeated trials, search, reproduction and minimization
+are available through **Experiments** and the optimization API. Reproduction and
+minimization retain the source run's frozen controller and execution/scoring
+settings. A legacy custom run without a frozen registration cannot be reproduced
+as the baseline. Required files and a compatible worker environment must remain
+available; recorded identity alone does not prove inference, live driving or
+reproducibility. See [agent comparisons](agent-comparisons.md) for supported
+workflows and interpretation limits.

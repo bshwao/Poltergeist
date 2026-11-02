@@ -301,8 +301,9 @@ Open a report for its original recipe/seed, parent run link, execution mode,
 metrics and coverage, execution/evaluation settings, and available runtime
 provenance. Opening a report does not rerun it. **Save reproduction observation**
 records an explicit manual flag only; it does not execute or verify reproduction.
-Use **Unknown** when evidence is insufficient. Automated repeat trials use the
-[reproduction API](optimization.md).
+Use **Unknown** when evidence is insufficient. **Run reproduction trials** opens
+the source-aware [Experiments workflow](agent-comparisons.md); the
+[reproduction API](optimization.md) is also available.
 
 Select up to two reports, including across pages, for a side-by-side comparison.
 Actual observations and nulls are retained. Different modes, agents, execution
