@@ -1,10 +1,20 @@
 # Dashboard workspace
 
-The workspace provides Overview, Scenarios, Agents, Simulations, and Failures pages.
-Build and launch a validated recipe, follow its saved run, inspect actual
-observations, and compare recorded failure evidence. Search, automated
-reproduction, and minimization remain available through the section 7 APIs;
-the dashboard does not yet expose optimization controls.
+The workspace provides Overview, Guided lab, Scenarios, Agents, Experiments,
+Discovery, Simulations and Failures pages. Build and launch a validated recipe,
+follow its saved run, inspect actual observations and compare recorded evidence.
+**Experiments** exposes agent/version comparisons, parameter search, reproduction
+and minimization. **Guided lab** adds first-run guidance, illustrated scenarios
+and saved suites; **Discovery** reviews bounded failure-search plans before
+execution. See [guided experimentation](guided-experimentation.md) and
+[evidence/regression review](evidence-regression-agents.md).
+
+Pages load on first visit and retain their drafts while you navigate. A failed
+page load leaves other workspace pages available and offers an explicit reload.
+Copy unsaved edits before reloading; a full reload clears current drafts.
+The optional [OpenAI assistant](openai-assistance.md) and
+[GitHub check publisher](github-reporting.md) require separate configuration,
+disclosure review and explicit approval.
 
 ## Start the workspace
 
@@ -291,8 +301,9 @@ Open a report for its original recipe/seed, parent run link, execution mode,
 metrics and coverage, execution/evaluation settings, and available runtime
 provenance. Opening a report does not rerun it. **Save reproduction observation**
 records an explicit manual flag only; it does not execute or verify reproduction.
-Use **Unknown** when evidence is insufficient. Automated repeat trials use the
-[reproduction API](optimization.md).
+Use **Unknown** when evidence is insufficient. **Run reproduction trials** opens
+the source-aware [Experiments workflow](agent-comparisons.md); the
+[reproduction API](optimization.md) is also available.
 
 Select up to two reports, including across pages, for a side-by-side comparison.
 Actual observations and nulls are retained. Different modes, agents, execution

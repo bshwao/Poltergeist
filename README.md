@@ -138,3 +138,4 @@ Review its recorded behavior using the [decision timeline guide](docs/decision-t
 - [Distribution and scalability roadmap: hosted services and companion app](docs/scalability-plan.md)
 - [Private evidence delivery, service capacity and release checkpoint](docs/evidence-capacity-release.md)
 - [Hardware profiles](docs/hardware.md), [troubleshooting](docs/troubleshooting.md), and [Phase 10 validation](docs/phase10-validation.md)
+- [Human acceptance checklist](docs/HUMAN_TEST_CHECKLIST.md) and [observed test report](docs/HUMAN_TEST_REPORT.md)
