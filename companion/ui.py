@@ -129,7 +129,7 @@ class CompanionWindow:
         row = ttk.Frame(frame)
         row.pack(fill="x")
         self.preset = ttk.Combobox(row, state="readonly", width=45,
-            values=["Synthetic installation check", *[p.id for p in STRESS_PRESETS]])
+            values=["Synthetic installation check", "CARLA installation check", *[p.id for p in STRESS_PRESETS]])
         self.preset.current(0)
         self.preset.pack(side="left", fill="x", expand=True, padx=(0, 8))
         self._button(row, "Load preset", self._load_preset)
@@ -385,7 +385,22 @@ class CompanionWindow:
 
     def _load_preset(self):
         selected = self.preset.get()
-        self._recipe = installation_recipe() if selected == "Synthetic installation check" else next(p for p in STRESS_PRESETS if p.id == selected).scenario()
+        if selected == "CARLA installation check":
+            from .onboarding import carla_installation_recipe
+            try:
+                recipe = carla_installation_recipe(self.setup.map_name.get().strip())
+            except ValueError as error:
+                self.message.set(str(error))
+                return
+            self._recipe = recipe
+            self.mode.set("CARLA")
+            self.agent.set("Baseline controller")
+            self.message.set("Loaded a two-second CARLA baseline check using the map selected in Setup. Check that the server uses this map, then Run recipe. Loading does not start a run.")
+        elif selected == "Synthetic installation check":
+            self._recipe = installation_recipe()
+            self.mode.set("Synthetic test")
+        else:
+            self._recipe = next(p for p in STRESS_PRESETS if p.id == selected).scenario()
         self._describe_recipe()
 
     def _import_scenario(self):
@@ -400,6 +415,9 @@ class CompanionWindow:
     def _submit(self):
         mode = "carla" if self.mode.get() == "CARLA" else "test"
         recipe, agent_id = self._recipe, self._agent_ids[self.agent.get()]
+        if mode == "carla" and recipe == installation_recipe():
+            self.message.set("This installation recipe is synthetic-only. Load CARLA installation check for the map selected in Setup, or import a live scenario.")
+            return
         self._run(lambda: self.controller.submit(recipe, mode=mode, agent_id=agent_id),
                   lambda stored: self.message.set(f"Accepted local run {stored.simulation.id}"))
 

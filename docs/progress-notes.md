@@ -1,7 +1,12 @@
 # S0–S19 progress notes
 
-Updated November 2, 2026. Latest work: **repository polish and regression review**;
-see the [validation receipt](validation/repository-polish-20261102.md).
+Updated November 2, 2026. Latest work: **S1–S3 local completion on this PC**;
+see the [validation record](validation/s1-s3-local-completion-20261102.md).
+This adds a map-aware first CARLA run, current reproducible delivery artifacts
+and a correction to recovery ownership during uninstall. The user limited this
+acceptance pass to this PC; independent-machine and external-tester gates remain
+open. The previous [repository polish receipt](validation/repository-polish-20261102.md)
+records the broader regression review.
 **S19 optional local GitHub regression checks are implemented**,
 with live App/CI acceptance open. **S18 optional local OpenAI assistance is implemented**,
 with live provider-account acceptance open. **S16 managed camera policy and S17 Hugging Face integration are locally validated**,
@@ -32,9 +37,9 @@ private prototype does not close independent-machine or release validation.
 | Step | Current state | Evidence or remaining work |
 | --- | --- | --- |
 | S0 — Collision stress scenarios | Implemented and locally validated | Twelve presets; 36 calibration and 60 held-out CARLA trials with the unchanged baseline. See [measurements and limits](collision-stress.md). |
-| S1 — Standalone packaging | Private prototype validated on the development laptop | Pinned private Python/core dependencies, relocated synthetic/CARLA/SDK checks. An independent computer without developer tools, redistribution review and a native support matrix remain open. |
-| S2 — Companion application | Private desktop prototype | Native application, isolated profile, durable local queue/results, configuration, diagnostics and deliberate imports/exports. S4 adds explicit relay connection and consent controls. See [desktop guide](companion.md). |
-| S3 — Installer and onboarding | Private prototype; locally validated, external gate open | Per-user installer, CARLA discovery/setup, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing and visual onboarding review remain open. |
+| S1 — Standalone packaging | Implemented and locally validated; independent-machine gate open | Current offline builds are byte-identical; relocated private-runtime, synthetic/CARLA/SDK checks pass on this PC. Redistribution review and a native support matrix remain open. |
+| S2 — Companion application | Private implementation locally validated | Interactive synthetic and live CARLA runs, exports and history after reopening. Native callbacks also cover diagnostics and imports. See [desktop guide](companion.md). |
+| S3 — Installer and onboarding | Private prototype locally validated, external gate open | Per-user installer, CARLA discovery/setup, visual onboarding, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing remains open. |
 | **S4 — Hosted backend and pairing** | **Private security workflow locally validated; broader gates open** | Accounts, approved ownership, authenticated relay, atomic remote receipts, scoped commands/results and desktop session consent. Portable and installed-runtime/compiled-profile proofs pass on this laptop. Public deployment, actual shortcut invocation, visual and supported-machine acceptance remain open. See [scope and evidence](coordinator.md). |
 | **S5 — Website integration** | **Implemented locally; public acceptance incomplete** | Responsive account/pairing/device dashboard, baseline recipe composer, launch/cancel and durable measured-result readback. Two-account synthetic acceptance and a real website-driven CARLA baseline pass over local HTTPS/WSS. Real public HTTPS deployment, current packaged-client and supported-machine acceptance remain open. See [website integration](hosted-dashboard.md). |
 | **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
@@ -796,3 +801,36 @@ Both builds, contract drift checks, dependency checks and static diagnostics pas
 The previously failing registered-agent discovery case passes in this run without
 changing its deadline. Native/independent-machine visual review, live provider
 acceptance and release gates remain open.
+
+## November 2 — S1–S3 local completion
+
+The owner requested completion through S3 using this PC only. The Companion now
+offers a two-second **CARLA installation check** based on the map selected in
+Setup and symbolic road placement. Loading selects baseline/CARLA without
+running it; the original synthetic recipe is refused in live mode. Setup and
+portable documentation explain the selected map, existing-server behavior and
+explicit Run step.
+
+Two fresh offline portable builds are byte-identical. A relocation outside the
+checkout passes with a system-only PATH and hostile Python environment variables.
+Installed synthetic/SDK callbacks, exports/imports, diagnostics and reopening
+pass. The installed controller completes a real two-second CARLA 0.9.16 baseline
+on Town10HD_Opt with 41 frames, JSON/HTML exports, preserved history, restored
+world state and unchanged integrity for all 6,329 bundle files. The focused
+source suite passes **86 tests**.
+
+A fresh install followed by repair exposed a flaw in the earlier recovery-marker
+fix: Inno had recorded the marker deletion before recovery existed. Cleanup now
+decides during uninstall and restores the exact owned marker if an older log
+deletes it. Eight actual installer lifecycle steps pass, including that older-log
+case, maintenance repair, reinstall and fresh uninstall without recovery. All
+25 test-profile files remain byte-identical. The failed original QA folder and
+logs are retained; no historical human verdict was changed.
+
+The [local completion record](validation/s1-s3-local-completion-20261102.md)
+and [JSON receipt](validation/s1-s3-local-completion-20261102.json) identify the
+current unsigned portable and normal/validation installers. Independent-machine,
+external-tester, support-matrix, redistribution and signing gates remain open.
+After the owner granted Computer Use access, the packaged Companion passed
+interactive first-run setup, synthetic and real CARLA runs, report export and
+history restoration after closing and reopening on this PC.

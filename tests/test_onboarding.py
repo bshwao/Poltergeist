@@ -11,6 +11,18 @@ from companion import onboarding
 from companion.profile import CompanionConfig
 
 
+@pytest.mark.parametrize("map_name", ["Town10HD_Opt", "Town03"])
+def test_carla_installation_check_uses_selected_map_and_symbolic_placement(map_name):
+    recipe = onboarding.carla_installation_recipe(map_name)
+    assert recipe.map == map_name and recipe.duration_s == 2.
+    assert recipe.template.value == "sudden_braking"
+    assert recipe.actors[1].relative_spawn.anchor_actor_id == "ego"
+    assert recipe.events[0].trigger_time_s < recipe.duration_s
+    assert recipe.actors[0].speed_mps == 4.
+    with pytest.raises(ValueError, match="map name"):
+        onboarding.carla_installation_recipe("Town03 -invalid")
+
+
 def installation(root, *, complete=True):
     root.mkdir(parents=True)
     launcher = root / "CarlaUE4.exe"

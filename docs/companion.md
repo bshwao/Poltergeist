@@ -66,8 +66,9 @@ The window holds an OS instance lock for the profile even while its runtime is
 stopped. Another window cannot use the same settings/database concurrently.
 Stale lock files are harmless: ownership is the OS lock, not a saved PID. The
 existing database worker lease additionally excludes a second queue owner.
-Different profiles are not yet coordinated around a shared CARLA endpoint;
-use one active companion per CARLA server until S6 adds that ownership boundary.
+The local runtime also holds an endpoint lease while using CARLA, preventing
+another profile on this PC from claiming the same endpoint. Use one execution
+owner per CARLA server; this does not coordinate other computers or external clients.
 
 ## Run and review
 
@@ -80,7 +81,17 @@ server. Each profile has one active worker and a bounded durable waiting queue.
 
 Start with **Synthetic installation check** and **Synthetic test**. Completed
 synthetic work is labelled accordingly and does not establish CARLA execution
-or driving safety. The twelve collision presets are also available; ordinary
+or driving safety.
+
+For the first live run, check the server's current map in **Setup** and select
+that map under **Map for startup / installation check**. Load **CARLA installation
+check** in Local execution. It creates a two-second baseline recipe on the selected
+map and selects CARLA mode; loading does not run it. Review it, then choose **Run
+recipe**. If you change the map choice later, reload the preset. The synthetic
+installation recipe is refused in CARLA mode because its geometry is synthetic.
+Imported scenarios keep their own map requirements.
+
+The twelve collision presets are also available; ordinary
 live runs keep the server's normal signal behavior, so their danger labels have
 the scoped calibration limits documented in [collision-stress.md](collision-stress.md).
 

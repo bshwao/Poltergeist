@@ -4,10 +4,13 @@ Status: partial S1. A private runtime/build and typed [runner boundary](runner-b
 are implemented. Same-laptop relocation is useful evidence, not the completion
 gate on an independent computer without developer tools. A private
 [S2 desktop companion](companion.md) now uses the same packaged runtime;
-S3 installer/onboarding is under validation; S4–S10 implementation remains
-planned. The earlier S1 validation archive remains an accurate
+S3 installer/onboarding has local validation, and later phases have private
+implementations described in the [roadmap](scalability-plan.md). The earlier S1 validation archive remains an accurate
 record of its original command-line-only source snapshot.
 See [the recorded local checks and remaining gates](s1-validation.md).
+The [November 2 S1–S3 check](validation/s1-s3-local-completion-20261102.md)
+records a current reproducible package, relocation, installed execution and
+repair/uninstall checks on this PC. Independent-machine acceptance remains open.
 
 The current build packages core command-line workflows and the private desktop
 window, without a dashboard, tray integration or hosted service. The separate

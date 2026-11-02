@@ -1,4 +1,4 @@
-POLTERGEIST S1-S4 PAIRING FOUNDATION PRIVATE WINDOWS X64 PROTOTYPE
+POLTERGEIST COMPANION PRIVATE WINDOWS X64 PREVIEW
 
 This archive includes the private desktop companion and packaging checks.
 No installer, hosted dashboard/service, trained model or CARLA server is bundled.
@@ -19,7 +19,13 @@ then Start local runtime; later launches reopen the saved local queue. Hardware
 inspection does not establish simulator/model performance. The companion stores
 results across restarts, imports
 scenario JSON, exports HTML/JSON reports, and provides CARLA settings/diagnostics.
-Synthetic test uses synthetic physics. Select CARLA explicitly for a live run.
+Synthetic test uses synthetic physics. For a live installation check, choose the
+server's current map under Setup -> Connection and maps. In Local execution,
+select CARLA installation check and Load preset. This loads a two-second baseline
+recipe with map-resolved road placement and displays the frozen map. Run recipe
+is a separate action. Loading a preset starts no simulation or download. Reload
+the check after changing its map. The synthetic installation recipe is not a live
+CARLA test; imported scenarios keep their own map and geometry requirements.
 Use an idle asynchronous world with no other tick owner. Automatic CARLA startup
 is off until you select the complete CARLA folder and enable it in Settings.
 Default graphics are Low. Stop the runtime before saving settings. Closing the
@@ -36,7 +42,9 @@ tab previews account pairing with a separately operated HTTPS coordinator. Revie
 the saved server, claiming account and permissions before approving. Credentials
 are protected for this Windows user/profile; Refresh / resume reconciles saved
 approval and Revoke pairing removes remote access. No public coordinator address
-is supplied. Hosted dashboard integration and remote execution remain disabled.
+is supplied. Remote requests stay disabled until you explicitly approve a paired
+account's permissions and connect with local consent. The hosted relay retains
+its baseline-only policy; this preview does not deploy a public service.
 The companion does not open a local HTTP server.
 
 For the original command-line packaging checks, open Command Prompt and run:
@@ -59,7 +67,8 @@ For a separate test profile, use an absolute directory outside this bundle:
   Poltergeist.cmd --data-dir "C:\YourWritableFolder\S1Test" validate --sensors
 All report commands print the evidence path. Logs are in the profile's logs folder.
 
-CARLA 0.9.16 remains a separate installation. The prototype never starts it:
+CARLA 0.9.16 remains a separate installation. The CLI validation commands do not
+start it (the desktop's explicit startup controls are described above):
   Poltergeist.cmd configure --carla-executable "C:\YourCARLA\CarlaUE4.exe"
   Poltergeist.cmd validate --mode carla --duration 2
 Configure creates config.json once; edit that file deliberately to change it.

@@ -1,6 +1,6 @@
 # Private Windows installer and first-run setup
 
-Status: **private prototype under validation**, October 26, 2026. This builds on the
+Status: **private prototype locally validated**, November 2, 2026. This builds on the
 [private desktop companion](companion.md) and its pinned private runtime. It is
 unsigned and has not passed the independent no-developer-tools machine gate or
 the external-tester S3 completion gate. See [progress notes](progress-notes.md).
@@ -40,6 +40,14 @@ has run. **Use synthetic for now** explicitly completes synthetic-only setup
 without changing saved CARLA choices. Then start the local runtime and run the
 synthetic installation check. Choose **CARLA** explicitly for a live run.
 
+For a first live experiment, choose the connected server's current map under
+**Map for startup / installation check**. Load **CARLA installation check** in
+Local execution, review the two-second baseline recipe, then choose **Run recipe**.
+Loading the preset selects CARLA mode without submitting work. A newly started
+server uses the Setup map; an existing server keeps its map. Reload the preset
+after changing the map choice. Imported recipes retain their own maps. The
+synthetic installation recipe cannot be submitted as a live CARLA check.
+
 ## Repair and uninstall
 
 The repair shortcut runs a local copy of the same installer, without downloading
@@ -54,11 +62,16 @@ to do so in the setup log. Recovery copies are retained for deliberate inspectio
 they consume disk space and may remain after uninstall. This prototype mechanism
 retains `installation.ini` while `recovery/` remains, so selecting the same
 previously owned folder for reinstall succeeds. Other nonempty folders still
-require a matching ownership marker. Cleanup uses an Inno
-[conditional check](https://jrsoftware.org/ishelp/topic_scriptcheck.htm).
-The [native lifecycle receipt](validation/s10-native-lifecycle-20261029.json)
-records the original failure and successful fixed uninstall/reinstall, with every
-profile file preserved. It covers this development laptop and an unsigned build.
+require a matching ownership marker. The decision now runs during uninstall.
+Inno records declarative deletion entries at
+[installation time](https://jrsoftware.org/ishelp/topic_installorder.htm), so a
+conditional entry could miss recovery copies created by a later repair.
+The current uninstaller also restores the exact owned marker when an older
+uninstall log deletes it. The
+[November 2 lifecycle check](validation/s1-s3-local-completion-20261102.md)
+reproduced this failure after a fresh install and repair; it supersedes the
+earlier [October 29 receipt's](validation/s10-native-lifecycle-20261029.json)
+claim that a conditional entry fully fixed it. Both receipts remain available.
 This local recovery mechanism
 does not establish the signed update/rollback workflow required by S10. The
 separate [S10 tooling checkpoint](evidence-capacity-release.md) now adds a signing
@@ -125,7 +138,11 @@ actions, now covered by scroll and keyboard-focus regression checks. The fixed
 installer preserves the existing profile bytes and saved result; its visual
 export/reopen follow-up was interrupted by the user and remains incomplete.
 
-External clean-machine/native support testing, visual onboarding inspection,
+The [November 2 local check](validation/s1-s3-local-completion-20261102.md)
+completes interactive onboarding, synthetic and live execution, export and
+reopening on this PC using the portable Companion.
+
+External clean-machine/native support testing,
 redistribution terms, code signing and external beta remain open. CARLA and model
 weights are separate installations. Public hosting remains deferred.
 

@@ -78,7 +78,6 @@ Name: "{userstartup}\{#ProductName}"; Filename: "{#RuntimeDir}\runtime\pythonw.e
 Filename: "{#RuntimeDir}\runtime\pythonw.exe"; Parameters: "-I -B -m scripts.companion --data-dir ""{#ProfileDir}"""; Description: "Open Poltergeist Companion and first-run setup"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: files; Name: "{app}\installation.ini"; Check: ShouldDeleteInstallationMarker
 Type: files; Name: "{app}\last-setup-check.json"
 Type: dirifempty; Name: "{app}\versions"
 
@@ -87,6 +86,7 @@ var
   RemoveData: Boolean;
   PreviousRuntime: String;
   RuntimeVerified: Boolean;
+  InstallationMarkerContents: AnsiString;
 
 function GetFileAttributesW(Name: String): Cardinal;
   external 'GetFileAttributesW@kernel32.dll stdcall';
@@ -101,13 +101,6 @@ end;
 function ShouldCopyRepair(): Boolean;
 begin
   Result := CompareText(ExpandConstant('{srcexe}'), ExpandConstant('{app}\maintenance\Repair.exe')) <> 0;
-end;
-
-function ShouldDeleteInstallationMarker(): Boolean;
-begin
-  { Recovery copies are intentionally retained. Keep their ownership marker so
-    reinstall can reuse this folder without accepting an arbitrary nonempty one. }
-  Result := not DirExists(ExpandConstant('{app}\recovery'));
 end;
 
 function PlainDirectoryChain(Folder: String): Boolean;
@@ -294,7 +287,13 @@ var
   DataFolder: String;
   ExitCode: Integer;
   ReportPath: String;
+  Marker: String;
 begin
+  Marker := ExpandConstant('{app}\installation.ini');
+  if (CurUninstallStep = usUninstall) and
+     PlainDirectoryChain(ExpandConstant('{app}')) and
+     (GetIniString('Installation', 'AppId', '', Marker) = '{#AppIdentity}') then
+    LoadStringFromFile(Marker, InstallationMarkerContents);
   if (CurUninstallStep = usUninstall) and RemoveData then begin
     DataFolder := RemoveBackslashUnlessRoot(ExpandConstant('{#ProfileDir}'));
     ReportPath := ExpandConstant('{app}-profile-removal.json');
@@ -305,6 +304,25 @@ begin
       Log('Some or all profile data was preserved. Review ' + ReportPath);
       if not UninstallSilent then
         MsgBox('Profile data could not be fully removed and was preserved where necessary. Review ' + ReportPath, mbInformation, MB_OK);
+    end;
+  end;
+  if (CurUninstallStep = usPostUninstall) and
+     PlainDirectoryChain(ExpandConstant('{app}')) then begin
+    { UninstallDelete checks are recorded at install time, before a later repair
+      creates recovery copies. Decide at uninstall time instead. Older uninstall
+      logs may still delete the marker, so restore its exact owned contents. }
+    if DirExists(ExpandConstant('{app}\recovery')) then begin
+      if (InstallationMarkerContents <> '') and
+         (GetFileAttributesW(Marker) = $FFFFFFFF) then begin
+        if SaveStringToFile(Marker, InstallationMarkerContents, False) then
+          Log('Restored installation ownership for retained recovery copies.')
+        else
+          Log('Could not restore installation ownership for retained recovery copies.');
+      end;
+    end
+    else if GetIniString('Installation', 'AppId', '', Marker) = '{#AppIdentity}' then begin
+      DeleteFile(Marker);
+      RemoveDir(ExpandConstant('{app}'));
     end;
   end;
 end;

@@ -266,10 +266,14 @@ def test_model_actions_fit_and_scroll_into_keyboard_view_at_supported_window_siz
                     assert button.winfo_rooty() >= panel.canvas.winfo_rooty()
                     assert button.winfo_rooty() + button.winfo_height() <= panel.canvas.winfo_rooty() + panel.canvas.winfo_height()
                 panel.canvas.focus_force()
-                panel.canvas.event_generate("<Home>")
+                # Native focus changes are queued. Deliver keys after FocusIn
+                # settles, as a real keyboard event would be delivered.
+                root.update()
+                assert root.focus_get() is panel.canvas
+                panel.canvas.event_generate("<Home>", when="tail")
                 root.update()
                 assert panel.canvas.yview()[0] == 0
-                panel.canvas.event_generate("<Next>")
+                panel.canvas.event_generate("<Next>", when="tail")
                 root.update()
                 assert panel.canvas.yview()[0] > 0
     finally:
@@ -630,6 +634,44 @@ def test_imported_recipe_and_settings_apply_through_desktop_callbacks(window):
     pump_until(root, lambda: desktop._future is None)
     assert not desktop._last_diagnostics["readiness"]["carla_connection_requested"]
     assert "CARLA prerequisites" in desktop.diagnostic_text.get("1.0", "end")
+
+
+def test_live_installation_preset_freezes_setup_map_and_requires_explicit_run(window, monkeypatch):
+    from types import SimpleNamespace
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    submissions = []
+    def submit(recipe, **options):
+        submissions.append((recipe, options))
+        return SimpleNamespace(simulation=SimpleNamespace(id="live-installation-fixture"))
+    monkeypatch.setattr(controller, "submit", submit)
+    desktop.setup.map_name.set("Town10HD_Opt")
+    desktop.preset.set("CARLA installation check")
+    desktop._load_preset()
+    assert not submissions and desktop.mode.get() == "CARLA"
+    assert desktop.agent.get() == "Baseline controller"
+    assert "Town10HD_Opt" in desktop.recipe_text.get()
+    desktop.setup.map_name.set("Town03")
+    desktop.run_button.invoke()
+    pump_until(root, lambda: desktop._future is None)
+    assert len(submissions) == 1
+    recipe, options = submissions[0]
+    assert recipe.map == "Town10HD_Opt" and recipe.duration_s == 2.
+    assert options == {"mode": "carla", "agent_id": None}
+    # A malformed new map must not replace the last successfully loaded recipe.
+    desktop.setup.map_name.set("Town03 -invalid")
+    desktop._load_preset()
+    assert desktop._recipe == recipe and len(submissions) == 1
+
+
+def test_synthetic_installation_recipe_cannot_be_submitted_as_live(window, monkeypatch):
+    root, controller, desktop, errors = window
+    pump_until(root, lambda: desktop._future is None)
+    monkeypatch.setattr(controller, "submit", lambda *args, **kwargs: pytest.fail("Synthetic geometry must not launch in CARLA"))
+    desktop.mode.set("CARLA")
+    desktop.run_button.invoke()
+    assert "synthetic-only" in desktop.message.get()
+    assert not (desktop._last_snapshot or {}).get("runs")
 
 
 def test_close_during_integrity_check_prevents_worker_restart(window):

@@ -1,0 +1,299 @@
+{
+  "all_roadmap_completion_gates_closed": false,
+  "checked_at": "2026-11-02T21:19:03.334310+00:00",
+  "delivery": {
+    "build_python": "3.12.10",
+    "bundle_files": 6329,
+    "bundle_manifest_sha256": "1172c345b22091f94f02ffb129918ecef739302286bc2e1b4e720317cac25794",
+    "carla_client": "0.9.16",
+    "compiler": "Inno Setup 7.1.0",
+    "isolated_validation_installer": {
+      "bytes": 58971232,
+      "file": "installer-validation-fixed/Poltergeist-Companion-Private-Setup.exe",
+      "sha256": "b3d65d7787ce3802fb6825584a9044d49e29fc059015f3107d774a3025ed66ea"
+    },
+    "normal_installer_installed_over_owner_profile": false,
+    "normal_private_installer": {
+      "bytes": 58971171,
+      "file": "installer-delivery-fixed/Poltergeist-Companion-Private-Setup.exe",
+      "sha256": "4e0143ac04b378f8bcad862a87120c46de7100fa1f7039e8120da3ff62482b42"
+    },
+    "offline_builds_byte_identical": true,
+    "offline_rebuild": {
+      "bytes": 87970150,
+      "file": "portable-repro/Poltergeist-S1-windows-x64.zip",
+      "sha256": "3dc3f1b50c17b093a89c5c74b3eb8be74958d27f48f772786b92024e341452ef"
+    },
+    "portable": {
+      "bytes": 87970150,
+      "file": "portable-delivery/Poltergeist-S1-windows-x64.zip",
+      "sha256": "3dc3f1b50c17b093a89c5c74b3eb8be74958d27f48f772786b92024e341452ef"
+    },
+    "private_python": "3.12.15",
+    "runtime_build_id": "private-1172c345b22091f9",
+    "signed": false,
+    "validation_identity": "Poltergeist.Private.Companion.Validation"
+  },
+  "installed_companion": {
+    "completed_synthetic_runs": 2,
+    "export_import_and_reopen_verified": true,
+    "hardware_input_verified": false,
+    "passed": true,
+    "private_tcl_tk_verified": true,
+    "profile_released": true,
+    "receipt": {
+      "bytes": 7127,
+      "file": "installed-callback-data/companion-validation.json",
+      "sha256": "61970d88092f9511c61c49bc60394de1d22b3a25789bf0b0ba1516fd4a797721"
+    },
+    "sdk_starter_used": true,
+    "stage": "complete"
+  },
+  "installed_live": {
+    "bundle_integrity_after": {
+      "files": 6329,
+      "passed": true,
+      "schema_version": "poltergeist-portable-integrity-v1",
+      "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+    },
+    "bundle_integrity_before": {
+      "files": 6329,
+      "passed": true,
+      "schema_version": "poltergeist-portable-integrity-v1",
+      "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+    },
+    "controller_closed": true,
+    "duration_s": 2.0000000298023224,
+    "json_and_html_exported": true,
+    "map": "Town10HD_Opt",
+    "map_settings_weather_and_owned_actor_state_restored": true,
+    "mode": "carla",
+    "one_completed_run_preserved_after_reopen": true,
+    "owned_actors_after": [],
+    "passed": true,
+    "receipt": {
+      "bytes": 4614,
+      "file": "installed-live-final.json",
+      "sha256": "f80961eed2b1636d5496e50c2a42006b633d192d42a8f07c9e1f48dc190fde30"
+    },
+    "run_id": "1a56b1e6-2469-4123-ba2f-8e8103290251",
+    "server_cleanup_receipt": {
+      "bytes": 191,
+      "file": "test-server-cleanup.json",
+      "sha256": "a25da85ebe0df8c7370864ef4b1f4a7d6c3e82a44eeee0904e6608723bdaf1bb"
+    },
+    "server_version": "0.9.16",
+    "startup_graphics": "Low",
+    "status": "completed",
+    "task_owned_idle_server_stopped_after_validation": true,
+    "telemetry_frames": 41
+  },
+  "local_automated_checks_passed": true,
+  "machine": {
+    "display_adapters": [
+      "Intel(R) UHD Graphics",
+      "NVIDIA GeForce RTX 2060"
+    ],
+    "logical_cpus": 12,
+    "machine": "AMD64",
+    "physical_memory_bytes": 68494458880,
+    "platform": "Windows-11-10.0.26300-SP0"
+  },
+  "native_lifecycle": {
+    "checked_at": "2026-11-02T21:16:46.1657109Z",
+    "first_failed_installation_retained_untouched": true,
+    "legacy_log_recovery_marker_preserved": true,
+    "new_maintenance_repair_passed": true,
+    "no_recovery_install_folder_removed": true,
+    "older_uninstall_entry_exercised": true,
+    "passed": true,
+    "profile_bytes_preserved": true,
+    "profile_files": 25,
+    "profiles_before": {
+      "bytes": 4282,
+      "file": "fixed-lifecycle-profile-before.json",
+      "sha256": "4652b9f977cc17b43cde7d9355fe1a399555e9f2e0d78a4dd47e6e227cabdd68"
+    },
+    "receipt": {
+      "bytes": 1126,
+      "file": "fixed-lifecycle.json",
+      "sha256": "1a79748f7e96cc96789e94748f3063a361c74da577bbe908ee816597da865b26"
+    },
+    "recovery_sentinel_preserved": true,
+    "reinstall_runtime_check_passed": true,
+    "remove_data_requested": false,
+    "scope": "isolated same-PC native installer lifecycle",
+    "shortcuts_and_registry_removed": true,
+    "steps": [
+      {
+        "exit_code": 0,
+        "name": "fixed-old-install"
+      },
+      {
+        "exit_code": 0,
+        "name": "fixed-upgrade-repair"
+      },
+      {
+        "exit_code": 0,
+        "name": "fixed-uninstall-with-legacy-log"
+      },
+      {
+        "exit_code": 0,
+        "name": "fixed-reinstall"
+      },
+      {
+        "exit_code": 0,
+        "name": "fixed-maintenance-repair"
+      },
+      {
+        "exit_code": 0,
+        "name": "fixed-final-uninstall"
+      },
+      {
+        "exit_code": 0,
+        "name": "fixed-fresh-install"
+      },
+      {
+        "exit_code": 0,
+        "name": "fixed-fresh-uninstall"
+      }
+    ],
+    "verifier": {
+      "bytes": 6452,
+      "file": "verify-lifecycle.ps1",
+      "sha256": "54fbb29cba4ca3499f9be823ab303619771c369b67520e7939482ab51bc324d0"
+    }
+  },
+  "relocation": {
+    "commands": [
+      {
+        "exit_code": 0,
+        "name": "integrity-before"
+      },
+      {
+        "exit_code": 0,
+        "name": "imports"
+      },
+      {
+        "exit_code": 0,
+        "name": "doctor"
+      },
+      {
+        "exit_code": 0,
+        "name": "capabilities"
+      },
+      {
+        "exit_code": 0,
+        "name": "worker-smoke"
+      },
+      {
+        "exit_code": 0,
+        "name": "synthetic"
+      },
+      {
+        "exit_code": 0,
+        "name": "cmd-entry-point"
+      },
+      {
+        "exit_code": 0,
+        "name": "integrity-after"
+      }
+    ],
+    "developer_path_excluded": true,
+    "hostile_python_environment_ignored": true,
+    "outside_checkout": true,
+    "passed": true,
+    "path_contains_spaces": true,
+    "receipt": {
+      "bytes": 3551,
+      "file": "relocation/portable-validation.json",
+      "sha256": "a12c77c01040df995913cceadbce1caf5ab33ffbdb801ca660fc578341764590"
+    }
+  },
+  "interactive_native_visual_review": {
+    "checked_on": "2026-11-02",
+    "passed_on_this_pc": true,
+    "artifact": "portable-delivery/Poltergeist-S1-windows-x64.zip",
+    "launch": "Bundled pythonw.exe with an explicit isolated profile",
+    "profile": "visual-restart-c4e267b17e324fc3b3f06f8faa448c37",
+    "setup_detection_and_synthetic_choice_verified": true,
+    "reopened_history_showed_both_completed_runs": true,
+    "carla": {
+      "version": "0.9.16",
+      "port": 2000,
+      "map": "Town10HD_Opt",
+      "graphics": "Low",
+      "recipe_duration_s": 2,
+      "preset_load_did_not_submit": true,
+      "idle_asynchronous_after_run": true,
+      "remaining_test_actors": 0
+    },
+    "runs": [
+      {
+        "id": "d05787eb-80c3-40f5-a9a5-f1e43d792fcc",
+        "mode": "test",
+        "status": "completed",
+        "progress": 1,
+        "json_sha256": "441179b3057711c5c55b160209a86f6c183b5b6857880f4e141a76f2ee246d18"
+      },
+      {
+        "id": "ce06f16e-4d1f-4f69-af82-91e2901420cc",
+        "mode": "carla",
+        "status": "completed",
+        "progress": 1,
+        "json_sha256": "4b7ae5879a84c7d2115a63a85121aac4d059f411c9f7f286a7c1f224218e8214",
+        "html_sha256": "4f66936a839b881c070f3cefa85caddbf9a146c3a2a66c43813d67a8b44d02b5"
+      }
+    ],
+    "pointer_retry_after_reopen": {
+      "id": "af1fc50a-62ae-4ad1-9581-4a29be3a7c0f",
+      "mode": "test",
+      "status": "completed"
+    },
+    "observations": [
+      "The first two pointer attempts focused Run recipe without a visible submission. Space activated the focused button. A later pointer click submitted successfully.",
+      "During the first manual runtime start the header still showed stopped while integrity verification disabled controls."
+    ]
+  },
+  "remaining_gates": {
+    "external_tester_workflow": "Open",
+    "independent_machine_without_developer_tools": "Deferred by owner: use this PC only for now",
+    "native_support_matrix": "Open",
+    "public_deployment_and_live_provider_acceptance": "Later phases, outside this acceptance pass",
+    "redistribution_and_signing": "Open; private unsigned artifacts only"
+  },
+  "retained_failures": [
+    "Initial offline cache lacked pinned sniffio; fetched and hash-verified before successful offline builds.",
+    "One native keyboard test dispatched before FocusIn; event ordering corrected, assertions retained, final 86 pass.",
+    "Live receipt helper used nonexistent fields after completed execution; corrected helpers reopened the same recorded run.",
+    "Original uninstall retained recovery but removed ownership marker; original QA folder and failed logs retained.",
+    "Computer Use initially refused access to pythonw. App approval and a ChatGPT restart resolved it."
+  ],
+  "schema_version": "poltergeist-s1-s3-local-completion-v1",
+  "scope": "Private S1 packaging, S2 Companion and S3 installer/onboarding; this PC only at owner request",
+  "source": {
+    "base_commit": "b9dcadb782f16bae976a5cd2ce16498ab2962a77",
+    "branch": "publicity",
+    "bundled_application_files_match_current_source": true,
+    "bundled_python_modules_match_checkout": 227,
+    "files_sha256": {
+      "companion/onboarding.py": "b50fe59004790a35f34637acfd2349157ac5cb86ce2465c7d247773433ca41f3",
+      "companion/setup_ui.py": "01a1530236708c9a6f67c149d162086adc152cd2f9e3819d64636411b74a4254",
+      "companion/ui.py": "455856475ba314d27da5917dbc4d3ea7faec144ba69b755c0ae102fd0ffcfa14",
+      "packaging/windows-x64/README-PORTABLE.txt": "5ddba78a8dbb62fd9a7191350ea5c6a1964ad1e03b23c4fbfc6d92b59132d943",
+      "packaging/windows-x64/companion.iss": "a369f1c66fb91ecb15381034880f2e7ab194cf1c11611eaacfbc4ec8a0fab024",
+      "tests/companion_ui_cases.py": "cd4c599da3adadfdc2e8fac61710c3598bbdd6b610e03720331dce915e853e3f",
+      "tests/test_onboarding.py": "0db76d7b52ec44a0fe3fa206ee1d832de11d715cf32e502d29393398f05c6f24"
+    },
+    "uncommitted_task_changes": true
+  },
+  "source_regression": {
+    "failed": 0,
+    "passed": 86,
+    "receipt": "validation-evidence/s1-s3-20261102-verified.xml",
+    "receipt_sha256": "91d9550d629cb6d5658c1386d4877f3c9e309bae04d1693a3dffc5a1a337850c",
+    "seconds": 113.691,
+    "skipped": 0,
+    "tests": 86
+  }
+}

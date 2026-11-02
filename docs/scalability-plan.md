@@ -110,7 +110,10 @@ can overlap earlier work: S11 design begins during S5, and S17 downloads support
 S7. Numbering does not postpone usability until after release or authorize paid
 provider usage or external publishing. S0 adds collision-stress calibration; S1 has a private command-line packaging prototype;
 its independent clean-machine completion gate remains open. S2 has a private
-desktop prototype; S3 has an installer/onboarding implementation under validation.
+desktop implementation; S3 has an installer/onboarding implementation locally
+validated on the development PC. The
+[November 2 S1–S3 record](validation/s1-s3-local-completion-20261102.md)
+scopes the current local completion work and remaining acceptance gates.
 S4 has private account/pairing, authenticated relay and normal desktop consent
 proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
 is deferred. S6 remains in progress; S7 has an external acceptance gate; S8–S10
@@ -154,7 +157,7 @@ model or establish general road safety.
 
 ### S1 — Prove packaging and define the split
 
-**Status: partial.** The [portable prototype](portable-prototype.md) includes a
+**Status: packaging implemented and locally validated; independent-machine gate open.** The [portable prototype](portable-prototype.md) includes a
 pinned private runtime/client, resources/examples, reproducible build/integrity
 tooling, isolated writable profiles, a real SDK interpreter probe and the typed
 [coordinator/runner v1 boundary](runner-boundary.md). This does not implement a
@@ -180,10 +183,10 @@ experiment, a short CARLA baseline experiment and an SDK worker smoke check.
 
 ### S2 — Build Poltergeist Companion
 
-**Status: private prototype.** The [desktop guide](companion.md) describes the
+**Status: private implementation locally validated, including the interactive Companion workflow on this PC.** The [desktop guide](companion.md) describes the
 native window, existing durable queue/agent/evaluation/storage reuse, isolated
 profile, instance lock, configuration, diagnostics and explicit JSON import/export
-path. Hosted connection status remains unavailable until S4/S5. The independent
+path. Later S4/S5 implementations add pairing and connection controls. The independent
 S1 machine gate, supported native platform matrix and distribution terms remain
 open; this is not a supported public desktop release.
 

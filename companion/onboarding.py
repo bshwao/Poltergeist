@@ -20,6 +20,16 @@ MAX_ENTRIES = 4096
 MAX_DEPTH = 2
 
 
+def carla_installation_recipe(map_name):
+    """Short, map-resolved baseline check; generation performs no RPC or launch."""
+    from scenarios import build_scenario
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", map_name):
+        raise ValueError("Choose a CARLA map name in Setup, for example Town10HD_Opt")
+    return build_scenario("sudden_braking", name="CARLA installation check", map_name=map_name,
+        seed=7, duration_s=2., parameters={"ego_speed_mps": 4., "lead_speed_mps": 4.,
+            "lead_distance_m": 20., "brake_delay_s": 1., "lead_deceleration_mps2": 2.})
+
+
 def default_search_roots():
     home = Path.home()
     roots = [home / "Downloads", home / "Documents", home / "OneDrive" / "Documents"]
