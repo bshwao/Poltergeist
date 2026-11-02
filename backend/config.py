@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     simulation_queue_size: int = Field(default=100, ge=1, le=1000)
     simulation_progress_interval_s: float = Field(default=0.25, gt=0, le=60, allow_inf_nan=False)
     simulation_shutdown_timeout_s: float = Field(default=15.0, gt=0, le=60, allow_inf_nan=False)
+    openai_enabled: bool = False
+    openai_api_key: SecretStr | None = None
+    openai_model: str = Field(default="", max_length=120, pattern=r"^[A-Za-z0-9._:-]*$")
+    openai_daily_request_limit: int = Field(default=10, ge=1, le=1000)
+    openai_daily_output_token_limit: int = Field(default=8192, ge=16, le=1000000)
 
     @field_validator("carla_executable", mode="before")
     @classmethod

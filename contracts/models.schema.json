@@ -1987,6 +1987,445 @@
       "title": "ArtifactReference",
       "type": "object"
     },
+    "AssistantApproval": {
+      "additionalProperties": false,
+      "properties": {
+        "approve": {
+          "const": true,
+          "title": "Approve",
+          "type": "boolean"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "digest",
+        "approve"
+      ],
+      "title": "AssistantApproval",
+      "type": "object"
+    },
+    "AssistantBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "max_input_bytes": {
+          "default": 16384,
+          "maximum": 32768,
+          "minimum": 1024,
+          "title": "Max Input Bytes",
+          "type": "integer"
+        },
+        "max_output_tokens": {
+          "default": 1024,
+          "maximum": 2048,
+          "minimum": 128,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "max_provider_calls": {
+          "const": 1,
+          "default": 1,
+          "title": "Max Provider Calls",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_provider_calls",
+        "max_input_bytes",
+        "max_output_tokens"
+      ],
+      "title": "AssistantBudget",
+      "type": "object"
+    },
+    "AssistantContracts": {
+      "additionalProperties": false,
+      "properties": {
+        "approval": {
+          "$ref": "#/$defs/AssistantApproval"
+        },
+        "record": {
+          "$ref": "#/$defs/AssistantRecord"
+        },
+        "request": {
+          "$ref": "#/$defs/AssistantRequest"
+        },
+        "status": {
+          "$ref": "#/$defs/AssistantStatus"
+        }
+      },
+      "required": [
+        "request",
+        "approval",
+        "record",
+        "status"
+      ],
+      "title": "AssistantContracts",
+      "type": "object"
+    },
+    "AssistantEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "$ref": "#/$defs/AnalysisCoverage"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "carla",
+            "test"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "observation_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/AnalysisObservation"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Observations",
+          "type": "array"
+        },
+        "simulation_id": {
+          "format": "uuid",
+          "title": "Simulation Id",
+          "type": "string"
+        },
+        "source_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "complete",
+            "partial"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "telemetry_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Telemetry Digest",
+          "type": "string"
+        },
+        "unresolved_questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unresolved Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "simulation_id",
+        "source_digest",
+        "telemetry_digest",
+        "state",
+        "mode",
+        "coverage",
+        "observations",
+        "observation_ids",
+        "unresolved_questions",
+        "limitations"
+      ],
+      "title": "AssistantEvidence",
+      "type": "object"
+    },
+    "AssistantPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "budget": {
+          "$ref": "#/$defs/AssistantBudget"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "title": "Expires At",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "input_bytes": {
+          "title": "Input Bytes",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "plan",
+            "analysis"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "payload": {
+          "title": "Payload",
+          "type": "string"
+        },
+        "redactions_applied": {
+          "title": "Redactions Applied",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "model",
+        "digest",
+        "created_at",
+        "expires_at",
+        "budget",
+        "input_bytes",
+        "payload",
+        "redactions_applied"
+      ],
+      "title": "AssistantPreview",
+      "type": "object"
+    },
+    "AssistantRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssistantEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "input_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Tokens"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Tokens"
+        },
+        "plan": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscoveryPlan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "preview": {
+          "$ref": "#/$defs/AssistantPreview"
+        },
+        "reserved_output_tokens": {
+          "default": 0,
+          "title": "Reserved Output Tokens",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "poltergeist-openai-assistance-v1",
+          "default": "poltergeist-openai-assistance-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "preview",
+            "running",
+            "completed",
+            "declined",
+            "failed"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "preview",
+        "state",
+        "message",
+        "plan",
+        "analysis",
+        "input_tokens",
+        "output_tokens",
+        "reserved_output_tokens"
+      ],
+      "title": "AssistantRecord",
+      "type": "object"
+    },
+    "AssistantRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "budget": {
+          "$ref": "#/$defs/AssistantBudget"
+        },
+        "kind": {
+          "enum": [
+            "plan",
+            "analysis"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "observation_ids": {
+          "items": {
+            "maximum": 31,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 16,
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "prompt": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "proposal": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DiscoveryProposal"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "request_id": {
+          "format": "uuid",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "simulation_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Simulation Id"
+        }
+      },
+      "required": [
+        "request_id",
+        "kind",
+        "prompt",
+        "budget",
+        "proposal",
+        "simulation_id",
+        "observation_ids"
+      ],
+      "title": "AssistantRequest",
+      "type": "object"
+    },
+    "AssistantStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "configured": {
+          "title": "Configured",
+          "type": "boolean"
+        },
+        "daily_output_token_limit": {
+          "title": "Daily Output Token Limit",
+          "type": "integer"
+        },
+        "daily_request_limit": {
+          "title": "Daily Request Limit",
+          "type": "integer"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "scope": {
+          "const": "local_api_only",
+          "default": "local_api_only",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "configured",
+        "model",
+        "daily_request_limit",
+        "daily_output_token_limit",
+        "scope"
+      ],
+      "title": "AssistantStatus",
+      "type": "object"
+    },
     "BehaviorAnalysis": {
       "additionalProperties": false,
       "properties": {
@@ -13854,6 +14293,9 @@
     "api": {
       "$ref": "#/$defs/ApiContracts"
     },
+    "assistant": {
+      "$ref": "#/$defs/AssistantContracts"
+    },
     "browser": {
       "$ref": "#/$defs/BrowserContracts"
     },
@@ -13910,7 +14352,8 @@
     "remote",
     "browser",
     "experimentation",
-    "analysis"
+    "analysis",
+    "assistant"
   ],
   "title": "PoltergeistContracts",
   "type": "object"

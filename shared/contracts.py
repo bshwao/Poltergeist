@@ -11,6 +11,7 @@ from .models.remote import RemoteContracts
 from .models.browser import BrowserContracts
 from .models.experimentation import ExperimentationContracts
 from .models.analysis import AnalysisContracts
+from .models.assistant import AssistantContracts
 
 
 class PoltergeistContracts(ContractModel):
@@ -30,3 +31,4 @@ class PoltergeistContracts(ContractModel):
     browser: BrowserContracts
     experimentation: ExperimentationContracts
     analysis: AnalysisContracts
+    assistant: AssistantContracts

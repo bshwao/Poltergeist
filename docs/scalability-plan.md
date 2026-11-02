@@ -9,7 +9,9 @@ and usability is in progress**. S12's guided workflows are implemented, with
 independent new-tester acceptance open; S13's bounded discovery implementation
 is locally validated. S14/S15 have locally validated private implementations;
 S16's managed camera policy and S17's curated Hub lifecycle are locally validated
-private implementations, with broader machine and release gates open. S18/S19 remain planned. See [camera policy](sensor-driving-policy.md),
+private implementations, with broader machine and release gates open. S18 has an
+optional local implementation with explicit disclosure and usage approval; live
+provider acceptance remains open. S19 remains planned. See [OpenAI assistance](openai-assistance.md), [camera policy](sensor-driving-policy.md),
 [evidence and regression agents](evidence-regression-agents.md),
 [guided experimentation and discovery](guided-experimentation.md), the
 [S8–S10 checkpoint](evidence-capacity-release.md) and the
@@ -114,7 +116,8 @@ have private implementations described below. S11 is in progress; S12 has
 implemented guided workflows and an open human-adoption gate; S13 has a locally
 validated bounded discovery engine. S14/S15 have locally validated saved-evidence
 review implementations; S16/S17 have locally validated private integrations;
-S18/S19 remain **planned**. Earlier phases may build
+S18 has an optional local implementation with live-account acceptance open;
+S19 remains **planned**. Earlier phases may build
 private prototypes; public remote execution requires the S4 security boundary.
 
 Preparatory work: the current local Overview has a versioned setup-readiness
@@ -488,6 +491,16 @@ machine acceptance remain. See [managed AI](managed-ai.md).
 removed through the app without manual weight-file management.
 
 ### S18 — OpenAI integration
+
+**Status: private local implementation delivered.** Discovery and Evidence Analyst
+offer question-based assistance after an exact disclosure preview and explicit
+one-call approval. Strict allowlisted selectors cannot launch runs, alter
+execution budgets or execute code. Reports retain independently checked original
+facts, exact references and missing coverage. A separate durable journal reserves
+daily calls/output limits before spending and prevents resubmission after lost
+responses or restarts. The hosted account/device relay exposes no provider or
+external-disclosure actions. Provider-fixture validation and remaining live-account
+scope are recorded in [OpenAI assistance](openai-assistance.md).
 
 - Offer an optional natural-language interface for discovery planning and
   evidence analysis through validated, bounded Poltergeist tools.

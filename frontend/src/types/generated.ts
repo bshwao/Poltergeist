@@ -1510,38 +1510,331 @@ export type Minimum1 = number;
 export type Name6 = string;
 export type Unit5 = string;
 export type Parameters4 = ParameterInfo[];
+export type Approve = true;
+export type Digest = string;
+export type Limitations3 = string[];
+export type Mode11 = "carla" | "test";
+export type ObservationIds = number[];
+/**
+ * @minItems 1
+ * @maxItems 16
+ */
+export type Observations1 =
+  | [AnalysisObservation]
+  | [AnalysisObservation, AnalysisObservation]
+  | [AnalysisObservation, AnalysisObservation, AnalysisObservation]
+  | [AnalysisObservation, AnalysisObservation, AnalysisObservation, AnalysisObservation]
+  | [AnalysisObservation, AnalysisObservation, AnalysisObservation, AnalysisObservation, AnalysisObservation]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ]
+  | [
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation,
+      AnalysisObservation
+    ];
+export type SimulationId6 = string;
+export type SourceDigest2 = string;
+export type State2 = "complete" | "partial";
+export type TelemetryDigest1 = string;
+export type UnresolvedQuestions1 = string[];
+export type Id8 = string;
+export type InputTokens = number | null;
+export type Message = string;
+export type OutputTokens = number | null;
+export type ApprovedAt1 = string | null;
 export type CreatedAt6 = string;
+export type DeadlineAt1 = string | null;
+export type Digest1 = string;
+export type ExpiresAt = string;
+export type Id9 = string;
+/**
+ * @minItems 1
+ * @maxItems 10
+ */
+export type Limitations4 =
+  | [string]
+  | [string, string]
+  | [string, string, string]
+  | [string, string, string, string]
+  | [string, string, string, string, string]
+  | [string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string];
+export type MaximumExecutions = number;
+export type OperationId2 = string | null;
+export type PerRunDurationS = number;
+export type Mode12 = "carla" | "test";
+export type Revision4 = number;
+/**
+ * @minItems 1
+ * @maxItems 100
+ */
+export type Scenarios1 = [Scenario, ...Scenario[]];
+export type SchemaVersion6 = "poltergeist-discovery-plan-v1";
+/**
+ * @minItems 1
+ * @maxItems 10
+ */
+export type Steps =
+  | [string]
+  | [string, string]
+  | [string, string, string]
+  | [string, string, string, string]
+  | [string, string, string, string, string]
+  | [string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string];
+export type MaxInputBytes = number;
+export type MaxOutputTokens = number;
+export type MaxProviderCalls = 1;
+export type CreatedAt7 = string;
+export type Digest2 = string;
+export type ExpiresAt1 = string;
+export type Id10 = string;
+export type InputBytes = number;
+export type Kind11 = "plan" | "analysis";
+export type Model = string;
+export type Payload = string;
+export type RedactionsApplied = boolean;
+export type ReservedOutputTokens = number;
+export type SchemaVersion7 = "poltergeist-openai-assistance-v1";
+export type State3 = "preview" | "running" | "completed" | "declined" | "failed";
+export type Kind12 = "plan" | "analysis";
+/**
+ * @maxItems 16
+ */
+export type ObservationIds1 =
+  | []
+  | [number]
+  | [number, number]
+  | [number, number, number]
+  | [number, number, number, number]
+  | [number, number, number, number, number]
+  | [number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number, number, number]
+  | [number, number, number, number, number, number, number, number, number, number, number, number, number, number]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ]
+  | [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ];
+export type Prompt = string;
+export type RequestId = string;
+export type SimulationId7 = string | null;
+export type Configured = boolean;
+export type DailyOutputTokenLimit = number;
+export type DailyRequestLimit = number;
+export type Enabled = boolean;
+export type Model1 = string;
+export type Scope = "local_api_only";
+export type CreatedAt8 = string;
 export type Operation = "execute" | "cancel" | "status" | "result";
 export type Reply =
   | (ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply | LabReply)
   | null;
 export type AcceptedAt = string;
-export type Kind11 = "accepted";
-export type RequestId = string;
-export type SimulationId6 = string;
-export type AcceptedAt1 = string;
-export type Kind12 = "cancel_requested";
+export type Kind13 = "accepted";
 export type RequestId1 = string;
-export type SimulationId7 = string;
+export type SimulationId8 = string;
+export type AcceptedAt1 = string;
+export type Kind14 = "cancel_requested";
+export type RequestId2 = string;
+export type SimulationId9 = string;
 export type Terminal = boolean;
 export type Accepting1 = boolean;
 export type Active1 = boolean;
-export type Kind13 = "status";
-export type RequestId2 = string;
-export type WaitingRemoteRuns = number;
-export type Kind14 = "result";
+export type Kind15 = "status";
 export type RequestId3 = string;
+export type WaitingRemoteRuns = number;
+export type Kind16 = "result";
+export type RequestId4 = string;
 export type Agent2 = "baseline";
 export type CancelRequested3 = boolean | null;
-export type CreatedAt7 = string;
+export type CreatedAt9 = string;
 export type DeviceId = string;
 export type Code = "execution_failed" | "result_unavailable";
 export type CorrelationId = string;
-export type Message =
+export type Message1 =
   | "The experiment failed on this computer. Review its local diagnostics."
   | "The finalized result is unavailable on this computer.";
 export type ArtifactReferenceCount = number | null;
-export type State2 = "local_only" | "missing";
+export type State4 = "local_only" | "missing";
 export type TelemetryFrames3 = number | null;
 export type ExecuteRequestId = string;
 export type FinishedAt3 = string | null;
@@ -1582,7 +1875,7 @@ export type MinClearanceM1 = number | null;
 export type MinTtcS1 = number | null;
 export type Severity2 = number | null;
 export type TrafficViolationCount1 = number | null;
-export type Mode11 = "test" | "carla";
+export type Mode13 = "test" | "carla";
 export type OwnershipGeneration = number;
 export type Progress2 = number;
 export type ProtocolVersion4 = "poltergeist-hosted-run-v1";
@@ -1596,7 +1889,7 @@ export type Source5 = ("synthetic_state" | "carla_ground_truth") | null;
 export type QueuePosition2 = number | null;
 export type ReceiptRevision = number;
 export type ResultAvailable = boolean;
-export type Revision4 = number;
+export type Revision5 = number;
 export type Adapter1 = "test" | "carla";
 export type ClientVersion1 = string | null;
 export type FixedDeltaSeconds3 = number;
@@ -1605,7 +1898,7 @@ export type Seed8 = number;
 export type ServerVersion1 = string | null;
 export type Name7 = string;
 export type Sha2563 = string;
-export type SimulationId8 = string;
+export type SimulationId10 = string;
 export type StartedAt3 = string | null;
 export type Status4 = "queued" | "running" | "completed" | "failed" | "cancelled";
 export type UpdatedAt2 = string;
@@ -1618,8 +1911,8 @@ export type Code1 =
   | "run_not_found"
   | "policy_denied"
   | "result_unavailable";
-export type Kind15 = "rejected";
-export type RequestId4 = string;
+export type Kind17 = "rejected";
+export type RequestId5 = string;
 export type ArtifactIndex = number;
 export type DataBase642 = string | null;
 export type Frame8 = number | null;
@@ -1632,23 +1925,23 @@ export type TrafficViolations1 = number | null;
  * @maxItems 100
  */
 export type Frames1 = EvidenceFrame[];
-export type Kind16 = "evidence";
+export type Kind18 = "evidence";
 export type NextOffset = number | null;
 export type Offset2 = number;
 export type ArtifactIndex1 = number;
 export type SampleCount = number | null;
-export type State3 = "available" | "missing" | "deleted" | "limit_exceeded";
+export type State5 = "available" | "missing" | "deleted" | "limit_exceeded";
 export type TotalBytes = number | null;
 /**
  * @maxItems 64
  */
 export type Recordings = EvidenceRecording[];
-export type RequestId5 = string;
+export type RequestId6 = string;
 export type Resource = "telemetry" | "recordings" | "samples" | "sample";
 export type ByteLength1 = number;
 export type Frame10 = number;
 export type IndexOffset = number | null;
-export type Kind17 = "camera" | "lidar";
+export type Kind19 = "camera" | "lidar";
 export type Metadata1 = CameraFormat | LidarFormat;
 export type Encoding1 = "bgra8";
 export type Height2 = number;
@@ -1664,13 +1957,13 @@ export type SampleSha256 = string | null;
  */
 export type Samples = EvidenceSample[];
 export type Sha2565 = string | null;
-export type SimulationId9 = string;
-export type State4 = "available" | "missing" | "deleted" | "changed" | "limit_exceeded";
+export type SimulationId11 = string;
+export type State6 = "available" | "missing" | "deleted" | "changed" | "limit_exceeded";
 export type Timestamp1 = number | null;
 export type TotalBytes1 = number | null;
 export type Version3 = string | null;
-export type Kind18 = "lab";
-export type RequestId6 = string;
+export type Kind20 = "lab";
+export type RequestId7 = string;
 export type Result =
   | LabGalleryResult
   | LabSuitesResult
@@ -1690,7 +1983,7 @@ export type Result =
   | LabAnalysisResult
   | LabRegressionResult;
 export type Description3 = string;
-export type Id8 = string;
+export type Id11 = string;
 export type LearningGoal = string;
 export type Level = "starter" | "low" | "medium" | "high";
 export type Title = string;
@@ -1698,7 +1991,7 @@ export type Title = string;
  * @maxItems 32
  */
 export type Items1 = GalleryScenario[];
-export type Kind19 = "gallery";
+export type Kind21 = "gallery";
 /**
  * @maxItems 20
  */
@@ -1900,12 +2193,12 @@ export type Items2 =
       SavedSuite,
       SavedSuite
     ];
-export type CreatedAt8 = string;
+export type CreatedAt10 = string;
 export type Description4 = string;
-export type Id9 = string;
-export type Revision5 = number;
+export type Id12 = string;
+export type Revision6 = number;
 export type UpdatedAt3 = string;
-export type Kind20 = "suites";
+export type Kind22 = "suites";
 export type NextOffset1 = number | null;
 export type SnapshotAt = string;
 /**
@@ -2128,54 +2421,7 @@ export type Items3 =
       DiscoveryPlan,
       DiscoveryPlan
     ];
-export type ApprovedAt1 = string | null;
-export type CreatedAt9 = string;
-export type DeadlineAt1 = string | null;
-export type Digest = string;
-export type ExpiresAt = string;
-export type Id10 = string;
-/**
- * @minItems 1
- * @maxItems 10
- */
-export type Limitations3 =
-  | [string]
-  | [string, string]
-  | [string, string, string]
-  | [string, string, string, string]
-  | [string, string, string, string, string]
-  | [string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string, string, string, string];
-export type MaximumExecutions = number;
-export type OperationId2 = string | null;
-export type PerRunDurationS = number;
-export type Mode12 = "carla" | "test";
-export type Revision6 = number;
-/**
- * @minItems 1
- * @maxItems 100
- */
-export type Scenarios1 = [Scenario, ...Scenario[]];
-export type SchemaVersion6 = "poltergeist-discovery-plan-v1";
-/**
- * @minItems 1
- * @maxItems 10
- */
-export type Steps =
-  | [string]
-  | [string, string]
-  | [string, string, string]
-  | [string, string, string, string]
-  | [string, string, string, string, string]
-  | [string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string, string, string]
-  | [string, string, string, string, string, string, string, string, string, string];
-export type Kind21 = "plans";
+export type Kind23 = "plans";
 export type NextOffset2 = number | null;
 export type SnapshotAt1 = string;
 /**
@@ -2398,19 +2644,19 @@ export type Items4 =
       SavedFeedback,
       SavedFeedback
     ];
-export type CreatedAt10 = string;
+export type CreatedAt11 = string;
 export type ConfusingStep = string;
 export type ConsentToSave = true;
 export type CouldExplainOutcome = boolean;
 export type ReasonToReturn = string;
-export type SimulationId10 = string | null;
-export type Id11 = string;
-export type Kind22 = "feedbacks";
+export type SimulationId12 = string | null;
+export type Id13 = string;
+export type Kind24 = "feedbacks";
 export type NextOffset3 = number | null;
 export type SnapshotAt2 = string;
-export type Kind23 = "suite";
-export type Kind24 = "plan";
-export type Kind25 = "operation";
+export type Kind25 = "suite";
+export type Kind26 = "plan";
+export type Kind27 = "operation";
 /**
  * @maxItems 20
  */
@@ -2646,10 +2892,10 @@ export type Items5 =
       OptimizationRecord,
       OptimizationRecord
     ];
-export type Kind26 = "suite_runs";
+export type Kind28 = "suite_runs";
 export type NextOffset4 = number | null;
 export type SnapshotAt3 = string;
-export type Kind27 = "discovery";
+export type Kind29 = "discovery";
 export type CandidateIndex1 = number;
 export type ConfirmationSimulationIds = string[];
 export type FailureId3 = string | null;
@@ -2663,22 +2909,22 @@ export type UnknownConfirmations = number;
 export type Candidates = DiscoveryCandidate[];
 export type ConfirmedFailures1 = number;
 export type ExecutionsUsed = number;
-export type Limitations4 = string[];
+export type Limitations5 = string[];
 export type NegativeTrials = number;
-export type SchemaVersion7 = "poltergeist-discovery-report-v1";
+export type SchemaVersion8 = "poltergeist-discovery-report-v1";
 export type SimulatedTimeReservedS = number;
 export type Summary4 = string;
 export type UnassessedTrials = number;
 export type UnknownTrials = number;
-export type Kind28 = "suite_report";
+export type Kind30 = "suite_report";
 export type CaseIndex2 = number;
 export type Groups2 = ComparisonGroup[];
 export type Name8 = string;
 export type Notes1 = string[];
 export type PairedComparisons1 = PairedComparison[];
 export type Cases1 = SuiteCaseComparison[];
-export type SchemaVersion8 = "poltergeist-suite-report-v1";
-export type Kind29 = "run";
+export type SchemaVersion9 = "poltergeist-suite-report-v1";
+export type Kind31 = "run";
 export type CoverageComplete = boolean;
 export type Explanation1 = string;
 /**
@@ -2763,24 +3009,24 @@ export type Highlights =
     ];
 export type Description5 = string;
 export type Frame11 = number;
-export type Kind30 = "collision" | "near_miss" | "hard_braking" | "traffic_violation" | "finish";
+export type Kind32 = "collision" | "near_miss" | "hard_braking" | "traffic_violation" | "finish";
 export type Source6 = "telemetry";
 export type TimeS7 = number;
 export type Title1 = string;
-export type Limitations5 = string[];
-export type Mode13 = "test" | "carla";
-export type SimulationId11 = string;
+export type Limitations6 = string[];
+export type Mode14 = "test" | "carla";
+export type SimulationId13 = string;
 export type TotalFrames2 = number;
-export type Kind31 = "highlights";
-export type Kind32 = "frame";
-export type SimulationId12 = string;
-export type Kind33 = "feedback";
-export type Id12 = string;
-export type Kind34 = "deleted";
-export type Kind35 = "analysis";
-export type Kind36 = "regression";
-export type RequestId7 = string;
-export type SimulationId13 = string | null;
+export type Kind33 = "highlights";
+export type Kind34 = "frame";
+export type SimulationId14 = string;
+export type Kind35 = "feedback";
+export type Id14 = string;
+export type Kind36 = "deleted";
+export type Kind37 = "analysis";
+export type Kind38 = "regression";
+export type RequestId8 = string;
+export type SimulationId15 = string | null;
 export type Status6 = "queued" | "accepted" | "completed" | "rejected";
 export type UpdatedAt4 = string;
 /**
@@ -2798,8 +3044,8 @@ export type ProtocolCompatible = boolean | null;
 export type ProtocolVersion5 = "poltergeist-relay-v1" | null;
 export type RecordingsSupported = boolean;
 export type RemoteRequestsEnabled = boolean;
-export type State5 = "offline" | "connecting" | "connected" | "paused" | "revoked";
-export type CreatedAt11 = string;
+export type State7 = "offline" | "connecting" | "connected" | "paused" | "revoked";
+export type CreatedAt12 = string;
 export type DeviceId1 = string;
 export type DisplayName = string;
 export type AccountId = string;
@@ -2939,7 +3185,7 @@ export type Presets =
     ];
 export type Description6 = string;
 export type Family = "installation" | "intersection" | "pedestrian_crossing" | "sudden_braking" | "occluded_pedestrian";
-export type Id13 = string;
+export type Id15 = string;
 export type IntendedStress = ("low" | "medium" | "high") | null;
 export type Label = string;
 export type Password = string;
@@ -2947,7 +3193,7 @@ export type Username1 = string;
 export type Credential = string;
 export type ExpectedAccountId = string;
 export type ExpectedRevision1 = number;
-export type RequestId8 = string;
+export type RequestId9 = string;
 export type Credential1 = string;
 export type DeviceId2 = string;
 export type OwnerId = string;
@@ -2967,7 +3213,7 @@ export type RequestedScopes =
 export type AttemptId = string;
 export type Code3 = string;
 export type DeviceId3 = string;
-export type ExpiresAt1 = string;
+export type ExpiresAt2 = string;
 export type PollIntervalS = 3;
 export type DeviceId4 = string;
 export type OwnerId1 = string;
@@ -2983,18 +3229,18 @@ export type DeviceId5 = string;
 export type Outcome = "cancelled" | "expired" | "denied" | "revoked" | "absent";
 export type OwnerId2 = string;
 export type CsrfToken = string;
-export type ExpiresAt2 = string;
+export type ExpiresAt3 = string;
 export type AttemptId2 = string;
 export type DeviceId6 = string;
-export type ExpiresAt3 = string;
+export type ExpiresAt4 = string;
 export type RequestedScopes1 = PermissionScope[];
 export type Revision7 = number;
-export type State6 = "pending" | "claimed" | "approved" | "denied" | "expired" | "cancelled";
-export type Approve = true;
-export type Digest1 = string;
+export type State8 = "pending" | "claimed" | "approved" | "denied" | "expired" | "cancelled";
+export type Approve1 = true;
+export type Digest3 = string;
 export type ExpectedRevision3 = number;
 export type ExpectedRevision4 = number;
-export type RequestId9 = string;
+export type RequestId10 = string;
 export type Description7 = string;
 export type Description8 = string;
 export type ExpectedRevision5 = number;
@@ -3002,7 +3248,7 @@ export type Request1 =
   SearchRequest | ComparisonRequest | SuiteRequest | DiscoveryRequest | ReproductionRequest | MinimizeRequest;
 export type ExpectedRevision6 = number;
 export type Detail = string;
-export type Id14 = string;
+export type Id16 = string;
 export type Label1 = string;
 export type NextStep = string | null;
 /**
@@ -3014,33 +3260,33 @@ export type Checks = ReadinessCheck[];
 export type Summary5 = string;
 export type CarlaConnectionRequested = boolean;
 export type CheckedAt1 = string;
-export type SchemaVersion9 = "poltergeist-readiness-v1";
-export type Scope = "local_core";
+export type SchemaVersion10 = "poltergeist-readiness-v1";
+export type Scope1 = "local_core";
 export type Command = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest | LabCommand;
 export type AgentId7 = null;
-export type Kind37 = "execute";
-export type Mode14 = "test" | "carla";
+export type Kind39 = "execute";
+export type Mode15 = "test" | "carla";
 export type Camera1 = boolean;
 export type Lidar1 = boolean;
 export type MaxTicks2 = number;
-export type RequestId10 = string;
-export type Kind38 = "cancel";
 export type RequestId11 = string;
-export type SimulationId14 = string;
-export type Kind39 = "status";
+export type Kind40 = "cancel";
 export type RequestId12 = string;
-export type Kind40 = "result";
+export type SimulationId16 = string;
+export type Kind41 = "status";
 export type RequestId13 = string;
-export type SimulationId15 = string;
+export type Kind42 = "result";
+export type RequestId14 = string;
+export type SimulationId17 = string;
 export type ArtifactIndex2 = number;
-export type Kind41 = "evidence";
+export type Kind43 = "evidence";
 export type Limit2 = number;
 export type Offset3 = number;
-export type RequestId14 = string;
+export type RequestId15 = string;
 export type Resource1 = "telemetry" | "recordings" | "samples" | "sample";
 export type SampleCursor = number | null;
 export type SampleIndex2 = number;
-export type SimulationId16 = string;
+export type SimulationId18 = string;
 export type Version4 = string | null;
 export type Action2 =
   | LabGallery
@@ -3056,14 +3302,14 @@ export type Action2 =
   | LabLaunch
   | LabFrame
   | LabRegression;
-export type Kind42 = "gallery";
+export type Kind44 = "gallery";
 export type Before = string | null;
-export type Kind43 = "suites" | "plans" | "feedbacks";
+export type Kind45 = "suites" | "plans" | "feedbacks";
 export type Limit3 = number;
 export type Offset4 = number;
 export type ExpectedRevision7 = number | null;
-export type Id15 = string;
-export type Kind44 =
+export type Id17 = string;
+export type Kind46 =
   | "suite_get"
   | "suite_delete"
   | "plan_get"
@@ -3077,28 +3323,28 @@ export type Kind44 =
   | "highlights"
   | "analysis_get";
 export type Before1 = string | null;
-export type Id16 = string;
-export type Kind45 = "suite_runs";
+export type Id18 = string;
+export type Kind47 = "suite_runs";
 export type Limit4 = number;
 export type Offset5 = number;
-export type Kind46 = "suite_save";
-export type Id17 = string;
-export type Kind47 = "suite_update";
-export type Id18 = string;
-export type Kind48 = "suite_run";
-export type Kind49 = "plan_propose";
+export type Kind48 = "suite_save";
 export type Id19 = string;
-export type Kind50 = "plan_approve";
-export type Kind51 = "feedback";
-export type Kind52 = "run_launch";
-export type Frame12 = number;
+export type Kind49 = "suite_update";
 export type Id20 = string;
-export type Kind53 = "frame_get";
+export type Kind50 = "suite_run";
+export type Kind51 = "plan_propose";
 export type Id21 = string;
-export type Kind54 = "regression_report";
-export type Kind55 = "lab";
-export type Mode15 = ("test" | "carla") | null;
-export type RequestId15 = string;
+export type Kind52 = "plan_approve";
+export type Kind53 = "feedback";
+export type Kind54 = "run_launch";
+export type Frame12 = number;
+export type Id22 = string;
+export type Kind55 = "frame_get";
+export type Id23 = string;
+export type Kind56 = "regression_report";
+export type Kind57 = "lab";
+export type Mode16 = ("test" | "carla") | null;
+export type RequestId16 = string;
 export type Envelope = ServerHello | ClientReady | RelayCommand | RelayReply | RelayPing | RelayPong;
 export type AnalysisSupported1 = boolean;
 export type ConnectionGeneration = number;
@@ -3106,7 +3352,7 @@ export type DeadTimeoutS = 90;
 export type DeviceId7 = string;
 export type EvidenceSupported1 = boolean;
 export type HeartbeatS = 30;
-export type Kind56 = "hello";
+export type Kind58 = "hello";
 export type LabSupported1 = boolean;
 export type OwnerId3 = string;
 export type OwnershipGeneration3 = number;
@@ -3117,7 +3363,7 @@ export type AnalysisSupported2 = boolean;
 export type ConnectionGeneration1 = number;
 export type DeviceId8 = string;
 export type EvidenceSupported2 = boolean;
-export type Kind57 = "ready";
+export type Kind59 = "ready";
 export type LabSupported2 = boolean;
 export type OwnershipGeneration4 = number;
 export type ProtocolVersion8 = "poltergeist-relay-v1";
@@ -3126,33 +3372,33 @@ export type RemoteExecutionEnabled1 = boolean;
 export type Command1 = ExecuteCommand | CancelCommand | StatusCommand | ResultCommand | EvidenceRequest | LabCommand;
 export type ConnectionGeneration2 = number;
 export type DeviceId9 = string;
-export type Kind58 = "command";
+export type Kind60 = "command";
 export type OwnershipGeneration5 = number;
 export type ProtocolVersion9 = "poltergeist-relay-v1";
 export type ConnectionGeneration3 = number;
 export type DeviceId10 = string;
-export type Kind59 = "reply";
+export type Kind61 = "reply";
 export type OwnershipGeneration6 = number;
 export type ProtocolVersion10 = "poltergeist-relay-v1";
 export type Reply1 =
   ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply | LabReply;
 export type ConnectionGeneration4 = number;
 export type DeviceId11 = string;
-export type Kind60 = "ping";
+export type Kind62 = "ping";
 export type Nonce = string;
 export type OwnershipGeneration7 = number;
 export type ProtocolVersion11 = "poltergeist-relay-v1";
 export type ConnectionGeneration5 = number;
 export type DeviceId12 = string;
-export type Kind61 = "pong";
+export type Kind63 = "pong";
 export type Nonce1 = string;
 export type OwnershipGeneration8 = number;
 export type ProtocolVersion12 = "poltergeist-relay-v1";
 export type Reply2 =
   ExecuteAccepted | CancelAccepted | DeviceStatusReply | RunResultReply | CommandRejected | EvidenceReply | LabReply;
 export type ProtocolVersion13 = "poltergeist-runner-v1";
-export type RequestId16 = string;
-export type SimulationId17 = string;
+export type RequestId17 = string;
+export type SimulationId19 = string;
 export type CheckedAt2 = string;
 export type ExecutionModes = ("test" | "carla")[];
 export type ImplementationVersion = string;
@@ -3163,9 +3409,9 @@ export type ProtocolVersion14 = "poltergeist-runner-v1";
 export type RemoteExecutionEnabled2 = false;
 export type SdkProtocols = ("1.0" | "1.1" | "1.2" | "1.3")[];
 export type AgentId8 = string | null;
-export type Mode16 = "test" | "carla";
+export type Mode17 = "test" | "carla";
 export type ProtocolVersion15 = "poltergeist-runner-v1";
-export type RequestId17 = string;
+export type RequestId18 = string;
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "OptimizationStatus".
@@ -3176,6 +3422,7 @@ export interface PoltergeistContracts {
   agent: AgentContracts;
   analysis: AnalysisContracts;
   api: ApiContracts;
+  assistant: AssistantContracts;
   browser: BrowserContracts;
   coordination: CoordinationContracts;
   experimentation: ExperimentationContracts;
@@ -4816,6 +5063,140 @@ export interface ParameterInfo {
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantContracts".
+ */
+export interface AssistantContracts {
+  approval: AssistantApproval;
+  record: AssistantRecord;
+  request: AssistantRequest;
+  status: AssistantStatus;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantApproval".
+ */
+export interface AssistantApproval {
+  approve: Approve;
+  digest: Digest;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantRecord".
+ */
+export interface AssistantRecord {
+  analysis: AssistantEvidence | null;
+  id: Id8;
+  input_tokens: InputTokens;
+  message: Message;
+  output_tokens: OutputTokens;
+  plan: DiscoveryPlan | null;
+  preview: AssistantPreview;
+  reserved_output_tokens: ReservedOutputTokens;
+  schema_version: SchemaVersion7;
+  state: State3;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantEvidence".
+ */
+export interface AssistantEvidence {
+  coverage: AnalysisCoverage;
+  limitations: Limitations3;
+  mode: Mode11;
+  observation_ids: ObservationIds;
+  observations: Observations1;
+  simulation_id: SimulationId6;
+  source_digest: SourceDigest2;
+  state: State2;
+  telemetry_digest: TelemetryDigest1;
+  unresolved_questions: UnresolvedQuestions1;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DiscoveryPlan".
+ */
+export interface DiscoveryPlan {
+  agent_snapshot: AgentSnapshot | null;
+  approved_at: ApprovedAt1;
+  created_at: CreatedAt6;
+  deadline_at: DeadlineAt1;
+  digest: Digest1;
+  expires_at: ExpiresAt;
+  id: Id9;
+  limitations: Limitations4;
+  maximum_executions: MaximumExecutions;
+  operation_id: OperationId2;
+  per_run_duration_s: PerRunDurationS;
+  proposal: DiscoveryProposal;
+  revision: Revision4;
+  scenarios: Scenarios1;
+  schema_version: SchemaVersion6;
+  search: SearchRequest;
+  steps: Steps;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "DiscoveryProposal".
+ */
+export interface DiscoveryProposal {
+  budget: DiscoveryBudget;
+  evaluation_settings: EvaluationSettings;
+  goal: DiscoveryGoal;
+  mode: Mode12;
+  options: SimulationOptions;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantPreview".
+ */
+export interface AssistantPreview {
+  budget: AssistantBudget;
+  created_at: CreatedAt7;
+  digest: Digest2;
+  expires_at: ExpiresAt1;
+  id: Id10;
+  input_bytes: InputBytes;
+  kind: Kind11;
+  model: Model;
+  payload: Payload;
+  redactions_applied: RedactionsApplied;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantBudget".
+ */
+export interface AssistantBudget {
+  max_input_bytes: MaxInputBytes;
+  max_output_tokens: MaxOutputTokens;
+  max_provider_calls: MaxProviderCalls;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantRequest".
+ */
+export interface AssistantRequest {
+  budget: AssistantBudget;
+  kind: Kind12;
+  observation_ids: ObservationIds1;
+  prompt: Prompt;
+  proposal: DiscoveryProposal | null;
+  request_id: RequestId;
+  simulation_id: SimulationId7;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
+ * via the `definition` "AssistantStatus".
+ */
+export interface AssistantStatus {
+  configured: Configured;
+  daily_output_token_limit: DailyOutputTokenLimit;
+  daily_request_limit: DailyRequestLimit;
+  enabled: Enabled;
+  model: Model1;
+  scope: Scope;
+}
+/**
+ * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "BrowserContracts".
  */
 export interface BrowserContracts {
@@ -4836,11 +5217,11 @@ export interface BrowserCommandPage {
  * via the `definition` "RemoteCommandView".
  */
 export interface RemoteCommandView {
-  created_at: CreatedAt6;
+  created_at: CreatedAt8;
   operation: Operation;
   reply: Reply;
-  request_id: RequestId7;
-  simulation_id: SimulationId13;
+  request_id: RequestId8;
+  simulation_id: SimulationId15;
   status: Status6;
   updated_at: UpdatedAt4;
 }
@@ -4850,9 +5231,9 @@ export interface RemoteCommandView {
  */
 export interface ExecuteAccepted {
   accepted_at: AcceptedAt;
-  kind: Kind11;
-  request_id: RequestId;
-  simulation_id: SimulationId6;
+  kind: Kind13;
+  request_id: RequestId1;
+  simulation_id: SimulationId8;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -4860,9 +5241,9 @@ export interface ExecuteAccepted {
  */
 export interface CancelAccepted {
   accepted_at: AcceptedAt1;
-  kind: Kind12;
-  request_id: RequestId1;
-  simulation_id: SimulationId7;
+  kind: Kind14;
+  request_id: RequestId2;
+  simulation_id: SimulationId9;
   terminal: Terminal;
 }
 /**
@@ -4872,8 +5253,8 @@ export interface CancelAccepted {
 export interface DeviceStatusReply {
   accepting: Accepting1;
   active: Active1;
-  kind: Kind13;
-  request_id: RequestId2;
+  kind: Kind15;
+  request_id: RequestId3;
   waiting_remote_runs: WaitingRemoteRuns;
 }
 /**
@@ -4881,8 +5262,8 @@ export interface DeviceStatusReply {
  * via the `definition` "RunResultReply".
  */
 export interface RunResultReply {
-  kind: Kind14;
-  request_id: RequestId3;
+  kind: Kind16;
+  request_id: RequestId4;
   summary: HostedRunSummaryV1;
 }
 /**
@@ -4892,7 +5273,7 @@ export interface RunResultReply {
 export interface HostedRunSummaryV1 {
   agent: Agent2;
   cancel_requested: CancelRequested3;
-  created_at: CreatedAt7;
+  created_at: CreatedAt9;
   device_id: DeviceId;
   error: HostedPublicErrorV1 | null;
   evidence: HostedEvidenceV1;
@@ -4900,7 +5281,7 @@ export interface HostedRunSummaryV1 {
   finished_at: FinishedAt3;
   measured_duration_s: MeasuredDurationS2;
   metrics: HostedSafetyMetricsV1 | null;
-  mode: Mode11;
+  mode: Mode13;
   ownership_generation: OwnershipGeneration;
   progress: Progress2;
   protocol_version: ProtocolVersion4;
@@ -4908,10 +5289,10 @@ export interface HostedRunSummaryV1 {
   queue_position: QueuePosition2;
   receipt_revision: ReceiptRevision;
   result_available: ResultAvailable;
-  revision: Revision4;
+  revision: Revision5;
   runtime: HostedRuntimeV1 | null;
   scenario: HostedScenarioV1;
-  simulation_id: SimulationId8;
+  simulation_id: SimulationId10;
   started_at: StartedAt3;
   status: Status4;
   updated_at: UpdatedAt2;
@@ -4923,7 +5304,7 @@ export interface HostedRunSummaryV1 {
 export interface HostedPublicErrorV1 {
   code: Code;
   correlation_id: CorrelationId;
-  message: Message;
+  message: Message1;
 }
 /**
  * The caller checks local availability; counts describe persisted metadata.
@@ -4936,7 +5317,7 @@ export interface HostedPublicErrorV1 {
  */
 export interface HostedEvidenceV1 {
   artifact_reference_count: ArtifactReferenceCount;
-  state: State2;
+  state: State4;
   telemetry_frames: TelemetryFrames3;
 }
 /**
@@ -5034,8 +5415,8 @@ export interface HostedScenarioV1 {
  */
 export interface CommandRejected {
   code: Code1;
-  kind: Kind15;
-  request_id: RequestId4;
+  kind: Kind17;
+  request_id: RequestId5;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5046,18 +5427,18 @@ export interface EvidenceReply {
   data_base64: DataBase642;
   frame: Frame8;
   frames: Frames1;
-  kind: Kind16;
+  kind: Kind18;
   next_offset: NextOffset;
   offset: Offset2;
   recordings?: Recordings;
-  request_id: RequestId5;
+  request_id: RequestId6;
   resource: Resource;
   sample?: EvidenceSample | null;
   sample_sha256: SampleSha256;
   samples?: Samples;
   sha256: Sha2565;
-  simulation_id: SimulationId9;
-  state: State4;
+  simulation_id: SimulationId11;
+  state: State6;
   timestamp: Timestamp1;
   total_bytes: TotalBytes1;
   version: Version3;
@@ -5081,7 +5462,7 @@ export interface EvidenceFrame {
 export interface EvidenceRecording {
   artifact_index: ArtifactIndex1;
   sample_count: SampleCount;
-  state: State3;
+  state: State5;
   total_bytes: TotalBytes;
 }
 /**
@@ -5092,7 +5473,7 @@ export interface EvidenceSample {
   byte_length: ByteLength1;
   frame: Frame10;
   index_offset: IndexOffset;
-  kind: Kind17;
+  kind: Kind19;
   metadata: Metadata1;
   sample_index: SampleIndex1;
   sha256: Sha2564;
@@ -5120,8 +5501,8 @@ export interface LidarFormat {
  * via the `definition` "LabReply".
  */
 export interface LabReply {
-  kind: Kind18;
-  request_id: RequestId6;
+  kind: Kind20;
+  request_id: RequestId7;
   result: Result;
 }
 /**
@@ -5130,7 +5511,7 @@ export interface LabReply {
  */
 export interface LabGalleryResult {
   items: Items1;
-  kind: Kind19;
+  kind: Kind21;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5139,7 +5520,7 @@ export interface LabGalleryResult {
 export interface GalleryScenario {
   description: Description3;
   family: ScenarioTemplate;
-  id: Id8;
+  id: Id11;
   learning_goal: LearningGoal;
   level: Level;
   scenario: Scenario;
@@ -5151,7 +5532,7 @@ export interface GalleryScenario {
  */
 export interface LabSuitesResult {
   items: Items2;
-  kind: Kind20;
+  kind: Kind22;
   next_offset: NextOffset1;
   snapshot_at: SnapshotAt;
 }
@@ -5160,11 +5541,11 @@ export interface LabSuitesResult {
  * via the `definition` "SavedSuite".
  */
 export interface SavedSuite {
-  created_at: CreatedAt8;
+  created_at: CreatedAt10;
   definition: SuiteRequest;
   description: Description4;
-  id: Id9;
-  revision: Revision5;
+  id: Id12;
+  revision: Revision6;
   updated_at: UpdatedAt3;
 }
 /**
@@ -5173,43 +5554,9 @@ export interface SavedSuite {
  */
 export interface LabPlansResult {
   items: Items3;
-  kind: Kind21;
+  kind: Kind23;
   next_offset: NextOffset2;
   snapshot_at: SnapshotAt1;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "DiscoveryPlan".
- */
-export interface DiscoveryPlan {
-  agent_snapshot: AgentSnapshot | null;
-  approved_at: ApprovedAt1;
-  created_at: CreatedAt9;
-  deadline_at: DeadlineAt1;
-  digest: Digest;
-  expires_at: ExpiresAt;
-  id: Id10;
-  limitations: Limitations3;
-  maximum_executions: MaximumExecutions;
-  operation_id: OperationId2;
-  per_run_duration_s: PerRunDurationS;
-  proposal: DiscoveryProposal;
-  revision: Revision6;
-  scenarios: Scenarios1;
-  schema_version: SchemaVersion6;
-  search: SearchRequest;
-  steps: Steps;
-}
-/**
- * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
- * via the `definition` "DiscoveryProposal".
- */
-export interface DiscoveryProposal {
-  budget: DiscoveryBudget;
-  evaluation_settings: EvaluationSettings;
-  goal: DiscoveryGoal;
-  mode: Mode12;
-  options: SimulationOptions;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5217,7 +5564,7 @@ export interface DiscoveryProposal {
  */
 export interface LabFeedbacksResult {
   items: Items4;
-  kind: Kind22;
+  kind: Kind24;
   next_offset: NextOffset3;
   snapshot_at: SnapshotAt2;
 }
@@ -5226,9 +5573,9 @@ export interface LabFeedbacksResult {
  * via the `definition` "SavedFeedback".
  */
 export interface SavedFeedback {
-  created_at: CreatedAt10;
+  created_at: CreatedAt11;
   feedback: GuidanceFeedback;
-  id: Id11;
+  id: Id13;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5239,14 +5586,14 @@ export interface GuidanceFeedback {
   consent_to_save: ConsentToSave;
   could_explain_outcome: CouldExplainOutcome;
   reason_to_return: ReasonToReturn;
-  simulation_id: SimulationId10;
+  simulation_id: SimulationId12;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "LabSuiteResult".
  */
 export interface LabSuiteResult {
-  kind: Kind23;
+  kind: Kind25;
   suite: SavedSuite;
 }
 /**
@@ -5254,7 +5601,7 @@ export interface LabSuiteResult {
  * via the `definition` "LabPlanResult".
  */
 export interface LabPlanResult {
-  kind: Kind24;
+  kind: Kind26;
   plan: DiscoveryPlan;
 }
 /**
@@ -5262,7 +5609,7 @@ export interface LabPlanResult {
  * via the `definition` "LabOperationResult".
  */
 export interface LabOperationResult {
-  kind: Kind25;
+  kind: Kind27;
   operation: OptimizationRecord;
 }
 /**
@@ -5271,7 +5618,7 @@ export interface LabOperationResult {
  */
 export interface LabSuiteRunsResult {
   items: Items5;
-  kind: Kind26;
+  kind: Kind28;
   next_offset: NextOffset4;
   snapshot_at: SnapshotAt3;
 }
@@ -5280,7 +5627,7 @@ export interface LabSuiteRunsResult {
  * via the `definition` "LabDiscoveryResult".
  */
 export interface LabDiscoveryResult {
-  kind: Kind27;
+  kind: Kind29;
   report: DiscoveryReport;
 }
 /**
@@ -5292,10 +5639,10 @@ export interface DiscoveryReport {
   confirmed_failures: ConfirmedFailures1;
   evidence: OptimizationView;
   executions_used: ExecutionsUsed;
-  limitations: Limitations4;
+  limitations: Limitations5;
   negative_trials: NegativeTrials;
   plan: DiscoveryPlan;
-  schema_version: SchemaVersion7;
+  schema_version: SchemaVersion8;
   simulated_time_reserved_s: SimulatedTimeReservedS;
   summary: Summary4;
   unassessed_trials: UnassessedTrials;
@@ -5324,7 +5671,7 @@ export interface DiscoveryCandidate {
  * via the `definition` "LabSuiteReportResult".
  */
 export interface LabSuiteReportResult {
-  kind: Kind28;
+  kind: Kind30;
   report: SuiteReport;
 }
 /**
@@ -5334,7 +5681,7 @@ export interface LabSuiteReportResult {
 export interface SuiteReport {
   cases: Cases1;
   evidence: OptimizationView;
-  schema_version: SchemaVersion8;
+  schema_version: SchemaVersion9;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5352,7 +5699,7 @@ export interface SuiteCaseComparison {
  * via the `definition` "LabRunResult".
  */
 export interface LabRunResult {
-  kind: Kind29;
+  kind: Kind31;
   record: SimulationRecord;
 }
 /**
@@ -5361,7 +5708,7 @@ export interface LabRunResult {
  */
 export interface LabHighlightsResult {
   highlights: ReplayHighlights;
-  kind: Kind31;
+  kind: Kind33;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5371,9 +5718,9 @@ export interface ReplayHighlights {
   coverage_complete: CoverageComplete;
   explanation: Explanation1;
   highlights: Highlights;
-  limitations: Limitations5;
-  mode: Mode13;
-  simulation_id: SimulationId11;
+  limitations: Limitations6;
+  mode: Mode14;
+  simulation_id: SimulationId13;
   total_frames: TotalFrames2;
 }
 /**
@@ -5383,7 +5730,7 @@ export interface ReplayHighlights {
 export interface ReplayHighlight {
   description: Description5;
   frame: Frame11;
-  kind: Kind30;
+  kind: Kind32;
   source: Source6;
   time_s: TimeS7;
   title: Title1;
@@ -5394,8 +5741,8 @@ export interface ReplayHighlight {
  */
 export interface LabFrameResult {
   frame: EvidenceFrame;
-  kind: Kind32;
-  simulation_id: SimulationId12;
+  kind: Kind34;
+  simulation_id: SimulationId14;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5403,15 +5750,15 @@ export interface LabFrameResult {
  */
 export interface LabFeedbackResult {
   feedback: SavedFeedback;
-  kind: Kind33;
+  kind: Kind35;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "LabDeletedResult".
  */
 export interface LabDeletedResult {
-  id: Id12;
-  kind: Kind34;
+  id: Id14;
+  kind: Kind36;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5419,14 +5766,14 @@ export interface LabDeletedResult {
  */
 export interface LabAnalysisResult {
   analysis: EvidenceAnalysis;
-  kind: Kind35;
+  kind: Kind37;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "LabRegressionResult".
  */
 export interface LabRegressionResult {
-  kind: Kind36;
+  kind: Kind38;
   report: RegressionReport;
 }
 /**
@@ -5452,14 +5799,14 @@ export interface BrowserConnectionView {
   protocol_version: ProtocolVersion5;
   recordings_supported: RecordingsSupported;
   remote_requests_enabled: RemoteRequestsEnabled;
-  state: State5;
+  state: State7;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "DeviceView".
  */
 export interface DeviceView {
-  created_at: CreatedAt11;
+  created_at: CreatedAt12;
   device_id: DeviceId1;
   display_name: DisplayName;
   owner: AccountIdentity;
@@ -5506,7 +5853,7 @@ export interface ApprovedAgent {
 export interface BrowserScenarioPreset {
   description: Description6;
   family: Family;
-  id: Id13;
+  id: Id15;
   intended_stress: IntendedStress;
   label: Label;
   recipe: Scenario;
@@ -5548,7 +5895,7 @@ export interface PairingApproveInput {
   expected_account_id: ExpectedAccountId;
   expected_revision: ExpectedRevision1;
   policy: DevicePolicy;
-  request_id: RequestId8;
+  request_id: RequestId9;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5583,7 +5930,7 @@ export interface PairingCreated {
   attempt_id: AttemptId;
   code: Code3;
   device_id: DeviceId3;
-  expires_at: ExpiresAt1;
+  expires_at: ExpiresAt2;
   poll_interval_s: PollIntervalS;
 }
 /**
@@ -5635,7 +5982,7 @@ export interface PendingApprovalCancelled {
 export interface BrowserSession {
   account: AccountIdentity;
   csrf_token: CsrfToken;
-  expires_at: ExpiresAt2;
+  expires_at: ExpiresAt3;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5645,10 +5992,10 @@ export interface PairingStatus {
   attempt_id: AttemptId2;
   claimed_account: AccountIdentity | null;
   device_id: DeviceId6;
-  expires_at: ExpiresAt3;
+  expires_at: ExpiresAt4;
   requested_scopes: RequestedScopes1;
   revision: Revision7;
-  state: State6;
+  state: State8;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5674,8 +6021,8 @@ export interface ExperimentationContracts {
  * via the `definition` "DiscoveryApproval".
  */
 export interface DiscoveryApproval {
-  approve: Approve;
-  digest: Digest1;
+  approve: Approve1;
+  digest: Digest3;
   expected_revision: ExpectedRevision3;
 }
 /**
@@ -5684,7 +6031,7 @@ export interface DiscoveryApproval {
  */
 export interface SuiteLaunch {
   expected_revision: ExpectedRevision4;
-  request_id: RequestId9;
+  request_id: RequestId10;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5729,8 +6076,8 @@ export interface ReadinessReport {
   carla: WorkflowReadiness;
   carla_connection_requested: CarlaConnectionRequested;
   checked_at: CheckedAt1;
-  schema_version: SchemaVersion9;
-  scope: Scope;
+  schema_version: SchemaVersion10;
+  scope: Scope1;
   synthetic: WorkflowReadiness;
 }
 /**
@@ -5748,7 +6095,7 @@ export interface WorkflowReadiness {
  */
 export interface ReadinessCheck {
   detail: Detail;
-  id: Id14;
+  id: Id16;
   label: Label1;
   next_step: NextStep;
   status: ReadinessStatus;
@@ -5770,10 +6117,10 @@ export interface RemoteContracts {
 export interface ExecuteCommand {
   agent_id: AgentId7;
   evaluation_settings: EvaluationSettings;
-  kind: Kind37;
-  mode: Mode14;
+  kind: Kind39;
+  mode: Mode15;
   options: RemoteRunOptions;
-  request_id: RequestId10;
+  request_id: RequestId11;
   scenario: Scenario;
 }
 /**
@@ -5790,26 +6137,26 @@ export interface RemoteRunOptions {
  * via the `definition` "CancelCommand".
  */
 export interface CancelCommand {
-  kind: Kind38;
-  request_id: RequestId11;
-  simulation_id: SimulationId14;
+  kind: Kind40;
+  request_id: RequestId12;
+  simulation_id: SimulationId16;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "StatusCommand".
  */
 export interface StatusCommand {
-  kind: Kind39;
-  request_id: RequestId12;
+  kind: Kind41;
+  request_id: RequestId13;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "ResultCommand".
  */
 export interface ResultCommand {
-  kind: Kind40;
-  request_id: RequestId13;
-  simulation_id: SimulationId15;
+  kind: Kind42;
+  request_id: RequestId14;
+  simulation_id: SimulationId17;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5817,14 +6164,14 @@ export interface ResultCommand {
  */
 export interface EvidenceRequest {
   artifact_index: ArtifactIndex2;
-  kind: Kind41;
+  kind: Kind43;
   limit: Limit2;
   offset: Offset3;
-  request_id: RequestId14;
+  request_id: RequestId15;
   resource: Resource1;
   sample_cursor?: SampleCursor;
   sample_index: SampleIndex2;
-  simulation_id: SimulationId16;
+  simulation_id: SimulationId18;
   version: Version4;
 }
 /**
@@ -5833,16 +6180,16 @@ export interface EvidenceRequest {
  */
 export interface LabCommand {
   action: Action2;
-  kind: Kind55;
-  mode: Mode15;
-  request_id: RequestId15;
+  kind: Kind57;
+  mode: Mode16;
+  request_id: RequestId16;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "LabGallery".
  */
 export interface LabGallery {
-  kind: Kind42;
+  kind: Kind44;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5850,7 +6197,7 @@ export interface LabGallery {
  */
 export interface LabPage {
   before: Before;
-  kind: Kind43;
+  kind: Kind45;
   limit: Limit3;
   offset: Offset4;
 }
@@ -5860,8 +6207,8 @@ export interface LabPage {
  */
 export interface LabIdentity {
   expected_revision: ExpectedRevision7;
-  id: Id15;
-  kind: Kind44;
+  id: Id17;
+  kind: Kind46;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5869,8 +6216,8 @@ export interface LabIdentity {
  */
 export interface LabSuiteRuns {
   before: Before1;
-  id: Id16;
-  kind: Kind45;
+  id: Id18;
+  kind: Kind47;
   limit: Limit4;
   offset: Offset5;
 }
@@ -5879,7 +6226,7 @@ export interface LabSuiteRuns {
  * via the `definition` "LabSuiteSave".
  */
 export interface LabSuiteSave {
-  kind: Kind46;
+  kind: Kind48;
   save: SuiteSave;
 }
 /**
@@ -5887,8 +6234,8 @@ export interface LabSuiteSave {
  * via the `definition` "LabSuiteUpdate".
  */
 export interface LabSuiteUpdate {
-  id: Id17;
-  kind: Kind47;
+  id: Id19;
+  kind: Kind49;
   save: SuiteUpdate;
 }
 /**
@@ -5896,8 +6243,8 @@ export interface LabSuiteUpdate {
  * via the `definition` "LabSuiteRun".
  */
 export interface LabSuiteRun {
-  id: Id18;
-  kind: Kind48;
+  id: Id20;
+  kind: Kind50;
   launch: SuiteLaunch;
 }
 /**
@@ -5905,7 +6252,7 @@ export interface LabSuiteRun {
  * via the `definition` "LabPropose".
  */
 export interface LabPropose {
-  kind: Kind49;
+  kind: Kind51;
   proposal: DiscoveryProposal;
 }
 /**
@@ -5914,8 +6261,8 @@ export interface LabPropose {
  */
 export interface LabApprove {
   approval: DiscoveryApproval;
-  id: Id19;
-  kind: Kind50;
+  id: Id21;
+  kind: Kind52;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -5923,14 +6270,14 @@ export interface LabApprove {
  */
 export interface LabFeedback {
   feedback: GuidanceFeedback;
-  kind: Kind51;
+  kind: Kind53;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "LabLaunch".
  */
 export interface LabLaunch {
-  kind: Kind52;
+  kind: Kind54;
   launch: SimulationLaunch;
 }
 /**
@@ -5939,16 +6286,16 @@ export interface LabLaunch {
  */
 export interface LabFrame {
   frame: Frame12;
-  id: Id20;
-  kind: Kind53;
+  id: Id22;
+  kind: Kind55;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
  * via the `definition` "LabRegression".
  */
 export interface LabRegression {
-  id: Id21;
-  kind: Kind54;
+  id: Id23;
+  kind: Kind56;
   policy: RegressionPolicy;
 }
 /**
@@ -5962,7 +6309,7 @@ export interface ServerHello {
   device_id: DeviceId7;
   evidence_supported?: EvidenceSupported1;
   heartbeat_s: HeartbeatS;
-  kind: Kind56;
+  kind: Kind58;
   lab_supported?: LabSupported1;
   owner_id: OwnerId3;
   ownership_generation: OwnershipGeneration3;
@@ -5980,7 +6327,7 @@ export interface ClientReady {
   connection_generation: ConnectionGeneration1;
   device_id: DeviceId8;
   evidence_supported?: EvidenceSupported2;
-  kind: Kind57;
+  kind: Kind59;
   lab_supported?: LabSupported2;
   ownership_generation: OwnershipGeneration4;
   protocol_version: ProtocolVersion8;
@@ -5995,7 +6342,7 @@ export interface RelayCommand {
   command: Command1;
   connection_generation: ConnectionGeneration2;
   device_id: DeviceId9;
-  kind: Kind58;
+  kind: Kind60;
   ownership_generation: OwnershipGeneration5;
   protocol_version: ProtocolVersion9;
 }
@@ -6006,7 +6353,7 @@ export interface RelayCommand {
 export interface RelayReply {
   connection_generation: ConnectionGeneration3;
   device_id: DeviceId10;
-  kind: Kind59;
+  kind: Kind61;
   ownership_generation: OwnershipGeneration6;
   protocol_version: ProtocolVersion10;
   reply: Reply1;
@@ -6018,7 +6365,7 @@ export interface RelayReply {
 export interface RelayPing {
   connection_generation: ConnectionGeneration4;
   device_id: DeviceId11;
-  kind: Kind60;
+  kind: Kind62;
   nonce: Nonce;
   ownership_generation: OwnershipGeneration7;
   protocol_version: ProtocolVersion11;
@@ -6030,7 +6377,7 @@ export interface RelayPing {
 export interface RelayPong {
   connection_generation: ConnectionGeneration5;
   device_id: DeviceId12;
-  kind: Kind61;
+  kind: Kind63;
   nonce: Nonce1;
   ownership_generation: OwnershipGeneration8;
   protocol_version: ProtocolVersion12;
@@ -6052,8 +6399,8 @@ export interface RunnerContracts {
  */
 export interface RunnerCancelRequest {
   protocol_version: ProtocolVersion13;
-  request_id: RequestId16;
-  simulation_id: SimulationId17;
+  request_id: RequestId17;
+  simulation_id: SimulationId19;
 }
 /**
  * This interface was referenced by `PoltergeistContracts`'s JSON-Schema
@@ -6079,9 +6426,9 @@ export interface RunnerCapabilities {
 export interface RunnerExecuteRequest {
   agent_id: AgentId8;
   evaluation_settings: EvaluationSettings;
-  mode: Mode16;
+  mode: Mode17;
   options: SimulationOptions;
   protocol_version: ProtocolVersion15;
-  request_id: RequestId17;
+  request_id: RequestId18;
   scenario: Scenario;
 }

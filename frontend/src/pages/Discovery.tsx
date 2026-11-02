@@ -7,6 +7,7 @@ import { discoveryDefaults, discoveryProposal } from "../components/lab-form";
 import type { DiscoveryDraft } from "../components/lab-form";
 import { saveLabJson } from "../components/SuiteManager";
 import { simulationLink } from "../navigation";
+import { OpenAIAssistant } from "../components/OpenAIAssistant";
 import "../lab.css";
 
 export function DiscoveryFindings({ report, runHref = simulationLink, client = api, active = true }: { report: DiscoveryReport; runHref?: (id: string) => string; client?: LabClient; active?: boolean }) {
@@ -86,6 +87,7 @@ export function Discovery({ active = true, planId = null, client = api, runHref 
     </fieldset></form></section>
     {mutation.error && <p className="notice error-notice" role="alert">{mutation.error} <button onClick={() => { history.refresh(); selected.refresh(); report.refresh(); }}>Check saved plan status</button></p>}
     {edited && selectedId && <p className="notice">The draft changed. Build a new plan to review these settings; earlier plans remain in history.</p>}
+    {client === api && <section className="panel"><div className="panel-body"><OpenAIAssistant active={active} proposal={() => discoveryProposal(draft)} /></div></section>}
     {selected.loading && !plan && !edited && <p role="status">Loading the saved discovery plan…</p>}{selected.error && <p role="alert">{selected.error} <button onClick={selected.refresh}>Retry saved plan</button></p>}
     {plan && !edited && <section className="panel lab-plan"><div className="panel-header"><h2>Review the experiment plan</h2><span className="lab-tag">{plan.operation_id ? "Approved" : "Awaiting your approval"}</span></div><div className="panel-body lab-stack">
       <h3>{plan.proposal.goal.description}</h3><p>{plan.proposal.mode === "test" ? "Synthetic" : "CARLA"} · {plan.agent_snapshot ? `${plan.agent_snapshot.manifest.name} ${plan.agent_snapshot.manifest.version}` : "Built-in baseline"} · {plan.per_run_duration_s} simulated seconds per execution · Seed {plan.proposal.goal.seed}</p>

@@ -100,6 +100,13 @@
 .review-controllers li, .review-pairs li { border: 1px solid var(--lab-line); padding: 16px; border-radius: 8px; }
 .review-controllers span { display: block; margin-top: 8px; font-size: 12px; line-height: 1.7; }
 .review-pairs a { text-decoration: underline; font-size: 13px; }
+.assistant-panel { border-top: 1px solid var(--lab-line); padding-top: 20px; min-width: 0; }
+.assistant-panel fieldset { min-width: 0; border: 1px solid var(--lab-line); border-radius: 8px; padding: 16px; }
+.assistant-panel label { display: grid; gap: 8px; }
+.assistant-panel label.lab-check { display: flex; align-items: flex-start; }
+.assistant-panel textarea, .assistant-panel input:not([type="checkbox"]) { width: 100%; box-sizing: border-box; font: inherit; padding: 10px; border: 1px solid var(--lab-line); border-radius: 6px; }
+.assistant-panel pre { max-width: 100%; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.assistant-panel button, .assistant-panel a.button { max-width: 100%; white-space: normal; }
 @media (max-width: 720px) {
   .review-facts, .review-observations, .review-metric-options { grid-template-columns: 1fr; }
   .lab-gallery, .lab-key-figures, .lab-selected-scene { grid-template-columns: 1fr; }

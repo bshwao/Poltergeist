@@ -55,6 +55,9 @@ results can be interpreted in context.
 - A Failure Discovery Agent with reviewed plans, explicit execution/time budgets,
   exact confirmation repeats and complete positive/negative/unknown evidence.
   See [guided experimentation and discovery](docs/guided-experimentation.md).
+- Optional [OpenAI assistance](docs/openai-assistance.md) in the local dashboard:
+  reviewed disclosures, durable usage limits, discovery drafts requiring separate
+  execution approval, and question-guided selection of verified evidence.
 - A Python agent SDK and external worker for trusted local packages, with
   command-line execution and a persistent registry for queued experiments.
 - An Agents page for registering local packages, inspecting their saved

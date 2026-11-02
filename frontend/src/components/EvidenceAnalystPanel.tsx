@@ -5,6 +5,7 @@ import type { AnalysisReference } from "../types/generated";
 import { useLabReport } from "../hooks/useLab";
 import { simulationFrameLink } from "../navigation";
 import { saveLabJson } from "./lab-download";
+import { OpenAIAssistant } from "./OpenAIAssistant";
 import "../lab.css";
 
 export function EvidenceAnalystPanel({ simulationId, active = true, available = true, client = api, inspect,
@@ -50,6 +51,7 @@ export function EvidenceAnalystPanel({ simulationId, active = true, available = 
           <p>Result fingerprint: <code>{report.source_digest ?? "Unavailable"}</code></p><p>Reviewed telemetry fingerprint: <code>{report.telemetry_digest ?? "Unavailable"}</code></p>
         </details>
         <button type="button" className="button secondary" onClick={() => saveLabJson(report, `poltergeist-analysis-${simulationId}.json`)}>Download evidence analysis</button>
+        {client === api && ["complete", "partial"].includes(report.state) && <OpenAIAssistant key={simulationId} active={active} evidence={report} inspect={inspect} />}
       </div>}
     </div>
   </section>;

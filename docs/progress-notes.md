@@ -1,6 +1,7 @@
 # S0–S19 progress notes
 
-Updated November 1, 2026. Current checkpoint: **S16 managed camera policy and S17 Hugging Face integration locally validated**,
+Updated November 1, 2026. Current checkpoint: **S18 optional local OpenAI assistance implemented**, with
+live provider-account acceptance open. **S16 managed camera policy and S17 Hugging Face integration are locally validated**,
 alongside the open installed/native acceptance
 gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
@@ -8,7 +9,7 @@ with signing/external acceptance deferred**.
 S6 reliability and S7 independent-machine acceptance remain open.
 S5 local synthetic and CARLA browser acceptance pass; public deployment is
 deferred at the user's request. S11–S19 have been assigned roadmap numbers.
-Current branch: `codex/s16-s17-sensor-policy-huggingface`, based on GitHub `main`
+The previous checkpoint branch was `codex/s16-s17-sensor-policy-huggingface`, based on GitHub `main`
 at `f146686`. The S14/S15 coverage checkpoint passed all five CI jobs and was
 fast-forwarded into GitHub and the original local main checkout. The 100-device S9 latency gate
 remains open. Earlier branch
@@ -45,7 +46,7 @@ private prototype does not close independent-machine or release validation.
 | S15 — Regression Agent | Private implementation; synthetic and initial same-laptop CARLA checks validated | Two registered SDK fixtures show a contact regression in all three matched fixed-spawn CARLA pairs. Measurement-specific coverage preserves inconclusive severity/rules. Remote execution retains its baseline-only boundary; representative model/hardware comparisons remain. See [agent guide](evidence-regression-agents.md). |
 | S16 — Sensor-based driving agents | Private camera implementation; packaged inference and real CARLA control locally validated | Managed AIM front-RGB policy: 80/80 native controls match, initially stationary ego moves 1.31 m, policy p95 92 ms with zero one-second budget misses, and world settings restore. Broader hardware, native visual acceptance, trained LiDAR and public checkpoint-terms review remain. See [camera policy](sensor-driving-policy.md). |
 | S17 — Hugging Face integration | Private implementation; real public-source lifecycle locally validated | Curated immutable PlanT pin, bounded metadata confirmation, protected explicit account controls, resumable/hash-verified assets and owned repair/removal. Real anonymous transfer/reopen/removal and native dummy-token protection pass. Actual gated-account and independent-machine acceptance remain. See [managed AI](managed-ai.md). |
-| S18 — OpenAI integration | Planned | Optional bounded experiment planning and evidence analysis. |
+| S18 — OpenAI integration | Private local implementation delivered | Exact selected/redacted disclosure, one-call approval, durable usage reservations, checked discovery drafts and verified observation selection. Live account acceptance remains open; the account/device relay exposes no external-disclosure actions. See [OpenAI assistance](openai-assistance.md). |
 | S19 — GitHub integration | Planned | Authorized commit-linked regression reports and checks. |
 
 ## Latest work
@@ -687,7 +688,7 @@ unchanged.
 
 Visual design, guided workflows, experiment agents and external connections are
 numbered S11–S19 in the [main roadmap](scalability-plan.md), with supporting
-[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16/S17 have locally validated private integrations; S18/S19 remain planned;
+[product impact notes](product-impact-proposals.md). S11 is in progress; S12 has an open human-adoption gate after its application delivery; S13's private implementation is locally validated; S14/S15 have private review implementations; S16/S17 have locally validated private integrations; S18 has an optional local implementation with live-account acceptance open; S19 remains planned;
 existing S0–S10 identifiers and completion gates are preserved.
 
 ## November 1 — S16/S17 completion review and model-panel polish
@@ -715,3 +716,29 @@ and 960 × 800; existing Local execution scrolling and protected account callbac
 pass. No pretrained inference, public-Hub download or CARLA drive was repeated.
 The user stopped computer use before usable panel captures were established;
 native installed-app visual and independent-machine acceptance remain open.
+
+## November 1 — S18 optional local OpenAI assistance
+
+The local Discovery and Evidence Analyst panels now accept questions through an
+opt-in Responses API provider. Users inspect an exact redacted disclosure and
+approve one bounded call. A separate SQLite journal reserves daily call/output
+limits before network access and prevents retry spending after lost responses,
+concurrent approval or restart. Loopback admission and the unchanged remote
+command allowlist keep external disclosures outside paired-account/device scopes.
+
+Strict tools select scenario/failure policy or disclosed observation IDs, or
+decline. Discovery remains an ordinary frozen plan with a separate execution
+approval. Analysis retains original verified wording, measurements, references,
+source hashes and missing coverage. No model-written factual claim, arbitrary
+code, shell access or simulation launch is accepted. Configuration is disabled by
+default and no real provider credential was available for a live call.
+
+The [S18 validation record](validation/s18-openai-assistance-20261101.md) records
+30 S18 Python checks, 161 broader passing cases, 386 frontend checks, both builds,
+contract drift checks and three desktop/mobile browser journeys with full-page
+automated accessibility scans. The initial disclosure keyboard-scroll failure was
+fixed. The broader registered-agent discovery case still fails its 30-second SDK
+load deadline; both failures remain recorded and no SDK deadline was relaxed.
+The explicit assistant browser fixture uses its own saved baseline evidence,
+leaving the normal SDK installation checks intact. See
+[OpenAI assistance](openai-assistance.md) for configuration and supported scope.

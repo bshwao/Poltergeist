@@ -5,6 +5,8 @@ import type { BehaviorAnalysis } from "../types/generated";
 import { isBehaviorAnalysis } from "./behavior-contract";
 import { experimentContracts } from "./experiment-contract";
 import { labContracts } from "./lab-contract";
+import { isAssistantRecord, isAssistantStatus } from "./assistant-contract";
+import type { AssistantApproval, AssistantRecord, AssistantRequest, AssistantStatus } from "../types/generated";
 import { isEvidenceAnalysis, isRegressionPolicy, isRegressionReport } from "./analysis-contract";
 import type { EvidenceAnalysis, RegressionPolicy, RegressionReport } from "../types/generated";
 import type { DiscoveryPlan, DiscoveryProposal, DiscoveryReport, GalleryScenario, GuidanceFeedback, ReplayHighlights, SavedFeedback, SavedSuite, SuiteReport, SuiteSave } from "../types/generated";
@@ -810,6 +812,15 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     getReplayHighlights: (id: string, options: RequestOptions = {}) => request<ReplayHighlights>(`/experimentation/highlights/${checkedId(id)}`, options, v => lab.highlights(v, id)),
     getEvidenceAnalysis: (id: string, options: RequestOptions = {}) => request<EvidenceAnalysis>(`/experimentation/analysis/${checkedId(id)}`, options,
       v => isEvidenceAnalysis(v) && v.simulation_id.toLowerCase() === id.toLowerCase()),
+    getAssistantStatus: (options: RequestOptions = {}) => request<AssistantStatus>("/assistant/status", options, isAssistantStatus),
+    previewAssistant: (input: AssistantRequest, options: RequestOptions = {}) => request<AssistantRecord>("/assistant/previews", options,
+      v => isAssistantRecord(v, lab.plan) && v.id === input.request_id && v.preview.kind === input.kind && v.state === "preview", "POST", input, 201),
+    listAssistantRequests: (options: RequestOptions = {}) => request<AssistantRecord[]>("/assistant/requests", options,
+      v => Array.isArray(v) && v.length <= 30 && v.every(item => isAssistantRecord(item, lab.plan))),
+    getAssistantRequest: (id: string, options: RequestOptions = {}) => request<AssistantRecord>(`/assistant/requests/${checkedId(id)}`, options,
+      v => isAssistantRecord(v, lab.plan) && v.id === id),
+    sendAssistant: (id: string, input: AssistantApproval, options: RequestOptions = {}) => request<AssistantRecord>(`/assistant/requests/${checkedId(id)}/send`, options,
+      v => isAssistantRecord(v, lab.plan) && v.id === id && v.preview.digest === input.digest, "POST", input),
     getRegressionReport: (id: string, policy: RegressionPolicy = { minimum_pairs: 3, thresholds: { severity: 5, collision_count: 0 } }, options: RequestOptions = {}) => {
       if (!isRegressionPolicy(policy)) return Promise.reject(new ApiError("Choose valid regression thresholds and at least two matched pairs.", 422));
       return request<RegressionReport>(`/experimentation/regressions/${checkedId(id)}`, options,
