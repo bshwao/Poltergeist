@@ -212,11 +212,12 @@ never your default database or CARLA:
 ```powershell
 cd frontend
 npx playwright install chromium
-$env:POLTERGEIST_TEST_PYTHON = (Resolve-Path ../.venv/Scripts/python.exe).Path
 npm run test:e2e
 ```
 
-On Linux/macOS use `POLTERGEIST_TEST_PYTHON="$(pwd)/../.venv/bin/python" npm run test:e2e`.
+Both browser fixtures reuse the checkout's `.venv` automatically on Windows,
+Linux and macOS. Set `POLTERGEIST_TEST_PYTHON` only to select another prepared
+interpreter; when neither is available they use `python` from `PATH`.
 CI installs browser system dependencies with `npx playwright install --with-deps chromium`.
 Ports 8049 and 5189 must be free. The suite refuses to reuse an existing service.
 Screenshots, traces and a printed HTML report are saved in ignored

@@ -1,6 +1,8 @@
 # S0–S19 progress notes
 
-Updated November 1, 2026. Current checkpoint: **S19 optional local GitHub regression checks implemented**,
+Updated November 2, 2026. Latest work: **repository polish and regression review**;
+see the [validation receipt](validation/repository-polish-20261102.md).
+**S19 optional local GitHub regression checks are implemented**,
 with live App/CI acceptance open. **S18 optional local OpenAI assistance is implemented**,
 with live provider-account acceptance open. **S16 managed camera policy and S17 Hugging Face integration are locally validated**,
 alongside the open installed/native acceptance
@@ -768,3 +770,29 @@ accessibility scans. An aliased preview policy and an incorrect browser-fixture
 HTTP status were corrected with their failures retained. No App configuration
 was available and no live GitHub check was published. Live App/branch-protection
 acceptance remains open; see [setup and operational limits](github-reporting.md).
+
+## November 2 — Repository polish and full regression review
+
+The local dashboard now loads pages on first visit, reducing entry JavaScript
+from 537 kB to 243 kB and removing its chunk-size warning. Visited drafts survive
+navigation; a failed page import leaves other pages available and offers a
+deliberate reload with an unsaved-edits reminder. Keyboard outlines and selected
+controls use the shared palette, including Windows forced colors.
+
+OpenAI approval binds the reviewed digest, so a changed preview cannot retain
+consent. Integration requests now settle after cancellation/timeouts even if a
+transport ignores its signal. Late replies remain fenced and no automatic send
+or publication retry was introduced. The private assistant journal/sidecars are
+ignored by Git. Browser launchers reuse the project's Python environment, CI
+explicitly runs the optional integration consent journeys, and `make check`
+builds both dashboards. Current setup/dashboard/API/architecture guides were
+updated and relative file links checked.
+
+The [validation receipt](validation/repository-polish-20261102.md) records
+**3,616 passing Python tests** (10 optional dependency/weight skips, five retained
+JUnit metadata warnings), **397 frontend tests**, **33 normal local browser
+journeys**, **six optional integration journeys** and **three hosted journeys**.
+Both builds, contract drift checks, dependency checks and static diagnostics pass.
+The previously failing registered-agent discovery case passes in this run without
+changing its deadline. Native/independent-machine visual review, live provider
+acceptance and release gates remain open.

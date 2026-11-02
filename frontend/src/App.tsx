@@ -3,17 +3,19 @@ import { Icon } from "./components/Icon";
 import { SkipLink } from "./components/SkipLink";
 import { useWorkspace } from "./hooks/useWorkspace";
 import { Dashboard } from "./pages/Dashboard";
-import { Scenarios } from "./pages/Scenarios";
-import { Simulations } from "./pages/Simulations";
-import { Failures } from "./pages/Failures";
-import { Agents } from "./pages/Agents";
-import { Experiments } from "./pages/Experiments";
-import { GuidedLab } from "./pages/GuidedLab";
-import { Discovery } from "./pages/Discovery";
+import { lazyPage } from "./components/lazyPage";
 import { routeFromHash } from "./navigation";
 import type { Page } from "./navigation";
 import { API_BASE_URL } from "./services/api";
 import "./styles.css";
+
+const Scenarios = lazyPage(() => import("./pages/Scenarios").then(module => ({ default: module.Scenarios })), "Scenarios");
+const Simulations = lazyPage(() => import("./pages/Simulations").then(module => ({ default: module.Simulations })), "Simulations");
+const Failures = lazyPage(() => import("./pages/Failures").then(module => ({ default: module.Failures })), "Failures");
+const Agents = lazyPage(() => import("./pages/Agents").then(module => ({ default: module.Agents })), "Agents");
+const Experiments = lazyPage(() => import("./pages/Experiments").then(module => ({ default: module.Experiments })), "Experiments");
+const GuidedLab = lazyPage(() => import("./pages/GuidedLab").then(module => ({ default: module.GuidedLab })), "Guided lab");
+const Discovery = lazyPage(() => import("./pages/Discovery").then(module => ({ default: module.Discovery })), "Discovery");
 
 const currentRoute = () => routeFromHash(window.location.hash);
 const pageLabels: Record<Page, string> = { overview: "Overview", lab: "Guided lab", discovery: "Discovery", scenarios: "Scenarios", agents: "Agents", experiments: "Experiments", simulations: "Simulations", failures: "Failures" };
@@ -57,7 +59,7 @@ export default function App() {
         <div hidden={page !== "overview"}><Dashboard active={page === "overview"} /></div>
         {visited.has("lab") && <div hidden={page !== "lab"}><GuidedLab active={page === "lab"} contextKey={API_BASE_URL} suiteRunId={route.suiteRunId ?? null} /></div>}
         {visited.has("discovery") && <div hidden={page !== "discovery"}><Discovery active={page === "discovery"} planId={route.planId ?? null} /></div>}
-        <div hidden={page !== "scenarios"}><Scenarios templates={workspace.templates} loading={workspace.loading} error={workspace.error} onRetry={workspace.refresh} active={page === "scenarios"} registryRevision={registryRevision} /></div>
+        {visited.has("scenarios") && <div hidden={page !== "scenarios"}><Scenarios templates={workspace.templates} loading={workspace.loading} error={workspace.error} onRetry={workspace.refresh} active={page === "scenarios"} registryRevision={registryRevision} /></div>}
         {visited.has("agents") && <div hidden={page !== "agents"}><Agents active={page === "agents"} onRegistryChange={registryChanged} /></div>}
         {visited.has("simulations") && <div hidden={page !== "simulations"}><Simulations active={page === "simulations"} selectedId={route.simulationId} focusFrame={route.focusFrame} /></div>}
         {visited.has("experiments") && <div hidden={page !== "experiments"}><Experiments active={page === "experiments"} selectedId={route.operationId ?? null} sourceFailureId={route.failureId} initialKind={route.experimentKind} templates={workspace.templates} registryRevision={registryRevision} /></div>}

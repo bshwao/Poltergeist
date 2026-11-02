@@ -22,7 +22,6 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 a { color: inherit; }
 button svg, a svg { flex-shrink: 0; }
-:focus-visible { outline: 3px solid var(--lab-focus); outline-offset: 3px; }
 [hidden] { display: none !important; }
 h1, h2, h3, p { margin-top: 0; }
 h1 { font-size: clamp(27px, 2.6vw, 36px); line-height: 1.2; letter-spacing: -1.25px; font-weight: 650; margin-bottom: 12px; }
@@ -83,15 +82,15 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .button.primary { color: #fff; background: var(--accent); box-shadow: 0 3px 5px var(--lab-accent)15; }
 .button.primary:hover:not(:disabled) { background: var(--accent-dark); }
 .button.secondary { color: #5a5d70; background: white; border-color: #e2e3ec; }
-.button.secondary:hover:not(:disabled) { border-color: #bbb0de; background: #fbfaff; }
+.button.secondary:hover:not(:disabled) { border-color: var(--lab-accent); background: var(--lab-soft); }
 .button.small { padding: 6px 10px; min-height: 31px; font-size: 12px; }
 .button.text { background: transparent; border: none; color: var(--accent); box-shadow: none; }
 .template-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 20px 24px 24px; }
 .template-card { position: relative; display: flex; flex-direction: column; text-align: left; min-width: 0; padding: 17px 14px; border: 1px solid #e5e7ef; background: #fff; border-radius: 7px; color: #626779; transition: background .15s, border-color .15s; }
 .template-card:hover { border-color: #b8a7e7; background: #fcfbff; }
-.template-card[aria-pressed="true"], .template-card[aria-checked="true"], .template-card.selected { border-color: var(--lab-accent); background: var(--lab-soft); box-shadow: 0 0 0 1px #bba6ed1c; }
+.template-card[aria-pressed="true"], .template-card[aria-checked="true"], .template-card.selected { border-color: var(--lab-accent); background: var(--lab-soft); box-shadow: 0 0 0 1px var(--lab-accent); }
 .template-icon { display: grid; place-items: center; width: 33px; height: 33px; color: #8b8fa2; margin-bottom: 17px; border-radius: 7px; background: #f4f5f8; }
-.template-card[aria-pressed="true"] .template-icon, .template-card.selected .template-icon { color: var(--accent); background: #eae2fe; }
+.template-card[aria-pressed="true"] .template-icon, .template-card.selected .template-icon { color: var(--accent); background: var(--lab-surface); }
 .template-card strong, .template-card h3 { display: block; color: #434758; font-size: 12px; font-weight: 650; margin-bottom: 6px; }
 .template-card p, .template-card small { margin-bottom: 0; line-height: 1.6; font-size: 12px; color: var(--lab-muted); }
 .template-card-body { min-width: 0; }
@@ -112,7 +111,7 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .scenario-run-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 20px 24px 0; padding-bottom: 20px; border-bottom: 1px solid #eff0f5; }
 .duration-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0; }
 .duration-preset { padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--muted); font-size: 12px; }
-.duration-preset:hover, .duration-preset[aria-pressed="true"] { color: var(--accent-dark); border-color: #c9bbee; background: #f4f0fc; }
+.duration-preset:hover, .duration-preset[aria-pressed="true"] { color: var(--accent-dark); border-color: var(--lab-accent); background: var(--lab-soft); }
 .custom-duration { padding: 0 24px 24px; }
 .field-unit { margin-left: 6px; color: #a09bac; font-size: 12px; font-weight: 400; }
 .text-button { padding: 3px; min-height: 28px; color: var(--accent); font-size: 12px; background: transparent; }
@@ -122,7 +121,7 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .field label, .field-label { color: #575c70; font-weight: 550; font-size: 12px; }
 .field input, .field select, .field textarea, input[type="number"], input[type="text"], select { width: 100%; color: #3c4257; border: 1px solid #e1e4ed; background: #fff; border-radius: 5px; padding: 10px 11px; min-height: 39px; font-size: 12px; line-height: 1.5; }
 .field input:hover, .field select:hover { border-color: #c5bed9; }
-.field input:focus, .field select:focus, .field textarea:focus, .json-editor:focus { border-color: #9c81dc; box-shadow: 0 0 0 3px #7253dc0e; outline: none; }
+.field input:focus, .field select:focus, .field textarea:focus, .json-editor:focus { border-color: var(--lab-accent); box-shadow: 0 0 0 3px #246b4b14; }
 .field-hint, .field small { font-size: 12px; line-height: 1.5; color: #989cad; font-weight: 400; }
 .field-error { font-size: 12px; line-height: 1.5; color: #b74c58; margin: 0; }
 [aria-invalid="true"] { border-color: #cb7a83 !important; }
@@ -631,7 +630,7 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .behavior-review pre { overflow: auto; max-height: 320px; padding: 16px; background: #f7f7fb; }
 .behavior-review li { margin-block: 10px; overflow-wrap: anywhere; }
 .evidence-destination { min-width: 0; scroll-margin-top: 24px; border-radius: 10px; }
-.evidence-destination:focus-visible { outline: 2px solid var(--lab-accent); outline-offset: 4px; }
+.evidence-destination:focus-visible { outline-offset: 4px; }
 @media (max-width: 600px) { .behavior-measures { grid-template-columns: 1fr; }.behavior-event-detail { padding: 12px; }.behavior-settings { grid-template-columns: 1fr; } }
 /* Experiment plans keep the same spacing as the recorded evidence workflow. */
 .experiments-page { display: grid; gap: 24px; font-size: 12px; }
@@ -650,5 +649,4 @@ code, pre, .json-editor { font-family: "Cascadia Code", "SFMono-Regular", Consol
 .experiment-group { margin-block: 24px; }
 .experiments-page pre { max-height: 420px; overflow: auto; }
 .experiments-page details { margin-block: 12px; }
-.experiments-page .table-scroll:focus-visible { outline: 2px solid #7353e5; outline-offset: 3px; }
 @media (max-width: 640px) { .experiment-form .form-grid { grid-template-columns: 1fr; } .experiment-form, .experiments-page .panel-body { padding: 16px; } }

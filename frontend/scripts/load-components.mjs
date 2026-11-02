@@ -27,7 +27,7 @@ export async function loadComponents(entry) {
     });
     // The renderer checks behavior. Vite checks stylesheet imports separately.
     outputText = outputText.replace(/^\s*import\s+["'][^"']+\.css["'];?\s*$/gm, "");
-    for (const specifier of new Set([...outputText.matchAll(/\bfrom\s+["'](\.[^"']+)["']/g)].map(match => match[1]))) {
+    for (const specifier of new Set([...outputText.matchAll(/(?:\bfrom\s+|\bimport\s*\(\s*)["'](\.[^"']+)["']/g)].map(match => match[1]))) {
       const base = path.resolve(path.dirname(absolute), specifier);
       let dependency;
       for (const candidate of [base, `${base}.ts`, `${base}.tsx`]) {

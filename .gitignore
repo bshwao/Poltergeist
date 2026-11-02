@@ -24,6 +24,7 @@ storage/telemetry/*
 storage/decisions/*
 storage/reports/*
 storage/models/*
+storage/openai-assistant.sqlite3*
 storage/github-publications.sqlite3*
 !storage/**/.gitkeep
 

@@ -78,6 +78,13 @@ companion callback regression checks are in `tests/test_companion_ui.py`.
 
 ## S11.2 — Principal workflow visual review
 
+The [November 2 repository polish](validation/repository-polish-20261102.md) adds
+deferred page loading with an accessible failure/reload state, digest-bound
+assistant approval, cancellation recovery and consistent keyboard outlines.
+The full local/hosted browser journeys pass, including an explicit forced-color
+editor-focus check and mobile failed-page review. These browser improvements do
+not close the native visual or independent new-tester acceptance gates.
+
 The [S16/S17 completion review](validation/s16-s17-completion-review-20261101.md)
 adds grouped AI model controls, explicit preparation guidance, keyboard focus
 scrolling and accurate environment-removal states. Native callback checks cover

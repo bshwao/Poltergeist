@@ -9,7 +9,6 @@ button, .hosted-file-label { cursor: pointer; }
 button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; padding: 9px 15px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--ink); font-size: 13px; font-weight: 600; }
 button:hover:enabled { background: #eef4ee; border-color: #9db6a6; }
 button:disabled, fieldset:disabled { cursor: default; opacity: .56; }
-:focus-visible { outline: 3px solid var(--lab-focus); outline-offset: 3px; }
 a { color: inherit; text-decoration: none; }
 h1, h2, h3, p { margin: 0; }
 h1, h2, h3 { line-height: 1.2; letter-spacing: -.035em; }

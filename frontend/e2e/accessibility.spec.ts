@@ -51,3 +51,35 @@ test("a lost local API has a keyboard reachable recovery action", async ({ page 
   await expect(page.locator(".connection-pill")).toHaveText("API connected");
   await expect(status).not.toBeVisible();
 });
+
+test("keyboard focus remains visible on the recipe editor in forced colors", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await page.goto("/#scenarios");
+  const editor = page.getByLabel("Full recipe JSON");
+  await expect(editor).toBeVisible();
+  await page.keyboard.press("Tab");
+  await editor.focus();
+  const focus = await editor.evaluate(element => ({ visible: element.matches(":focus-visible"),
+    style: getComputedStyle(element).outlineStyle, width: getComputedStyle(element).outlineWidth }));
+  expect(focus.visible).toBe(true); expect(focus.style).toBe("solid"); expect(focus.width).toBe("3px");
+});
+
+test("a failed page import preserves another page's draft until an explicit reload", async ({ page }, testInfo) => {
+  await page.goto("/#scenarios");
+  const draft = '{"name":"Draft retained while a page download fails"}';
+  await page.getByLabel("Full recipe JSON").fill(draft);
+  await page.route("**/src/pages/Agents.tsx*", route => route.abort("failed"));
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Agents", exact: true }).click();
+  const alert = page.getByRole("alert").filter({ hasText: "Unable to open Agents" });
+  await expect(alert).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 900 });
+  await auditAccessibility(page, testInfo, "failed-page-mobile");
+  await page.screenshot({ path: testInfo.outputPath("failed-page-mobile.png"), fullPage: true });
+  await page.unroute("**/src/pages/Agents.tsx*");
+  await expect(alert).toContainText("reloading clears the current drafts");
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Scenarios", exact: false }).click();
+  await expect(page.getByLabel("Full recipe JSON")).toHaveValue(draft);
+  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Agents", exact: true }).click();
+  await alert.getByRole("button", { name: "Reload dashboard" }).click();
+  await expect(page.getByRole("heading", { name: "Agent workspace.", exact: true })).toBeVisible();
+});

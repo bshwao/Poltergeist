@@ -1,8 +1,9 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { browserTestPython } from "./python-runtime.mjs";
 
 const repository = fileURLToPath(new URL("../../", import.meta.url));
-const child = spawn(process.env.POLTERGEIST_TEST_PYTHON || "python", ["-u", "tests/hosted_browser_server.py"], {
+const child = spawn(browserTestPython(repository), ["-u", "tests/hosted_browser_server.py"], {
   cwd: repository, stdio: ["pipe", "inherit", "inherit"], windowsHide: true, shell: false,
 });
 child.on("error", () => { process.stderr.write("Could not start hosted browser fixture.\n"); process.exitCode = 1; });

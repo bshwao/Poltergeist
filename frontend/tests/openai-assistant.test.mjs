@@ -66,6 +66,42 @@ test("preview and an explicit disclosure approval precede exactly one send; edit
   assert.deepEqual(calls.at(-1)[2], { digest: draft.preview.digest, approve: true });
 });
 
+test("refreshing a changed provider disclosure revokes the previous approval", async t => {
+  const draft = record(); let sends = 0;
+  const view = await render(t, {}, { getAssistantStatus: async () => status, previewAssistant: async () => draft,
+    getAssistantRequest: async () => ({ ...draft, preview: { ...draft.preview, digest: "b".repeat(64) } }),
+    sendAssistant: async () => { sends++; return draft; } });
+  await act(async () => button(view, "Open language assistance").props.onClick());
+  await act(async () => view.root.findByType("textarea").props.onChange({ target: { value: "Find contacts" } }));
+  await act(async () => button(view, "Preview OpenAI disclosure").props.onClick());
+  await act(async () => check(view, "I approve sending").props.onChange({ target: { checked: true } }));
+  await act(async () => button(view, "Refresh saved assistant request").props.onClick());
+  assert.equal(check(view, "I approve sending").props.checked, false);
+  assert.equal(button(view, "Send approved OpenAI request").props.disabled, true);
+  // Even a queued click cannot invoke the provider without this digest's consent.
+  await act(async () => button(view, "Send approved OpenAI request").props.onClick());
+  assert.equal(sends, 0);
+});
+
+test("a provider read that ignores cancellation times out and cannot overwrite a later refresh", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let resolve, signal, reads = 0;
+  const pending = new Promise(yes => { resolve = yes; });
+  const view = await render(t, {}, { getAssistantStatus: async options => {
+    if (++reads === 1) { signal = options.signal; return pending; }
+    return { ...status, enabled: false };
+  } });
+  await act(async () => button(view, "Open language assistance").props.onClick());
+  assert.equal(button(view, "Refresh OpenAI configuration").props.disabled, true);
+  await act(async () => t.mock.timers.tick(65_001));
+  assert.equal(signal.aborted, true);
+  assert.equal(button(view, "Refresh OpenAI configuration").props.disabled, false);
+  await act(async () => button(view, "Refresh OpenAI configuration").props.onClick());
+  await act(async () => resolve(status));
+  assert.match(text(view.toJSON()), /OpenAI assistance is off/);
+  assert.equal(reads, 2);
+});
+
 test("only chosen observations are requested and verified frame zero routes to the correct evidence viewer", async t => {
   const index = analysis.observations.findIndex(item => item.references.some(ref => ref.frame === 0));
   const chosen = analysis.observations[index], inspected = [], calls = [], draft = record("analysis");

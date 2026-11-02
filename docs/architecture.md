@@ -71,8 +71,11 @@ results/artifacts, and analytics use short persistence operations. Queue,
 launch/list/detail/progress/cancellation routes also start the worker and recover
 its jobs. API launch DTOs validate exactly one saved scenario UUID or inline
 recipe, explicit CARLA/test mode, and serializable execution/evaluation options.
-The HTTP interface launches baseline agents only; Python still permits injected
-controllers. New API DTOs are part of the generated schema and TypeScript types.
+The local HTTP interface accepts the baseline or explicitly registered trusted
+controllers, freezing the selected registration and checking input compatibility.
+Python also permits injected controllers. The hosted relay retains its separate
+baseline-only execution policy. API DTOs are part of the generated schema and
+TypeScript types.
 
 `SimulationService` owns one FIFO thread and a bounded waiting queue. A file-based
 OS lease prevents simultaneous workers against the same SQLite file; in-memory
@@ -97,6 +100,13 @@ leaving waiting jobs for restart. A native call
 cannot be forcibly interrupted, and a blocked worker retains its database/lease
 until exit. These lifecycle controls do not recover partial in-memory telemetry
 or repair CARLA resources after abrupt process loss. See [API behavior](api.md).
+
+Optional [OpenAI assistance](openai-assistance.md) and
+[GitHub reporting](github-reporting.md) sit outside the simulation/control loop.
+They require local loopback access, explicit provider configuration, reviewable
+disclosures and separate approval. Dedicated SQLite journals reserve usage or
+publication before the external call, retain uncertain outcomes and prevent
+automatic resubmission. Neither feature can add hosted account/device commands.
 
 Analytics read the complete persisted history in one read transaction, separate
 test/CARLA modes, and preserve unknown metrics. Mean severity includes all scored

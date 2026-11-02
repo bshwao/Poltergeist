@@ -14,7 +14,6 @@
 .lab-surface .button.small { font-size: 12px; padding: 8px 12px; }
 .lab-surface .button:disabled { cursor: not-allowed; opacity: .55; }
 .lab-surface .button-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
-.lab-surface :focus-visible { outline: 3px solid var(--lab-focus, #86641a); outline-offset: 3px; }
 .lab-surface code { overflow-wrap: anywhere; }
 .lab-surface pre { max-width: 100%; max-height: 440px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; background: #f3f6ef; font-size: 12px; border-radius: 8px; }
 .lab-surface .notice { background: #f1f5eb; border: 1px solid #d2dfc5; border-radius: 8px; padding: 15px 18px; font-size: 13px; line-height: 1.65; }

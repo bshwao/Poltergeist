@@ -98,6 +98,12 @@ jobs:
         working-directory: frontend
       - run: npm run test:e2e
         working-directory: frontend
+      - name: Optional integration disclosure and approval journeys
+        run: npx playwright test e2e/openai-assistant.spec.ts e2e/github-reporting.spec.ts --output=test-results/integrations
+        working-directory: frontend
+        env:
+          POLTERGEIST_ASSISTANT_FIXTURE: '1'
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/integrations
       - run: npm run test:e2e:hosted
         working-directory: frontend
       - uses: actions/upload-artifact@v7

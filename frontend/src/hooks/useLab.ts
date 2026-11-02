@@ -1,17 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "../services/api";
+import { abortable } from "../services/abortable";
 
 export const labError = (error: unknown) => error instanceof Error ? error.message : "The experiment request could not be completed.";
-/** Settle cancellation even if an adapter ignores its signal; late results stay fenced. */
-function abortable<T>(action: (signal: AbortSignal) => Promise<T>, signal: AbortSignal): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const abort = () => reject(new DOMException("Request cancelled", "AbortError"));
-    if (signal.aborted) { abort(); return; }
-    signal.addEventListener("abort", abort, { once: true });
-    Promise.resolve().then(() => signal.aborted ? Promise.reject(new DOMException("Request cancelled", "AbortError")) : action(signal))
-      .then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
-  });
-}
 export function useLabMutation(active: boolean) {
   const visible = useRef(active); visible.current = active;
   const mounted = useRef(true), pending = useRef<AbortController | null>(null);

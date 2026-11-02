@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "../services/api";
+import { abortable } from "../services/abortable";
 import type { GitHubInputs, GitHubPreviewRequest, GitHubPublication, GitHubStatus, RegressionReport } from "../types/generated";
 import { saveLabJson } from "./lab-download";
 
@@ -26,7 +27,7 @@ export function GitHubPublisher({ report, active }: { report: RegressionReport; 
     if (!active || pending.current) return;
     const controller = new AbortController(); pending.current = controller; setBusy(true); setError(null);
     const timer = setTimeout(() => controller.abort(), 75000);
-    try { await work(controller.signal); }
+    try { await abortable(work, controller.signal); }
     catch (failure) { if (mounted.current) setError(failure instanceof ApiError && failure.status >= 400 && failure.status < 500 ? failure.message : "The outcome could not be confirmed. Refresh saved publication history or reconcile; publication is never repeated automatically."); }
     finally { clearTimeout(timer); pending.current = null; if (mounted.current) setBusy(false); }
   }

@@ -9,7 +9,7 @@ test:
 
 check: test
 	python -m scripts.export_contracts --check
-	cd frontend && npm test && npm run contracts:check && npm run build
+	cd frontend && npm test && npm run contracts:check && npm run build && npm run build:hosted
 
 contracts:
 	python -m scripts.export_contracts

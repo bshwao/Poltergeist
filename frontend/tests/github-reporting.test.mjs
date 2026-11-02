@@ -45,6 +45,24 @@ test("mount and disabled configuration send no verification or publication reque
   assert.deepEqual(calls, ["status"]); assert.ok(text(view.toJSON()).includes("GitHub reporting is off"));
 });
 
+test("leaving GitHub reporting settles an ignored abort and fences its late configuration", async t => {
+  let resolve, signal, reads = 0;
+  const pending = new Promise(yes => { resolve = yes; });
+  const view = await render(t, { getGitHubStatus: async options => {
+    if (++reads === 1) { signal = options.signal; return pending; }
+    return { ...fixture.status, enabled: false };
+  } });
+  await act(async () => button(view, "Open GitHub reporting").props.onClick());
+  await act(async () => view.update(React.createElement(GitHubPublisher, { report: fixture.report, active: false })));
+  assert.equal(signal.aborted, true);
+  await act(async () => view.update(React.createElement(GitHubPublisher, { report: fixture.report, active: true })));
+  assert.equal(button(view, "Refresh GitHub configuration").props.disabled, false);
+  await act(async () => button(view, "Refresh GitHub configuration").props.onClick());
+  await act(async () => resolve(fixture.status));
+  assert.match(text(view.toJSON()), /GitHub reporting is off/);
+  assert.equal(reads, 2);
+});
+
 test("commit verification and explicit disclosure approval precede one publish; edits revoke approval", async t => {
   const calls = [];
   const view = await render(t, { previewGitHubCheck: async input => { calls.push(["preview", input]); return fixture.preview; },

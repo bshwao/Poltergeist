@@ -17,6 +17,12 @@ also start the single worker and perform restart recovery. Optimization routes
 start its experiment controller and recover interrupted operations. CORS uses the configured
 `CORS_ORIGINS`.
 
+Optional [OpenAI planning/analysis](openai-assistance.md#local-api) and
+[GitHub regression publication](github-reporting.md#local-api-and-cli--ci-handoff)
+have separate configuration, disclosure and approval routes. They are disabled
+by default, accept only loopback peers and are not forwarded by the hosted relay.
+Their guides describe the exact schemas, limits and uncertain-outcome recovery.
+
 ## Local setup readiness
 
 `GET /readiness` returns a typed `poltergeist-readiness-v1` snapshot with scope
@@ -29,7 +35,8 @@ and executable discovery with the CARLA launcher. It reads runtime/package
 metadata, validates configuration without opening SQLite, estimates storage
 permissions without writing a probe file, and inspects bounded known simulator
 locations. It does not inspect Node/Git or gate runtime capabilities on developer
-tools. A packaged runtime and its supported distribution remain future work.
+tools. A private packaged companion exists; supported-machine and release
+acceptance remain open. See [companion scope](companion.md).
 
 `POST /readiness/carla-check` explicitly requests a fresh snapshot plus a
 read-only connection check of the configured endpoint. It never starts CARLA.

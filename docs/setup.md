@@ -95,6 +95,20 @@ root does not rewrite an explicitly configured database URL.
 Docker builds the dashboard with `/api`, forwarded by nginx to the API on the
 same origin. An existing build must be rebuilt after changing `VITE_API_URL`.
 
+Optional local integrations are **disabled by default**. Their settings are also
+listed in `.env.example`; keep credentials in your private environment or `.env`.
+
+| Integration | Configuration | Limits and scope |
+| --- | --- | --- |
+| [OpenAI assistance](openai-assistance.md) | `OPENAI_ENABLED`, `OPENAI_API_KEY`, `OPENAI_MODEL` | `OPENAI_DAILY_REQUEST_LIMIT=10`, `OPENAI_DAILY_OUTPUT_TOKEN_LIMIT=8192`; exact disclosure and one-call approval |
+| [GitHub regression checks](github-reporting.md) | `GITHUB_ENABLED`, `GITHUB_CHECKS_TOKEN`, `GITHUB_APP_ID`, `GITHUB_REPOSITORY` | `GITHUB_CHECK_NAME=Poltergeist regression`, `GITHUB_DAILY_PUBLISH_LIMIT=20`; verified commits and separate publication approval |
+
+These routes accept only loopback callers. Bind the API to `127.0.0.1` for local
+use; do not expose these features through a proxy. The hosted account/device relay
+does not forward provider credentials or publishing actions. Usage/publication
+reservations are stored in separate private SQLite journals under `STORAGE_DIR`;
+the default journals and their sidecars are ignored by Git.
+
 ## Run
 
 Start the API in one terminal and the dashboard in another:
@@ -249,6 +263,14 @@ npm run contracts:generate
 See [data contracts](data-contracts.md) for units and wire conventions. With an
 activated Python environment and Make available, `make check` and `make contracts`
 run the equivalent checks/regeneration.
+
+Browser fixtures choose `POLTERGEIST_TEST_PYTHON` when explicitly set, otherwise
+the checkout's `.venv` interpreter if present, then `python` from `PATH`. This
+lets `npm run test:e2e` and `npm run test:e2e:hosted` reuse the project environment
+without activating it in the frontend terminal. Install Chromium first with
+`npx playwright install chromium`. CI also runs the optional assistant/publisher
+approval journeys with controlled providers; no real credential or paid API
+request is needed.
 
 ## CARLA and Docker
 
