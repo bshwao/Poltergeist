@@ -2,8 +2,9 @@
 
 Status: S0 locally validated. S1–S3 have locally validated private implementations
 with independent-machine acceptance open. S4 pairing is locally verified and S5
-public HTTPS acceptance passed. **S6 reliability remains open. S7's
-managed CPU pack is implemented, with independent-machine acceptance open.**
+public HTTPS acceptance passed. **S6 reliability is locally validated, with
+physical and independent-machine acceptance open. S7's managed CPU pack is
+implemented, with independent-machine acceptance open.**
 S8–S10 now have private implementations with
 outstanding product, signing and external acceptance gates. **S11 visual design
 and usability is in progress**. S12's guided workflows are implemented, with
@@ -112,8 +113,8 @@ validated on the development PC. The
 scopes the current local completion work and remaining acceptance gates.
 S4 has private account/pairing, authenticated relay and normal desktop consent
 proofs. S5 has verified public HTTPS pairing, real CARLA execution and durable
-website readback. S6 remains in progress. S7 has an external acceptance gate. S8–S10
-have private implementations described below. S11 is in progress; S12 has
+website readback. S6 passes local fault validation. S7 has an external
+acceptance gate. S8–S10 have private implementations described below. S11 is in progress; S12 has
 implemented guided workflows and an open human-adoption gate; S13 has a locally
 validated bounded discovery engine. S14/S15 have locally validated saved-evidence
 review implementations; S16/S17 have locally validated private integrations;
@@ -263,6 +264,9 @@ launches local CARLA and reviews a completed baseline experiment through the sit
 
 **Complete when:** fault tests show no duplicate execution, cross-device queue
 mixups or false completion after disconnect/restart, and cancellations reconcile.
+The [November 3 local validation](validation/s6-local-reliability-20261103.md)
+records the checks on this PC and the remaining physical and independent-machine
+acceptance.
 
 ### S7 — App-managed AI environments and model packs
 

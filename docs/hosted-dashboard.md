@@ -194,6 +194,10 @@ also verified actor IDs and world settings before/after. See the
 [public summary](validation/s5-carla-summary.json), including partial coverage
 and null TTC. The original absolute-placement and numeric-normalization failures
 remain recorded; the successful repeat does not relabel them as passes.
+The [current CARLA browser test](validation/s6-local-reliability-20261103.md)
+also interrupts the fixture's TCP stream after a measured tick, lets CARLA finish
+locally, then checks that the dashboard recovers the same run and recording
+evidence after reconnect.
 
 The quick check uses the existing template's relative actor placement. Command
 validation canonicalizes template parameters through the same scenario validator

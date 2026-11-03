@@ -1,10 +1,12 @@
-# S6 reliable execution: current checkpoint
+# S6 reliable execution
 
-S6 is in progress. Public S5 deployment is deferred at the user's request.
-The current source adds CARLA endpoint ownership across companion profiles,
-native process-loss checks, real coordinator crash/restart acceptance and
-deadline checks across receive/scheduling gaps.
-It does not close the complete crash, network and physical sleep acceptance matrix.
+The [November 3 local validation](validation/s6-local-reliability-20261103.md)
+covers real coordinator and Companion failures, native CARLA ownership and
+cancellation, and isolated browser TCP interruption. The coordinator now also
+checks authorization and heartbeat expiry at the moment a durable command
+acquires the socket send lock. Physical and independent-machine acceptance
+remain open. Public S5 acceptance is recorded separately in the
+[VPS deployment record](validation/s5-vps-deployment-20261103.md).
 
 ## CARLA execution ownership
 
@@ -175,11 +177,11 @@ separately; frame-zero observations are not used to claim cleanup.
 | --- | --- | --- |
 | Lost acceptance / duplicate submit | Real TLS coordinator crashes before/after ACK commit; original identity/ACK and one run survive | Wider operational fault combinations and independent machines |
 | Cross-profile endpoint ownership | Real active CARLA contention plus OS process/alias tests and cleanup retention | Unsupported-client behavior and other OS accounts/machines |
-| Claimed worker process loss | Actual opening/running process exits, real orphaned CARLA vehicles/settings, honest failed recovery and reset quarantine | Wider native fault timing and independent machines |
-| Cancellation ordering | Lost ACK before/after commit, a repeated coordinator outage, offline cleanup and durable final result; waiter/rollback tests | Additional finalization race stress and external acceptance |
-| Final output commit | Forced real SQLite writer ordering and actual process exits before/after final-result commit, in source and Runtime I; original ACK and next queued job stay intact | Broader native CARLA timing, physical faults and power-loss durability |
-| Reconnection and heartbeat | Native TLS deadlines, a 102-second packaged-process suspension, new-generation reconnect and original-result reconciliation; truthful activity timestamps | Physical PC sleep/resume, NIC faults and longer real outages |
-| Distribution | Runtime H passes native CARLA crash/quarantine/reset; Runtime I matches 173 sources and passes installed compiled-profile TLS/DPAPI/recovery/suspension with data-preserving uninstall | Actual shortcut/visual and independent-machine fault validation |
+| Claimed worker process loss | Actual opening/running process exits, real orphaned CARLA vehicles/settings, honest failed recovery and reset quarantine | Independent machines |
+| Cancellation ordering | Lost ACK before/after commit, offline browser cancellation and actual CARLA cancellation after a measured tick | External acceptance |
+| Final output commit | Real SQLite writer ordering, process exits before/after final-result commit, and native cancellation after runner cleanup; original ACK and next queued job survive | Physical faults and power-loss durability |
+| Reconnection and heartbeat | Socket send-lock fencing, native TLS deadlines, 102-second packaged process suspension and one-device TCP interruption with result reconciliation | Physical PC sleep/resume, NIC faults and longer real outages |
+| Distribution | Refreshed Windows package passes installed TLS/DPAPI/recovery/suspension, actual Start-menu launch, visual reopen and data-preserving uninstall | Independent-machine fault validation |
 
 ### Refreshed private Windows runtime
 
@@ -266,10 +268,10 @@ retained outside the recovered failed result; this is separate from S8 retention
 and from power-loss durability. All four cases pass in private Runtime I, alongside
 the two source interpreters' 25-check regression batches.
 
-S6 remains open for actual installed shortcut/visual acceptance, broader native
-CARLA cancellation/finalization timing, physical sleep/network faults and external
-supported-machine acceptance. Passing a private checkpoint does not close those
-requirements or the earlier independent-machine/release gates.
+The [November 3 local validation](validation/s6-local-reliability-20261103.md)
+adds the current native CARLA cancellation and finalization cases. Physical
+sleep, adapter outages and independent supported-machine testing remain separate
+acceptance gates.
 
 ### Coarse-clock request-budget rounding
 

@@ -39,9 +39,13 @@ class DeviceConnection:
         return {"device_id": self.identity["id"], "ownership_generation": self.identity["ownership_generation"],
             "connection_generation": self.identity["connection_generation"]}
 
-    async def send(self, message):
+    async def send(self, message, *, before_send=None):
         async with self.send_lock:
-            await asyncio.wait_for(self.socket.send_text(canonical_json(message)), timeout=30)
+            text = canonical_json(message)
+            if before_send is not None and not before_send():
+                return
+            async with asyncio.timeout(30):
+                await self.socket.send_text(text)
 
 
 class RelayHub:
@@ -201,14 +205,19 @@ class RelayHub:
                 if command.request_id in current.sent:
                     continue
                 self._check_deadline(current)
-                # Recheck immediately before each send, never cache the handshake
-                # grant decision across an await or another command delivery.
-                # delivery_allowed checks the full connection in its transaction.
-                if not self.commands.delivery_allowed(current.credential, current.identity, command.request_id):
-                    continue
+
+                def authorize(request_id=command.request_id):
+                    # The lock may have waited behind a heartbeat or transfer.
+                    # Recheck the full live grant immediately at socket handoff.
+                    self._check_deadline(current)
+                    if not self.commands.delivery_allowed(current.credential, current.identity, request_id):
+                        return False
+                    self._check_deadline(current)
+                    current.sent.add(request_id)
+                    return True
+
                 message = RelayCommand(**current.envelope(), command=command)
-                current.sent.add(command.request_id)
-                await current.send(message)
+                await current.send(message, before_send=authorize)
 
     async def _heartbeat(self, current):
         while True:

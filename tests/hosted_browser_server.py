@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import secrets
 import signal
+import socket
 import ssl
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -22,11 +23,43 @@ from backend.dependencies import ApiRuntime
 from companion.controller import CompanionController
 from companion.pairing_client import JsonTransport, PairingClient
 from companion.relay_client import RelayClient
+from companion.relay_transport import RelayConnector
 from shared.models.coordination import DevicePolicy
 from simulator import SimulationRunner
 from simulator.test_adapter import TestSimulationAdapter
 from test_hosted_execution import MemoryStore, wait_for
 from test_relay_client import make_certificates
+
+
+class RelayLink:
+    """Cut only fixture-owned TCP sockets, without a WebSocket close frame."""
+
+    def __init__(self):
+        self._lock = Lock()
+        self._blocked = False
+        self._sockets = []
+
+    def connect(self, uri, **options):
+        with self._lock:
+            if self._blocked:
+                raise OSError("The fixture relay link is unavailable")
+            transport = socket.create_connection(("127.0.0.1", 8058), timeout=2)
+            self._sockets = [item for item in self._sockets if item.fileno() >= 0]
+            self._sockets.append(transport)
+        return RelayConnector(uri, sock=transport, **options)
+
+    def set_blocked(self, blocked):
+        with self._lock:
+            self._blocked = blocked
+            cut = 0
+            if blocked:
+                for transport in self._sockets:
+                    try:
+                        transport.shutdown(socket.SHUT_RDWR)
+                    except OSError:
+                        continue
+                    cut += 1
+            return cut
 
 
 def main():
@@ -45,7 +78,7 @@ def main():
     if not token or len(token) < 32:
         raise ValueError("A private fixture control token is required")
     stop, release, entered, mutex = Event(), Event(), Event(), Lock()
-    controllers, stores = {}, {}
+    controllers, stores, links = {}, {}, {}
     scopes = ["status:read", "result:read", "run:execute:test", "run:cancel"]
     if live_carla:
         scopes.append("run:execute:carla")
@@ -60,13 +93,39 @@ def main():
             return super().open(scenario)
 
     def companion(name):
+        link = links[name] = RelayLink()
+
         def pairing(address, store):
             return PairingClient(address, store, _transport=JsonTransport(address, _ssl_context=context))
         def relay(*args, **kwargs):
-            return RelayClient(*args, **kwargs, _ssl_context=context)
+            return RelayClient(*args, **kwargs, _ssl_context=context, _connector=link.connect)
         def runtime(settings):
             if live_carla:
-                return ApiRuntime(settings)
+                service = ApiRuntime(settings)
+                normal_factory = service.runner_factory
+
+                def witnessed_runner(**kwargs):
+                    runner = normal_factory(**kwargs)
+                    run = runner.run
+
+                    def witnessed_run(*args, **options):
+                        on_progress = options["on_progress"]
+
+                        def progress(simulation):
+                            on_progress(simulation)
+                            if simulation.status == "running" and simulation.progress > 0 and not entered.is_set():
+                                entered.set()
+                                if not release.wait(120):
+                                    raise RuntimeError("The native browser fixture was not released")
+
+                        options["on_progress"] = progress
+                        return run(*args, **options)
+
+                    runner.run = witnessed_run
+                    return runner
+
+                service.runner_factory = witnessed_runner
+                return service
             return ApiRuntime(settings, runner_factory=lambda **kwargs: SimulationRunner(HeldAdapter(), **kwargs))
         controller = CompanionController(root / name, pairing_factory=pairing, relay_factory=relay,
             credential_store_factory=lambda profile: stores.setdefault(str(profile), MemoryStore()), runtime_factory=runtime)
@@ -85,7 +144,6 @@ def main():
     # Extend the existing TLS fixture without changing coordinator production defaults.
     from coordinator.app import create_app
     from coordinator.settings import CoordinatorSettings
-    import socket
     import uvicorn
     server = server_thread = listener = None
     if files is not None:
@@ -163,11 +221,14 @@ def main():
                     elif self.path == "/release":
                         release.set()
                         answer = {"ok": True}
+                    elif self.path in ("/cut-relay-link", "/restore-relay-link"):
+                        answer = {"cut_sockets": links[name].set_blocked(self.path == "/cut-relay-link")}
                     elif self.path == "/state":
                         controller = controllers[name]
                         snapshot = controller.snapshot()
                         answer = {"runs": len(snapshot["runs"]), "entered": entered.is_set(),
-                            "statuses": [row["status"] for row in snapshot["runs"]]}
+                            "statuses": [row["status"] for row in snapshot["runs"]],
+                            "run_ids": [row["id"] for row in snapshot["runs"]]}
                     else:
                         self.reply(404, {})
                         return

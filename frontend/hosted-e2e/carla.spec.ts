@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 
 // Opt-in only: the normal fixture and CI never require or launch a simulator.
-test("website launches a measured baseline on the already running CARLA server", async ({ page, request }, testInfo) => {
+test("website reconciles a measured CARLA baseline after Companion loses its relay", async ({ page, request }, testInfo) => {
   test.setTimeout(600_000);
   test.skip(process.env.POLTERGEIST_HOSTED_LIVE_CARLA !== "1", "Requires explicitly selected live CARLA acceptance");
   async function control(action: string) {
@@ -70,6 +70,25 @@ test("website launches a measured baseline on the already running CARLA server",
   await page.getByRole("checkbox", { name: "Save LiDAR recording", exact: true }).check();
   await page.getByRole("button", { name: "Run experiment", exact: true }).click();
   const detail = page.getByRole("region", { name: "Website CARLA baseline" });
+  await expect.poll(async () => control("state"), { timeout: 120_000 }).toMatchObject({
+    entered: true, runs: 1, statuses: ["running"],
+  });
+  const [simulationId] = (await control("state")).run_ids;
+  expect(simulationId).toMatch(/^[0-9a-f-]{36}$/);
+  expect(await control("cut-relay-link")).toEqual({ cut_sockets: 1 });
+  const companion = page.getByRole("region", { name: "Choose your companion" });
+  await expect(companion.getByText("offline", { exact: true })).toBeVisible();
+  await expect(detail.getByText("completed", { exact: true })).toHaveCount(0);
+  await control("release");
+  await expect.poll(async () => (await control("state")).statuses[0], { timeout: 300_000 })
+    .toMatch(/^(completed|failed|cancelled)$/);
+  expect(await control("state")).toMatchObject({
+    runs: 1, statuses: ["completed"], run_ids: [simulationId],
+  });
+  await expect(companion.getByText("offline", { exact: true })).toBeVisible();
+  await expect(detail.getByText("completed", { exact: true })).toHaveCount(0);
+  await control("restore-relay-link");
+  await expect(companion.getByText("connected", { exact: true })).toBeVisible({ timeout: 45_000 });
   await expect.poll(async () => detail.locator(".hosted-status").first().getAttribute("data-state"),
     { timeout: 480_000 }).toMatch(/^(completed|failed|cancelled)$/);
   await expect(detail.getByText("completed", { exact: true })).toBeVisible();
@@ -80,6 +99,7 @@ test("website launches a measured baseline on the already running CARLA server",
   expect(completed.mode).toBe("carla");
   expect(completed.agent).toBe("baseline");
   expect(completed.device_id).toBe(approved.device_id);
+  expect(completed.simulation_id).toBe(simulationId);
   expect(completed.result_available).toBe(true);
   const runtime = completed.runtime as Record<string, unknown>, metrics = completed.metrics as Record<string, unknown>;
   expect(runtime.adapter).toBe("carla");

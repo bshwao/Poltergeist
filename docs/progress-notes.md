@@ -1,7 +1,10 @@
 # S0–S19 progress notes
 
-Updated November 2, 2026. Latest work: **S1–S3 local completion on this PC**;
-see the [validation record](validation/s1-s3-local-completion-20261102.md).
+Updated November 3, 2026. The latest work covers
+[S6 local reliability](validation/s6-local-reliability-20261103.md) and
+[public S5 deployment](validation/s5-vps-deployment-20261103.md). The earlier
+[S1–S3 local completion](validation/s1-s3-local-completion-20261102.md)
+used this PC.
 This adds a map-aware first CARLA run, current reproducible delivery artifacts
 and a correction to recovery ownership during uninstall. The user limited this
 acceptance pass to this PC; independent-machine and external-tester gates remain
@@ -10,13 +13,12 @@ records the broader regression review.
 **S19 optional local GitHub regression checks are implemented**,
 with live App/CI acceptance open. **S18 optional local OpenAI assistance is implemented**,
 with live provider-account acceptance open. **S16 managed camera policy and S17 Hugging Face integration are locally validated**,
-alongside the open installed/native acceptance
-gates for S3/S6 and S11. Previous checkpoint: **S8 live recording review locally
+alongside the open acceptance
+gates for S3, S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
-S6 reliability and S7 independent-machine acceptance remain open.
-S5 local synthetic and CARLA browser acceptance pass; public deployment is
-deferred at the user's request. S11–S19 have been assigned roadmap numbers.
+Physical and independent-machine acceptance remain open for S6. S7 has an
+independent-machine acceptance gate. S11–S19 have been assigned roadmap numbers.
 The previous checkpoint branch was `codex/s16-s17-sensor-policy-huggingface`, based on GitHub `main`
 at `f146686`. The S14/S15 coverage checkpoint passed all five CI jobs and was
 fast-forwarded into GitHub and the original local main checkout. The 100-device S9 latency gate
@@ -42,7 +44,7 @@ private prototype does not close independent-machine or release validation.
 | S3 — Installer and onboarding | Private prototype locally validated, external gate open | Per-user installer, CARLA discovery/setup, visual onboarding, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing remains open. |
 | **S4 — Hosted backend and pairing** | **Private completion criterion verified on this PC** | Owner control, cross-account denial and revocation pass with real loopback TLS/WSS. The current installed Companion proof also verifies Windows DPAPI, explicit consent and durable results. See [current validation](validation/s4-s5-local-20261102.md). |
 | **S5 — Website integration** | **Public acceptance passed on this PC** | The public dashboard paired the packaged Companion, completed a real CARLA baseline, and recovered its result after browser reload. See [VPS deployment and acceptance](validation/s5-vps-deployment-20261103.md). |
-| **S6 — Reliable remote execution** | **In progress; source, portable and installed Runtime I recovery checks pass** | Real coordinator/worker crashes and runtime H native CARLA recovery pass. Runtime I carries bounded enrollment processes, explicit uncertain-approval cancellation and immutable cancellation ACK snapshots in schema 6. Its installed compiled-profile TLS/DPAPI/recovery/suspension workflow and data-preserving uninstall now pass locally. Wider native faults, physical sleep, actual shortcut/visual and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
+| **S6 — Reliable remote execution** | **Local fault validation passed; field acceptance open** | The coordinator fences queued sends against revoked or expired connections. Browser TCP interruption preserves device isolation and reconciles cancellation. Real coordinator and CARLA process loss, native CARLA cancellation/finalization, and the installed Companion suspension workflow have local evidence. Physical sleep, adapter outages and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
 | **S7 — Managed AI installations** | **CPU implementation delivered; independent-machine gate open** | Separate pinned interpreter/dependencies, verified weights, actual import/inference checks, explicit local registration, starter choice, repair/removal and execution use leases. See [managed AI installations](managed-ai.md) and [environment validation](validation/s7-environment.md). |
 | S8 — Evidence delivery | Private implementation; live review locally validated | Explicit evidence/capture approval, negotiated pull-only pages/chunks, hashes, versioned cursors, disk budgets, ZIP export and tombstones. Website camera/LiDAR review: 60 simulated seconds, 2,402 samples, 303 MB captured, 2.13 MB reviewed. Representative hardware/production-duration gates remain. See [checkpoint](evidence-capacity-release.md). |
 | S9 — Multi-user capacity | 25-device simulated target met; 100-device latency failed | The latest checkpoint completes 500/500 commands with 25/25 denials at p95 0.641 s. At 100 devices, all 500 commands and 100 denials pass but p95 4.31 s still fails the unchanged two-second target. Earlier 9.08 s, 7.84 s and 6.92 s failures remain recorded. Physical-PC/provider acceptance remains open. |
