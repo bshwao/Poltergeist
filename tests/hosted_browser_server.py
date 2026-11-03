@@ -4,6 +4,7 @@ Fixture controls live on a separate loopback listener with an ephemeral token.
 They are never installed on the coordinator application or in its public API.
 """
 
+from http.client import HTTPSConnection
 import json
 import os
 from pathlib import Path
@@ -29,16 +30,22 @@ from test_relay_client import make_certificates
 
 
 def main():
+    live_carla = os.environ.get("POLTERGEIST_HOSTED_LIVE_CARLA") == "1"
+    if live_carla:
+        try:
+            import carla  # noqa: F401
+        except ImportError as error:
+            raise RuntimeError("Live hosted acceptance requires CARLA 0.9.16. Set POLTERGEIST_TEST_PYTHON to the Python 3.12 environment with the CARLA client installed.") from error
     root = Path(".pytest_cache/hosted-browser").resolve() / str(uuid4())
     root.mkdir(parents=True)
-    files = make_certificates(root)
-    context = ssl.create_default_context(cafile=str(files["ca"]))
+    external_ca = os.environ.get("POLTERGEIST_HOSTED_EXTERNAL_CA")
+    files = None if external_ca else make_certificates(root)
+    context = ssl.create_default_context(cafile=external_ca or str(files["ca"]))
     token = os.environ.get("POLTERGEIST_HOSTED_FIXTURE_TOKEN")
     if not token or len(token) < 32:
         raise ValueError("A private fixture control token is required")
     stop, release, entered, mutex = Event(), Event(), Event(), Lock()
     controllers, stores = {}, {}
-    live_carla = os.environ.get("POLTERGEIST_HOSTED_LIVE_CARLA") == "1"
     scopes = ["status:read", "result:read", "run:execute:test", "run:cancel"]
     if live_carla:
         scopes.append("run:execute:carla")
@@ -80,14 +87,29 @@ def main():
     from coordinator.settings import CoordinatorSettings
     import socket
     import uvicorn
-    application = create_app(CoordinatorSettings(root / "coordinator.db", origin,
-        hosted_assets_dir=Path("frontend/dist-hosted").resolve()))
-    listener = socket.socket()
-    listener.bind(("127.0.0.1", 8058))
-    server = uvicorn.Server(uvicorn.Config(application, log_level="critical", access_log=False,
-        proxy_headers=False, ssl_certfile=str(files["cert"]), ssl_keyfile=str(files["key"]),
-        ws_max_size=262144, ws_ping_interval=None, timeout_graceful_shutdown=5))
-    server_thread = Thread(target=lambda: server.run(sockets=[listener]), daemon=True)
+    server = server_thread = listener = None
+    if files is not None:
+        application = create_app(CoordinatorSettings(root / "coordinator.db", origin,
+            hosted_assets_dir=Path("frontend/dist-hosted").resolve()))
+        listener = socket.socket()
+        listener.bind(("127.0.0.1", 8058))
+        server = uvicorn.Server(uvicorn.Config(application, log_level="critical", access_log=False,
+            proxy_headers=False, ssl_certfile=str(files["cert"]), ssl_keyfile=str(files["key"]),
+            ws_max_size=262144, ws_ping_interval=None, timeout_graceful_shutdown=5))
+        server_thread = Thread(target=lambda: server.run(sockets=[listener]), daemon=True)
+    else:
+        # Accept only the fixed loopback origin and verify its certificate before
+        # opening the fixture controls or creating any test accounts.
+        connection = HTTPSConnection("localhost", 8058, context=context, timeout=5)
+        try:
+            connection.request("GET", "/healthz")
+            response = connection.getresponse()
+            if response.status != 200 or json.loads(response.read(4096)) != {
+                "status": "ok", "protocol_version": "poltergeist-coordinator-v1",
+            }:
+                raise ValueError("The external loopback coordinator did not pass its HTTPS health check")
+        finally:
+            connection.close()
 
     class Controls(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -95,7 +117,7 @@ def main():
 
         def do_GET(self):
             if self.path == "/healthz":
-                self.reply(200, {"ready": server.started})
+                self.reply(200, {"ready": server is None or server.started})
             else:
                 self.reply(404, {})
 
@@ -159,18 +181,20 @@ def main():
     signal.signal(signal.SIGINT, lambda *_: stop.set())
     Thread(target=lambda: (sys.stdin.readline(), stop.set()), daemon=True).start()
     try:
-        server_thread.start()
-        wait_for(lambda: server.started)
+        if server_thread is not None:
+            server_thread.start()
+            wait_for(lambda: server.started)
         control_thread.start()
         stop.wait()
     finally:
         cleanup()
-        server.should_exit = True
-        server_thread.join(15)
         controls.shutdown()
         controls.server_close()
-        listener.close()
-        assert not server_thread.is_alive()
+        if server_thread is not None:
+            server.should_exit = True
+            server_thread.join(15)
+            listener.close()
+            assert not server_thread.is_alive()
 
 
 if __name__ == "__main__":

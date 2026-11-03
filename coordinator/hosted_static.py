@@ -61,6 +61,7 @@ def configure_hosted_static(app, settings):
         return Response(data if request.method == "GET" else b"", media_type=media_type,
             headers={**SECURITY_HEADERS, "Content-Length": str(len(data))})
 
+    @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
     @app.api_route("/app", methods=["GET", "HEAD"], include_in_schema=False)
     def hosted_redirect():
         return RedirectResponse("/app/", status_code=307, headers=SECURITY_HEADERS)

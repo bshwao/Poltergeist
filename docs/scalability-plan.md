@@ -1,9 +1,10 @@
 # Poltergeist roadmap: S0–S19
 
-Status: S0 locally validated; S1–S5 have private implementations with outstanding
-deployment, packaging and independent-machine gates. **S6 reliability remains
-open; S7's managed CPU pack is implemented, with independent-machine acceptance open.** Public S5 deployment is
-deferred at the user's request. S8–S10 now have private implementations with
+Status: S0 locally validated. S1–S3 have locally validated private implementations
+with independent-machine acceptance open. S4 pairing is locally verified and S5
+public HTTPS acceptance passed. **S6 reliability remains open. S7's
+managed CPU pack is implemented, with independent-machine acceptance open.**
+S8–S10 now have private implementations with
 outstanding product, signing and external acceptance gates. **S11 visual design
 and usability is in progress**. S12's guided workflows are implemented, with
 independent new-tester acceptance open; S13's bounded discovery implementation
@@ -91,16 +92,11 @@ persisting it in cloud storage.
 
 ## Hosting context
 
-The intended frontend address is <https://poltergeist.freehosting.dev/>.
-`?i=1` is a query string and is not part of the site's origin or domain.
-An upload build has been prepared; production deployment has not been verified.
-
-The current InfinityFree hosting can serve the built frontend. Its free hosting
-does not provide the Python runtime needed for our backend. The hosted backend
-and companion relay therefore need separate application hosting. See the
-[hosting support explanation](https://forum.infinityfree.com/t/does-infintyfree-support-python/117556).
-Provider choice and deployment credentials are required for S4–S5, not for the
-initial packaging work.
+The signed-in S5 dashboard and Python coordinator share the HTTPS origin
+<https://poltergeistapp.duckdns.org> on the Oracle VPS. The dashboard is at
+`/app/`. The deployment record covers DNS, Caddy, persistent storage and health
+checks. The InfinityFree address <https://poltergeistapp.freedev.app/> is a
+separate landing-page address. See the [VPS deployment record](validation/s5-vps-deployment-20261103.md).
 
 ## Phases and completion gates
 
@@ -115,8 +111,8 @@ validated on the development PC. The
 [November 2 S1–S3 record](validation/s1-s3-local-completion-20261102.md)
 scopes the current local completion work and remaining acceptance gates.
 S4 has private account/pairing, authenticated relay and normal desktop consent
-proofs. S5 has local synthetic and real CARLA website acceptance; public hosting
-is deferred. S6 remains in progress; S7 has an external acceptance gate; S8–S10
+proofs. S5 has verified public HTTPS pairing, real CARLA execution and durable
+website readback. S6 remains in progress. S7 has an external acceptance gate. S8–S10
 have private implementations described below. S11 is in progress; S12 has
 implemented guided workflows and an open human-adoption gate; S13 has a locally
 validated bounded discovery engine. S14/S15 have locally validated saved-evidence

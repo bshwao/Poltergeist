@@ -13,6 +13,7 @@ import { RecordingPanel } from "./RecordingPanel";
 import { HostedLabWorkspace, hostedLabRoute } from "./LabWorkspace";
 
 type Client = ReturnType<typeof createHostedClient>;
+declare const __COMPANION_DOWNLOAD_URL__: string;
 type Pending = { device: string; command: HostedCommand; uncertain: boolean };
 const short = (value: string) => value.slice(0, 8);
 const when = (value: string | null) => value ? new Date(value).toLocaleString() : "Not yet connected";
@@ -77,7 +78,7 @@ function ConnectComputer({ claim, busy, onClaim }: { claim: PairingStatus | null
   }
   return <section className="hosted-card hosted-connect" id="connect" aria-labelledby="connect-title">
     <div><p className="hosted-eyebrow">BRING YOUR COMPUTER ONLINE</p><h2 id="connect-title">Connect your companion</h2>
-      <ol className="hosted-steps"><li>Open Poltergeist Companion on the computer you want to use.</li><li>In Connection, create a pairing code and enter it here.</li><li>Review this account on that computer, approve its permissions, then allow requests and choose Connect.</li></ol>
+      <ol className="hosted-steps"><li>{__COMPANION_DOWNLOAD_URL__ ? <><a href={__COMPANION_DOWNLOAD_URL__}>Download Companion for Windows x64</a> and install it on the computer you want to use.</> : "Use the Companion installer from your workspace administrator if you haven’t installed it yet."} Open Poltergeist Companion from the Windows Start menu.</li><li>In Connection, set the coordinator origin to <strong>{window.location.origin}</strong>, then create a pairing code and enter it here.</li><li>Review this account on that computer, approve its permissions, then allow requests and choose Connect.</li></ol>
     </div><div className="hosted-claim-box">
       <form onSubmit={submit} method="post" action="/v1/pairing/claim">
         <label>Pairing code<input aria-label="Pairing code" name="code" value={code} onChange={event => setCode(event.target.value.toUpperCase())} className="hosted-code-input" autoComplete="off" spellCheck={false} pattern="[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{10}" minLength={10} maxLength={10} placeholder="10 characters" required disabled={busy} /></label>

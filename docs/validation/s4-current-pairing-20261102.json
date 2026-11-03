@@ -1,0 +1,93 @@
+{
+  "schema_version": "poltergeist-s4-current-pairing-v1",
+  "recorded_on": "2026-11-02",
+  "scope": "Same Windows PC. Source coordinator over strict loopback HTTPS/WSS and a fresh validation-only Companion installation.",
+  "private_acceptance_passed": true,
+  "public_deployment_verified": false,
+  "source": {
+    "branch": "publicity",
+    "base_commit": "fe226efd65c26442505ba52180f2320fc1c2f794",
+    "working_tree_fix": "Reject non-ASCII account identifiers before lowercasing. The Unicode Kelvin sign could otherwise normalize to ASCII k.",
+    "auth_sha256": "47a1f892c9298074671ba3ebf9b645888efa67eb5ae4c90f74f62a0a108d16a4",
+    "two_profile_tls_test": "tests/test_hosted_execution.py::test_two_owned_companions_execute_read_cancel_revoke_and_restart_over_tls",
+    "two_profile_tls_coverage": [
+      "Separate accounts and Companion profiles",
+      "Explicit local approval and remote execution consent",
+      "Owner execution and projected result readback",
+      "Foreign command and result denial without jobs on the second profile",
+      "Revocation rejects the old credential and command readback after coordinator restart"
+    ]
+  },
+  "test_receipts": [
+    {
+      "scope": "Focused authentication, pairing, browser and device API, protected storage, relay, command and result projection regression before the username fix",
+      "passed": 191,
+      "file": "validation-evidence/s4-current-security.xml",
+      "sha256": "69a20782a2a5351bf10131a484f2f8cd35960c445180a5423d24e0d2d3d6f7aa"
+    },
+    {
+      "scope": "TLS/WSS transport, connection fencing, resume and installed-profile guard",
+      "passed": 61,
+      "file": "validation-evidence/s4-current-transport.xml",
+      "sha256": "8be0ee7a2eb42d03fcee3f94a406a29921ce7821ce01eecb095f877e12815a3f"
+    },
+    {
+      "scope": "Authentication and coordinator API rerun after the username fix. Overlaps the first suite.",
+      "passed": 39,
+      "file": "validation-evidence/s4-current-auth-final.xml",
+      "sha256": "f514ec90c265e3929c8b5e42bcf5086c8160d57bb42743a6a2c517fec25f7f58"
+    }
+  ],
+  "installed_proof": {
+    "passed": true,
+    "installer_build_id": "private-1172c345b22091f9",
+    "installer_validation_only": true,
+    "installer_signed": false,
+    "installer_sha256": "86c2a9670124d09cebd9379261f19a968bda29441f5a5ddef2bb9008705a3dd8",
+    "bundle_manifest_sha256": "1172c345b22091f94f02ffb129918ecef739302286bc2e1b4e720317cac25794",
+    "bundled_python": "3.12.15",
+    "manifest_files_verified": 6329,
+    "first_party_python_files_matched": 227,
+    "compiled_profile_initially_owner_marker_only": true,
+    "separate_coordinator_and_companion_storage": true,
+    "actual_native_dpapi": true,
+    "first_run_synthetic_setup_via_native_callback": true,
+    "installed_process_launches": 2,
+    "local_approval_and_fresh_consent": true,
+    "unchecked_consent_denied_all_remote_operations": true,
+    "stop_reset_consent": true,
+    "lost_approval_and_cancel_replies_reconciled": true,
+    "two_accounts_isolated": true,
+    "owner_result_completed": true,
+    "lost_execute_ack_retry_returned_same_run_and_one_job": true,
+    "queued_and_active_cancelled": true,
+    "local_jobs": 3,
+    "durable_receipts": 5,
+    "reopen_preserved_result_and_request_identity": true,
+    "revoked_read_execute_and_reconnect_denied": true,
+    "revocation_retained_local_result": true,
+    "private_values_absent_from_scanned_logs_and_receipt": true,
+    "owned_fixture_processes_exited": true,
+    "fixture_private_keys_removed": true,
+    "driver": "tests/packaged_companion_consent.py",
+    "driver_sha256": "1d6d55607710b874c861c7735aa375636cd55a12ac2f01c678e8fc9abbcc15f6",
+    "options": [
+      "--installed-root",
+      "--exercise-pending-approval"
+    ],
+    "raw_receipt": "validation-evidence/s4-packaged-consent-20261102-190158-c3196a31/receipt.json",
+    "raw_receipt_sha256": "e33ffb9670ffedfcccb21c9ff46374a3a91b4297ed352dc3f19e4f8d026aaed4",
+    "default_uninstall": {
+      "passed": true,
+      "validation_runtime_registration_and_shortcut_removed": true,
+      "profile_files_preserved_byte_for_byte": 13,
+      "raw_receipt": "validation-evidence/s4-packaged-consent-20261102-190158-c3196a31/cleanup.json"
+    }
+  },
+  "limits": [
+    "The installed proof uses one fresh compiled validation profile and two account sessions. The separate source TLS test uses two active Companion profiles.",
+    "Installed Tk callbacks ran with the window withdrawn. The driver invoked the installed interpreter directly.",
+    "The paired run used the synthetic adapter. A fixture CA was trusted only by the participating clients.",
+    "Public TLS, reverse proxy, live operations and independent-PC acceptance need separate evidence."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+	admin off
+	storage file_system {$POLTERGEIST_CADDY_STORAGE:/data/caddy}
+	servers {
+		protocols h1 h2
+		strict_sni_host on
+	}
+}
+
+{$POLTERGEIST_HOSTED_HOSTNAME} {
+	# The Let's Encrypt RSA chain avoids the expired ISRG Root X2 copy
+	# found in some Windows stores used by the bundled Python client.
+	tls {
+		key_type rsa2048
+	}
+	encode gzip
+	reverse_proxy 127.0.0.1:8000
+}

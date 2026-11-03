@@ -28,6 +28,15 @@ test("computer loading and network failure remain distinct from an empty workspa
     await expect(page.locator(".hosted-stats > div").first()).toContainText("Loading…");
   } finally { release(); }
   await expect(page.getByText("No computers connected yet", { exact: true })).toBeVisible();
+  const pairing = page.getByRole("region", { name: "Connect your companion" });
+  await expect(pairing).toContainText("Open Poltergeist Companion from the Windows Start menu.");
+  await expect(pairing).toContainText("https://localhost:8058");
+  const installer = process.env.VITE_COMPANION_DOWNLOAD_URL?.trim();
+  if (installer) {
+    await expect(pairing.getByRole("link", { name: "Download Companion for Windows x64" })).toHaveAttribute("href", installer);
+  } else {
+    await expect(pairing).toContainText("Use the Companion installer from your workspace administrator");
+  }
   await page.unroute("**/v1/browser/devices");
   await page.route("**/v1/browser/devices", route => route.abort("failed"));
   await page.getByRole("button", { name: "Refresh computers", exact: true }).click();
