@@ -1,13 +1,16 @@
 import { test, expect } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
+import { setTimeout as wait } from "node:timers/promises";
 
 // Opt-in only: the normal fixture and CI never require or launch a simulator.
 test("website reconciles a measured CARLA baseline after Companion loses its relay", async ({ page, request }, testInfo) => {
-  test.setTimeout(600_000);
+  const duration = Number(process.env.POLTERGEIST_HOSTED_CAPTURE_DURATION || "30");
+  test.setTimeout(duration > 60 ? 900_000 : 600_000);
   test.skip(process.env.POLTERGEIST_HOSTED_LIVE_CARLA !== "1", "Requires explicitly selected live CARLA acceptance");
   async function control(action: string) {
     const result = await request.post(`http://127.0.0.1:8059/${action}`, {
       headers: { Authorization: `Bearer ${process.env.POLTERGEIST_HOSTED_FIXTURE_TOKEN}` }, data: { name: "alice" },
+      timeout: action === "export-and-remove-evidence" ? 90_000 : undefined,
     });
     expect(result.status()).toBe(200);
     return result.json();
@@ -26,6 +29,7 @@ test("website reconciles a measured CARLA baseline after Companion loses its rel
   await page.addInitScript(() => {
     const originalFetch = window.fetch.bind(window);
     window.fetch = async (...args: Parameters<typeof fetch>) => {
+      const started = performance.now();
       const response = await originalFetch(...args);
       if (response.url.endsWith("/evidence") && response.ok) {
         const raw = await response.clone().text(), value = JSON.parse(raw);
@@ -35,7 +39,7 @@ test("website reconciles a measured CARLA baseline after Companion loses its rel
             total_bytes: value.total_bytes, frame: value.frame, timestamp: value.timestamp, sample: value.sample,
             recordings: value.recordings, samples: value.samples, sha256: value.sha256,
             sample_sha256: value.sample_sha256, encoded_chunk_characters: value.data_base64?.length ?? 0,
-            response_bytes: new TextEncoder().encode(raw).byteLength });
+            response_bytes: new TextEncoder().encode(raw).byteLength, response_ms: performance.now() - started });
       }
       return response;
     };
@@ -64,7 +68,6 @@ test("website reconciles a measured CARLA baseline after Companion loses its rel
   await page.getByLabel("Experiment name", { exact: true }).fill("Website CARLA baseline");
   await page.getByLabel("Map already loaded", { exact: true }).fill(process.env.POLTERGEIST_HOSTED_CARLA_MAP || "Town10HD_Opt");
   await page.getByRole("radio", { name: "CARLA experiment", exact: true }).check();
-  const duration = Number(process.env.POLTERGEIST_HOSTED_CAPTURE_DURATION || "30");
   await page.getByLabel("Duration (simulated seconds)", { exact: true }).fill(String(duration));
   await page.getByRole("checkbox", { name: "Save camera recording", exact: true }).check();
   await page.getByRole("checkbox", { name: "Save LiDAR recording", exact: true }).check();
@@ -80,7 +83,7 @@ test("website reconciles a measured CARLA baseline after Companion loses its rel
   await expect(companion.getByText("offline", { exact: true })).toBeVisible();
   await expect(detail.getByText("completed", { exact: true })).toHaveCount(0);
   await control("release");
-  await expect.poll(async () => (await control("state")).statuses[0], { timeout: 300_000 })
+  await expect.poll(async () => (await control("state")).statuses[0], { timeout: duration > 60 ? 420_000 : 300_000 })
     .toMatch(/^(completed|failed|cancelled)$/);
   expect(await control("state")).toMatchObject({
     runs: 1, statuses: ["completed"], run_ids: [simulationId],
@@ -137,10 +140,25 @@ test("website reconciles a measured CARLA baseline after Companion loses its rel
   await expect(recordings.getByRole("img", { name: /Recorded LiDAR points at frame/ })).toBeVisible();
   await expect(recordings.getByText(/finite points/)).toBeVisible();
   const next = recordings.getByRole("button", { name: "Next saved samples", exact: true });
+  const nextResponse = () => Promise.all([
+    page.waitForResponse(response => response.url().endsWith("/evidence") &&
+      response.request().postDataJSON().resource === "samples"), next.click(),
+  ]).then(([response]) => response);
   let pages = 1;
+  const retryDelays: number[] = [];
   while (await next.count()) {
     expect(pages).toBeLessThan(200);
-    await next.click();
+    let response = await nextResponse();
+    if (response.status() === 429) {
+      await expect(recordings.getByRole("alert")).toHaveText("Too many requests. Wait before trying again.");
+      const delay = Number(response.headers()["retry-after"]);
+      expect(delay).toBeGreaterThan(0);
+      expect(delay).toBeLessThanOrEqual(61);
+      retryDelays.push(delay);
+      await wait(delay * 1000);
+      response = await nextResponse();
+    }
+    expect(response.status()).toBe(200);
     await expect.poll(() => evidence.filter(value => value.resource === "samples").length).toBe(++pages);
     await expect(recordings).toHaveAttribute("aria-busy", "false");
   }
@@ -167,9 +185,20 @@ test("website reconciles a measured CARLA baseline after Companion loses its rel
   expect(heapAfter.usedSize - heapBefore.usedSize).toBeLessThan(32 * 1024**2);
   await writeFile(testInfo.outputPath("carla-recording-evidence.json"), JSON.stringify({ duration_s: duration,
     evidence_requests_during_run: evidenceRequestsDuringRun, preview_bytes_limit: 4 * 1024**2,
-    response_bytes: transferred, browser_heap_after_gc: { before: heapBefore, after: heapAfter }, responses: evidence }, null, 2));
+    response_bytes: transferred, rate_limit_retry_delays_s: retryDelays,
+    browser_heap_after_gc: { before: heapBefore, after: heapAfter }, responses: evidence }, null, 2));
   await page.screenshot({ path: testInfo.outputPath("carla-completed.png"), fullPage: true });
   await page.reload();
   await expect(detail.getByText("completed", { exact: true })).toBeVisible();
+  if (process.env.POLTERGEIST_HOSTED_VALIDATE_RETENTION === "1") {
+    const maintenance = await control("export-and-remove-evidence");
+    expect(maintenance.exported_bytes).toBeGreaterThan(Number(capture.total_bytes));
+    expect(maintenance.reclaimed_bytes).toBeGreaterThanOrEqual(Number(capture.total_bytes));
+    await recordings.getByRole("button", { name: "Read recordings", exact: true }).click();
+    await expect(recordings.getByText("This recording was explicitly removed on the computer. Its saved summary remains.")).toBeVisible();
+    await expect(recordings.getByText("No sensor recording was saved for this run.")).toHaveCount(0);
+    await expect(detail.getByText("completed", { exact: true })).toBeVisible();
+    await writeFile(testInfo.outputPath("carla-evidence-maintenance.json"), JSON.stringify(maintenance, null, 2));
+  }
   expect(errors).toEqual([]);
 });

@@ -293,13 +293,13 @@ AI through the app without manual interpreter or dependency installation.
 
 ### S8 — Results, recordings and bandwidth management
 
-**Status: private bounded-delivery implementation; product gates open.** Explicit
+**Status: local acceptance passed at the 120-second hosted limit.** Explicit
 local consent, telemetry pages, recording sample chunks, integrity/version checks,
 per-device/global transfer limits, disk budgets and evidence export/removal are
-implemented. Website recording selection/rendering passes a sixty-second live
-CARLA run: 2,402 samples, 303 MB local evidence, 2.13 MB transferred and bounded
-retained browser heap. Representative hardware and production-duration transfer
-acceptance remain open. Cloud sharing remains disabled. See [scope](evidence-capacity-release.md).
+implemented. The browser reviewed 4,802 samples from a 606 MB CARLA capture
+with 3.61 MB transferred and bounded retained heap. The local quota and removal
+checks passed. Independent hardware and public-network performance remain open.
+See the [S8 validation record](validation/s8-120-local-20261103.md).
 
 - Send summaries/progress first; page telemetry and retrieve sensor samples only
   when the user requests them. Keep AI observations local during execution.

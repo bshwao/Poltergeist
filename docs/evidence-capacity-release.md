@@ -93,6 +93,12 @@ Native frames 235053–236253 were preserved. This laptop proof does not establi
 other hardware or long-running production transfer capacity. Cloud sharing is disabled, so no
 cloud retention/deletion policy or storage spend is activated.
 
+The [November 3 acceptance run](validation/s8-120-local-20261103.md) passed
+at the 120-second hosted limit on this PC. Chromium reviewed 4,802 samples
+across 193 pages using 3.61 MB of evidence responses from a 606 MB capture.
+The local quota check, verified ZIP export and dashboard removal state passed.
+Independent hardware and public-network performance remain open.
+
 ## S9: capacity and operations
 
 This implementation deliberately uses one coordinator process and its private

@@ -89,7 +89,8 @@ export function RecordingPanel({ client, device, run, enabled, synthetic }: {
       if (signal.aborted) return;
       if (reply.state !== "available") throw new Error(messages[reply.state]);
       const items = reply.recordings ?? [];
-      setRecordings(items); setRecordingIndex(items.find(item => item.state === "available")?.artifact_index ?? "");
+      const first = items.find(item => item.state === "available") ?? items[0];
+      setRecordings(items); setRecordingIndex(first?.artifact_index ?? "");
     });
   }
   async function list(next = false) {

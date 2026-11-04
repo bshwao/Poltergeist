@@ -15,7 +15,7 @@ import ssl
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Event, Lock, Thread
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -64,6 +64,7 @@ class RelayLink:
 
 def main():
     live_carla = os.environ.get("POLTERGEIST_HOSTED_LIVE_CARLA") == "1"
+    validate_retention = live_carla and os.environ.get("POLTERGEIST_HOSTED_VALIDATE_RETENTION") == "1"
     if live_carla:
         try:
             import carla  # noqa: F401
@@ -229,6 +230,16 @@ def main():
                         answer = {"runs": len(snapshot["runs"]), "entered": entered.is_set(),
                             "statuses": [row["status"] for row in snapshot["runs"]],
                             "run_ids": [row["id"] for row in snapshot["runs"]]}
+                    elif self.path == "/export-and-remove-evidence" and validate_retention:
+                        controller = controllers[name]
+                        run, = controller.snapshot()["runs"]
+                        assert run["status"] == "completed" and run["mode"] == "carla"
+                        simulation_id = UUID(run["id"])
+                        export = root / f"{name}-capture.zip"
+                        before = controller.maintain_evidence(simulation_id, export=export)
+                        after = controller.maintain_evidence(simulation_id, delete=True)
+                        answer = {"exported_bytes": export.stat().st_size,
+                                  "reclaimed_bytes": before["used_bytes"] - after["used_bytes"]}
                     else:
                         self.reply(404, {})
                         return
