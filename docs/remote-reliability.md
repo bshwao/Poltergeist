@@ -4,9 +4,9 @@ The [November 3 local validation](validation/s6-local-reliability-20261103.md)
 covers real coordinator and Companion failures, native CARLA ownership and
 cancellation, and isolated browser TCP interruption. The coordinator now also
 checks authorization and heartbeat expiry at the moment a durable command
-acquires the socket send lock. Physical and independent-machine acceptance
-remain open. Public S5 acceptance is recorded separately in the
-[VPS deployment record](validation/s5-vps-deployment-20261103.md).
+acquires the socket send lock. The [public S6 rollout](validation/s6-vps-rollout-20261103.md)
+verified the original result through a production coordinator restart. Physical
+and independent-machine acceptance remain open.
 
 ## CARLA execution ownership
 

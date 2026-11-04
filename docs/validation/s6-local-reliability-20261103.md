@@ -1,8 +1,8 @@
 # S6 local reliability validation, November 3, 2026
 
 Validation used the `publicity` worktree at base `84007f9`, isolated Companion
-profiles and loopback HTTPS/WSS coordinators. The deployed S5 coordinator remains
-on its [public release](s5-vps-deployment-20261103.md).
+profiles and loopback HTTPS/WSS coordinators. The later public deployment is
+recorded separately in the [S6 rollout](s6-vps-rollout-20261103.md).
 
 ## Delivery and account isolation
 
