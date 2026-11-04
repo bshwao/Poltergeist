@@ -25,3 +25,24 @@ The previous image remains available under `poltergeist-hosted-coordinator:s5-c4
 The [S5 rollback procedure](s5-vps-deployment-20261103.md#backup-and-rollback)
 still applies. Rebuilding the old S5 release directory would replace the S6
 image, so use the pinned S6 image or build from the current source for upgrades.
+
+## Windows sleep and resume
+
+Windows logged 404.9 seconds of Modern Standby on November 3. The packaged
+Companion reconnected to the production VPS 3.4 seconds after Windows logged
+resume. The fixture captured the server-issued connection generation advancing
+from 1 to 2 on the PC. Retrying the original command preserved its
+acknowledgement. A fresh result request returned the same completed five-frame
+run, and the local profile still had one job. The test device was revoked and
+the disposable Companion closed after verification.
+
+## Windows Wi-Fi outage and recovery
+
+Windows recorded a Wi-Fi disconnect at 8:55:37 p.m. and a reconnect at
+8:58:59 p.m. on November 3, Toronto time. The fixture measured 202.3 seconds
+between the first failed HTTPS check and the first successful check. The
+Companion reconnected automatically 28.4 seconds after HTTPS became reachable,
+advancing the server-issued connection generation from 1 to 2. Retrying the
+original command preserved its acknowledgement. A fresh request retrieved the
+same completed five-frame run, and the local profile still had one job. The
+fixture revoked its test device and closed the disposable Companion.

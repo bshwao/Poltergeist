@@ -5,8 +5,9 @@ covers real coordinator and Companion failures, native CARLA ownership and
 cancellation, and isolated browser TCP interruption. The coordinator now also
 checks authorization and heartbeat expiry at the moment a durable command
 acquires the socket send lock. The [public S6 rollout](validation/s6-vps-rollout-20261103.md)
-verified the original result through a production coordinator restart. Physical
-and independent-machine acceptance remain open.
+verified the original result through a production coordinator restart, Windows
+Modern Standby and a physical Wi-Fi outage. Power-loss and independent-machine
+acceptance remain open.
 
 ## CARLA execution ownership
 
@@ -180,7 +181,7 @@ separately; frame-zero observations are not used to claim cleanup.
 | Claimed worker process loss | Actual opening/running process exits, real orphaned CARLA vehicles/settings, honest failed recovery and reset quarantine | Independent machines |
 | Cancellation ordering | Lost ACK before/after commit, offline browser cancellation and actual CARLA cancellation after a measured tick | External acceptance |
 | Final output commit | Real SQLite writer ordering, process exits before/after final-result commit, and native cancellation after runner cleanup; original ACK and next queued job survive | Physical faults and power-loss durability |
-| Reconnection and heartbeat | Socket send-lock fencing, native TLS deadlines, 102-second packaged process suspension and one-device TCP interruption with result reconciliation | Physical PC sleep/resume, NIC faults and longer real outages |
+| Reconnection and heartbeat | Socket send-lock fencing, native TLS deadlines, packaged process suspension, one-device TCP interruption, Windows sleep/resume and a 202-second Wi-Fi outage with result reconciliation | Longer outages and independent machines |
 | Distribution | Refreshed Windows package passes installed TLS/DPAPI/recovery/suspension, actual Start-menu launch, visual reopen and data-preserving uninstall | Independent-machine fault validation |
 
 ### Refreshed private Windows runtime
@@ -269,9 +270,10 @@ and from power-loss durability. All four cases pass in private Runtime I, alongs
 the two source interpreters' 25-check regression batches.
 
 The [November 3 local validation](validation/s6-local-reliability-20261103.md)
-adds the current native CARLA cancellation and finalization cases. Physical
-sleep, adapter outages and independent supported-machine testing remain separate
-acceptance gates.
+adds the current native CARLA cancellation and finalization cases. The
+[VPS record](validation/s6-vps-rollout-20261103.md#windows-sleep-and-resume)
+records physical sleep and Wi-Fi outage acceptance on this PC. Power-loss and
+independent supported-machine testing remain separate acceptance gates.
 
 ### Coarse-clock request-budget rounding
 
