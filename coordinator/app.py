@@ -105,7 +105,8 @@ class RequestBoundary:
                 remaining = body_deadline - time.monotonic()
                 if remaining <= 0:
                     raise TimeoutError
-                message = await asyncio.wait_for(receive(), timeout=remaining)
+                async with asyncio.timeout(remaining):
+                    message = await receive()
                 if time.monotonic() >= body_deadline:
                     raise TimeoutError
             except TimeoutError:
@@ -354,7 +355,7 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
             result = request.app.state.commands._admit(connection, account["account_id"], device_id, body,
                 connected=request.app.state.relay.available(device_id, connection=connection))
         request.app.state.relay.notify(device_id)
-        return result
+        return Response(result.model_dump_json(), status_code=202, media_type="application/json")
 
     @app.post("/v1/devices/{device_id}/evidence")
     async def evidence(device_id: UUID, request: Request):
@@ -410,7 +411,8 @@ def create_app(settings: CoordinatorSettings, *, now=time.time):
         browser(request, authenticated=False)
         with store.transaction() as connection:
             account = browser(request, connection=connection)
-            return request.app.state.commands._get(connection, account["account_id"], device_id, request_id)
+            result = request.app.state.commands._get(connection, account["account_id"], device_id, request_id)
+        return Response(result.model_dump_json(), media_type="application/json")
 
     @app.get("/v1/devices/{device_id}/commands")
     def command_history(device_id: UUID, request: Request,

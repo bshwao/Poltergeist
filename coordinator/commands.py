@@ -1,6 +1,7 @@
 """Durable, owner-scoped command admission and fenced device delivery."""
 
 import hmac
+from hashlib import sha256
 from math import ceil
 import time
 from uuid import uuid4
@@ -37,12 +38,15 @@ class CommandService:
         if row is None:
             raise AuthError(404, "resource_not_found")
         if scope is not None:
-            granted = connection.execute("SELECT 1 FROM device_grants WHERE device_id=? "
-                "AND ownership_generation=? AND scope=?", (row["id"], row["ownership_generation"], str(scope))).fetchone()
-            policy = _stored(DevicePolicy, row["policy_json"])
-            if granted is None or scope not in policy.scopes:
-                raise AuthError(403, "permission_denied")
+            self._require_scope(connection, row, scope)
         return row
+
+    def _require_scope(self, connection, row, scope):
+        granted = connection.execute("SELECT 1 FROM device_grants WHERE device_id=? "
+            "AND ownership_generation=? AND scope=?", (row["id"], row["ownership_generation"], str(scope))).fetchone()
+        policy = _stored(DevicePolicy, row["policy_json"])
+        if granted is None or scope not in policy.scopes:
+            raise AuthError(403, "permission_denied")
 
     def _credential(self, connection, credential, *, expected=None):
         import re
@@ -160,14 +164,15 @@ class CommandService:
 
     def admit(self, owner_id, device_id, command, *, connected):
         with self.store.transaction() as connection:
+            command = parse_message(canonical_json(command), relay=False)
             return self._admit(connection, owner_id, device_id, command, connected=connected)
 
     def _admit(self, connection, owner_id, device_id, command, *, connected):
-        # Validate again for direct callers; normalized defaults are part of the digest.
-        command = parse_message(canonical_json(command), relay=False)
+        # Both entry points validate the command before reaching this transaction path.
         if isinstance(command, (EvidenceRequest, LabCommand)):
             raise AuthError(400, "use_evidence_endpoint")
-        digest, payload = payload_digest(command), canonical_json(command)
+        payload = canonical_json(command)
+        digest = sha256(payload.encode("utf-8")).hexdigest()
         now = self.now()
         row = self._owner(connection, owner_id, device_id, scope=command_scope(command))
         existing = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND request_id=?",
@@ -232,7 +237,7 @@ class CommandService:
         if command is None:
             raise AuthError(404, "resource_not_found")
         parsed = _stored(COMMAND_ADAPTER, command["payload_json"])
-        self._owner(connection, owner_id, device_id, scope=command_scope(parsed))
+        self._require_scope(connection, row, command_scope(parsed))
         return self._view(command)
 
     def pending(self, credential, expected):
@@ -244,16 +249,20 @@ class CommandService:
         """Check the full live connection and select work in one transaction."""
         with self.store.transaction() as connection:
             row = self._connection_current(connection, credential, expected)
-            return self._pending(connection, row)
+            return self._pending(connection, row, approved_scopes=expected["policy"].scopes)
 
-    def _pending(self, connection, row):
+    def _pending(self, connection, row, *, approved_scopes=None):
         commands = connection.execute("SELECT * FROM commands WHERE device_id=? AND ownership_generation=? AND status='queued' "
             "ORDER BY created_at,id LIMIT 32", (row["id"], row["ownership_generation"])).fetchall()
         pending = []
         for stored in commands:
             command = _stored(COMMAND_ADAPTER, stored["payload_json"])
             try:
-                self._owner(connection, row["owner_id"], row["id"], scope=command_scope(command))
+                scope = command_scope(command)
+                if approved_scopes is None:
+                    self._require_scope(connection, row, scope)
+                elif scope not in approved_scopes:
+                    raise AuthError(403, "permission_denied")
             except AuthError:
                 rejected = CommandRejected(request_id=command.request_id, code="permission_denied")
                 connection.execute("UPDATE commands SET status='rejected',reply_json=?,error_code='permission_denied',"
@@ -271,11 +280,17 @@ class CommandService:
             if stored is None or stored["status"] != "queued":
                 return False
             command = _stored(COMMAND_ADAPTER, stored["payload_json"])
-            self._owner(connection, row["owner_id"], row["id"], scope=command_scope(command))
+            # _connection_current verified the policy and all grants in this transaction.
+            if command_scope(command) not in expected["policy"].scopes:
+                raise AuthError(403, "permission_denied")
             return True
 
     def reply(self, credential, expected, reply):
         reply = REPLY_ADAPTER.validate_json(canonical_json(reply))
+        return self._record_reply(credential, expected, reply, readback=True)
+
+    def _record_reply(self, credential, expected, reply, *, readback=False):
+        """Persist a validated reply, constructing a view only for direct callers."""
         now = self.now()
         with self.store.transaction() as connection:
             # Validate current credentials/grants and update device activity in
@@ -287,11 +302,11 @@ class CommandService:
             if stored is None or stored["owner_id"] != row["owner_id"]:
                 raise AuthError(404, "resource_not_found")
             command = _stored(COMMAND_ADAPTER, stored["payload_json"])
-            self._owner(connection, row["owner_id"], row["id"], scope=command_scope(command))
+            self._require_scope(connection, row, command_scope(command))
             encoded = canonical_json(reply)
             if stored["status"] != "queued":
                 if stored["reply_json"] == encoded:
-                    return self._view(stored)
+                    return self._view(stored) if readback else None
                 raise AuthError(409, "request_conflict")
             expected_kind = {"execute": "accepted", "cancel": "cancel_requested", "status": "status", "result": "result"}[command.kind]
             if reply.kind not in (expected_kind, "rejected"):
@@ -335,4 +350,5 @@ class CommandService:
                 reply.accepted_at.timestamp() if isinstance(reply, (ExecuteAccepted, CancelAccepted)) else None,
                 None if status == "accepted" else now, projection_revision, now, stored["id"]))
             audit(connection, now, "command_reply", status, account_id=row["owner_id"], device_id=row["id"], command_id=stored["id"])
-            return self._view(connection.execute("SELECT * FROM commands WHERE id=?", (stored["id"],)).fetchone())
+            if readback:
+                return self._view(connection.execute("SELECT * FROM commands WHERE id=?", (stored["id"],)).fetchone())

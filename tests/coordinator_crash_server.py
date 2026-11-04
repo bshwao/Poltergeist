@@ -37,20 +37,20 @@ def main():
             if not thread.is_alive() or monotonic() >= deadline:
                 raise RuntimeError("The fixture coordinator did not start")
             sleep(.01)
-        original = app.state.commands.reply
+        original = app.state.commands._record_reply
 
-        def reply(credential, identity, message):
+        def record_reply(credential, identity, message, *, readback=False):
             selected = message.kind == config.get("kind")
             if selected and config.get("fault") == "before_commit":
                 emit({"event": "fault", "boundary": "before_commit", "reply": message.model_dump(mode="json")})
                 os._exit(79)
-            result = original(credential, identity, message)
+            result = original(credential, identity, message, readback=readback)
             if selected and config.get("fault") == "after_commit":
                 emit({"event": "fault", "boundary": "after_commit", "reply": message.model_dump(mode="json")})
                 os._exit(79)
             return result
 
-        app.state.commands.reply = reply
+        app.state.commands._record_reply = record_reply
         emit({"event": "ready", "pid": os.getpid()})
         for line in sys.stdin:
             command = json.loads(line)

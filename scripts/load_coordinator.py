@@ -5,11 +5,13 @@ import asyncio
 from collections import Counter
 import json
 import math
+import multiprocessing
 from pathlib import Path
 import random
 import secrets
 import shutil
 import socket
+import ssl
 import statistics
 import tempfile
 import tracemalloc
@@ -17,6 +19,7 @@ from threading import Thread, Event
 from time import monotonic
 from uuid import uuid4
 
+import certifi
 import httpx
 import uvicorn
 from websockets.asyncio.client import connect
@@ -64,13 +67,16 @@ async def bounded_request(client, method, path, *, deadline, counters, jitter=la
     raise CapacityCheckError("retry_budget_exhausted")
 
 
-async def exercise(app, origin, identities, rounds):
+async def exercise(max_connections, origin, identities, rounds):
     latencies, tasks, browsers = [], [], []
     counters = {"statuses": Counter(), "bytes": 0, "retries": 0, "retry_wait_s": 0.}
     routed, isolated = 0, 0
     phase, failure, connected = "connections", None, 0
     ready = [asyncio.Event() for _ in identities]
     barrier = asyncio.Barrier(len(identities))
+    # HTTPX otherwise loads the same CA bundle synchronously for each client
+    # during the burst. Share trust settings while keeping independent clients.
+    trust = ssl.create_default_context(cafile=certifi.where())
     started = monotonic()
 
     async def companion(device, credential, ready):
@@ -100,7 +106,7 @@ async def exercise(app, origin, identities, rounds):
         rng = random.Random(index)
         headers = {"Origin": origin, "X-Poltergeist-Client": "browser", "X-CSRF-Token": session["csrf_token"],
                    "Cookie": f"{COOKIE}={session['session_token']}"}
-        async with httpx.AsyncClient(base_url=origin, headers=headers, timeout=15, trust_env=False) as client:
+        async with httpx.AsyncClient(base_url=origin, headers=headers, timeout=15, trust_env=False, verify=trust) as client:
             other = identities[(index + 1) % len(identities)][0]
             denied = await bounded_request(client, "GET", f"/v1/devices/{other}/commands",
                 deadline=monotonic() + 15, counters=counters, jitter=lambda: rng.random() * .05)
@@ -170,13 +176,45 @@ async def exercise(app, origin, identities, rounds):
         "latency_max_s": max(latencies) if complete else None, "latency_measurement_complete": complete,
         "http_payload_bytes": counters["bytes"], "http_status_counts": dict(counters["statuses"]),
         "http_retry_count": counters["retries"], "http_retry_wait_s": counters["retry_wait_s"],
-        "max_connections": app.state.relay.max_connections,
+        "max_connections": max_connections,
         "failure_phase": phase if failure else None, "failure_code": failure,
         "passed": complete and routed == len(latencies) and isolated == len(identities),
         "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs"}
 
 
-def run(directory, *, users=25, rounds=20):
+def _client_process(max_connections, origin, identities, rounds, receipt):
+    with receipt:
+        receipt.send(asyncio.run(exercise(max_connections, origin, identities, rounds)))
+
+
+def _isolated_exercise(max_connections, origin, identities, rounds):
+    context = multiprocessing.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    with receiver, sender:
+        process = context.Process(target=_client_process, args=(max_connections, origin, identities, rounds, sender))
+        try:
+            process.start()
+            sender.close()
+            # Readiness and each request have their own budgets. Allow process
+            # startup and teardown in addition to the per-device workload.
+            if not receiver.poll(30 + 15 * (rounds + 1) + 15):
+                raise CapacityCheckError("client_process_timeout")
+            result = receiver.recv()
+            process.join(5)
+            if process.exitcode != 0:
+                raise CapacityCheckError("client_process_failed")
+            return result
+        finally:
+            if process.is_alive():
+                process.terminate()
+                process.join(5)
+            if process.is_alive():
+                process.kill()
+                process.join()
+            process.close()
+
+
+def run(directory, *, users=25, rounds=20, isolate_clients=False):
     if not 2 <= users <= 100 or not 1 <= rounds <= 100:
         raise ValueError("Load fixture supports 2–100 users and 1–100 rounds")
     tracemalloc.start()
@@ -220,7 +258,10 @@ def run(directory, *, users=25, rounds=20):
                 expected_account_id=owner, expected_revision=claim.revision, credential=credential, policy={"scopes": ["status:read"]}))
             identities.append((device.device_id, credential, session))
         phase = "workload"
-        result = asyncio.run(exercise(app, origin, identities, rounds))
+        arguments = (app.state.relay.max_connections, origin, identities, rounds)
+        result = _isolated_exercise(*arguments) if isolate_clients else asyncio.run(exercise(*arguments))
+    except CapacityCheckError as error:
+        result.update(passed=False, failure_phase=phase, failure_code=str(error))
     except Exception:
         result.update(passed=False, failure_phase=phase, failure_code="fixture_setup_or_workload_failed")
     finally:
@@ -236,6 +277,7 @@ def run(directory, *, users=25, rounds=20):
         if not result["cleanup_completed"]:
             result.update(passed=False, failure_phase="cleanup", failure_code="fixture_shutdown_timeout")
     result["database_bytes"] = sum(p.stat().st_size for p in Path(directory).glob("coordinator.db*"))
+    result["python_trace_scope"] = "coordinator process" if isolate_clients else "coordinator and simulated clients"
     result["server_concurrency_limit"] = server.config.limit_concurrency if server is not None else None
     result["provisional_targets"] = {"p95_latency_s": 2., "python_peak_bytes": 128 * 1024**2}
     result["target_failures"] = []
@@ -252,6 +294,7 @@ def main(argv=None):
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--users", type=int, default=25)
     parser.add_argument("--rounds", type=int, default=20)
+    parser.add_argument("--isolate-clients", action="store_true", help="Run simulated clients in a separate process")
     args = parser.parse_args(argv)
     if not 2 <= args.users <= 100 or not 1 <= args.rounds <= 100:
         parser.error("Use 2–100 users and 1–100 rounds")
@@ -262,7 +305,7 @@ def main(argv=None):
     directory = Path(tempfile.mkdtemp(prefix="poltergeist-capacity-", dir=parent)).resolve()
     if directory == parent or not directory.is_relative_to(parent) or not directory.name.startswith("poltergeist-capacity-"):
         raise ValueError("Fixture directory escaped its evidence parent")
-    result = run(directory, users=args.users, rounds=args.rounds)
+    result = run(directory, users=args.users, rounds=args.rounds, isolate_clients=args.isolate_clients)
     if result["cleanup_completed"]:
         try:
             shutil.rmtree(directory)

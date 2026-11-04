@@ -133,7 +133,8 @@ class RelayHub:
 
     async def _receive(self, current):
         while True:
-            frame = await asyncio.wait_for(current.socket.receive(), timeout=90)
+            async with asyncio.timeout(90):
+                frame = await current.socket.receive()
             if frame["type"] == "websocket.disconnect":
                 return
             # Check after the await: a buffered ready/pong/reply cannot revive
@@ -188,7 +189,7 @@ class RelayHub:
                     continue
                 if not current.ready or not current.enabled or message.reply.request_id not in current.sent:
                     raise ValueError("Invalid remote protocol message")
-                self.commands.reply(current.credential, current.identity, message.reply)
+                self.commands._record_reply(current.credential, current.identity, message.reply)
                 current.sent.discard(message.reply.request_id)
             else:
                 raise ValueError("Invalid remote protocol message")

@@ -315,12 +315,12 @@ uploads, memory growth or inaccessible evidence being presented as a valid zero.
 
 ### S9 — Multi-user service capacity and operations
 
-**Status: provisional simulated target met; hosted/physical gates open.** The
-private single-process service has monitoring, limits and generation-safe routing.
-25 simulated owners/devices complete 500 commands with p95 1.56 s on Python 3.12
-and 1.39 s on Python 3.14, with correct
-isolation. The configured 100-device ceiling, representative physical execution,
-provider costs and agreed production targets remain unvalidated.
+**Status: simulated service targets passed on this PC.** The single-process
+coordinator has monitoring, limits and generation-safe routing. Two loopback
+runs at the configured 100-device ceiling each completed 500 commands and
+100 ownership denials below the two-second p95 target. Coordinator allocation
+peaks were below 24 MiB. Representative physical execution, provider costs and
+deployed performance remain open. See the [capacity record](evidence-capacity-release.md#november-3-capacity-acceptance-on-this-pc).
 
 - Measure and agree on initial connected-device, active-run and transfer targets.
 - Add hosted monitoring, request limits, per-user/device quotas and routing.

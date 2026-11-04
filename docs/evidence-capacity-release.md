@@ -294,9 +294,46 @@ evidence. Two instrumented call-profile attempts produced incomplete workloads;
 neither is counted as a latency pass. See the
 [scoped overhead checkpoint](validation/s9-relay-overhead-20261031.json).
 
-The 100-device latency target remains open. Representative physical PCs,
-concurrent CARLA/GPU work, TLS/WAN overhead and deployed hosting costs remain
-separate gates. Public hosting is still deferred.
+### November 3 capacity acceptance on this PC
+
+The first current run stalled with its fixture database under OneDrive. A
+repeat on local storage timed out during the ownership probes. HTTPX had been
+loading identical certificate settings once per simulated browser on the same
+event loop. A 30-client diagnostic took 9.77 seconds with separate trust contexts
+and 0.04 seconds with one shared context. Each browser still has its own client,
+session and command sequence.
+
+The benchmark now offers a separate simulated-client process so allocation
+tracing measures the coordinator. The same 100-client burst, deadlines, retry
+rules, server limits and two-second p95 target apply. With this mode and the
+same workload, the unchanged source measured 2.047 seconds p95. The optimized
+source removes duplicate validation and serialization of already validated
+commands, skips construction of reply views that the relay discards, and reuses
+device data checked in the same transaction. Authorization is checked against
+current credentials, policy and grants. Send-lock fencing and SQLite FULL
+durability remain in force.
+
+| Devices | Completed and routed | Cross-owner denials | p95 | Traced coordinator peak |
+| --- | --- | --- | --- | --- |
+| 100 | 500 | 100 | 1.672 s | 23.23 MiB |
+| 100, repeat | 500 | 100 | 1.687 s | 22.96 MiB |
+| 25 | 500 | 25 | 0.422 s | 8.29 MiB |
+
+The 100-device runs each recorded 36 overload responses, all recovered within
+the existing budgets. All three fixtures shut down cleanly. The comparison and
+earlier failed variants are in the [machine-readable record](validation/s9-local-capacity-20261103.json).
+
+All 177 regression cases passed across two batches. The initial run passed
+172 cases. The five remaining crash-recovery cases passed after the fixture
+was updated to inject faults at the relay's reply persistence entry point.
+
+```powershell
+python -m scripts.load_coordinator --isolate-clients --users 100 --rounds 5 --output capacity-100.json
+python -m scripts.load_coordinator --isolate-clients --users 25 --rounds 20 --output capacity-25.json
+```
+
+Representative physical PCs, concurrent CARLA/GPU execution, TLS/WAN overhead
+and deployed hosting costs remain separate acceptance gates.
 
 ## S10: signing and safe update tooling
 
