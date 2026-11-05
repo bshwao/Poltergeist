@@ -54,6 +54,26 @@ def test_unscored_positive_failure_remains_unknown():
     assert assessment.score is assessment.matches is None
 
 
+@pytest.mark.parametrize("minimum,expected", [(0.0, True), (1.0, None)])
+def test_unscored_named_braking_uses_its_evidence_without_inventing_severity(minimum, expected):
+    run = result(severity=None, hard_braking_count=1)
+    run.metrics.coverage.traffic_rule_frames = 2
+    assessment = assess_result(run, kind=FailureKind.HARD_BRAKING, minimum_severity=minimum)
+    assert assessment.matches is expected
+    assert assessment.score is None
+    assert run.metrics.severity is None
+
+
+@pytest.mark.parametrize("braking_frames,expected", [(3, False), (2, None)])
+def test_unscored_named_braking_absence_requires_complete_braking_coverage(braking_frames, expected):
+    run = result(severity=None)
+    run.metrics.coverage.traffic_rule_frames = 2
+    run.metrics.coverage.braking_frames = braking_frames
+    assessment = assess_result(run, kind=FailureKind.HARD_BRAKING)
+    assert assessment.matches is expected
+    assert assessment.score is None
+
+
 @pytest.mark.parametrize("kind,metric", [
     (FailureKind.COLLISION, {"collision_count": 1}),
     (FailureKind.NEAR_MISS, {"min_ttc_s": 1.0}),

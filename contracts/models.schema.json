@@ -7161,10 +7161,17 @@
           "$ref": "#/$defs/Scenario"
         },
         "severity": {
-          "maximum": 100,
-          "minimum": 0,
-          "title": "Severity",
-          "type": "number"
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Severity"
         },
         "simulation_id": {
           "format": "uuid",

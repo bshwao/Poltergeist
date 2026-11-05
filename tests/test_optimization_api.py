@@ -92,7 +92,7 @@ def test_search_returns_actual_runs_and_positive_failure_evidence(client):
     operation_id = response.json()["id"]
     view = completed(client, operation_id)
     operation, trials = view["operation"], view["trials"]
-    assert operation["engine_version"] == "random-v1"
+    assert operation["engine_version"] == "random-v1/failure-policy-v2"
     assert operation["outcome"]["trials_used"] == len(trials) == 2
     assert operation["outcome"]["unknowns"] == 0
     assert [item["number"] for item in trials] == [0, 1]

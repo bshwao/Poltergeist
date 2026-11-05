@@ -308,8 +308,8 @@ class FailureRepository(_Repository):
         if _canonical(report.scenario) != _canonical(run.simulation.scenario):
             raise PersistenceError("Failure scenario must match its run's immutable scenario snapshot")
         metrics = run.result.metrics
-        if metrics.severity is None or report.severity != metrics.severity:
-            raise PersistenceError("Failure severity must match the scored terminal result")
+        if report.severity != metrics.severity:
+            raise PersistenceError("Failure severity must match the terminal result, including an unavailable score")
         settings = metrics.evaluation_settings or EvaluationSettings()
         evidence = {
             FailureKind.COLLISION: (metrics.collision_count or 0) > 0,

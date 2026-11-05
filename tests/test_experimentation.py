@@ -160,6 +160,45 @@ def test_discovery_proposal_is_read_only_until_exact_explicit_approval(settings)
         assert client.post("/optimizations", json=accepted.json()["request"]).status_code == 422
 
 
+@pytest.mark.parametrize("minimum", [0.0, 1.0])
+def test_unscored_specific_discovery_preserves_missing_severity_and_confirmation_budget(settings, minimum):
+    class PartialRulesBrakingAdapter(TestSimulationAdapter):
+        def open(self, recipe):
+            frame = super().open(recipe)
+            frame.ego.acceleration_mps2.x = -6.0
+            frame.traffic_violations = []
+            frame.rule_checks = []
+            return frame
+
+    goal = proposal()["goal"] | {"failure_kind": "hard_braking", "minimum_severity": minimum}
+    with client_for(settings, PartialRulesBrakingAdapter) as client:
+        plan = propose(client, goal=goal)
+        assert approve(client, plan).status_code == 202
+        saved = report(client, plan)
+        trials = saved["evidence"]["trials"]
+        assert all(t["score"] is None for t in trials)
+        if minimum == 0:
+            assert saved["executions_used"] == 6
+            assert saved["confirmed_failures"] == 2
+            assert all(t["matches"] is True for t in trials)
+            assert all(c["matching_confirmations"] == 2 for c in saved["candidates"])
+        else:
+            assert saved["executions_used"] == 2
+            assert saved["confirmed_failures"] == 0
+            assert all(t["matches"] is None for t in trials)
+        for trial in trials:
+            result = client.get(f"/simulations/{trial['simulation_id']}/result").json()
+            assert result["metrics"]["severity"] is None
+            coverage = result["metrics"]["coverage"]
+            assert coverage["collision_frames"] == coverage["total_frames"]
+            assert coverage["traffic_rule_frames"] < coverage["total_frames"]
+            if minimum == 0:
+                failure = client.get(f"/failures/{trial['failure_id']}")
+                assert failure.status_code == 200
+                assert failure.json()["kind"] == "hard_braking"
+                assert failure.json()["severity"] is None
+
+
 def test_no_failure_report_retains_every_negative_and_does_not_invent_confirmation(settings):
     with client_for(settings, TestSimulationAdapter) as client:
         plan = propose(client)

@@ -110,8 +110,9 @@ in chat on November 2, 2026; assistant diagnostics have their own UTC timestamps
 | A8 synthetic launch | “Run accepted appears” | PASS for visible admission receipt only |
 | A9 run detail/status | Tester reports “Completed” after Track this run | PASS for opening the completed run |
 | A9 frozen settings | “All recorded settings match” for the requested name, seed, duration, mode and controller | PASS |
-| A10 safety metrics and coverage | Requested actual collision count, minimum TTC, minimum clearance and gaps | NOT RUN / awaiting observation |
-| A11–A14 detailed evidence through export/reopen | No observation yet | NOT RUN |
+| A10 safety metrics and coverage | Tester compared the cards against the saved result and answered “All values and coverage match”: collisions 0, minimum TTC 0.98 s, minimum clearance 1.85 m; observation counts 201/201 and no gaps | PASS for displayed metrics/coverage consistency; synthetic only |
+| A11 measured motion and decisions | Next checkpoint: inspect a saved telemetry frame and the decision timeline | NOT RUN |
+| A12–A14 behavior review through export/reopen | No observation yet | NOT RUN |
 
 Confirmed input values: Town10HD_Opt, seed 101, duration 10 s, ego/lead speeds
 12 m/s, lead distance 20 m, brake delay 2 s, lead deceleration 6 m/s²,
@@ -129,9 +130,11 @@ start/finish timestamps span about 1.95 seconds; this is a synthetic execution
 record, not CARLA/GPU performance or the user's perceived UI latency.
 
 The tester confirmed the frozen name, seed 101, duration 10 s, Synthetic test
-and baseline controller. Next pending action: read **Safety metrics** and report
-actual collisions, minimum TTC/clearance and any gaps or missing coverage.
-Ask for the observed result before advancing a manual verdict.
+and baseline controller, then personally confirmed the displayed metrics and
+201/201 coverage against the saved record. This is not a real-world safety
+conclusion. Next pending checkpoint: inspect **Measured motion**, then the
+**Inputs, decisions & outcomes** timeline. Ask for the observed result before
+advancing a manual verdict.
 
 ## Required manual coverage
 
@@ -210,6 +213,34 @@ evidence. This is not proof that none exist. Retain failed receipts and original
 observations when a later retest passes.
 
 ## Release assessment and remaining work
+
+### November 5 engineering findings under the adjusted S10–S19 plan
+
+These are engineering reproductions and checks, not new personal PASS results.
+The [S10–S19 record](validation/s10-s19-acceptance-20261105.md) retains exact
+plans, failed attempts, source/trace fingerprints and regression receipts.
+
+- **E04 — High: native localhost connection failure.** The owned Epic CARLA
+  server answered at `127.0.0.1` but timed out at `localhost`, causing an admitted
+  discovery attempt to fail with zero frames. The isolated acceptance runtime
+  now uses the working address, with a passing native readiness check and an
+  actual completed 201-frame CARLA run. Ordinary environment files were retained.
+  Human retest: NOT RUN.
+- **E05 — High: observed braking rejected because overall severity is missing.**
+  Run `593baf0c-23b6-4a57-87eb-dbe32472360e` has four hard-braking episodes and
+  201/201 braking observations, while an unchecked initial traffic-rule frame
+  makes severity null. Discovery previously discarded the positive named evidence.
+  `failure-policy-v2` now permits an explicit kind with no severity filter to use
+  its own observations, preserves null scores through saved reports/UI and
+  still requires valid severity for a positive severity threshold. The original
+  journal is unchanged. Automated regression passes; a fresh reviewed live
+  confirmation batch is pending. Human retest: NOT RUN.
+- **E06 — Medium: peak-deceleration link opened the review-window start.**
+  The native peak occurs at frame 59275 / 0.20 s; the original Analyst linked
+  frame 59271 / 0 s. Braking/behavior evidence now retains the actual witness,
+  including both frames for a velocity-derived interval. Regression cases and
+  the same saved native trace verify the corrected link; source and telemetry
+  fingerprints are unchanged. Human retest: NOT RUN.
 
 **Not accepted for release.** Local preparation, automated synthetic evidence
 and the first human navigation/readiness checks support continuing manual QA.

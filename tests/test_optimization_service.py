@@ -447,7 +447,7 @@ def test_restart_may_finish_linked_queued_child_but_never_schedules_new_trial_be
         repository = OptimizationRepository(session)
         record = repository.create(request, execution=request)
         record = repository.transition(record.id, "running", expected_revision=record.revision,
-                                       engine_version=manager.version)
+                                       engine_version=manager.version + "/failure-policy-v2")
         stored = SimulationRepository(session).create(Simulation(scenario=recipe, mode="test"))
         JobRepository(session).create(stored.simulation.id, request.options, request.evaluation_settings)
         repository.add_trial(OptimizationTrial(operation_id=record.id, number=0, candidate_index=0,

@@ -880,13 +880,23 @@ test("failure creation accepts only HTTP201 and verifies report ownership", asyn
   }
 });
 
-test("failure guards reject malformed evidence summaries and keep nullable reproduction strict", async () => {
-  for (const fields of [{ severity: null }, { severity: 101 }, { severity: "0" }, { reproduced: "false" }, { reproduced: 0 }, { kind: "unsafe" }, { simulation_id: "other" }, { summary: {} }, { summary: " " }, { scenario: null }]) {
+test("failure guards reject malformed evidence summaries and keep nullable fields strict", async () => {
+  for (const fields of [{ severity: undefined }, { severity: 101 }, { severity: "0" }, { reproduced: "false" }, { reproduced: 0 }, { kind: "unsafe" }, { simulation_id: "other" }, { summary: {} }, { summary: " " }, { scenario: null }]) {
     globalThis.fetch = async () => jsonResponse({ ...failure, ...fields });
     await assert.rejects(api.getFailure(failureId), ApiError);
     globalThis.fetch = async () => jsonResponse([{ ...failure, ...fields }]);
     await assert.rejects(api.listFailures(), ApiError);
   }
+});
+
+test("failure reads and creation preserve an explicitly unavailable severity", async () => {
+  const unknown = { ...failure, severity: null };
+  globalThis.fetch = async () => jsonResponse(unknown);
+  assert.equal((await api.getFailure(failureId)).severity, null);
+  globalThis.fetch = async () => jsonResponse([unknown]);
+  assert.equal((await api.listFailures())[0].severity, null);
+  globalThis.fetch = async () => jsonResponse(unknown, 201);
+  assert.equal((await api.createFailure(unknown)).severity, null);
 });
 
 test("analytics keeps modes separate, validates counts, and preserves unknown severity", async () => {

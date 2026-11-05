@@ -34,6 +34,10 @@ def assess_result(
     With no requested kind, choose the first observed failure in the documented
     priority order. An entirely observed run with no failure is a known negative.
     A partial run without positive evidence is inconclusive.
+
+    An explicit kind with a zero minimum can be assessed from that kind's own
+    evidence even when overall severity is unavailable. Its score stays None;
+    generic objective searches and positive severity thresholds still need a score.
     """
     if isinstance(minimum_severity, bool) or not isinstance(minimum_severity, (int, float)):
         raise ValueError("minimum_severity must be a finite number between 0 and 100")
@@ -46,7 +50,7 @@ def assess_result(
     if result.simulation.status != SimulationStatus.COMPLETED:
         return ResultAssessment(None, None, "Run did not complete successfully", kind)
     metrics = result.metrics
-    if metrics.severity is None:
+    if metrics.severity is None and (kind is None or minimum_severity > 0):
         return ResultAssessment(None, None, "Completed run has no valid severity objective", kind)
     score = metrics.severity
     settings = metrics.evaluation_settings or EvaluationSettings()
@@ -81,8 +85,10 @@ def assess_result(
             "No observed failure in fully observed channels" if known else "No positive failure evidence; coverage is incomplete",
             None,
         )
-    if positives[selected] and score >= minimum_severity:
-        return ResultAssessment(score, True, "Observed failure meets the severity threshold", selected)
+    if positives[selected] and (score is None or score >= minimum_severity):
+        reason = ("Observed requested failure; severity is unavailable and no severity filter was requested"
+                  if score is None else "Observed failure meets the severity threshold")
+        return ResultAssessment(score, True, reason, selected)
     if complete[selected]:
         reason = "Observed failure is below the severity threshold" if positives[selected] else "Requested failure was not observed"
         return ResultAssessment(score, False, reason, selected)

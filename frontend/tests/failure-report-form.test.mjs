@@ -40,10 +40,10 @@ test("eligible kinds use positive evidence and exact recorded near-miss threshol
   assert.deepEqual(eligibleFailureKinds(source), ["collision", "near_miss", "hard_braking", "traffic_violation"]);
 });
 
-test("unscored, nonterminal, and absent observations never create eligible evidence", () => {
+test("nonterminal and absent observations are ineligible; an unknown score retains positive evidence", () => {
   for (const status of ["queued", "running"]) { const source = result(); source.simulation.status = status; assert.deepEqual(eligibleFailureKinds(source), []); }
   const unknown = result(); unknown.metrics.severity = null; unknown.metrics.collision_count = 1;
-  assert.deepEqual(eligibleFailureKinds(unknown), []);
+  assert.ok(eligibleFailureKinds(unknown).includes("collision"));
   const noEvidence = result();
   for (const key of ["collision_count", "hard_braking_count", "traffic_violation_count", "min_ttc_s", "min_clearance_m"]) noEvidence.metrics[key] = null;
   assert.deepEqual(eligibleFailureKinds(noEvidence), []);
@@ -82,10 +82,25 @@ test("scored zero remains zero and only eligible kinds are selectable", async t 
   describe(view); await submit(view); assert.equal(sent.severity, 0);
 });
 
-test("unknown scores and absent positive evidence render without a submission form", t => {
+test("unknown scores with no positive evidence render without a submission form", t => {
   const source = result(); source.metrics.severity = null;
+  for (const key of ["collision_count", "hard_braking_count", "traffic_violation_count", "min_ttc_s", "min_clearance_m"]) source.metrics[key] = null;
   const view = setup(t, { result: source });
-  assert.equal(view.root.findAllByType("form").length, 0); assert.match(text(view.root), /no scored positive failure evidence/);
+  assert.equal(view.root.findAllByType("form").length, 0); assert.match(text(view.root), /no positive failure evidence/);
+});
+
+test("an observed braking failure is submitted with its unknown severity preserved", async t => {
+  const source = result(); source.metrics.severity = null;
+  source.metrics.collision_count = 0; source.metrics.hard_braking_count = 4;
+  source.metrics.traffic_violation_count = null; source.metrics.min_ttc_s = null; source.metrics.min_clearance_m = null;
+  const view = setup(t, { result: source });
+  assert.deepEqual(view.root.findAllByType("option").map(node => node.props.value), ["hard_braking"]);
+  let sent; api.createFailure = async report => { sent = report; return report; };
+  describe(view, "Recorded hard braking; unrelated rule coverage was unavailable.");
+  await submit(view);
+  assert.equal(sent.kind, "hard_braking");
+  assert.equal(sent.severity, null);
+  assert.match(text(view.root), /Failure report saved/);
 });
 
 test("duplicate submits use one immutable report and one POST", async t => {

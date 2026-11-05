@@ -30,19 +30,19 @@ from shared.models.optimization import (
 _REQUEST = TypeAdapter(OptimizationRequest)
 _OWNERS = set()
 _OWNERS_LOCK = Lock()
-_FAILURE_POLICY_VERSION = "failure-policy-v1"
+_FAILURE_POLICY_VERSION = "failure-policy-v2"
 
 
 def _engine_version(record):
     if record.request.kind == "discover":
-        return "discovery-v1/frozen-candidates-v1"
+        return "discovery-v1/frozen-candidates-v1/" + _FAILURE_POLICY_VERSION
     if record.request.kind == "suite":
-        return "suite-v1"
+        return "suite-v1/" + _FAILURE_POLICY_VERSION
     if record.request.kind == "compare":
-        return "comparison-v1"
+        return "comparison-v1/" + _FAILURE_POLICY_VERSION
     if record.request.kind == "search":
         version = SearchManager(record.request).version
-        return version + ("/agent-v1" if record.agent_snapshot is not None or record.request.driving_task is not None else "")
+        return version + ("/agent-v1" if record.agent_snapshot is not None or record.request.driving_task is not None else "") + "/" + _FAILURE_POLICY_VERSION
     return _FAILURE_POLICY_VERSION + ("/agent-v1" if record.agent_snapshot is not None else "")
 
 

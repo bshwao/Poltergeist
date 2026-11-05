@@ -573,7 +573,7 @@ export function createApiClient(baseUrl = API_BASE_URL) {
   };
   const isFailure = (value: unknown) => isObject(value) && isUuid(value.id) && isUuid(value.simulation_id)
     && isScenario(value.scenario) && typeof value.kind === "string" && failureKinds.has(value.kind)
-    && nonemptyText(value.summary) && bounded(value.severity, 0, 100) && (value.reproduced === null || typeof value.reproduced === "boolean") && isTimestamp(value.created_at);
+    && nonemptyText(value.summary) && (value.severity === null || bounded(value.severity, 0, 100)) && (value.reproduced === null || typeof value.reproduced === "boolean") && isTimestamp(value.created_at);
   const isAnalytics = (value: unknown) => isObject(value) && Array.isArray(value.groups) && value.groups.every(group => isObject(group)
     && (group.mode === "test" || group.mode === "carla")
     && ["total_runs", "result_count", "scored_runs", "unscored_results", "collision_runs", "collision_observed_runs", "traffic_violation_runs", "traffic_observed_runs", "failure_reports"].every(key => integer(group[key]))

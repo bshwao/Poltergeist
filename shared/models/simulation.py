@@ -231,6 +231,6 @@ class FailureReport(ContractModel):
     scenario: Scenario
     kind: FailureKind
     summary: NonEmptyString
-    severity: Annotated[float, Field(ge=0, le=100, strict=True)]
+    severity: Annotated[float, Field(ge=0, le=100, strict=True)] | None
     reproduced: StrictBool | None = None
     created_at: AwareDatetime = Field(default_factory=lambda: datetime.now(UTC))

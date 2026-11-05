@@ -30,6 +30,16 @@ def test_signed_acceleration_is_projected_onto_direction_of_motion(speed, accele
     assert result.hard_braking_count == int(expected >= 4)
 
 
+def test_peak_deceleration_witness_retains_the_actual_frame_or_velocity_interval():
+    measured = summarize_braking([frame(0, 10, 0), frame(1, 9, -2), frame(2, 8, -6)])
+    assert measured.max_deceleration_mps2 == 6
+    assert measured.max_deceleration_frames == (2,)
+    inferred = summarize_braking([frame(0, 10), frame(1, 9), frame(2, 5)])
+    assert inferred.max_deceleration_mps2 == 16
+    assert inferred.max_deceleration_frames == (1, 2)
+    assert summarize_braking([frame(0)]).max_deceleration_frames == ()
+
+
 def test_perpendicular_acceleration_is_not_braking():
     result = summarize_braking([frame(0, Vector3(x=6, y=8), Vector3(x=-8, y=6))])
     assert result.max_deceleration_mps2 == pytest.approx(0)

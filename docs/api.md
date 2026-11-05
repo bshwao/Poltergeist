@@ -295,8 +295,11 @@ are raw bytes. These are not encoded video or CARLA replay files.
 | `PATCH /failures/{id}/reproduction` | Record `{ "reproduced": true }`, false, or null |
 | `GET /analytics?mode=test` | Aggregate all persisted history; mode filter optional |
 
-A report requires a scored terminal parent, a matching recipe/severity, and
-positive evidence for its selected failure kind. Launching a run does not
+A report requires a terminal parent, a matching recipe/severity, and
+positive evidence for its selected failure kind. `severity` is required but
+nullable: it must stay null when the parent has no complete overall score.
+An unavailable score does not erase an observed named failure or become zero.
+Launching a run does not
 automatically create a failure report. `reproduced` filters are `all` (default),
 `true`, `false`, or `unknown`. The reproduction patch records an explicit
 observation. Automated reproduction runs use `/optimizations` and retain their

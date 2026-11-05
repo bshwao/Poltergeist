@@ -13,11 +13,22 @@ Phase 9 adds registered `agent_id` selection and an optional `driving_task` to
 search. Tasks propagate to every sampled recipe. Reproduction and minimization
 inherit the source run's frozen registered agent and execution settings. They
 reject inactive or changed registrations and legacy custom runs without a
-snapshot. Existing baseline operations keep their original engine versions and
-can still resume. See [agent comparisons](agent-comparisons.md) for matched
+snapshot. Journals retain their original engine versions. New operations use
+`failure-policy-v2`; an interrupted journal from an incompatible policy remains
+readable but cannot resume under the changed engine. Use its matching runtime
+or create a fresh, explicitly reviewed plan. See [agent comparisons](agent-comparisons.md) for matched
 seeds, repeated trials, reports and the dashboard workflow.
 
 ## Run a search
+
+For an explicit failure kind, `minimum_severity: 0` applies no overall-severity
+filter. Positive recorded evidence can therefore establish that failure even
+when unrelated observation gaps make overall severity unavailable. A negative
+still requires complete coverage of the selected failure's observations. Trial
+scores and saved failure severity remain `null` when unavailable; they are
+never converted to zero. Generic severity searches and positive minimum-severity
+thresholds still require a valid score. An unscored matching trial is not ranked
+as a scored optimum, but Discovery can confirm it with exact repeated trials.
 
 With the API running, submit a small synthetic search from PowerShell:
 

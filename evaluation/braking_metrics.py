@@ -30,6 +30,7 @@ class BrakingSummary:
     hard_braking_count: int | None
     observed_frames: int
     stopping_episodes: tuple[StopEpisode, ...]
+    max_deceleration_frames: tuple[int, ...] = ()
 
 
 def _threshold(value: float, name: str, *, allow_zero: bool = False) -> float:
@@ -76,6 +77,7 @@ def summarize_braking(
     samples = validate_frames(frames)
 
     maximum: float | None = None
+    maximum_frames: tuple[int, ...] = ()
     hard_count = 0
     observed = 0
     previous: TelemetryFrame | None = None
@@ -123,7 +125,10 @@ def summarize_braking(
         if deceleration is not None:
             if not isfinite(deceleration):
                 raise ValueError("Deceleration exceeds the supported finite range")
-            maximum = deceleration if maximum is None else max(maximum, deceleration)
+            if maximum is None or deceleration > maximum:
+                maximum = deceleration
+                maximum_frames = ((previous.frame, sample.frame)
+                                  if inferred and previous is not None else (sample.frame,))
             observed += 1
             hard = deceleration >= hard_threshold
             if hard and (not previous_hard or not continuous):
@@ -165,6 +170,7 @@ def summarize_braking(
 
     return BrakingSummary(
         max_deceleration_mps2=maximum,
+        max_deceleration_frames=maximum_frames,
         hard_braking_count=hard_count if observed else None,
         observed_frames=observed,
         stopping_episodes=tuple(stops),

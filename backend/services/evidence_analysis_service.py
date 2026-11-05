@@ -99,7 +99,7 @@ def build_evidence_analysis(persistence, simulation_id):
             coverage="complete" if len(matched) == len(interventions) else "partial")
     hypotheses = []
     if peak.value is not None and peak.evidence:
-        peak_time = peak.evidence[0].first_time_s
+        peak_time = peak.evidence[-1].last_time_s
         preceding = next((item for item in matched if item.kind == "scripted_ego_braking" and 0 < peak_time - item.time_s <= .5), None)
         if preceding is not None:
             hypotheses.append(AnalysisHypothesis(statement="A nearby scripted braking intervention could affect interpretation of this braking response.",

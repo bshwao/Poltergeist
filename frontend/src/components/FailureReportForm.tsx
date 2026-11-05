@@ -7,7 +7,7 @@ import { DEFAULT_EVALUATION } from "./launch-form";
 /** Match the API's positive evidence rule; missing observations do not become zero. */
 export function eligibleFailureKinds(result: SimulationResult): FailureKind[] {
   const metrics = result.metrics;
-  if (!["completed", "failed", "cancelled"].includes(result.simulation.status) || metrics.severity === null || !Number.isFinite(metrics.severity) || metrics.severity < 0 || metrics.severity > 100) return [];
+  if (!["completed", "failed", "cancelled"].includes(result.simulation.status) || metrics.severity !== null && (!Number.isFinite(metrics.severity) || metrics.severity < 0 || metrics.severity > 100)) return [];
   const settings = metrics.evaluation_settings ?? DEFAULT_EVALUATION;
   const kinds: FailureKind[] = [];
   if (metrics.collision_count !== null && metrics.collision_count > 0) kinds.push("collision");
@@ -48,7 +48,7 @@ export function FailureReportForm({ result, active = true }: { result: Simulatio
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (request.current || !isActive.current || saved) return;
-    if (!kind || !eligibleFailureKinds(result).includes(kind) || result.metrics.severity === null) { setError("Choose a failure kind supported by this scored result."); return; }
+    if (!kind || !eligibleFailureKinds(result).includes(kind)) { setError("Choose a failure kind supported by this recorded result."); return; }
     if (!summary.trim()) { setError("Describe the observed failure before saving the report."); return; }
     const controller = new AbortController();
     request.current = controller;
@@ -76,8 +76,8 @@ export function FailureReportForm({ result, active = true }: { result: Simulatio
 
   return <section className="failure-report-form" aria-labelledby={`${fieldPrefix}-heading`}>
     <h3 id={`${fieldPrefix}-heading`}>Save a failure report</h3>
-    <p>Record positive evidence from this run using its exact recipe and measured severity. Reproduction starts as Unknown. This does not launch another simulation.</p>
-    {eligible.length === 0 ? <p className="notice">This result has no scored positive failure evidence eligible for a report. Unknown observations are not evidence that a failure occurred.</p> : saved ? <div className="notice" role="status"><strong>Failure report saved</strong><p><code>{saved.id}</code> · {failureKindLabel(saved.kind)} · Severity {observation(saved.severity)} · Reproduction Unknown</p><a href="#failures">Open Failure reports</a></div> : <form onSubmit={event => { void submit(event); }}>
+    <p>Record positive evidence from this run using its exact recipe and available measured severity. An unavailable score stays unavailable. Reproduction starts as Unknown. This does not launch another simulation.</p>
+    {eligible.length === 0 ? <p className="notice">This result has no positive failure evidence eligible for a report. Unknown observations are not evidence that a failure occurred.</p> : saved ? <div className="notice" role="status"><strong>Failure report saved</strong><p><code>{saved.id}</code> · {failureKindLabel(saved.kind)} · Severity {observation(saved.severity)} · Reproduction Unknown</p><a href="#failures">Open Failure reports</a></div> : <form onSubmit={event => { void submit(event); }}>
       <div className="field"><label htmlFor={`${fieldPrefix}-kind`}>Observed failure kind</label><select id={`${fieldPrefix}-kind`} value={kind} disabled={saving || !active} onChange={event => setKind(event.target.value as FailureKind)}>{eligible.map(value => <option key={value} value={value}>{failureKindLabel(value)}</option>)}</select></div>
       <div className="field"><label htmlFor={`${fieldPrefix}-summary`}>Failure summary</label><textarea id={`${fieldPrefix}-summary`} value={summary} disabled={saving || !active} rows={3} onChange={event => setSummary(event.target.value)} placeholder="Describe the observed behavior and its context." /></div>
       <p className="muted">Measured severity: {observation(result.metrics.severity)} / 100. {result.metrics.evaluation_settings ? "Near-miss thresholds use this run’s recorded settings." : "Recorded evaluation settings are unavailable; near-miss eligibility uses the API’s default thresholds."}</p>

@@ -134,6 +134,21 @@ def test_positive_evidence_and_immutable_run_snapshot_are_required(api, change):
     assert client.get("/failures").json() == []
 
 
+def test_unscored_observed_braking_round_trips_without_inventing_severity(api):
+    client, service = api
+    result = saved_run(service, hard_braking_count=1, severity=None)
+    body = report_for(result) | {"kind": "hard_braking"}
+    response = client.post("/failures", json=body)
+    assert response.status_code == 201, response.text
+    saved = response.json()
+    assert saved["severity"] is None
+    assert client.get(f"/failures/{saved['id']}").json()["severity"] is None
+    assert client.get("/failures").json()[0]["severity"] is None
+    assert client.post("/failures", json=body | {"id": str(uuid4()), "severity": 0.0}).status_code == 422
+    unknown = saved_run(service, hard_braking_count=None, severity=None)
+    assert client.post("/failures", json=report_for(unknown) | {"kind": "hard_braking"}).status_code == 422
+
+
 def test_queued_or_unscored_runs_cannot_supply_failure_evidence(api):
     client, service = api
     queued = service.create_simulation(scene(), mode="test")

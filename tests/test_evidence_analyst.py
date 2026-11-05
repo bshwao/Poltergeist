@@ -9,7 +9,7 @@ import pytest
 
 from backend.storage import ArtifactError
 from backend.services import experimentation_service as evidence
-from shared.models import TelemetryFrame, ActorState
+from shared.models import TelemetryFrame, ActorState, Vector3
 from test_experimentation import settings, client_for, ContactAdapter, wait
 
 
@@ -42,6 +42,28 @@ def test_facts_have_exact_saved_frame_links_and_deterministic_source_identity(se
         (settings.storage_dir.parent / "analysis-report.json").write_text(json.dumps(value, indent=2), encoding="utf-8")
         assert len(client.get("/simulations").json()) == 1
         assert "attachment" in client.get(path + "?download=true").headers["content-disposition"]
+
+
+@pytest.mark.parametrize("inferred,expected_frames,expected_peak", [(False, [2], 7), (True, [1, 2], 80)])
+def test_peak_deceleration_references_its_actual_witness_not_the_review_window_start(settings, inferred, expected_frames, expected_peak):
+    class LatePeakAdapter(ContactAdapter):
+        def open(self, recipe):
+            sample = super().open(recipe)
+            sample.ego.velocity_mps = Vector3(x=10)
+            sample.ego.acceleration_mps2 = None if inferred else Vector3()
+            return sample
+        def step(self, *args, **kwargs):
+            sample = super().step(*args, **kwargs)
+            sample.ego.velocity_mps = Vector3(x=(9 if sample.frame == 1 else 5) if inferred else 10)
+            sample.ego.acceleration_mps2 = None if inferred else Vector3(x=-2 if sample.frame == 1 else -7)
+            return sample
+    with client_for(settings, LatePeakAdapter) as client:
+        record = launch(client)
+        value = client.get(f"/experimentation/analysis/{record['simulation']['id']}").json()
+        peak = next(item for item in value["observations"] if item["kind"] == "braking")
+        assert peak["value"] == pytest.approx(expected_peak)
+        assert [ref["frame"] for ref in peak["references"]] == expected_frames
+        assert [ref["time_s"] for ref in peak["references"]] == pytest.approx([f * .05 for f in expected_frames])
 
 
 def test_missing_or_corrupt_evidence_has_no_frame_claims_or_fabricated_zero(settings):

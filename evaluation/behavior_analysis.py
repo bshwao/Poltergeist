@@ -126,9 +126,12 @@ def _braking(result, frames, actions, settings, interventions, gaps):
     observed = summary.observed_frames
     reason = "no_observed_deceleration" if not observed else None
     evidence = _span(frames)
+    peak_frames = set(summary.max_deceleration_frames)
+    peak_evidence = [span for index, frame in enumerate(frames) if frame.frame in peak_frames
+                     for span in _span(frames, index, index)]
     return BrakingBehavior(settings=effective,
         settings_source="recorded_evaluation" if recorded is not None else "legacy_defaults",
-        max_deceleration=_measure(summary.max_deceleration_mps2, "m/s²", observed, len(frames), evidence,
+        max_deceleration=_measure(summary.max_deceleration_mps2, "m/s²", observed, len(frames), peak_evidence,
                                   gaps=gaps, reason=reason),
         hard_braking_count=_measure(summary.hard_braking_count, "episodes", observed, len(frames), evidence,
                                    gaps=gaps, reason=reason),

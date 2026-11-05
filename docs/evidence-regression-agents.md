@@ -16,6 +16,10 @@ episodes. Frame references retain the recorded frame number and time, including
 frame zero. The run viewer opens those saved frames; control-audit references
 open its separate decision/control view.
 
+Peak deceleration links to the actual measured witness. When deceleration is
+inferred from a velocity difference, both adjacent frames support that interval.
+A review-window boundary is not substituted for the peak's frame or time.
+
 An empty rule-event list does not establish that every rule channel was checked.
 The rule observation also reports how many reviewed frames have complete rule
 checks. Unchecked channels keep the observation partial, even when no events
