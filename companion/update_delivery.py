@@ -166,7 +166,7 @@ def check_update(profile, *, current_version, cancel=None, _policy=None, _verify
             directory.rmdir()
 
 
-def download_update(profile, manifest, *, current_version, cancel=None, progress=None,
+def download_update(profile, manifest, *, current_version, reviewed_release=None, cancel=None, progress=None,
                     _policy=None, _verify=verify_signature, _client_factory=_client):
     policy = _delivery_policy(load_policy() if _policy is None else _policy)
     manifest = _plain(manifest)
@@ -175,6 +175,8 @@ def download_update(profile, manifest, *, current_version, cancel=None, progress
             or re.fullmatch(r"[0-9a-f]{32}", manifest.parent.name) is None):
         raise ValueError("Select a signed candidate checked in this Companion profile")
     release = verify_manifest(manifest, policy, current_version=current_version, _verify=_verify)
+    if reviewed_release is not None and release != reviewed_release:
+        raise ValueError("The signed release changed after review. Select the candidate again.")
     if release.installer_url is None or delivery_origin(release.installer_url) != delivery_origin(policy["feed_url"]):
         raise ValueError("Signed installer location must use the installed update feed's HTTPS origin")
     if not rollout_eligible(release, _cohort(profile)):
@@ -196,7 +198,9 @@ def download_update(profile, manifest, *, current_version, cancel=None, progress
         finally:
             if downloaded:
                 _plain(partial).unlink(missing_ok=True)
-    verify_release(installer, manifest, policy, current_version=current_version, _verify=_verify)
+    verified = verify_release(installer, manifest, policy, current_version=current_version, _verify=_verify)
+    if verified != release:
+        raise ValueError("The signed release changed during download. Select the candidate again.")
     return installer
 
 

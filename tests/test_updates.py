@@ -156,6 +156,49 @@ def test_installer_failure_retains_backup_and_error_receipt(tmp_path, release):
         assert backup.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
 
 
+def test_update_helper_rejects_a_replacement_after_the_companion_handoff(tmp_path, release, monkeypatch):
+    from functools import partial
+    from companion import updates
+    from scripts import update_companion
+
+    installer, manifest, _, write, verify, _ = release
+    directory, install, persistence = profile(tmp_path)
+    persistence.database.dispose()
+    reviewed_digest = updates.release_digest(write())
+    write(version="0.3.0")
+    calls = []
+    monkeypatch.setattr(update_companion, "version", lambda _: "0.1.0")
+    monkeypatch.setattr(updates, "apply_update", partial(apply_update, _policy=POLICY, _verify=verify,
+        _run=lambda *args, **kwargs: calls.append(args)))
+
+    with pytest.raises(ValueError, match="changed after review"):
+        update_companion.main(["--data-dir", str(directory), "--installer", str(installer),
+            "--manifest", str(manifest), "--install-root", str(install), "--reviewed-release-sha256", reviewed_digest])
+    assert calls == [] and not (directory / "updates").exists()
+
+
+def test_a_different_verified_release_cannot_replace_the_candidate_during_staging(tmp_path, release):
+    installer, manifest, _, write, verify, _ = release
+    directory, install, persistence = profile(tmp_path)
+    persistence.database.dispose()
+    calls = []
+
+    def verify_then_replace(path, pins):
+        verify(path, pins)
+        if path == installer:
+            installer.write_bytes(b"Another installer from the trusted fixture publisher")
+            write(version="0.3.0", installer_bytes=installer.stat().st_size, installer_sha256=file_digest(installer))
+
+    with pytest.raises(ValueError, match="changed during staging"):
+        apply_update(directory, installer, manifest, install, current_version="0.1.0", _policy=POLICY,
+                     _verify=verify_then_replace, _run=lambda *args, **kwargs: calls.append(args))
+    assert calls == []
+    receipt = next((directory / "updates").glob("*/receipt.json"))
+    assert json.loads(receipt.read_bytes())["state"] == "failed_preserved"
+    with sqlite3.connect(receipt.parent / "database.sqlite") as backup:
+        assert backup.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+
+
 def test_installer_must_activate_the_exact_release_before_a_migration_probe(tmp_path, release):
     installer, manifest, bundle, write, verify, _ = release
     directory, install, persistence = profile(tmp_path)

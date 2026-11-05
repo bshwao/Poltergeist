@@ -73,7 +73,8 @@ def test_password_whitespace_is_preserved_and_bad_values_cannot_alias_a_valid_pa
 
 
 @pytest.mark.parametrize("username,password", [("aa", PASSWORD), ("user name", PASSWORD),
-    ("usér", PASSWORD), ("valid", "short"), ("valid", "x" * 129), ("valid", "\ud800" * 15)])
+    ("usér", PASSWORD), ("\u212aelvin", PASSWORD), ("valid", "short"), ("valid", "x" * 129),
+    ("valid", "\ud800" * 15)])
 def test_invalid_registration_never_writes_an_account(setup, username, password):
     auth, store, now = setup
     with pytest.raises(AuthError) as error:
@@ -192,7 +193,9 @@ def test_password_change_cannot_commit_after_its_session_is_revoked(setup, monke
 def test_invalid_service_username_never_aliases_a_real_account(setup):
     auth, _, _ = setup
     auth.register("invalid", PASSWORD)
-    for name in (None, "\ud800", "name with spaces"):
+    kelvin = auth.register("Kelvin", PASSWORD)
+    assert auth.login("KELVIN", PASSWORD)["account_id"] == kelvin["account_id"]
+    for name in (None, "\ud800", "name with spaces", "\u212aelvin"):
         with pytest.raises(AuthError) as error:
             auth.login(name, PASSWORD)
         assert error.value.status == 401

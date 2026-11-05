@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { auditAccessibility } from "../test-support/accessibility";
 
 const API = "http://127.0.0.1:8049";
 
@@ -128,6 +129,29 @@ test("telemetry hover coordinates match recorded frames on desktop and mobile", 
   await expect(tooltip).toContainText(`Frame ${sample.frame}`);
   await page.keyboard.press("Escape");
   await expect(tooltip).toHaveCount(0);
+
+  const inspector = page.getByRole("slider", { name: "Inspect frame on this page" });
+  await inspector.focus();
+  await page.keyboard.press("End");
+  const finalFrame = frames[frames.length - 1];
+  await expect(inspector).toHaveAttribute("aria-valuetext", `Frame ${finalFrame.frame} at ${finalFrame.time_s.toFixed(3)} seconds`);
+  await page.keyboard.press("ArrowLeft");
+  const preceding = frames[frames.length - 2];
+  await expect(inspector).toHaveAttribute("aria-valuetext", `Frame ${preceding.frame} at ${preceding.time_s.toFixed(3)} seconds`);
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(chart.locator("polyline").first()).toHaveCSS("stroke", "rgb(198, 175, 248)");
+  await auditAccessibility(page, testInfo, "recorded-run-dark");
+  await page.emulateMedia({ colorScheme: "dark", forcedColors: "active" });
+  const paletteColor = await page.evaluate(() => {
+    const sample = document.createElement("span");
+    sample.style.color = "Highlight";
+    document.body.append(sample);
+    const color = getComputedStyle(sample).color;
+    sample.remove();
+    return color;
+  });
+  await expect(chart.locator("polyline").first()).toHaveCSS("stroke", paletteColor);
 });
 
 test("scenario map selection survives generation and validation into the launch recipe", async ({ page }, testInfo) => {

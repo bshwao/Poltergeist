@@ -1,8 +1,8 @@
 # Guided experimentation and failure discovery
 
 S12's application workflows and S13's bounded discovery engine are implemented
-in the local dashboard and the connected website. S12's independent new-tester
-acceptance gate remains open. These source changes do not update an archived
+in the local dashboard and the connected website. S12's first-time tester
+acceptance can run on the owner's current PC. These source changes do not update an archived
 installer or publish the website.
 
 ## Start with one experiment
@@ -17,6 +17,12 @@ measure driving in the simulator. Then explicitly run one experiment. The result
 explains recorded contacts, minimum TTC and contact-observation coverage.
 Unknown measurements remain unknown. Completion and a low heuristic score do
 not establish road safety.
+
+Either scenario entry point shows gallery loading and offers a retry on failure.
+If a saved guided run is unavailable in the current workspace, refresh the run
+or choose another experiment. That action clears the browser's reference to the
+unavailable run. A temporary service error keeps the reference for retry, and
+missing result evidence keeps the recorded run available for review.
 
 **Replay highlights** point to actual saved telemetry frames: recorded contacts,
 rule events, peak deceleration, evaluator conflict thresholds and the final
@@ -135,6 +141,13 @@ Guided-run acceptance, its native command receipt and its lab acknowledgement
 commit in one worker transaction. A receipt-storage failure rolls back admission;
 a lost response can replay the original acknowledgement without executing again.
 
+The guide saves the exact launch recipe and request ID in the current browser
+tab before submitting. After a connection error or reload, **Retry saved
+submission** uses the same ID and recipe. The browser waits for an explicit
+retry. Discarding the saved submission clears it from the tab while preserving
+any run the worker already accepted. Hosted sign-out clears saved paired
+submissions from the tab.
+
 ## Local API and storage
 
 | Method and path under `/experimentation` | Purpose |
@@ -155,6 +168,11 @@ Suite/report GETs support `download=true`. Lists accept `limit=1..100` and a
 nonnegative offset. Existing optimization cancel/resume endpoints control suite
 and discovery operations. The public optimization creation endpoint excludes the
 internal discovery request, so execution must pass through saved plan approval.
+
+The local guide submits through `PUT /simulations/requests/{request_id}`. The
+worker saves the request receipt with the run and queue job. A repeat with the
+same UUID and recipe returns the original run's current record, including after
+a worker restart. Reusing that UUID with a different recipe returns HTTP 409.
 
 Migration 7 adds typed experiment documents and scoped durable acceptance
 receipts. Prior migrations remain unchanged. Definitions, approvals and receipt
@@ -187,3 +205,46 @@ and missing evidence, inspect a highlight, save a suite, and explain why they
 would return. Capture their consented feedback and the exact app version. Record
 each usability change and repeat the relevant task with the tester. Automated
 browser acceptance alone does not satisfy this human gate.
+
+The tester workspace uses a separate loopback profile on this PC. The current
+build was restored and verified on November 5.
+Its production dashboard build uses source base `ec363fc` plus the current
+working-tree recovery and usability changes. The served index SHA-256 is
+`6df6eb78f96e9b12b030429bcbdfe8f9fe01234dacc8cc35f549cb665c0d8dd1`.
+The previous build assets were retained. The workspace had empty run, feedback
+and suite histories when the current build was verified. In a fresh private
+browser session, open the [test dashboard](http://127.0.0.1:8069/) so the tester
+can find the lab unaided. The tester may submit feedback in the app and explain
+the result to the person observing the session.
+
+The recovery checks reproduced both issues before the fix. After the fix, all
+398 frontend unit tests, 50 local browser checks and the connected guided-lab
+journey passed. The local browser tests verified that a service error retains
+the saved run reference, a missing record can be cleared without launching a
+replacement, and the gallery retry returns keyboard focus to its heading.
+
+The subsequent durable-launch build passed 25 backend tests, 398 frontend unit
+tests, 62 local browser checks and three hosted browser checks. The two local
+checks that require the optional assistant fixture were skipped. The guided
+browser tests dropped the response after acceptance, reloaded the dashboard,
+and verified that the deliberate retry used the original request and recovered
+the single admitted run. The backend tests also cover concurrent replay, a
+changed recipe, a worker restart and a failed receipt write. The hosted browser
+verified that sign-out clears a saved submission.
+
+The follow-up focus and forced-colors fixes passed 51 local accessibility and
+guided browser checks and three hosted checks. The restored tester workspace
+serves these fixes and supports the durable launch endpoint. A browser checked
+the production first-run, gallery and empty suite views at 320 pixels, with
+forced colors, zero axe violations and zero writes. All sixteen production
+assets verified over HTTP. The run, job and experiment-document histories were
+still empty after the check.
+
+The same-day engineering check used a separate workspace and the current
+production dashboard build. **Sudden Braking** completed in CARLA 0.9.16 on
+`Town10HD_Opt` at Low graphics, with 161 recorded frames over eight simulated
+seconds. The browser labeled the result as CARLA evidence and opened the
+selected replay highlight at exact native frame 1579. The original world
+settings and dynamic actor counts matched after the run. Run ID
+`f355a246-f6e3-41dd-b0c2-2614040df914`. This was an engineering check. The
+first-time tester workspace remains separate.

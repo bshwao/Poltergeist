@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 import json
 from pathlib import Path
 import re
+import subprocess
 from urllib.parse import urlsplit
 
 from companion.signatures import powershell, verify_signature
@@ -24,11 +25,54 @@ def signing_inputs(tool, thumbprint, timestamp_url, publisher, *, allow_http=Fal
     return {"tool": tool, "thumbprint": thumbprint.upper(), "timestamp_url": timestamp_url, "publisher": publisher}
 
 
-def signed_metadata(installer, bundle_digest, output, *, version, thumbprint, timestamp_url, publisher,
-                    installer_url=None, rollout_percent=100, rollout_salt=""):
+def metadata_signing_inputs(thumbprint, timestamp_url, publisher):
     inputs = signing_inputs("signtool.exe", thumbprint, timestamp_url, publisher, allow_http=True)
     if urlsplit(timestamp_url).scheme != "http":
         raise ValueError("Windows PowerShell 5.1 metadata signing requires an http:// timestamp service")
+    return inputs
+
+
+def check_signing_certificate(thumbprint, publisher):
+    """Read signing metadata from CurrentUser/My without opening the key."""
+    if not re.fullmatch(r"[0-9A-Fa-f]{40}", thumbprint) or not re.fullmatch(r"[0-9a-f]{64}", publisher):
+        raise ValueError("Invalid public certificate selector or publisher fingerprint")
+    script = """$ErrorActionPreference='Stop';
+$path='Cert:\\CurrentUser\\My\\' + $env:POLTERGEIST_SIGNING_THUMBPRINT;
+if (-not (Test-Path -LiteralPath $path)) { '{"present":false}'; return }
+$cert=Get-Item -LiteralPath $path;
+$hash=[System.Security.Cryptography.SHA256]::Create();
+try { $pin=([BitConverter]::ToString($hash.ComputeHash($cert.RawData))).Replace('-','').ToLowerInvariant() }
+finally { $hash.Dispose() }
+$now=[DateTime]::UtcNow;
+$eku=@($cert.Extensions | Where-Object { $_ -is [System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension] });
+$usage=@($cert.Extensions | Where-Object { $_ -is [System.Security.Cryptography.X509Certificates.X509KeyUsageExtension] });
+$digitalSignature=[System.Security.Cryptography.X509Certificates.X509KeyUsageFlags]::DigitalSignature;
+@{present=$true; publisher_sha256=$pin; has_private_key=$cert.HasPrivateKey;
+  valid_now=($cert.NotBefore.ToUniversalTime() -le $now -and $now -lt $cert.NotAfter.ToUniversalTime());
+  allows_signing=(($eku.Count -eq 0 -or $eku.EnhancedKeyUsages.Value -contains '1.3.6.1.5.5.7.3.3') -and
+                  ($usage.Count -eq 0 -or ($usage[0].KeyUsages -band $digitalSignature)))} | ConvertTo-Json -Compress
+"""
+    try:
+        info = json.loads(powershell(script, variables={"POLTERGEIST_SIGNING_THUMBPRINT": thumbprint.upper()}))
+    except (OSError, ValueError, subprocess.SubprocessError):
+        raise ValueError("Could not inspect the Windows current-user certificate store") from None
+    if not isinstance(info, dict) or type(info.get("present")) is not bool:
+        raise ValueError("Could not inspect the Windows current-user certificate store")
+    if not info["present"]:
+        raise ValueError("The selected certificate was not found in the Windows current-user My store")
+    if info.get("publisher_sha256") != publisher:
+        raise ValueError("The selected certificate does not match the configured publisher fingerprint")
+    if info.get("valid_now") is not True:
+        raise ValueError("The selected publisher certificate is outside its validity period")
+    if info.get("allows_signing") is not True:
+        raise ValueError("The selected publisher certificate does not allow code signing")
+    if info.get("has_private_key") is not True:
+        raise ValueError("The selected publisher certificate has no associated signing key")
+
+
+def signed_metadata(installer, bundle_digest, output, *, version, thumbprint, timestamp_url, publisher,
+                    installer_url=None, rollout_percent=100, rollout_salt=""):
+    inputs = metadata_signing_inputs(thumbprint, timestamp_url, publisher)
     installer, output = Path(installer), Path(output)
     if output.suffix.lower() != ".ps1":
         raise ValueError("Signed release metadata uses the .ps1 Authenticode format")

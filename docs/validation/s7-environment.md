@@ -79,6 +79,23 @@ source hashes, package versions, measured decision timings and the passing
 regression count. Every listed shipped Python source/catalogue/license resource
 matches the current source checkout.
 
+## November 3 cold-profile repeat
+
+The refreshed private Windows archive had SHA-256
+`0aa164fcace4eb7f3126132d718b91e0db5d504dbcbc4a9e0caf1f000a06f11d`.
+With an empty profile outside the checkout and only Windows system directories
+on `PATH`, its bundled interpreter downloaded the 36 pinned environment archives
+and the pinned checkpoint. The environment contained 19,161 verified files.
+The readiness probe loaded pretrained PlanT on CPU and recorded 0.096 seconds
+of inference for its test observation.
+
+On Low `Town10HD_Opt`, run `eab08d55-4998-444d-8f0d-ce7f4de5eda2` completed
+with five telemetry frames and four unchanged applied decisions. JSON, CSV and
+HTML exports passed. Reopening preserved the saved result, and a fresh CARLA
+snapshot confirmed an asynchronous world with no remaining dynamic actors before
+the owned test instance stopped. This was a fresh profile on the existing test
+PC. The independent Windows PC acceptance gate remains open.
+
 ## Retained failures and scope
 
 - Initial upstream wheel names containing `+cpu` exposed an overly restrictive

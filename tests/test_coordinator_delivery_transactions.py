@@ -8,7 +8,7 @@ import pytest
 
 from coordinator.auth import AuthError
 from coordinator.relay import DeviceConnection, RelayHub
-from shared.models.remote import StatusCommand
+from shared.models.remote import StatusCommand, parse_message
 from test_coordinator_relay import setup
 
 
@@ -52,21 +52,66 @@ def test_policy_is_rechecked_after_each_awaited_send(setup):
     async def run():
         hub = RelayHub(service)
 
-        async def send(message):
-            delivered.append(message.command.request_id)
-            with store.transaction() as connection:
-                connection.execute(MUTATIONS[0])
-            await asyncio.sleep(0)
+        class Socket:
+            async def send_text(self, text):
+                delivered.append(parse_message(text).command.request_id)
+                with store.transaction() as connection:
+                    connection.execute(MUTATIONS[0])
 
-        current = DeviceConnection(None, credential, identity, ready=True, enabled=True,
+        current = DeviceConnection(Socket(), credential, identity, ready=True, enabled=True,
             last_received=hub.monotonic())
         current.wake.set()
-        current.send = send
         with pytest.raises(AuthError):
             await hub._deliver(current)
 
     asyncio.run(run())
     assert len(delivered) == 1
+
+
+@pytest.mark.parametrize("fault, error, message", [
+    ("revocation", AuthError, "device_authentication_required"),
+    ("reconnect", AuthError, "device_connection_fenced"),
+    ("expiry", TimeoutError, "heartbeat expired"),
+])
+def test_pending_socket_send_cannot_cross_a_connection_fault(setup, fault, error, message):
+    service, pairing, store, now, alice, bob, device, credential, identity = setup
+    command = StatusCommand(request_id=uuid4())
+    service.admit(alice, device, command, connected=True)
+
+    async def run():
+        clock = [0.]
+        hub = RelayHub(service, monotonic=lambda: clock[0])
+        send_called = asyncio.Event()
+
+        class Socket:
+            async def send_text(self, text):
+                pytest.fail("The old connection sent work after the fault")
+
+        current = DeviceConnection(Socket(), credential, identity, ready=True, enabled=True)
+        send = current.send
+
+        async def observe_send(*args, **kwargs):
+            send_called.set()
+            await send(*args, **kwargs)
+
+        current.send = observe_send
+        current.wake.set()
+        async with current.send_lock:
+            delivery = asyncio.create_task(hub._deliver(current))
+            await asyncio.wait_for(send_called.wait(), timeout=2)
+            if fault == "revocation":
+                pairing.revoke(alice, device)
+            elif fault == "reconnect":
+                replacement = service.connect(credential)
+            else:
+                clock[0] = 90.
+        with pytest.raises(error, match=message):
+            await asyncio.wait_for(delivery, timeout=2)
+        assert not current.sent
+        if fault == "reconnect":
+            assert service.pending_for_delivery(credential, replacement) == [command]
+
+    asyncio.run(run())
 
 
 def test_failed_pending_commit_cannot_return_work_and_rolls_back_delivery_time(setup, monkeypatch):

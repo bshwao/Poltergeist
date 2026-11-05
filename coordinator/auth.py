@@ -59,7 +59,7 @@ class AuthService:
 
     @staticmethod
     def username(value):
-        if not isinstance(value, str) or not _USERNAME.fullmatch(value.lower()):
+        if not isinstance(value, str) or not value.isascii() or not _USERNAME.fullmatch(value.lower()):
             raise AuthError(400, "invalid_account_input")
         return value.lower()
 

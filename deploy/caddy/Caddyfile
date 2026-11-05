@@ -1,0 +1,44 @@
+{
+	admin off
+	storage file_system {$POLTERGEIST_CADDY_STORAGE:/data/caddy}
+	servers {
+		protocols h1 h2
+		strict_sni_host on
+	}
+}
+
+{$POLTERGEIST_HOSTED_HOSTNAME} {
+	# The Let's Encrypt RSA chain avoids the expired ISRG Root X2 copy
+	# found in some Windows stores used by the bundled Python client.
+	tls {
+		key_type rsa2048
+	}
+	@updates path /companion-updates /companion-updates/*
+	handle @updates {
+		@releaseFile {
+			method GET HEAD
+			path_regexp ^/companion-updates/(release\.ps1|(0|[1-9][0-9]{0,3})\.(0|[1-9][0-9]{0,3})\.(0|[1-9][0-9]{0,3})/Setup\.exe)$
+		}
+		header {
+			Cache-Control no-store
+			X-Content-Type-Options nosniff
+		}
+		root * /srv
+		handle @releaseFile {
+			file_server
+		}
+		handle {
+			respond 404
+		}
+	}
+	handle {
+		encode gzip
+		reverse_proxy 127.0.0.1:8000 {
+			transport http {
+				# Retire idle upstream sockets before the coordinator's five-second timeout.
+				keepalive 4s
+				keepalive_idle_conns_per_host 100
+			}
+		}
+	}
+}

@@ -5,6 +5,7 @@ from tkinter import ttk
 
 from . import onboarding
 from .profile import CompanionConfig
+from .scrolling import ScrollPanel
 
 
 class SetupPanel:
@@ -14,8 +15,9 @@ class SetupPanel:
         self.map_name = tk.StringVar(value="Town10HD_Opt")
         self.summary = tk.StringVar(value="Choose CARLA for live experiments, or continue with synthetic tests while you install it.")
         self.connection = tk.StringVar(value="CARLA connection has not been checked.")
-        frame = ttk.Frame(parent, padding=12)
-        self.frame = frame
+        scroll = ScrollPanel(parent)
+        self.frame = scroll.frame
+        frame = scroll.content
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(2, weight=1)
         ttk.Label(frame, text="Set up this computer", font=("Segoe UI", 12, "bold")).grid(row=0, column=0, sticky="w")
@@ -41,10 +43,10 @@ class SetupPanel:
         ttk.Checkbutton(installation_page, text="Start CARLA automatically when a live run needs it", variable=app.auto_start).pack(anchor="w", pady=10)
         map_row = ttk.Frame(connection_page)
         map_row.pack(fill="x")
-        ttk.Label(map_row, text="Map for explicit startup").pack(side="left", padx=(0, 8))
+        ttk.Label(map_row, text="Map for startup / installation check").pack(side="left", padx=(0, 8))
         self.maps = ttk.Combobox(map_row, textvariable=self.map_name, values=["Town10HD_Opt", "Town03"], width=28)
         self.maps.pack(side="left")
-        ttk.Label(connection_page, text="Town10HD_Opt is required by the collision presets. Starting a new server uses this map. An existing server keeps its map; imported recipes keep their own map requirements.", wraplength=750).pack(anchor="w", pady=8)
+        ttk.Label(connection_page, text="Town10HD_Opt is required by the collision presets. A new server and the CARLA installation check use the selected map. An existing server keeps its map; choose that map before loading the check. Imported recipes keep their own map requirements.", wraplength=750).pack(anchor="w", pady=8)
         native = ttk.Frame(connection_page)
         native.pack(fill="x", pady=(0, 8))
         app._button(native, "Check CARLA connection", self.check_connection)
@@ -58,6 +60,7 @@ class SetupPanel:
         app._button(actions, "Save setup choices", self.save)
         app._button(actions, "Use synthetic for now", self.synthetic)
         ttk.Label(frame, textvariable=self.summary, wraplength=750).grid(row=4, column=0, sticky="w", pady=(8, 0))
+        scroll.bind_content()
         self._traces = [(variable, variable.trace_add("write", self._changed))
                         for variable in (app.executable, app.port, app.quality, app.auto_start)]
 

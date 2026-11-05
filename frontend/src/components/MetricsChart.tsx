@@ -27,7 +27,8 @@ function SeriesChart({ points, metric, label, unit, maxSampleGapS }: { points: T
   const peak = Math.max(...values, 1);
   const x = (time: number) => left + (time - earliest) / duration * (width - left - right);
   const y = (value: number) => height - bottom - value / peak * (height - top - bottom);
-  const color = metric === "speed" ? "#7053dc" : "#29847b";
+  const color = metric === "speed" ? "var(--lab-dark-chart-speed, #7053dc)" : "var(--lab-dark-chart-deceleration, #29847b)";
+  const axisText = "var(--lab-dark-muted, #687085)";
   function showPoint(sample: TelemetryPoint, svg: SVGSVGElement, pointer?: { x: number; y: number }) {
     setInspected(sample);
     const matrix = svg?.getScreenCTM(), bounds = svg?.getBoundingClientRect?.();
@@ -81,18 +82,18 @@ function SeriesChart({ points, metric, label, unit, maxSampleGapS }: { points: T
       onPointerMove={inspectPointer} onPointerUp={inspectPointer} onPointerLeave={() => setInspected(null)} onPointerCancel={() => setInspected(null)}
       onFocus={event => showPoint(points[0], event.currentTarget)} onBlur={() => setInspected(null)} onKeyDown={inspectKey}>
       <title id={title}>{label} over simulation time</title><desc id={description}>Only the current telemetry page is shown. Missing measurements, skipped frames, and time gaps above the supplied threshold break the line. Hover or use Left and Right Arrow keys to inspect recorded coordinates; Home and End select the endpoints, and Escape hides the tooltip.</desc>
-      {[0, 0.5, 1].map(ratio => <g key={ratio}><line x1={left} x2={width - right} y1={y(peak * ratio)} y2={y(peak * ratio)} stroke="#e5e7ee" /><text x={left - 8} y={y(peak * ratio) + 4} textAnchor="end" fill="#687085" fontSize="11">{measurement(peak * ratio, 1)}</text></g>)}
-      <line x1={left} x2={left} y1={top} y2={height - bottom} stroke="#bec1d0" />
+      {[0, 0.5, 1].map(ratio => <g key={ratio}><line x1={left} x2={width - right} y1={y(peak * ratio)} y2={y(peak * ratio)} stroke="var(--lab-dark-line, #e5e7ee)" /><text x={left - 8} y={y(peak * ratio) + 4} textAnchor="end" fill={axisText} fontSize="11">{measurement(peak * ratio, 1)}</text></g>)}
+      <line x1={left} x2={left} y1={top} y2={height - bottom} stroke="var(--lab-dark-input-line, #bec1d0)" />
       {segments.map((segment, index) => segment.length > 1
         ? <polyline key={index} points={segment.map(point => `${x(point.time)},${y(point.value)}`).join(" ")} stroke={color} strokeWidth="2" fill="none" />
         : <circle key={index} cx={x(segment[0].time)} cy={y(segment[0].value)} r="3" fill={color} />)}
       {point && <g className="chart-inspection" aria-hidden="true">
         <line x1={x(point.time)} x2={x(point.time)} y1={top} y2={height - bottom} stroke={color} strokeDasharray="4 4" opacity="0.6" />
-        {point[metric] !== null && <circle cx={x(point.time)} cy={y(point[metric]!)} r="4" fill="white" stroke={color} strokeWidth="2" />}
+        {point[metric] !== null && <circle cx={x(point.time)} cy={y(point[metric]!)} r="4" fill="var(--lab-surface)" stroke={color} strokeWidth="2" />}
       </g>}
-      <text x={left} y={height - 20} fill="#687085" fontSize="11">{measurement(earliest, 2)}</text>
-      <text x={width - right} y={height - 20} textAnchor="end" fill="#687085" fontSize="11">{measurement(latest, 2)}</text>
-      <text x={width / 2} y={height - 3} textAnchor="middle" fill="#687085" fontSize="11">Simulation time (s)</text>
+      <text x={left} y={height - 20} fill={axisText} fontSize="11">{measurement(earliest, 2)}</text>
+      <text x={width - right} y={height - 20} textAnchor="end" fill={axisText} fontSize="11">{measurement(latest, 2)}</text>
+      <text x={width / 2} y={height - 3} textAnchor="middle" fill={axisText} fontSize="11">Simulation time (s)</text>
     </svg>
     {point && <div id={tooltip} className="chart-tooltip" role="tooltip" style={tooltipPosition ?? { left: `clamp(0px, ${x(point.time) / width * 100}%, calc(100% - 190px))` }}>
       <strong>Frame {point.frame}</strong>
@@ -163,7 +164,9 @@ export function MetricsChart({ simulationId, active = true, maxSampleGapS, focus
         {maxSampleGapS !== undefined && Number.isFinite(maxSampleGapS) && maxSampleGapS > 0 && <p className="muted">Time gaps over {measurement(maxSampleGapS, 3)} s also break chart lines. This limit comes from the run’s recorded evaluation settings or timestep.</p>}
         <p className="muted">Speed is the measured velocity magnitude. Deceleration projects measured acceleration against the direction of travel and is unknown at rest or when either vector is missing. Aggregate braking metrics may also use adjacent velocities and recorded scoring settings.</p>
         {sample && point && <div className="telemetry-inspector">
-          <div className="field"><label htmlFor={`${prefix}-frame`}>Inspect frame on this page</label><input id={`${prefix}-frame`} type="range" min="0" max={data.frames.length - 1} value={selected} onChange={event => setSelected(Number(event.target.value))} /></div>
+          <div className="field"><label htmlFor={`${prefix}-frame`}>Inspect frame on this page</label><input id={`${prefix}-frame`} type="range" min="0" max={data.frames.length - 1} value={selected}
+            aria-valuetext={`Frame ${sample.frame} at ${measurement(sample.time_s, 3)} seconds`}
+            onChange={event => setSelected(Number(event.target.value))} /></div>
           <dl className="frame-values"><div><dt>Frame / time</dt><dd>{sample.frame} / {measurement(sample.time_s, 3)} s</dd></div><div><dt>Speed</dt><dd>{measurement(point.speed, 3)} {point.speed === null ? "" : "m/s"}</dd></div><div><dt>Deceleration</dt><dd>{measurement(point.deceleration, 3)} {point.deceleration === null ? "" : "m/s²"}</dd></div><div><dt>Throttle / brake / steer</dt><dd>{measurement(sample.control.throttle, 2)} / {measurement(sample.control.brake, 2)} / {measurement(sample.control.steer, 2)}</dd></div><div><dt>Collision / rule events</dt><dd>{sample.collisions === null ? "Unknown" : sample.collisions.length} / {sample.traffic_violations === null ? "Unknown" : sample.traffic_violations.length}</dd></div></dl>
         </div>}
       </>}

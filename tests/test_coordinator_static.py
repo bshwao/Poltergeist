@@ -21,6 +21,7 @@ def build(root):
 
 def test_hosting_is_explicit_and_never_replaces_api_404(tmp_path):
     with TestClient(create_app(CoordinatorSettings(tmp_path / "db.sqlite", ORIGIN)), base_url=ORIGIN) as client:
+        assert client.get("/").status_code == 404
         assert client.get("/app/").status_code == 404
         assert client.get("/healthz").status_code == 200
 
@@ -30,7 +31,11 @@ def test_hosted_html_and_assets_have_strict_headers_and_are_immutable(tmp_path):
     app = create_app(CoordinatorSettings(tmp_path / "db.sqlite", ORIGIN, hosted_assets_dir=root))
     (root / "assets/app.js").write_text('private_mutation_sentinel')
     with TestClient(app, base_url=ORIGIN) as client:
-        assert client.get("/app", follow_redirects=False).headers["location"] == "/app/"
+        for path in ("/", "/app"):
+            redirect = client.get(path, follow_redirects=False)
+            assert redirect.status_code == 307
+            assert redirect.headers["location"] == "/app/"
+            assert redirect.headers["cache-control"] == "no-store"
         page = client.get("/app/")
         assert page.status_code == 200 and page.headers["content-type"].startswith("text/html")
         assert "frame-ancestors 'none'" in page.headers["content-security-policy"]

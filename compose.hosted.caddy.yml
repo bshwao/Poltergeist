@@ -1,0 +1,80 @@
+name: poltergeist-hosted
+services:
+  caddy:
+    image: caddy:2.11.7-alpine
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      POLTERGEIST_HOSTED_HOSTNAME: ${POLTERGEIST_HOSTED_HOSTNAME:?Set the coordinator public DNS hostname}
+      POLTERGEIST_CADDY_STORAGE: ${POLTERGEIST_CADDY_STORAGE:-/data/caddy}
+    ports:
+      - target: 80
+        published: "${POLTERGEIST_HOSTED_HTTP_PORT:-80}"
+        host_ip: ${POLTERGEIST_HOSTED_BIND:-0.0.0.0}
+        protocol: tcp
+      - target: 443
+        published: "${POLTERGEIST_HOSTED_HTTPS_PORT:-443}"
+        host_ip: ${POLTERGEIST_HOSTED_BIND:-0.0.0.0}
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: ./deploy/caddy
+        target: /etc/caddy
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${POLTERGEIST_RELEASE_FILES_DIR:-./deploy/releases}
+        target: /srv/companion-updates
+        read_only: true
+        bind:
+          create_host_path: false
+      - caddy-data:/data
+      - caddy-config:/config
+  coordinator:
+    build:
+      context: .
+      dockerfile: Dockerfile.coordinator
+      args:
+        VITE_COMPANION_DOWNLOAD_URL: ${POLTERGEIST_COMPANION_DOWNLOAD_URL:-}
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    network_mode: service:caddy
+    depends_on:
+      caddy:
+        condition: service_started
+        restart: true
+    command:
+      - --database
+      - /data/coordinator/coordinator.db
+      - --origin
+      - https://${POLTERGEIST_HOSTED_HOSTNAME:?Set the coordinator public DNS hostname}:${POLTERGEIST_HOSTED_HTTPS_PORT:-443}
+      - --behind-local-proxy
+      - --host
+      - 127.0.0.1
+      - --port
+      - "8000"
+      - --hosted-assets
+      - /app/hosted
+    volumes:
+      - coordinator-data:/data
+
+volumes:
+  coordinator-data:
+  caddy-data:
+  caddy-config:

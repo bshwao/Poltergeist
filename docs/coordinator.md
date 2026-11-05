@@ -2,14 +2,14 @@
 
 The current source and S4 private companion build provide accounts, revocable
 browser sessions, device ownership and explicit approval on the Windows device.
-**S4 remains in progress.** The source now includes an authenticated outbound
+**The private S4 workflow passes on this PC.** The source includes an authenticated outbound
 WebSocket relay, durable command receipts and a safe baseline result projection.
 Normal startup keeps remote execution disabled. The Connection tab now offers
 explicit Connect/Disconnect controls and consent for each connection session.
-There is no public coordinator address. Source now includes the separate
-[S5 hosted account dashboard](hosted-dashboard.md), with local synthetic and CARLA
-browser acceptance. Public deployment and the S6 fault acceptance
-matrix remain open. The previously delivered S3 installer is unchanged.
+The coordinator and [S5 hosted account dashboard](hosted-dashboard.md) are
+deployed at <https://poltergeistapp.duckdns.org>. The S6 fault acceptance matrix
+remains open. See the [public deployment record](validation/s5-vps-deployment-20261103.md)
+and the [local S4–S5 validation](validation/s4-s5-local-20261102.md).
 
 ## Separate service
 

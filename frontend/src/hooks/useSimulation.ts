@@ -3,7 +3,7 @@ import { api, ApiError } from "../services/api";
 import type { SimulationProgress, SimulationRecord, SimulationStatus } from "../types/generated";
 
 export const isTerminal = (status: SimulationStatus) => ["completed", "failed", "cancelled"].includes(status);
-type Snapshot = { id: string; record: SimulationRecord | null; progress: SimulationProgress | null; error: string | null; loading: boolean };
+type Snapshot = { id: string; record: SimulationRecord | null; progress: SimulationProgress | null; error: string | null; loading: boolean; recordMissing?: boolean };
 type Session = { id: string; controller: AbortController; cancel: AbortController | null };
 
 /** One serial poll per selected, visible run. Revisions prevent cancellation races. */
@@ -40,9 +40,16 @@ export function useSimulation(id: string | null, active = true, client: Pick<typ
       const abort = () => request.abort();
       scope.controller.signal.addEventListener("abort", abort, { once: true });
       const deadline = setTimeout(abort, 12_000);
+      let readingRecord = false;
+      async function readRecord() {
+        readingRecord = true;
+        const record = await client.getSimulation(id!, { signal: request.signal });
+        readingRecord = false;
+        return record;
+      }
       try {
         if (!current) {
-          current = await client.getSimulation(id!, { signal: request.signal });
+          current = await readRecord();
           if (!live()) return;
           const record = current;
           if (record.revision < knownRevision()) { updateSnapshot(previous => previous ? { ...previous, loading: false } : previous); current = null; schedule(); return; }
@@ -62,7 +69,7 @@ export function useSimulation(id: string | null, active = true, client: Pick<typ
             schedule();
             return;
           }
-          current = await client.getSimulation(id!, { signal: request.signal });
+          current = await readRecord();
           if (!live()) return;
           if (current.revision < knownRevision()) { current = null; schedule(); return; }
         }
@@ -77,10 +84,12 @@ export function useSimulation(id: string | null, active = true, client: Pick<typ
       } catch (error) {
         if (!live()) return;
         failures += 1;
+        const notFound = !request.signal.aborted && error instanceof ApiError && error.status === 404;
         updateSnapshot(previous => ({ id: id!, record: previous?.id === id ? previous.record : null, progress: previous?.id === id ? previous.progress : null,
+          recordMissing: readingRecord && notFound,
           loading: false, error: request.signal.aborted ? "The run request timed out. Retrying shortly." : error instanceof ApiError ? error.message : "Could not refresh this run. Retrying shortly." }));
         // A missing run needs an explicit retry; temporary failures retain the last observation.
-        if (!(error instanceof ApiError && error.status === 404)) timer = setTimeout(() => void poll(), Math.min(10_000, failures * 2_500));
+        if (!notFound) timer = setTimeout(() => void poll(), Math.min(10_000, failures * 2_500));
       } finally {
         clearTimeout(deadline);
         scope.controller.signal.removeEventListener("abort", abort);
@@ -124,5 +133,5 @@ export function useSimulation(id: string | null, active = true, client: Pick<typ
   const visible = snapshot?.id === id ? snapshot : null;
   return { record: visible?.record ?? null, progress: visible?.progress ?? null,
     loading: active && Boolean(id) && (!visible || visible.loading), error: visible?.error ?? null,
-    refresh, cancel, cancelling, cancelError };
+    recordMissing: visible?.recordMissing ?? false, refresh, cancel, cancelling, cancelError };
 }

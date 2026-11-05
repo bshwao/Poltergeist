@@ -631,7 +631,7 @@ class CompanionController:
             # Immutable progress snapshots; the GUI alone touches Tk objects.
             self.update_progress = (received, total)
         self._update_installer = download_update(self.profile, self._update_offer.manifest,
-            current_version=current, cancel=cancel, progress=progress)
+            current_version=current, reviewed_release=self._update_offer.release, cancel=cancel, progress=progress)
         return self._update_view()
 
     def select_signed_rollback(self, installer, manifest):
@@ -682,13 +682,15 @@ class CompanionController:
     def prepare_update_install(self):
         import os
         import sqlite3
-        from .updates import verify_release, load_policy, check_profile_state, _plain
+        from .updates import verify_release, load_policy, check_profile_state, release_digest, _plain
         self._require_open()
         install, current = self._installed_update_context()
         if self._update_offer is None or self._update_installer is None:
             raise ValueError("Download and verify a candidate before installation")
         release = verify_release(self._update_installer, self._update_offer.manifest, load_policy(),
                                  current_version=current, rollback=self._update_rollback)
+        if release != self._update_offer.release:
+            raise ValueError("The signed release changed after review. Select the candidate again.")
         queue = self.snapshot()["queue"]
         if queue["active_id"] is not None or queue["pending"]:
             raise ConflictError("Finish or cancel queued and active work before updating")
@@ -708,6 +710,7 @@ class CompanionController:
         return [str(self._bundle / "runtime/python.exe"), "-I", "-B", "-m", "scripts.update_companion",
             "--data-dir", str(self.profile), "--installer", str(self._update_installer),
             "--manifest", str(self._update_offer.manifest), "--install-root", str(install),
+            "--reviewed-release-sha256", release_digest(release),
             "--wait-for-pid", str(os.getpid()), "--notify", *(["--rollback"] if self._update_rollback else [])]
 
     def diagnostics(self, *, check_carla=False):

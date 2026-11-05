@@ -68,6 +68,10 @@ def file_digest(path):
     return digest.hexdigest()
 
 
+def release_digest(release: ReleaseManifest) -> str:
+    return sha256(release.model_dump_json().encode("utf-8")).hexdigest()
+
+
 class UpdateNotEligible(ValueError):
     pass
 
@@ -122,11 +126,13 @@ def verify_release(installer, manifest, policy, *, current_version, rollback=Fal
 
 
 def apply_update(profile, installer, manifest, install_root, *, current_version, rollback=False,
-                 _policy=None, _verify=verify_signature, _run=subprocess.run):
+                 reviewed_release_sha256=None, _policy=None, _verify=verify_signature, _run=subprocess.run):
     import configparser
     profile, installer, manifest, install_root = map(_plain, (profile_path(_plain(profile)), installer, manifest, install_root))
     policy = load_policy() if _policy is None else _policy
     release = verify_release(installer, manifest, policy, current_version=current_version, rollback=rollback, _verify=_verify)
+    if reviewed_release_sha256 is not None and release_digest(release) != reviewed_release_sha256:
+        raise ValueError("The signed release changed after review. Select the candidate again.")
     if install_root.is_relative_to(profile) or profile.is_relative_to(install_root):
         raise ValueError("Runtime and profile must be separate")
     ini = configparser.ConfigParser()
@@ -165,10 +171,8 @@ def apply_update(profile, installer, manifest, install_root, *, current_version,
         shutil.copyfile(_plain(install_root / "installation.ini"), directory / "installation.ini")
         staged = directory / "Setup.exe"
         shutil.copyfile(installer, staged)
-        shutil.copyfile(manifest, directory / "release.ps1")
-        # Reverify the staged bytes, preventing path replacement during copying.
-        verify_release(staged, directory / "release.ps1", policy, current_version=current_version,
-                       rollback=rollback, _verify=_verify)
+        staged_manifest = directory / "release.ps1"
+        shutil.copyfile(manifest, staged_manifest)
         receipt = {"schema_version": "poltergeist-update-receipt-v1", "state": "prepared",
             "previous_version": current_version, "target_version": release.version, "rollback": rollback,
             "previous_build": ini.get("Installation", "Build"), "target_build": "private-" + release.bundle_manifest_sha256[:16],
@@ -181,6 +185,10 @@ def apply_update(profile, installer, manifest, install_root, *, current_version,
             temporary.replace(directory / "receipt.json")
         record("prepared")
         try:
+            staged_release = verify_release(staged, staged_manifest, policy, current_version=current_version,
+                                            rollback=rollback, _verify=_verify)
+            if staged_release != release:
+                raise ValueError("The signed release changed during staging. Select the candidate again.")
             _run([str(staged), "/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES", f"/DIR={install_root}"],
                  check=True, timeout=600, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
             build = "private-" + release.bundle_manifest_sha256[:16]

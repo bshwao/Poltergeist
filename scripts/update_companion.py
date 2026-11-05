@@ -38,6 +38,7 @@ def main(argv=None):
     parser.add_argument("--installer", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--install-root", type=Path, required=True)
+    parser.add_argument("--reviewed-release-sha256", help="Require the release reviewed in the Companion")
     parser.add_argument("--rollback", action="store_true")
     parser.add_argument("--wait-for-pid", type=int)
     parser.add_argument("--notify", action="store_true")
@@ -48,7 +49,8 @@ def main(argv=None):
             from companion.update_lifecycle import wait_for_process_exit
             wait_for_process_exit(args.wait_for_pid)
         receipt = apply_update(args.data_dir, args.installer, args.manifest, args.install_root,
-                               current_version=version("poltergeist"), rollback=args.rollback)
+                               current_version=version("poltergeist"), rollback=args.rollback,
+                               reviewed_release_sha256=args.reviewed_release_sha256)
         print(receipt)
         if args.notify:
             reopen_updated_companion(receipt, args.install_root, args.data_dir)

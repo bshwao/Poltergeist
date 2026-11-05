@@ -1,8 +1,9 @@
-"""Opt-in real CARLA process-loss witness, run against an owned test server.
+"""Opt-in real CARLA fault witnesses, run against an owned test server.
 
 The caller owns simulator startup/restart and independently checks RPC state.
-Stages use real companion profiles and normal CARLA runners; only the crash
-stage wraps the durable running-progress callback to exit the actual process.
+Stages use real companion profiles and normal CARLA runners. Witness hooks
+pause at native progress or finalization, or exit the process after durable
+running state.
 No hosted account or native GUI acceptance is implied by this local driver.
 """
 
@@ -26,7 +27,7 @@ from companion.remote_service import RemoteService
 from backend.remote_receipts import RemoteBinding
 from scenarios import build_scenario
 from shared.models.coordination import DevicePolicy, PermissionScope
-from shared.models.remote import ExecuteCommand, ResultCommand
+from shared.models.remote import CancelCommand, ExecuteCommand, ResultCommand
 
 
 def save(path, value):
@@ -59,12 +60,68 @@ def bundled_provenance(bundle):
             "interpreter": str(Path(sys.executable).resolve()), "imported_product_paths": imported}
 
 
+def cancel_and_verify(controller, remote, binding, command, acceptance, holding, release, *, finalizing):
+    """Cancel at a held native tick or after the native runner built its output."""
+    worker = controller._worker
+    if not holding.wait(30):
+        simulation = worker.get(acceptance.simulation_id).simulation
+        raise AssertionError(f"Native cancellation boundary was not reached: {simulation.status}: {simulation.error}")
+    assert worker.get(acceptance.simulation_id).result is None
+    next_command = ExecuteCommand(request_id=uuid4(), mode="carla",
+        scenario=command.scenario.model_copy(update={"name": "Independent native follow-up"}))
+    next_acceptance = remote.dispatch(binding, next_command)
+    assert next_acceptance.kind == "accepted"
+    cancel = CancelCommand(request_id=uuid4(), simulation_id=acceptance.simulation_id)
+    acknowledgement = remote.dispatch(binding, cancel)
+    assert acknowledgement.kind == "cancel_requested" and acknowledgement.terminal is False
+    release.set()
+    first = wait_result(worker, acceptance.simulation_id)
+    following = wait_result(worker, next_acceptance.simulation_id)
+    expected = "completed" if finalizing else "cancelled"
+    assert first.simulation.status == expected, first.simulation.error
+    assert following.simulation.status == "completed", following.simulation.error
+    assert first.result.telemetry_frames == (11 if finalizing else 2)
+    assert following.result.telemetry_frames == 11
+    for stored in (first, following):
+        assert stored.result.runtime.adapter == "carla" and stored.result.runtime.server_version == "0.9.16"
+        assert stored.result.artifacts
+        for reference in stored.result.artifacts:
+            worker.persistence.artifacts.validate_reference(reference, simulation_id=stored.simulation.id)
+    first_read = ResultCommand(request_id=uuid4(), simulation_id=acceptance.simulation_id)
+    next_read = ResultCommand(request_id=uuid4(), simulation_id=next_acceptance.simulation_id)
+    first_public = remote.dispatch(binding, first_read)
+    next_public = remote.dispatch(binding, next_read)
+    assert first_public.kind == next_public.kind == "result"
+    assert first_public.summary.cancel_requested is True
+    assert next_public.summary.cancel_requested is False
+    assert remote.dispatch(binding, cancel) == acknowledgement
+    assert controller.close()
+    controller.open()
+    controller.start()
+    restarted = RemoteService(controller._worker, remote.approved_binding)
+    for request, original in ((command, acceptance), (next_command, next_acceptance), (cancel, acknowledgement),
+                              (first_read, first_public), (next_read, next_public)):
+        assert restarted.dispatch(binding, request) == original
+    late_cancel = restarted.dispatch(binding, CancelCommand(request_id=uuid4(), simulation_id=acceptance.simulation_id))
+    assert late_cancel.kind == "cancel_requested" and late_cancel.terminal is True
+    from sqlalchemy import func, select
+    from backend.models import SimulationJobRecord, SimulationRecord
+    with controller._worker.persistence.database.session(write=False) as session:
+        assert session.scalar(select(func.count()).select_from(SimulationRecord)) == 2
+        assert session.scalar(select(func.count()).select_from(SimulationJobRecord)) == 2
+    return {"cancel_ack": acknowledgement.model_dump(mode="json"), "after_commit_cancel_terminal": True,
+            "summary": first_public.summary.model_dump(mode="json"),
+            "follow_up_summary": next_public.summary.model_dump(mode="json"), "job_count": 2,
+            "both_artifact_sets_verified": True, "exact_ack_and_results_preserved_after_reopen": True}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--bundle", type=Path, help="Require the isolated bundled interpreter and bundled product imports")
-    parser.add_argument("--stage", choices=["crash", "reconcile", "blocked", "recovered", "verify-original", "hold-running", "active-blocked"], required=True)
+    parser.add_argument("--stage", choices=["crash", "reconcile", "blocked", "recovered", "verify-original",
+        "hold-running", "active-blocked", "cancel-active", "cancel-finalizing"], required=True)
     args = parser.parse_args()
     bundle = None
     if args.bundle is not None:
@@ -96,7 +153,7 @@ def main():
     holding, release = Event(), Event()
     def runtime(settings):
         service = ApiRuntime(settings)
-        if args.stage in ("crash", "hold-running"):
+        if args.stage in ("crash", "hold-running", "cancel-active"):
             normal_factory = service.runner_factory
             def factory(**kwargs):
                 runner = normal_factory(**kwargs)
@@ -105,14 +162,17 @@ def main():
                     callback = options["on_progress"]
                     def progress(simulation):
                         callback(simulation)  # The worker commits running first.
-                        if simulation.status == "running" and not holding.is_set():
+                        if (simulation.status == "running" and not holding.is_set()
+                                and (args.stage != "cancel-active" or simulation.progress > 0)):
                             signal = {"process_id": os.getpid(), "simulation_id": str(simulation.id),
                                 "status": simulation.status, "started_at": simulation.started_at.isoformat(),
                                 "adapter": runner.adapter.mode, "episode": runner.adapter.world.id,
                                 "frame": runner.adapter.world.get_snapshot().frame,
                                 "native_actor_ids": sorted(runner.adapter.actor_manager.actor_ids),
                                 "bundled_provenance": bundled_provenance(bundle)}
-                            save(root / ("crash-signal.json" if args.stage == "crash" else "hold-signal.json"), signal)
+                            filename = {"crash": "crash-signal.json", "hold-running": "hold-signal.json",
+                                        "cancel-active": "cancel-active-signal.json"}[args.stage]
+                            save(root / filename, signal | {"progress": simulation.progress})
                             print(json.dumps(signal), flush=True)
                             if args.stage == "crash":
                                 os._exit(79)
@@ -137,11 +197,31 @@ def main():
             binding = RemoteBinding(binding.origin, uuid4(), uuid4(), 1)
             recipe = command.scenario.model_copy(update={"duration_s": .5,
                 "name": {"blocked": "Quarantine must refuse", "active-blocked": "Another active profile must refuse",
-                         "hold-running": "Native endpoint owner"}.get(args.stage, "After explicit CARLA restart")})
+                         "hold-running": "Native endpoint owner", "cancel-active": "Cancel after a native tick",
+                         "cancel-finalizing": "Cancel during native output publication"}.get(args.stage, "After explicit CARLA restart")})
             command = ExecuteCommand(request_id=uuid4(), mode="carla", scenario=recipe)
+        if args.stage == "cancel-finalizing":
+            persist = worker.persistence.persist_output
+            def held_persist(output, **kwargs):
+                if output.result.simulation.scenario.name == command.scenario.name:
+                    assert output.result.simulation.status == "completed" and output.result.telemetry_frames == 11
+                    save(root / "cancel-finalizing-signal.json", {
+                        "stage": "after_native_runner_cleanup_before_persistence",
+                        "simulation_id": str(output.result.simulation.id),
+                        "frames": output.result.telemetry_frames})
+                    holding.set()
+                    assert release.wait(120), "The native finalization witness was not released"
+                return persist(output, **kwargs)
+            worker.persistence.persist_output = held_persist
         remote = RemoteService(worker, lambda: (binding, policy))
         acceptance = remote.dispatch(binding, command)
         assert acceptance.kind == "accepted"
+        if args.stage in ("cancel-active", "cancel-finalizing"):
+            proof = cancel_and_verify(controller, remote, binding, command, acceptance, holding, release,
+                                      finalizing=args.stage == "cancel-finalizing")
+            save(root / (args.stage + ".json"), proof | {"bundled_provenance": bundled_provenance(bundle)})
+            print(json.dumps({"stage": args.stage, "status": proof["summary"]["status"], "jobs": 2}))
+            return
         if args.stage == "crash":
             Event().wait(40)
             raise AssertionError("The running-progress crash hook was not reached")

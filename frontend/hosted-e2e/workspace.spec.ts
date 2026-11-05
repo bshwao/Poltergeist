@@ -28,6 +28,15 @@ test("computer loading and network failure remain distinct from an empty workspa
     await expect(page.locator(".hosted-stats > div").first()).toContainText("Loading…");
   } finally { release(); }
   await expect(page.getByText("No computers connected yet", { exact: true })).toBeVisible();
+  const pairing = page.getByRole("region", { name: "Connect your companion" });
+  await expect(pairing).toContainText("Open Poltergeist Companion from the Windows Start menu.");
+  await expect(pairing).toContainText("https://localhost:8058");
+  const installer = process.env.VITE_COMPANION_DOWNLOAD_URL?.trim();
+  if (installer) {
+    await expect(pairing.getByRole("link", { name: "Download Companion for Windows x64" })).toHaveAttribute("href", installer);
+  } else {
+    await expect(pairing).toContainText("Use the Companion installer from your workspace administrator");
+  }
   await page.unroute("**/v1/browser/devices");
   await page.route("**/v1/browser/devices", route => route.abort("failed"));
   await page.getByRole("button", { name: "Refresh computers", exact: true }).click();
@@ -149,9 +158,18 @@ test("two isolated accounts pair, execute once across a lost response, cancel, r
     await expect(page.getByRole("button", { name: "Request cancellation", exact: true })).toBeEnabled();
     await page.getByRole("button", { name: "Request cancellation", exact: true }).click();
     await expect(page.getByText("Cancellation requested. The final experiment result confirms its outcome.", { exact: true })).toBeVisible();
+    expect((await control(request, "cut-relay-link")).cut_sockets).toBe(1);
+    await expect(computer.getByText("offline", { exact: true })).toBeVisible();
+    await expect(bob.getByRole("region", { name: "Choose your companion" }).getByText("connected", { exact: true })).toBeVisible();
+    const cancelResult = page.getByRole("region", { name: "Cancel browser experiment" });
+    await expect(cancelResult.getByText("completed", { exact: true })).toHaveCount(0);
     await control(request, "release");
-    await expect(page.getByRole("region", { name: "Cancel browser experiment" }).getByText("cancelled", { exact: true })).toBeVisible();
+    await expect.poll(async () => (await control(request, "state")).statuses).toContain("cancelled");
+    await control(request, "restore-relay-link");
+    await expect(computer.getByText("connected", { exact: true })).toBeVisible();
+    await expect(cancelResult.getByText("cancelled", { exact: true })).toBeVisible();
     expect((await control(request, "state")).runs).toBe(2);
+    expect((await control(request, "state", "bob")).runs).toBe(0);
 
     await control(request, "pause");
     await expect(computer.getByText("paused", { exact: true })).toBeVisible();

@@ -1,30 +1,42 @@
 """Queued execution, persisted progress/results, and owned artifact access."""
 
 from typing import Annotated, Literal
-from uuid import UUID
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from fastapi.responses import FileResponse
 
 from backend.dependencies import get_persistence, get_worker
-from backend.persistence_errors import ConflictError
+from backend.experiment_repository import ExperimentRepository
+from backend.persistence_errors import ConflictError, NotFoundError, PersistenceError
 from backend.repositories import SimulationRepository
 from backend.services.persistence_service import PersistenceService
 from backend.services.simulation_service import SimulationService
 from shared.models import SimulationResult, SimulationStatus
 from shared.models.api import QueueStatus, SimulationLaunch, SimulationProgress, SimulationRecord, TelemetryPage
 from shared.models.decision import DecisionPage
+from shared.models.lab import LabReceipt, LabReply, LabRunResult
+from shared.models.remote import payload_digest
 
 
 router = APIRouter(prefix="/simulations", tags=["simulations"])
 Persistence = Annotated[PersistenceService, Depends(get_persistence)]
 Worker = Annotated[SimulationService, Depends(get_worker)]
+_GUIDED_SCOPE = "local-guided-launch"
 
 
-def _record(stored, worker) -> SimulationRecord:
+def _record(stored, worker=None) -> SimulationRecord:
     return SimulationRecord(**{name: getattr(stored, name) for name in (
         "simulation", "result", "scenario_id", "revision", "created_at", "updated_at",
-    )}, job=worker.job_info(stored.simulation.id))
+    )}, job=worker.job_info(stored.simulation.id) if worker is not None else None)
+
+
+def _submit(request, worker, **kwargs):
+    return worker.submit(
+        request.scenario_id if request.scenario_id is not None else request.scenario,
+        mode=request.mode, options=request.options, evaluation_settings=request.evaluation_settings,
+        agent_id=request.agent_id, **kwargs,
+    )
 
 
 @router.get("/queue", response_model=QueueStatus)
@@ -34,11 +46,34 @@ def queue_status(worker: Worker) -> QueueStatus:
 
 @router.post("", response_model=SimulationRecord, status_code=status.HTTP_202_ACCEPTED)
 def launch(request: SimulationLaunch, worker: Worker) -> SimulationRecord:
-    stored = worker.submit(
-        request.scenario_id if request.scenario_id is not None else request.scenario,
-        mode=request.mode, options=request.options, evaluation_settings=request.evaluation_settings,
-        agent_id=request.agent_id,
-    )
+    return _record(_submit(request, worker), worker)
+
+
+@router.put("/requests/{request_id}", response_model=SimulationRecord, status_code=status.HTTP_202_ACCEPTED)
+def launch_guided(request_id: UUID, request: SimulationLaunch, worker: Worker) -> SimulationRecord:
+    digest = payload_digest(request)
+    receipt_id = uuid5(NAMESPACE_URL, f"poltergeist/{_GUIDED_SCOPE}/{request_id}")
+
+    def acknowledge(session, stored):
+        reply = LabReply(request_id=request_id, result=LabRunResult(record=_record(stored)))
+        ExperimentRepository(session, "receipt", owner_scope=_GUIDED_SCOPE).create(
+            LabReceipt(id=receipt_id, digest=digest, reply=reply))
+
+    # Preserve the worker's lock order and resolve replays before queue admission.
+    with worker.queue_snapshot():
+        with worker.persistence.database.session(write=False) as session:
+            try:
+                receipt = ExperimentRepository(session, "receipt", owner_scope=_GUIDED_SCOPE).get(receipt_id)
+            except NotFoundError:
+                receipt = None
+        if receipt is None:
+            stored = _submit(request, worker, on_created=acknowledge)
+        else:
+            if receipt.digest != digest:
+                raise ConflictError("This guided request was already accepted with different inputs")
+            if receipt.reply.request_id != request_id or not isinstance(receipt.reply.result, LabRunResult):
+                raise PersistenceError("Stored guided launch receipt is inconsistent")
+            stored = worker.get(receipt.reply.result.record.simulation.id)
     return _record(stored, worker)
 
 

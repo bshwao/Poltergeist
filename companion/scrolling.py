@@ -4,10 +4,13 @@ import tkinter as tk
 from tkinter import ttk
 
 
+_FOCUS_BORDER = 2
+
+
 class ScrollPanel:
     def __init__(self, parent):
         self.frame = ttk.Frame(parent)
-        self.canvas = tk.Canvas(self.frame, highlightthickness=0, borderwidth=0,
+        self.canvas = tk.Canvas(self.frame, highlightthickness=_FOCUS_BORDER, borderwidth=0,
                                 takefocus=True, yscrollincrement=16)
         self.scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
@@ -15,7 +18,8 @@ class ScrollPanel:
         self.canvas.pack(side="left", fill="both", expand=True)
         self.content = ttk.Frame(self.canvas, padding=12)
         self._item = self.canvas.create_window((0, 0), window=self.content, anchor="nw")
-        self.canvas.bind("<Configure>", lambda event: self.canvas.itemconfigure(self._item, width=event.width))
+        self.canvas.bind("<Configure>", lambda event: self.canvas.itemconfigure(
+            self._item, width=max(1, event.width - 2 * _FOCUS_BORDER)))
         self.content.bind("<Configure>", lambda event: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         for key, count, units in (("<Prior>", -1, "pages"), ("<Next>", 1, "pages"),
                                    ("<Up>", -1, "units"), ("<Down>", 1, "units")):
@@ -52,10 +56,16 @@ class ScrollPanel:
         # a tall container into view can immediately hide its focused child.
         if str(self.canvas.tk.call("focus")) != str(event.widget):
             return
-        top = event.widget.winfo_rooty() - self.canvas.winfo_rooty()
-        bottom = top + event.widget.winfo_height()
-        height = self.canvas.winfo_height()
+        top = event.widget.winfo_rooty() - self.canvas.winfo_rooty() - _FOCUS_BORDER
+        widget_height = event.widget.winfo_height()
+        bottom = top + widget_height
+        height = self.canvas.winfo_height() - 2 * _FOCUS_BORDER
         # Leave a unit of room so scroll-increment rounding cannot clip focus.
-        delta = top - 16 if top < 0 else bottom - height + 16 if bottom > height else 0
+        # Align tall controls at the top so the user sees their heading and first row.
+        if widget_height > height or top < 0:
+            delta = top - 16
+        else:
+            delta = bottom - height + 16 if bottom > height else 0
         if delta:
-            self.canvas.yview_moveto((self.canvas.canvasy(0) + delta) / max(1, self.content.winfo_height()))
+            self.canvas.yview_moveto(
+                (self.canvas.canvasy(_FOCUS_BORDER) + delta) / max(1, self.content.winfo_height()))

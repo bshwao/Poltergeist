@@ -1,7 +1,8 @@
 """Guided suites and discovery enforce reviewed identities, budgets and evidence."""
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
-from threading import Event
+from threading import Barrier, Event
 from time import monotonic
 from uuid import UUID, uuid4
 
@@ -9,7 +10,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.config import Settings
+from backend.experiment_repository import ExperimentRepository
 from backend.main import create_app
+from backend.persistence_errors import PersistenceError
 from backend.services.experimentation_service import ExperimentationService
 from shared.models import CollisionEvent
 from simulator import SimulationRunner
@@ -80,6 +83,49 @@ def test_gallery_is_illustratable_and_inert_without_persistence(settings):
         assert all(row["learning_goal"] and row["scenario"]["actors"] for row in entries)
         assert app.state.runtime._worker is app.state.runtime._persistence is None
     assert not settings.storage_dir.exists()
+
+
+def test_guided_launch_retry_is_durable_and_scoped_to_the_original_recipe(settings):
+    url = f"/simulations/requests/{uuid4()}"
+    body = {"mode": "test", "scenario": {"name": "Guided retry", "duration_s": .1,
+        "actors": [{"type": "ego_vehicle"}]}}
+    start = Barrier(2, timeout=5)
+    with client_for(settings) as client, ThreadPoolExecutor(max_workers=2) as pool:
+        def submit(_):
+            start.wait()
+            return client.put(url, json=body)
+
+        responses = list(pool.map(submit, range(2)))
+        assert all(response.status_code == 202 for response in responses)
+        identities = {response.json()["simulation"]["id"] for response in responses}
+        assert len(identities) == 1
+        identity = identities.pop()
+        wait(client, f"/simulations/{identity}", lambda row: row["simulation"]["status"] == "completed")
+
+    with client_for(settings) as client:
+        retry = client.put(url, json=body)
+        assert retry.status_code == 202 and retry.json()["simulation"]["id"] == identity
+        assert retry.json()["simulation"]["status"] == "completed"
+        changed = {**body, "scenario": {**body["scenario"], "seed": 11}}
+        assert client.put(url, json=changed).status_code == 409
+        assert [row["simulation"]["id"] for row in client.get("/simulations").json()] == [identity]
+
+
+def test_guided_receipt_failure_rolls_back_job_and_allows_same_request_retry(settings, monkeypatch):
+    url = f"/simulations/requests/{uuid4()}"
+    body = {"mode": "test", "scenario": {"name": "Failed acknowledgement write", "duration_s": .1,
+        "actors": [{"type": "ego_vehicle"}]}}
+    with client_for(settings) as client:
+        with monkeypatch.context() as failure:
+            def reject_receipt(_repository, _receipt):
+                raise PersistenceError("Fixture receipt write failed")
+
+            failure.setattr(ExperimentRepository, "create", reject_receipt)
+            assert client.put(url, json=body).status_code == 422
+        assert client.get("/simulations").json() == []
+        accepted = client.put(url, json=body)
+        assert accepted.status_code == 202
+        assert len(client.get("/simulations").json()) == 1
 
 
 def test_discovery_proposal_is_read_only_until_exact_explicit_approval(settings):

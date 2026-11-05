@@ -12,7 +12,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def compose_config(*, carla=False, overrides=None):
+def compose_config(*, carla=False, overrides=None, file=None):
     docker = shutil.which("docker")
     if docker is None:
         pytest.skip("Docker CLI is not installed; container configuration check skipped")
@@ -24,6 +24,8 @@ def compose_config(*, carla=False, overrides=None):
     }
     environment.update(overrides or {})
     arguments = [docker, "compose", "--env-file", os.devnull, "--project-name", "poltergeist-config-test"]
+    if file is not None:
+        arguments += ["-f", file]
     if carla:
         arguments += ["--profile", "carla"]
     arguments += ["config", "--format", "json"]
@@ -107,3 +109,50 @@ def test_docker_overrides_do_not_reuse_host_localhost_setting():
     assert services["backend"]["environment"]["CARLA_HOST"] == "host.docker.internal"
     assert services["backend"]["ports"][0]["published"] == "18000"
     assert services["dashboard"]["ports"][0]["published"] == "18080"
+
+
+def test_hosted_stack_separates_private_storage_and_read_only_tls(tmp_path):
+    origin = "https://coordinator.test:8443"
+    config = compose_config(file="compose.hosted.yml", overrides={
+        "POLTERGEIST_HOSTED_ORIGIN": origin,
+        "POLTERGEIST_HOSTED_TLS_DIR": str(tmp_path),
+    })
+    assert set(config["services"]) == {"coordinator"}
+    coordinator = config["services"]["coordinator"]
+    assert coordinator["build"]["dockerfile"] == "Dockerfile.coordinator"
+    command = coordinator["command"]
+    assert command[command.index("--origin") + 1] == origin
+    assert command[command.index("--hosted-assets") + 1] == "/app/hosted"
+    assert coordinator["read_only"] is True
+    assert coordinator["ports"][0]["host_ip"] == "127.0.0.1"
+    mounts = {mount["target"]: mount for mount in coordinator["volumes"]}
+    database = PurePosixPath(command[command.index("--database") + 1])
+    assert database.is_relative_to("/data")
+    assert mounts["/data"]["type"] == "volume"
+    assert mounts["/data"]["source"] in config["volumes"]
+    assert mounts["/tls"]["type"] == "bind"
+    assert mounts["/tls"]["read_only"] is True
+    assert mounts["/tls"]["bind"]["create_host_path"] is False
+
+
+def test_hosted_caddy_owns_public_ports_and_shares_only_its_loopback_with_coordinator():
+    config = compose_config(file="compose.hosted.caddy.yml", overrides={
+        "POLTERGEIST_HOSTED_HOSTNAME": "experiments.example.org",
+    })
+    caddy, coordinator = (config["services"][name] for name in ("caddy", "coordinator"))
+    assert {port["target"] for port in caddy["ports"]} == {80, 443}
+    assert not coordinator.get("ports")
+    assert coordinator["network_mode"] == "service:caddy"
+    assert coordinator["depends_on"]["caddy"]["restart"] is True
+    command = coordinator["command"]
+    assert "--behind-local-proxy" in command
+    assert command[command.index("--host") + 1] == "127.0.0.1"
+    assert command[command.index("--origin") + 1] == "https://experiments.example.org:443"
+    assert command[command.index("--port") + 1] == "8000"
+    assert {mount["target"]: mount["source"] for mount in caddy["volumes"] if mount["type"] == "volume"} == {
+        "/data": "caddy-data", "/config": "caddy-config",
+    }
+    release_files = next(mount for mount in caddy["volumes"] if mount["target"] == "/srv/companion-updates")
+    assert release_files["type"] == "bind" and release_files["read_only"] is True
+    assert release_files["bind"]["create_host_path"] is False
+    assert any(mount["type"] == "volume" and mount["target"] == "/data" for mount in coordinator["volumes"])

@@ -4,6 +4,8 @@ from copy import deepcopy
 import tkinter as tk
 from tkinter import ttk
 
+from .scrolling import ScrollPanel
+
 from shared.models.coordination import DevicePolicy, PermissionScope
 
 
@@ -26,17 +28,9 @@ class PairingPanel:
         self._identity = None
         self._connection_pending = False
         self._connection_uncertain = False
-        self.frame = ttk.Frame(parent, padding=12)
-        self._canvas = tk.Canvas(self.frame, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=self._canvas.yview)
-        self._canvas.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
-        self._canvas.pack(side="left", fill="both", expand=True)
-        body = ttk.Frame(self._canvas)
-        content = self._canvas.create_window(0, 0, anchor="nw", window=body)
-        body.bind("<Configure>", lambda _: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
-        self._canvas.bind("<Configure>", lambda event: self._canvas.itemconfigure(content, width=event.width))
-        app.root.bind("<MouseWheel>", self._scroll, add="+")
+        scroll = ScrollPanel(parent)
+        self.frame = scroll.frame
+        body = scroll.content
         self.origin = tk.StringVar(value=app.controller.config.coordinator_origin or "")
         self.display_name = tk.StringVar(value="My Poltergeist companion")
         self.summary = tk.StringVar(value="Save your coordinator address to begin pairing.")
@@ -52,9 +46,9 @@ class PairingPanel:
         ttk.Label(body, text="Connect your account", font=("Segoe UI", 12, "bold")).pack(anchor="w")
         ttk.Label(body, text="Private connection preview. Pair this computer, then connect when you want to accept account requests.",
             wraplength=740).pack(anchor="w", pady=(6, 12))
+        ttk.Label(body, text="Coordinator HTTPS address").pack(anchor="w", pady=(0, 4))
         address = ttk.Frame(body)
         address.pack(fill="x")
-        ttk.Label(address, text="Coordinator HTTPS address").pack(side="left", padx=(0, 8))
         ttk.Entry(address, textvariable=self.origin).pack(side="left", fill="x", expand=True, padx=(0, 8))
         app._button(address, "Save address", self.save_origin)
         name = ttk.Frame(body)
@@ -74,7 +68,7 @@ class PairingPanel:
         self.evidence_control.pack(anchor="w")
         self.allow_raw_capture = tk.BooleanVar(value=False)
         self.capture_control = ttk.Checkbutton(body,
-            text="Allow remote experiments to save camera and LiDAR recordings locally", variable=self.allow_raw_capture)
+            text="Let remote runs record camera and LiDAR locally", variable=self.allow_raw_capture)
         self.capture_control.pack(anchor="w")
         ttk.Label(body, text="Remote experiments are limited to the baseline controller, 120 seconds and 10 waiting runs. Recordings use the local storage budget and are transferred only when requested. Map reloads and graphics changes are disabled.",
             wraplength=740).pack(anchor="w", pady=8)
@@ -82,7 +76,9 @@ class PairingPanel:
         actions.pack(fill="x", pady=(0, 8))
         self.begin_button = app._button(actions, "Create pairing code", self.begin)
         self.refresh_button = app._button(actions, "Refresh / resume", self.refresh)
-        app._button(actions, "Discard unapproved code", self.discard)
+        discard = ttk.Frame(body)
+        discard.pack(fill="x")
+        app._button(discard, "Discard unapproved code", self.discard)
         ttk.Label(body, textvariable=self.code, font=("Consolas", 18, "bold")).pack(anchor="w", pady=4)
         ttk.Label(body, textvariable=self.summary, wraplength=740).pack(anchor="w", pady=4)
         ttk.Label(body, textvariable=self.saved_origin, wraplength=740).pack(anchor="w", pady=4)
@@ -90,11 +86,13 @@ class PairingPanel:
         ttk.Label(body, textvariable=self.approved_permissions, wraplength=740).pack(anchor="w", pady=4)
         ttk.Label(body, textvariable=self.approved_limits, wraplength=740).pack(anchor="w", pady=4)
         approval = ttk.Frame(body)
-        approval.pack(fill="x", pady=8)
+        approval.pack(fill="x", pady=(8, 4))
         self.approve_button = app._button(approval, "Approve reviewed account", self.approve)
         app._button(approval, "Deny claim", self.deny)
-        self.revoke_button = app._button(approval, "Revoke pairing", self.revoke)
-        self.cancel_approval_button = app._button(approval, "Cancel saved approval", self.cancel_approval)
+        recovery = ttk.Frame(body)
+        recovery.pack(fill="x", pady=(0, 8))
+        self.revoke_button = app._button(recovery, "Revoke pairing", self.revoke)
+        self.cancel_approval_button = app._button(recovery, "Cancel saved approval", self.cancel_approval)
         ttk.Label(body, text="Account connection", font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(12, 4))
         ttk.Label(body, textvariable=self.connection, wraplength=740).pack(anchor="w", pady=4)
         self.consent_control = ttk.Checkbutton(body,
@@ -106,6 +104,7 @@ class PairingPanel:
         connections.pack(fill="x", pady=8)
         self.connect_button = app._button(connections, "Connect", self.connect)
         self.disconnect_button = app._button(connections, "Disconnect", self.disconnect)
+        scroll.bind_content()
         self.sync_controls()
 
     def close(self):
@@ -113,10 +112,6 @@ class PairingPanel:
         # These variables live in a container, beyond the window's direct scan.
         self.permissions.clear()
         self.permission_controls.clear()
-
-    def _scroll(self, event):
-        if str(event.widget).startswith(str(self.frame) + "."):
-            self._canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
 
     def _run(self, action):
         def checked():
@@ -145,14 +140,13 @@ class PairingPanel:
                  and not owned and not self._connection_uncertain)
         self.connect_button.state(["!disabled"] if ready and not busy else ["disabled"])
         self.disconnect_button.state(["!disabled"] if (owned or self._connection_uncertain) and not busy else ["disabled"])
-        self.consent_control.state(["!disabled"] if ready and not busy else ["disabled"])
+        # Tk's screen-reader mode can provide classic checkbuttons in place of ttk.
+        self.consent_control.configure(state="normal" if ready and not busy else "disabled")
         cancellable = self._displayed.get("state") == "pending_approval" and not busy and not owned
         self.cancel_approval_button.state(["!disabled"] if cancellable else ["disabled"])
         editable = self._displayed.get("state") in {"unpaired", "attempt"} and not busy
-        for control in self.permission_controls.values():
-            control.state(["!disabled"] if editable else ["disabled"])
-        self.evidence_control.state(["!disabled"] if editable else ["disabled"])
-        self.capture_control.state(["!disabled"] if editable else ["disabled"])
+        for control in (*self.permission_controls.values(), self.evidence_control, self.capture_control):
+            control.configure(state="normal" if editable else "disabled")
 
     def show_connection(self, relay, queue):
         previous_owned = self._relay.get("owned") is True

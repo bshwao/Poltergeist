@@ -95,13 +95,15 @@ def test_request_budget_failure_is_retained_without_fabricated_latency(tmp_path,
     assert list(tmp_path.iterdir()) == [output]
 
 
-def test_real_loopback_load_reports_ownership_routing_and_cleanup(tmp_path):
-    report = load.run(tmp_path, users=2, rounds=2)
+@pytest.mark.parametrize("isolate_clients", [False, True])
+def test_real_loopback_load_reports_ownership_routing_and_cleanup(tmp_path, isolate_clients):
+    report = load.run(tmp_path, users=2, rounds=2, isolate_clients=isolate_clients)
     assert report["passed"] is True and report["protocol_version"] == 2
     assert report["connected_devices"] == 2 and report["cross_owner_denials"] == 2
     assert report["completed_commands"] == report["routed_commands"] == 4
     assert report["latency_measurement_complete"] is True and report["latency_p95_s"] is not None
     assert report["cleanup_completed"] is True
+    assert report["python_trace_scope"] == ("coordinator process" if isolate_clients else "coordinator and simulated clients")
     assert report["server_concurrency_limit"] >= report["max_connections"] + 65
 
 

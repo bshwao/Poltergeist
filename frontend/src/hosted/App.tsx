@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Icon } from "../components/Icon";
 import { SkipLink } from "../components/SkipLink";
 import { readNumericField } from "../components/scenario-form";
+import { GUIDED_SUBMISSION_PREFIX } from "../services/lab-client";
 import type { BrowserDeviceView, BrowserScenarioPreset, BrowserSession, PairingStatus, PermissionScope, RemoteCommandView, Scenario } from "../types/generated";
 import { createHostedClient, HostedError } from "./client";
 import type { HostedCommand } from "./client";
@@ -13,6 +14,7 @@ import { RecordingPanel } from "./RecordingPanel";
 import { HostedLabWorkspace, hostedLabRoute } from "./LabWorkspace";
 
 type Client = ReturnType<typeof createHostedClient>;
+declare const __COMPANION_DOWNLOAD_URL__: string;
 type Pending = { device: string; command: HostedCommand; uncertain: boolean };
 const short = (value: string) => value.slice(0, 8);
 const when = (value: string | null) => value ? new Date(value).toLocaleString() : "Not yet connected";
@@ -77,7 +79,7 @@ function ConnectComputer({ claim, busy, onClaim }: { claim: PairingStatus | null
   }
   return <section className="hosted-card hosted-connect" id="connect" aria-labelledby="connect-title">
     <div><p className="hosted-eyebrow">BRING YOUR COMPUTER ONLINE</p><h2 id="connect-title">Connect your companion</h2>
-      <ol className="hosted-steps"><li>Open Poltergeist Companion on the computer you want to use.</li><li>In Connection, create a pairing code and enter it here.</li><li>Review this account on that computer, approve its permissions, then allow requests and choose Connect.</li></ol>
+      <ol className="hosted-steps"><li>{__COMPANION_DOWNLOAD_URL__ ? <><a href={__COMPANION_DOWNLOAD_URL__}>Download Companion for Windows x64</a> and install it on the computer you want to use.</> : "Use the Companion installer from your workspace administrator if you haven’t installed it yet."} Open Poltergeist Companion from the Windows Start menu.</li><li>In Connection, set the coordinator origin to <strong>{window.location.origin}</strong>, then create a pairing code and enter it here.</li><li>Review this account on that computer, approve its permissions, then allow requests and choose Connect.</li></ol>
     </div><div className="hosted-claim-box">
       <form onSubmit={submit} method="post" action="/v1/pairing/claim">
         <label>Pairing code<input aria-label="Pairing code" name="code" value={code} onChange={event => setCode(event.target.value.toUpperCase())} className="hosted-code-input" autoComplete="off" spellCheck={false} pattern="[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{10}" minLength={10} maxLength={10} placeholder="10 characters" required disabled={busy} /></label>
@@ -229,7 +231,15 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
     setDevices([]); setDevicesLoading(true); setPresets([]); setSelectedId(""); setRuns([]); runsRef.current = [];
     setClaim(null); setRevokeTarget(null); setPending(null); pendingRef.current = null; resultRequests.current.clear();
     setLabRoute({ section: "legacy" }); setLabVisited(false);
-    if (typeof window !== "undefined") window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      try {
+        for (const name of Object.keys(window.sessionStorage)) {
+          // Hosted scope keys are serialized account and device tuples.
+          if (name.startsWith(`${GUIDED_SUBMISSION_PREFIX}[`)) window.sessionStorage.removeItem(name);
+        }
+      } catch { /* Browser storage can be disabled. */ }
+    }
   }
   function failed(error: unknown, context?: string) {
     if (context !== undefined && context !== scope.current) return;
