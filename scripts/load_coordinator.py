@@ -13,6 +13,7 @@ import shutil
 import socket
 import ssl
 import statistics
+import subprocess
 import tempfile
 import tracemalloc
 from threading import Thread, Event
@@ -67,7 +68,7 @@ async def bounded_request(client, method, path, *, deadline, counters, jitter=la
     raise CapacityCheckError("retry_budget_exhausted")
 
 
-async def exercise(max_connections, origin, identities, rounds):
+async def exercise(max_connections, origin, identities, rounds, ca_file=None):
     latencies, tasks, browsers = [], [], []
     counters = {"statuses": Counter(), "bytes": 0, "retries": 0, "retry_wait_s": 0.}
     routed, isolated = 0, 0
@@ -76,14 +77,17 @@ async def exercise(max_connections, origin, identities, rounds):
     barrier = asyncio.Barrier(len(identities))
     # HTTPX otherwise loads the same CA bundle synchronously for each client
     # during the burst. Share trust settings while keeping independent clients.
-    trust = ssl.create_default_context(cafile=certifi.where())
+    trust = ssl.create_default_context(cafile=ca_file or certifi.where())
+    ws_origin = origin.replace("http", "ws", 1)
+    ws_options = {"ssl": trust} if ca_file else {}
     started = monotonic()
 
     async def companion(device, credential, ready):
         nonlocal routed
-        async with connect(origin.replace("http:", "ws:") + "/v1/device/connect",
+        async with connect(ws_origin + "/v1/device/connect",
                            additional_headers={"Authorization": "Bearer " + credential},
-                           max_size=262144, max_queue=1, compression=None, proxy=None) as ws:
+                           max_size=262144, max_queue=1, compression=None, proxy=None,
+                           **ws_options) as ws:
             hello = parse_message(await ws.recv())
             assert str(hello.device_id) == str(device)
             envelope = {key: getattr(hello, key) for key in ("device_id", "ownership_generation", "connection_generation")}
@@ -167,7 +171,8 @@ async def exercise(max_connections, origin, identities, rounds):
     complete = failure is None and len(latencies) == len(identities) * rounds
     ordered = sorted(latencies)
     return {"schema_version": "poltergeist-capacity-v1", "protocol_version": 2,
-        "transport": "loopback HTTP/WS fixture", "users": len(identities), "connected_devices": connected,
+        "transport": "loopback Caddy HTTPS/WSS fixture" if ca_file else "loopback HTTP/WS fixture",
+        "users": len(identities), "connected_devices": connected,
         "rounds_per_device": rounds, "completed_commands": len(latencies), "routed_commands": routed,
         "cross_owner_denials": isolated, "elapsed_s": elapsed,
         "commands_per_s": len(latencies) / elapsed if complete else None,
@@ -179,19 +184,20 @@ async def exercise(max_connections, origin, identities, rounds):
         "max_connections": max_connections,
         "failure_phase": phase if failure else None, "failure_code": failure,
         "passed": complete and routed == len(latencies) and isolated == len(identities),
-        "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs"}
+        "scope": ("Simulated companions; excludes WAN, physical PCs, CARLA/GPU and provider costs" if ca_file else
+                  "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs")}
 
 
-def _client_process(max_connections, origin, identities, rounds, receipt):
+def _client_process(max_connections, origin, identities, rounds, ca_file, receipt):
     with receipt:
-        receipt.send(asyncio.run(exercise(max_connections, origin, identities, rounds)))
+        receipt.send(asyncio.run(exercise(max_connections, origin, identities, rounds, ca_file)))
 
 
-def _isolated_exercise(max_connections, origin, identities, rounds):
+def _isolated_exercise(max_connections, origin, identities, rounds, ca_file):
     context = multiprocessing.get_context("spawn")
     receiver, sender = context.Pipe(duplex=False)
     with receiver, sender:
-        process = context.Process(target=_client_process, args=(max_connections, origin, identities, rounds, sender))
+        process = context.Process(target=_client_process, args=(max_connections, origin, identities, rounds, ca_file, sender))
         try:
             process.start()
             sender.close()
@@ -214,28 +220,82 @@ def _isolated_exercise(max_connections, origin, identities, rounds):
             process.close()
 
 
-def run(directory, *, users=25, rounds=20, isolate_clients=False):
+def _caddy_config(directory, backend_port):
+    with socket.socket() as reservation:
+        reservation.bind(("127.0.0.1", 0))
+        port = reservation.getsockname()[1]
+    # A hostname supplies the SNI that the deployment's strict host check needs.
+    origin = f"https://localhost:{port}"
+    config = directory / "Caddyfile"
+    config.write_text(f'''{{
+    admin off
+    auto_https disable_redirects
+    persist_config off
+    skip_install_trust
+    storage file_system caddy-storage
+    servers {{
+        protocols h1 h2
+        strict_sni_host on
+    }}
+}}
+{origin} {{
+    bind 127.0.0.1
+    tls internal
+    encode gzip
+    reverse_proxy 127.0.0.1:{backend_port} {{
+        transport http {{
+            keepalive 4s
+            keepalive_idle_conns_per_host 100
+        }}
+    }}
+}}
+''', encoding="utf-8")
+    return origin, config, directory / "caddy-storage" / "pki" / "authorities" / "local" / "root.crt"
+
+
+def _wait_for_caddy(proxy, origin, ca_file):
+    deadline = monotonic() + 20
+    while monotonic() < deadline and proxy.poll() is None:
+        if ca_file.is_file():
+            try:
+                trust = ssl.create_default_context(cafile=ca_file)
+                response = httpx.get(origin + "/healthz", timeout=1, verify=trust, trust_env=False)
+                if response.status_code == 200 and response.json().get("protocol_version") == "poltergeist-coordinator-v1":
+                    return
+            except (httpx.RequestError, OSError, ValueError):
+                pass
+        Event().wait(.05)
+    raise CapacityCheckError("verified_proxy_startup_failed")
+
+
+def run(directory, *, users=25, rounds=20, isolate_clients=False, caddy=None):
     if not 2 <= users <= 100 or not 1 <= rounds <= 100:
         raise ValueError("Load fixture supports 2–100 users and 1–100 rounds")
     tracemalloc.start()
-    listener = server = thread = None
+    listener = server = thread = proxy = ca_file = None
     phase = "server_startup"
     result = {"schema_version": "poltergeist-capacity-v1", "protocol_version": 2, "users": users,
+        "transport": "loopback Caddy HTTPS/WSS fixture" if caddy else "loopback HTTP/WS fixture",
         "rounds_per_device": rounds, "passed": False, "connected_devices": None,
         "completed_commands": 0, "routed_commands": 0, "cross_owner_denials": 0,
         "latency_measurement_complete": False, "elapsed_s": None, "commands_per_s": None,
         "latency_p50_s": None, "latency_p95_s": None, "latency_max_s": None,
         "http_payload_bytes": 0, "http_status_counts": {}, "http_retry_count": 0,
         "http_retry_wait_s": 0., "max_connections": None,
-        "scope": "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs"}
+        "scope": ("Simulated companions; excludes WAN, physical PCs, CARLA/GPU and provider costs" if caddy else
+                  "Simulated companions; excludes TLS cost, physical PCs, CARLA/GPU and provider costs")}
     try:
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
-        origin = f"http://127.0.0.1:{listener.getsockname()[1]}"
+        port = listener.getsockname()[1]
+        origin = f"http://127.0.0.1:{port}"
+        if caddy is not None:
+            origin, config, ca_file = _caddy_config(Path(directory).resolve(), port)
         settings = CoordinatorSettings(Path(directory).absolute() / "coordinator.db", origin,
-            test_allow_insecure_loopback=True)
+            test_allow_insecure_loopback=caddy is None)
         app = create_app(settings)
-        server = uvicorn.Server(uvicorn.Config(app, log_level="critical", access_log=False, proxy_headers=False,
+        server = uvicorn.Server(uvicorn.Config(app, log_level="critical", access_log=False,
+            proxy_headers=caddy is not None, forwarded_allow_ips="127.0.0.1",
             ws_max_size=262144, ws_max_queue=1, ws_per_message_deflate=False, timeout_graceful_shutdown=5,
             limit_concurrency=settings.server_connection_limit, timeout_keep_alive=5))
         thread = Thread(target=lambda: server.run(sockets=[listener]), daemon=True)
@@ -245,6 +305,11 @@ def run(directory, *, users=25, rounds=20, isolate_clients=False):
             if monotonic() > deadline or not thread.is_alive():
                 raise RuntimeError("Load fixture did not start")
             Event().wait(.01)
+        if caddy is not None:
+            phase = "proxy_startup"
+            proxy = subprocess.Popen([str(Path(caddy).resolve()), "run", "--config", str(config),
+                "--adapter", "caddyfile"], cwd=config.parent, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            _wait_for_caddy(proxy, origin, ca_file)
         phase, identities = "accounts", []
         for index in range(users):
             username, password = f"capacity-{index}", secrets.token_urlsafe(32)
@@ -258,13 +323,20 @@ def run(directory, *, users=25, rounds=20, isolate_clients=False):
                 expected_account_id=owner, expected_revision=claim.revision, credential=credential, policy={"scopes": ["status:read"]}))
             identities.append((device.device_id, credential, session))
         phase = "workload"
-        arguments = (app.state.relay.max_connections, origin, identities, rounds)
+        arguments = (app.state.relay.max_connections, origin, identities, rounds, ca_file)
         result = _isolated_exercise(*arguments) if isolate_clients else asyncio.run(exercise(*arguments))
     except CapacityCheckError as error:
         result.update(passed=False, failure_phase=phase, failure_code=str(error))
     except Exception:
         result.update(passed=False, failure_phase=phase, failure_code="fixture_setup_or_workload_failed")
     finally:
+        if proxy is not None and proxy.poll() is None:
+            proxy.terminate()
+            try:
+                proxy.wait(5)
+            except subprocess.TimeoutExpired:
+                proxy.kill()
+                proxy.wait()
         if server is not None:
             server.should_exit = True
         if thread is not None and thread.ident is not None:
@@ -295,17 +367,20 @@ def main(argv=None):
     parser.add_argument("--users", type=int, default=25)
     parser.add_argument("--rounds", type=int, default=20)
     parser.add_argument("--isolate-clients", action="store_true", help="Run simulated clients in a separate process")
+    parser.add_argument("--caddy", type=Path, help="Use this Caddy executable for verified loopback HTTPS/WSS")
     args = parser.parse_args(argv)
     if not 2 <= args.users <= 100 or not 1 <= args.rounds <= 100:
         parser.error("Use 2–100 users and 1–100 rounds")
     if args.output.exists():
         parser.error("Use a new output file; existing evidence is preserved")
+    if args.caddy is not None and not args.caddy.is_file():
+        parser.error("Provide an existing Caddy executable")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     parent = args.output.parent.resolve()
     directory = Path(tempfile.mkdtemp(prefix="poltergeist-capacity-", dir=parent)).resolve()
     if directory == parent or not directory.is_relative_to(parent) or not directory.name.startswith("poltergeist-capacity-"):
         raise ValueError("Fixture directory escaped its evidence parent")
-    result = run(directory, users=args.users, rounds=args.rounds, isolate_clients=args.isolate_clients)
+    result = run(directory, users=args.users, rounds=args.rounds, isolate_clients=args.isolate_clients, caddy=args.caddy)
     if result["cleanup_completed"]:
         try:
             shutil.rmtree(directory)

@@ -50,7 +50,30 @@ def test_controller_review_download_and_prepare_do_not_launch_an_installer(insta
     assert args[:5] == [str(controller._bundle / "runtime/python.exe"), "-I", "-B", "-m", "scripts.update_companion"]
     assert args[args.index("--wait-for-pid") + 1] == str(os.getpid()) and "--notify" in args
     assert Path(args[args.index("--install-root") + 1]) == install
+    assert args[args.index("--reviewed-release-sha256") + 1] == updates.release_digest(state["release"])
     assert controller._owned and not list(controller.profile.glob("updates/*/receipt.json"))
+
+
+@pytest.mark.parametrize("downloaded", [False, True])
+def test_changed_reviewed_offer_is_refused_before_download_or_close(installed, candidate, downloaded):
+    controller, _, state, _, _ = installed
+    _, _, requests, _, _ = candidate
+    controller.check_updates(Event())
+    if downloaded:
+        controller.download_checked_update(Event())
+    request_count = len(requests)
+    changed = state["release"].model_copy(update={"bundle_manifest_sha256": "c" * 64})
+    manifest = controller._update_offer.manifest
+    manifest.write_text("# Poltergeist release metadata v1\n# " + changed.model_dump_json() + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="changed after review"):
+        if downloaded:
+            controller.prepare_update_install()
+        else:
+            controller.download_checked_update(Event())
+    assert controller._owned and controller._update_offer.release == state["release"]
+    assert (manifest.parent / "Setup.exe").is_file() == downloaded
+    assert len(requests) == request_count
 
 
 def test_stopped_runtime_still_refuses_durable_queued_work_before_closing(installed):

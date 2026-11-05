@@ -3,7 +3,7 @@ import { ApiError } from "../services/api";
 import { abortable } from "../services/abortable";
 
 export const labError = (error: unknown) => error instanceof Error ? error.message : "The experiment request could not be completed.";
-export function useLabMutation(active: boolean) {
+export function useLabMutation(active: boolean, retryMessage?: string) {
   const visible = useRef(active); visible.current = active;
   const mounted = useRef(true), pending = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
@@ -17,11 +17,11 @@ export function useLabMutation(active: boolean) {
     try {
       const result = await abortable(action, controller.signal);
       if (mounted.current && visible.current && !controller.signal.aborted) accepted(result);
-      else if (mounted.current) setError("The response could not be confirmed. Review saved history before retrying this request.");
+      else if (mounted.current) setError(`The response could not be confirmed. ${retryMessage ?? "Review saved history before retrying this request."}`);
     } catch (failure) {
       if (mounted.current) {
         const uncertain = controller.signal.aborted || !(failure instanceof ApiError) || failure.status === 0 || failure.status >= 500 || failure.status < 400;
-        setError(labError(failure) + (uncertain ? " The request may have arrived. Review saved history before retrying; it is never resubmitted automatically." : ""));
+        setError(labError(failure) + (uncertain ? ` The request may have arrived. ${retryMessage ?? "Review saved history before retrying; it is never resubmitted automatically."}` : ""));
       }
     } finally { clearTimeout(timer); if (pending.current === controller) { pending.current = null; if (mounted.current) setBusy(false); } }
   }

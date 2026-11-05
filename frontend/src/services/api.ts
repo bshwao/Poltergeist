@@ -873,6 +873,11 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     deleteScenario: async (id: string, expected_revision: number, options: RequestOptions = {}) => request<void>(`/scenarios/${checkedId(id)}?expected_revision=${checkedRevision(expected_revision)}`, options, () => true, "DELETE", undefined, 204),
     getSimulationQueue: (options: RequestOptions = {}) => request<QueueStatus>("/simulations/queue", options, isQueue),
     launchSimulation: (input: SimulationLaunch, options: RequestOptions = {}) => request<SimulationRecord>("/simulations", options, isSimulationRecord, "POST", input, 202),
+    launchGuidedSimulation: (input: SimulationLaunch, requestId: string, options: RequestOptions = {}) => request<SimulationRecord>(
+      `/simulations/requests/${checkedId(requestId)}`, options, isSimulationRecord, "PUT", input, 202),
+    validateGuidedLaunch: (input: unknown): input is SimulationLaunch => isObject(input) && input.scenario_id === null
+      && input.agent_id === null && (input.mode === "test" || input.mode === "carla") && isScenario(input.scenario)
+      && isOptions(input.options) && isEvaluation(input.evaluation_settings),
     listSimulations: async (filters: SimulationFilters = {}, options: RequestOptions = {}) => request<SimulationRecord[]>(`/simulations${filterQuery(filters, "simulation")}`, options, value => Array.isArray(value) && value.every(isSimulationRecord), "GET", undefined, 200),
     getSimulation: async (id: string, options: RequestOptions = {}) => request<SimulationRecord>(`/simulations/${checkedId(id)}`, options, recordFor(id), "GET", undefined, 200),
     getSimulationProgress: async (id: string, options: RequestOptions = {}) => request<SimulationProgress>(`/simulations/${checkedId(id)}/progress`, options, value => isProgress(value) && isObject(value) && sameId(value.simulation_id, id), "GET", undefined, 200),

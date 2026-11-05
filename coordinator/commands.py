@@ -144,7 +144,9 @@ class CommandService:
             items = []
             for stored in records[:limit]:
                 command = _stored(COMMAND_ADAPTER, stored["payload_json"])
-                self._owner(connection, owner_id, device_id, scope=command_scope(command))
+                # Ownership and grants are already verified in this read snapshot.
+                if command_scope(command) not in grants:
+                    raise AuthError(403, "permission_denied")
                 items.append(self._view(stored))
             return BrowserCommandPage(items=items,
                 next_before=items[-1].request_id if len(records) > limit and items else None)

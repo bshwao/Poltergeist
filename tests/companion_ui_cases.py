@@ -76,7 +76,11 @@ def tk_host():
 
 
 @pytest.fixture
-def window(tmp_path, monkeypatch, tk_host):
+def window(tmp_path, monkeypatch, tk_host, request):
+    if hasattr(request, "param"):
+        previous_scale = tk_host.tk.call("tk", "scaling")
+        request.addfinalizer(lambda: tk_host.tk.call("tk", "scaling", previous_scale))
+        tk_host.tk.call("tk", "scaling", request.param)
     root = tk.Toplevel(tk_host)
     root.withdraw()
     controller = CompanionController(tmp_path / "profile")
@@ -96,6 +100,8 @@ def window(tmp_path, monkeypatch, tk_host):
 def test_run_button_persisted_history_export_stop_and_restart(window):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None and desktop._last_snapshot is not None)
+    assert desktop.start_button.instate(["disabled"])
+    assert desktop.stop_button.instate(["!disabled"])
     desktop.run_button.invoke()
     pump_until(root, lambda: desktop._future is None and any(r["status"] == "completed" for r in (desktop._last_snapshot or {}).get("runs", [])),
                stage="synthetic run completion", desktop=desktop, errors=errors)
@@ -109,9 +115,13 @@ def test_run_button_persisted_history_export_stop_and_restart(window):
     desktop.stop_button.invoke()
     pump_until(root, lambda: desktop._future is None)
     assert "stopped" in desktop.runtime_text.get()
+    assert desktop.start_button.instate(["!disabled"])
+    assert desktop.stop_button.instate(["disabled"])
     desktop.start_button.invoke()
     pump_until(root, lambda: desktop._future is None and bool(desktop._last_snapshot["runs"]))
     assert desktop._last_snapshot["runs"][0]["id"] == run["id"]
+    assert desktop.start_button.instate(["disabled"])
+    assert desktop.stop_button.instate(["!disabled"])
 
 
 def test_background_action_keeps_tk_responsive_and_close_waits_for_action(window):
@@ -251,6 +261,9 @@ def test_model_actions_fit_and_scroll_into_keyboard_view_at_supported_window_siz
         for size in ("960x800", "700x600"):
             root.geometry(size)
             root.update()
+            inset = int(panel.canvas.cget("highlightthickness"))
+            assert inset > 0
+            assert panel._scroll.content.winfo_width() == panel.canvas.winfo_width() - 2 * inset
             for kind in ("plant", "aim"):
                 controller.select_model(kind)
                 panel.sync_controls()
@@ -437,6 +450,119 @@ def test_local_execution_actions_scroll_into_keyboard_view(window):
     assert errors == []
 
 
+@pytest.mark.parametrize("window", [2.0], indirect=True)
+def test_tab_labels_fit_when_windows_text_is_scaled(window):
+    root, _, desktop, _ = window
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    tabs = desktop._tabs
+    try:
+        for width, execution_label in ((1200, "Local execution"), (700, "Run")):
+            root.geometry(f"{width}x650")
+            root.update()
+            labels = [tabs.tab(tab, "text") for tab in tabs.tabs()]
+            assert labels[1] == execution_label
+            assert labels[-1] == "Updates"
+            widths = [0] * len(labels)
+            for x in range(tabs.winfo_width()):
+                try:
+                    index = tabs.index(f"@{x},12")
+                except tk.TclError:
+                    continue
+                widths[index] += 1
+            tab_font = tk.font.nametofont("TkDefaultFont", root=root)
+            assert all(tab_font.measure(label) < space for label, space in zip(labels, widths, strict=True))
+    finally:
+        root.withdraw()
+
+
+@pytest.mark.parametrize("window", [1.3333, 2.6667], indirect=True)
+def test_connection_consent_scrolls_into_keyboard_view(window):
+    root, _, desktop, _ = window
+    pump_until(root, lambda: desktop._future is None)
+    panel = desktop.pairing
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    root.geometry("700x600")
+    desktop._tabs.select(panel.frame)
+    try:
+        root.update()
+        labels = {"Save address", "Discard unapproved code", "Cancel saved approval"}
+        actions = [button for button in desktop._buttons if button.cget("text") in labels]
+        assert len(actions) == len(labels)
+        for action in [*actions, panel.capture_control]:
+            assert action.winfo_width() >= action.winfo_reqwidth()
+        panel.consent_control.focus_force()
+        root.update()
+        assert root.focus_get() is panel.consent_control
+        bottom = panel.consent_control.winfo_rooty() + panel.consent_control.winfo_height()
+        assert bottom <= panel.frame.winfo_rooty() + panel.frame.winfo_height()
+        assert panel.allow_remote_execution.get() is False
+    finally:
+        root.withdraw()
+
+
+def test_pairing_accepts_tk_screen_reader_checkbutton_alias(tk_host, request):
+    # Tk 9.1 can replace ttk::checkbutton with the classic command when a
+    # Windows screen reader is active. The classic widget lacks ttk's state subcommand.
+    tk_host.tk.call("rename", "ttk::checkbutton", "ttk::companion_test_checkbutton")
+
+    def restore():
+        tk_host.tk.call("interp", "alias", "", "ttk::checkbutton", "")
+        tk_host.tk.call("rename", "ttk::companion_test_checkbutton", "ttk::checkbutton")
+
+    request.addfinalizer(restore)
+    tk_host.tk.call("interp", "alias", "", "ttk::checkbutton", "", "checkbutton")
+    root, _, desktop, _ = request.getfixturevalue("window")
+    pump_until(root, lambda: desktop._future is None and desktop._last_snapshot is not None)
+    panel = desktop.pairing
+    assert panel.consent_control.winfo_class() == "Checkbutton"
+    assert str(panel.consent_control.cget("state")) == "disabled"
+
+    panel._displayed = {"state": "unpaired"}
+    panel.sync_controls()
+    permissions = [*panel.permission_controls.values(), panel.evidence_control, panel.capture_control]
+    assert all(str(control.cget("state")) == "normal" for control in permissions)
+
+    panel._displayed = {"state": "paired"}
+    panel.show_connection({"state": "disconnected", "owned": False}, {"state": "running", "accepting": True})
+    assert str(panel.consent_control.cget("state")) == "normal"
+    assert all(str(control.cget("state")) == "disabled" for control in permissions)
+
+
+@pytest.mark.parametrize("window", [2.6667], indirect=True)
+def test_scaled_run_history_has_room_for_row_text(window):
+    root, _, desktop, _ = window
+    pump_until(root, lambda: desktop._future is None and desktop._last_snapshot is not None)
+    desktop.run_button.invoke()
+    pump_until(root, lambda: desktop._future is None and any(run["status"] == "completed" for run in desktop._last_snapshot["runs"]))
+    row = desktop._last_snapshot["runs"][0]["id"]
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    root.geometry("700x600")
+    desktop._tabs.select(desktop._execution_scroll.frame)
+    try:
+        root.update()
+        assert desktop._execution_scroll.canvas.winfo_height() >= 200
+        load_preset = next(button for button in desktop._buttons if button.cget("text") == "Load preset")
+        assert load_preset.winfo_width() >= load_preset.winfo_reqwidth()
+        desktop.runs.focus_force()
+        root.update()
+        assert root.focus_get() is desktop.runs
+        canvas = desktop._execution_scroll.canvas
+        _, row_y, _, height = desktop.runs.bbox(row)
+        table_y = desktop.runs.winfo_rooty() - canvas.winfo_rooty()
+        assert 0 <= table_y and table_y + row_y + height <= canvas.winfo_height()
+        row_font = tk.font.nametofont("TkDefaultFont", root=root)
+        assert height >= row_font.metrics("linespace") + 4
+        for column in ("mode", "status", "progress"):
+            left, _, width, _ = desktop.runs.bbox(row, column)
+            assert width >= row_font.measure(desktop.runs.set(row, column)) + 4
+            assert left + width <= desktop.runs.winfo_width()
+    finally:
+        root.withdraw()
+
+
 def test_status_messages_remain_visible_below_tall_tabs(window):
     root, controller, desktop, errors = window
     pump_until(root, lambda: desktop._future is None)
@@ -484,6 +610,51 @@ def test_update_actions_remain_visible_at_minimum_window_size(window):
     finally:
         root.withdraw()
     assert errors == []
+
+
+@pytest.mark.parametrize("window", [2.6667], indirect=True)
+def test_scaled_update_actions_scroll_into_keyboard_view(window):
+    root, _, desktop, _ = window
+    panel = desktop.updates
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    root.geometry("700x600")
+    desktop._tabs.select(panel.frame)
+    try:
+        root.update()
+        for button in (panel.check_button, panel.download_button, panel.install_button, panel.clear_button,
+                       panel.local_button, panel.rollback_button, panel.cache_button, panel.cancel_button):
+            button.focus_force()
+            root.update()
+            assert root.focus_get() is button
+            assert button.winfo_width() >= button.winfo_reqwidth()
+            canvas = panel._scroll.canvas
+            assert button.winfo_rooty() >= canvas.winfo_rooty()
+            assert button.winfo_rooty() + button.winfo_height() <= canvas.winfo_rooty() + canvas.winfo_height()
+    finally:
+        root.withdraw()
+
+
+@pytest.mark.parametrize("window", [2.6667], indirect=True)
+def test_scaled_setup_and_maintenance_actions_scroll_into_view(window):
+    root, _, desktop, _ = window
+    root.attributes("-alpha", 0.0)
+    root.deiconify()
+    root.geometry("700x600")
+    try:
+        for index, label in ((0, "Use synthetic for now"), (2, "Save settings"),
+                             (3, "Save diagnostics"), (4, "Import run report…")):
+            desktop._tabs.select(index)
+            root.update()
+            frame = root.nametowidget(desktop._tabs.select())
+            button = next(button for button in desktop._buttons if button.cget("text") == label)
+            button.focus_force()
+            root.update()
+            assert root.focus_get() is button
+            assert button.winfo_rooty() >= frame.winfo_rooty()
+            assert button.winfo_rooty() + button.winfo_height() <= frame.winfo_rooty() + frame.winfo_height()
+    finally:
+        root.withdraw()
 
 
 def test_native_update_review_cancel_retry_and_close_handoff(window, monkeypatch):
@@ -686,6 +857,7 @@ def test_close_during_integrity_check_prevents_worker_restart(window):
     desktop._startup_check, desktop._files_checked = check, False
     desktop.start_button.invoke()
     assert entered.wait(5)
+    assert desktop.message.get() == "Checking installed files before starting…"
     desktop.request_close()
     assert not desktop._destroyed
     release.set()

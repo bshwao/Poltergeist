@@ -1,4 +1,4 @@
-/* Shared light palette for the local and connected workspaces. */
+/* Shared palette for the local and connected workspaces. */
 :root {
   color-scheme: light;
   --lab-font: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -10,9 +10,54 @@
   --lab-line: #d9e2d8;
   --lab-accent: #246b4b;
   --lab-accent-hover: #195337;
+  --lab-action: #246b4b;
+  --lab-action-hover: #195337;
   --lab-sidebar: #18372d;
   --lab-focus: #815400;
   --lab-radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) and (forced-colors: none) {
+  :root {
+    color-scheme: dark;
+    --lab-ink: #edf3ee;
+    --lab-muted: #b1c5b8;
+    --lab-canvas: #101a16;
+    --lab-surface: #192720;
+    --lab-soft: var(--lab-dark-soft);
+    --lab-line: var(--lab-dark-line);
+    --lab-accent: #9ee0b8;
+    --lab-accent-hover: #b8efcd;
+    --lab-action: #2a6c49;
+    --lab-action-hover: #347853;
+    --lab-sidebar: #12251d;
+    --lab-focus: #f7d597;
+
+    /* Component fallbacks retain their original light shades. */
+    --lab-dark-soft: #25382e;
+    --lab-dark-line: #40574a;
+    --lab-dark-field: #111e18;
+    --lab-dark-strong: #e1ece4;
+    --lab-dark-muted: #aac1b4;
+    --lab-dark-input-line: #698477;
+    --lab-dark-positive: #a5dfb9;
+    --lab-dark-positive-surface: #213b2c;
+    --lab-dark-positive-line: #577f65;
+    --lab-dark-warning: #f6d69f;
+    --lab-dark-warning-surface: #392e1f;
+    --lab-dark-warning-line: #806640;
+    --lab-dark-danger: #ffc3b6;
+    --lab-dark-danger-surface: #432923;
+    --lab-dark-danger-line: #925e51;
+    --lab-dark-info: #c1dbf6;
+    --lab-dark-info-surface: #26394a;
+    --lab-dark-info-line: #59778d;
+    --lab-dark-review: #ddcef7;
+    --lab-dark-review-surface: #342b43;
+    --lab-dark-review-line: #776491;
+    --lab-dark-chart-speed: #c6aff8;
+    --lab-dark-chart-deceleration: #8bd9cb;
+  }
 }
 
 .skip-link {
@@ -28,6 +73,45 @@
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 @media (forced-colors: active) {
+  :root {
+    --lab-ink: CanvasText;
+    --lab-muted: CanvasText;
+    --lab-canvas: Canvas;
+    --lab-surface: Canvas;
+    --lab-soft: Canvas;
+    --lab-line: CanvasText;
+    --lab-accent: LinkText;
+    --lab-accent-hover: LinkText;
+    --lab-sidebar: Canvas;
+    --lab-focus: Highlight;
+
+    /* Component palette overrides follow the selected system colors. */
+    --lab-dark-soft: Canvas;
+    --lab-dark-line: CanvasText;
+    --lab-dark-field: Field;
+    --lab-dark-strong: CanvasText;
+    --lab-dark-muted: CanvasText;
+    --lab-dark-input-line: ButtonText;
+    --lab-dark-positive: CanvasText;
+    --lab-dark-positive-surface: Canvas;
+    --lab-dark-positive-line: CanvasText;
+    --lab-dark-warning: CanvasText;
+    --lab-dark-warning-surface: Canvas;
+    --lab-dark-warning-line: CanvasText;
+    --lab-dark-danger: CanvasText;
+    --lab-dark-danger-surface: Canvas;
+    --lab-dark-danger-line: CanvasText;
+    --lab-dark-info: CanvasText;
+    --lab-dark-info-surface: Canvas;
+    --lab-dark-info-line: CanvasText;
+    --lab-dark-review: CanvasText;
+    --lab-dark-review-surface: Canvas;
+    --lab-dark-review-line: CanvasText;
+  }
   button, input, select, textarea, [role="button"] { border: 1px solid ButtonText; }
   :focus-visible { outline-color: Highlight; }
+  nav a[aria-current="page"], [role="tab"][aria-selected="true"] {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
 }

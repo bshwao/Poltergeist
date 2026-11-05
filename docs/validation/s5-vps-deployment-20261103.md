@@ -86,6 +86,41 @@ returned the expected A record. The VPS address is ephemeral, so update the
 DuckDNS record if Oracle assigns a different address. The deployed app uses
 the same HTTPS origin for the dashboard, account API and Companion relay.
 
+### S9 Caddy pool rollout and rollback
+
+The November 4 rehearsal ran the Linux coordinator and Caddy on this PC. It
+used one disposable SQLite store and TLS CA across the default, tuned and
+restored proxy configurations. Each stage served the dashboard over verified
+HTTPS and authenticated the same saved browser sessions. The paired device
+reconnected with a new connection generation. A queued status command completed
+after the tuned restart. Retrying its request returned the same receipt without
+a second relay message during the check. After rollback, both prior receipts
+were present and a new command completed. SQLite `quick_check` passed.
+
+The live `/healthz` and `/app/` returned HTTP 200 on November 4. SSH key
+authentication for `deploy` and `ubuntu` was refused, so the live pool rollout
+remains pending.
+
+1. Confirm the running Compose project, image IDs, Caddy config mount, health
+   and current work before choosing a quiet restart window.
+2. Save the exact deployed Caddyfile in the private backups directory. Stage a
+   candidate that changes only the `reverse_proxy` transport to a four-second
+   idle timeout and a 100-connection idle pool. Adapt the candidate with the
+   same Caddy image and public hostname before installing it. See the
+   [measured pool settings](../evidence-capacity-release.md#caddy-upstream-connection-reuse).
+3. Replace the live Caddyfile with the validated candidate. Recreate both
+   services so the coordinator joins Caddy's container network namespace. Use
+   the existing images, environment and named volumes.
+
+   ```sh
+   docker compose --env-file hosted.env -f compose.hosted.caddy.yml up -d --no-build --pull never --force-recreate caddy coordinator
+   ```
+
+4. Verify public HTTPS health and dashboard responses and reconnect an approved
+   Companion. Confirm the saved command history and the new reply. If a check
+   fails, restore the saved Caddyfile, recreate both services with the same
+   command and repeat verification.
+
 ## Public Companion acceptance
 
 Chromium used its normal certificate verification and the unchanged Companion

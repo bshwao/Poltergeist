@@ -31,6 +31,12 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      - type: bind
+        source: ${POLTERGEIST_RELEASE_FILES_DIR:-./deploy/releases}
+        target: /srv/companion-updates
+        read_only: true
+        bind:
+          create_host_path: false
       - caddy-data:/data
       - caddy-config:/config
   coordinator:

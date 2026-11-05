@@ -2,10 +2,11 @@
 
 from hashlib import sha256
 import json
+import tomllib
 
 import pytest
 
-from scripts import build_installer, release
+from scripts import build_installer, build_portable, build_release, release
 from test_installer_build import bundle, compiler, compile_bundle
 
 
@@ -71,3 +72,52 @@ def test_release_metadata_is_signed_as_data_using_environment_arguments(tmp_path
     script, variables = scripts[0]
     assert str(output) not in script and variables["POLTERGEIST_SIGNATURE_FILE"] == str(output.absolute())
     assert [path for path, _ in calls] == [installer, output]
+
+
+@pytest.mark.parametrize(("facts", "error"), [
+    ({"present": False}, "not found"),
+    ({"publisher_sha256": "b" * 64}, "publisher fingerprint"),
+    ({"valid_now": False}, "validity period"),
+    ({"allows_signing": False}, "does not allow code signing"),
+    ({"has_private_key": False}, "no associated signing key"),
+    ({}, None),
+])
+def test_signing_preflight_requires_exact_eligible_store_certificate(monkeypatch, facts, error):
+    info = {"present": True, "publisher_sha256": PIN, "valid_now": True,
+            "allows_signing": True, "has_private_key": True, **facts}
+
+    def inspect(script, *, variables):
+        assert SIGNING["thumbprint"] not in script
+        assert variables == {"POLTERGEIST_SIGNING_THUMBPRINT": SIGNING["thumbprint"]}
+        return json.dumps(info)
+
+    monkeypatch.setattr(release, "powershell", inspect)
+    if error:
+        with pytest.raises(ValueError, match=error):
+            release.check_signing_certificate(SIGNING["thumbprint"].lower(), PIN)
+    else:
+        release.check_signing_certificate(SIGNING["thumbprint"].lower(), PIN)
+
+
+def test_release_preflight_runs_without_creating_or_signing_artifacts(tmp_path, monkeypatch, capsys):
+    tool, compiler_path = tmp_path / "signtool.exe", tmp_path / "ISCC.exe"
+    tool.touch()
+    certificates, compilers = [], []
+    monkeypatch.setattr(release, "check_signing_certificate", lambda *args: certificates.append(args))
+    monkeypatch.setattr(build_installer, "compiler_version", compilers.append)
+    monkeypatch.setattr("companion.updates.load_policy", lambda: {"publishers_sha256": [PIN]})
+    monkeypatch.setattr(build_portable, "build", lambda *args, **kwargs: pytest.fail("Preflight started packaging"))
+    version = tomllib.loads((build_portable.ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+    arguments = ["--compiler", str(compiler_path), "--version", version, "--signtool", str(tool),
+                 "--certificate-thumbprint", SIGNING["thumbprint"], "--publisher-sha256", PIN,
+                 "--timestamp-url", SIGNING["timestamp_url"], "--metadata-timestamp-url"]
+    assert build_release.main([*arguments, "http://timestamp.example.test", "--preflight"]) == 0
+    assert json.loads(capsys.readouterr().out) == {"passed": True, "version": version, "built": False, "signed": False}
+    assert certificates == [(SIGNING["thumbprint"], PIN)]
+    assert compilers == [compiler_path.resolve()]
+
+    output = tmp_path / "release-output"
+    with pytest.raises(SystemExit) as stopped:
+        build_release.main([*arguments, "https://timestamp.example.test", "--output", str(output), "--cache", str(tmp_path)])
+    assert stopped.value.code == 2 and "http:// timestamp service" in capsys.readouterr().err
+    assert not output.exists()

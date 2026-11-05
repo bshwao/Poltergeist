@@ -1,0 +1,83 @@
+{
+  "scope": "same Windows PC, loopback relay plus one real CARLA episode",
+  "carla_port": 2011,
+  "world_before": {
+    "map": "Carla/Maps/Town10HD_Opt",
+    "synchronous": false,
+    "fixed_delta": null,
+    "no_rendering": false,
+    "vehicles": 0,
+    "walkers": 0,
+    "sensors": 0
+  },
+  "carla_version": "0.9.16",
+  "run_id": "73e77ee6-41b3-460b-8610-b5adeb3e3837",
+  "run_status": "completed",
+  "run_error": null,
+  "measured_from": 47650.859,
+  "measured_until": 47876.484,
+  "telemetry_frames": 2401,
+  "capacity_exit": 1,
+  "capacity": {
+    "schema_version": "poltergeist-capacity-v1",
+    "protocol_version": 2,
+    "transport": "loopback Caddy HTTPS/WSS fixture",
+    "users": 100,
+    "connected_devices": 100,
+    "rounds_per_device": 5,
+    "completed_commands": 500,
+    "routed_commands": 500,
+    "cross_owner_denials": 100,
+    "elapsed_s": 14.235000000000582,
+    "commands_per_s": 35.124692658937796,
+    "latency_p50_s": 2.3280000000013388,
+    "latency_p95_s": 2.6560000000026776,
+    "latency_max_s": 2.7819999999992433,
+    "latency_measurement_complete": true,
+    "http_payload_bytes": 319892,
+    "http_status_counts": {
+      "404": 100,
+      "503": 28,
+      "202": 500,
+      "200": 502
+    },
+    "http_retry_count": 28,
+    "http_retry_wait_s": 28.614602585463775,
+    "max_connections": 100,
+    "failure_phase": null,
+    "failure_code": null,
+    "passed": false,
+    "scope": "Simulated companions; excludes WAN, physical PCs, CARLA/GPU and provider costs",
+    "python_peak_bytes": 25767499,
+    "cleanup_completed": true,
+    "database_bytes": 1171456,
+    "python_trace_scope": "coordinator process",
+    "server_concurrency_limit": 228,
+    "provisional_targets": {
+      "p95_latency_s": 2.0,
+      "python_peak_bytes": 134217728
+    },
+    "target_failures": [
+      "latency"
+    ]
+  },
+  "capacity_workload_window": {
+    "started": 47650.859,
+    "ended": 47670.828
+  },
+  "whole_workload_during_measured_progress": true,
+  "measured_overlap_s": 19.9690000000046,
+  "world_after": {
+    "map": "Carla/Maps/Town10HD_Opt",
+    "synchronous": false,
+    "fixed_delta": null,
+    "no_rendering": false,
+    "vehicles": 0,
+    "walkers": 0,
+    "sensors": 0
+  },
+  "world_restored": true,
+  "passed": false,
+  "worker_released": true,
+  "owned_carla_listener_released": true
+}

@@ -1,8 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { auditAccessibility } from "../test-support/accessibility";
 
-for (const width of [1440, 390]) {
-  for (const route of ["overview", "lab", "discovery", "scenarios", "agents", "experiments", "simulations", "failures"]) {
+const workspacePages = ["overview", "lab", "discovery", "scenarios", "agents", "experiments", "simulations", "failures"];
+
+for (const width of [1440, 768, 390, 320]) {
+  for (const route of workspacePages) {
     test(`accessible ${route} layout at ${width}px`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/#${route}`);
@@ -13,6 +15,20 @@ for (const width of [1440, 390]) {
       await page.screenshot({ path: testInfo.outputPath(`${route}-${width}.png`), fullPage: true });
     });
   }
+}
+
+for (const route of workspacePages) {
+  test(`accessible ${route} layout in dark appearance`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.goto(`/#${route}`);
+    await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
+    await expect(page.locator(".connection-pill")).toHaveText("API connected");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await auditAccessibility(page, testInfo, `${route}-dark`);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), route).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`${route}-dark.png`), fullPage: true });
+  });
 }
 
 test("navigation stays readable and reachable in a short desktop viewport", async ({ page }, testInfo) => {
@@ -62,6 +78,22 @@ test("keyboard focus remains visible on the recipe editor in forced colors", asy
   const focus = await editor.evaluate(element => ({ visible: element.matches(":focus-visible"),
     style: getComputedStyle(element).outlineStyle, width: getComputedStyle(element).outlineWidth }));
   expect(focus.visible).toBe(true); expect(focus.style).toBe("solid"); expect(focus.width).toBe("3px");
+});
+
+test("active navigation and lab tabs remain visually identifiable in forced colors", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active", colorScheme: "dark" });
+  await page.goto("/#lab");
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(nav.getByRole("link", { name: "Guided lab", exact: true })).toHaveCSS("text-decoration-line", "underline");
+  await expect(nav.getByRole("link", { name: "Overview", exact: true })).toHaveCSS("text-decoration-line", "none");
+  const guide = page.getByRole("tab", { name: "First experiment" });
+  const gallery = page.getByRole("tab", { name: "Scenario gallery" });
+  await expect(guide).toHaveCSS("text-decoration-line", "underline");
+  await guide.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(gallery).toBeFocused();
+  await expect(gallery).toHaveCSS("text-decoration-line", "underline");
+  await expect(guide).toHaveCSS("text-decoration-line", "none");
 });
 
 test("a failed page import preserves another page's draft until an explicit reload", async ({ page }, testInfo) => {

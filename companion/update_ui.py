@@ -4,40 +4,47 @@ from threading import Event
 import tkinter as tk
 from tkinter import filedialog, ttk
 
+from .scrolling import ScrollPanel
+
 
 class UpdatePanel:
     def __init__(self, app, parent):
         self.app = app
-        self.frame = ttk.Frame(parent, padding=12)
+        self._scroll = ScrollPanel(parent)
+        self.frame = self._scroll.frame
+        body = self._scroll.content
         self.cancel = Event()
         self._busy = None
         self._view = {"candidate": None, "downloaded": False, "rollback": False}
         self._status = app.controller.update_status()
-        ttk.Label(self.frame, text="Signed updates", font=("Segoe UI", 13, "bold")).pack(anchor="w")
+        ttk.Label(body, text="Signed updates", font=("Segoe UI", 13, "bold")).pack(anchor="w")
         current = self._status.get("current_version")
         self.status = tk.StringVar(value=(f"Installed version {current}. " if current else "") + self._status["message"])
-        ttk.Label(self.frame, textvariable=self.status, wraplength=740).pack(anchor="w", pady=(6, 12))
+        ttk.Label(body, textvariable=self.status, wraplength=740).pack(anchor="w", pady=(6, 12))
         self.candidate = tk.StringVar(value="No release selected.")
-        ttk.Label(self.frame, textvariable=self.candidate, wraplength=740).pack(anchor="w", pady=(0, 12))
-        transfer_actions = ttk.Frame(self.frame)
+        ttk.Label(body, textvariable=self.candidate, wraplength=740).pack(anchor="w", pady=(0, 12))
+        transfer_actions = ttk.Frame(body)
         transfer_actions.pack(anchor="w", pady=(0, 8))
         self.check_button = app._button(transfer_actions, "Check for updates", lambda: self._start("check", lambda: app.controller.check_updates(self.cancel)))
         self.download_button = app._button(transfer_actions, "Download and verify candidate", lambda: self._start("download", lambda: app.controller.download_checked_update(self.cancel)))
-        install_actions = ttk.Frame(self.frame)
+        install_actions = ttk.Frame(body)
         install_actions.pack(anchor="w", pady=(0, 8))
         self.install_button = app._button(install_actions, "Close and install candidate", self.install)
         self.clear_button = app._button(install_actions, "Clear candidate", lambda: self._start("clear", app.controller.clear_update))
-        local_actions = ttk.Frame(self.frame)
+        local_actions = ttk.Frame(body)
         local_actions.pack(anchor="w", pady=(0, 8))
         self.local_button = app._button(local_actions, "Select downloaded update…", lambda: self.select_local(False))
         self.rollback_button = app._button(local_actions, "Select signed rollback…", lambda: self.select_local(True))
-        self.cache_button = app._button(local_actions, "Remove cached download…", self.remove_cached)
-        self.cancel_button = ttk.Button(self.frame, text="Cancel update transfer", command=self.cancel.set)
-        self.cancel_button.pack(anchor="w", pady=(8, 4))
+        maintenance_actions = ttk.Frame(body)
+        maintenance_actions.pack(anchor="w", pady=(0, 4))
+        self.cache_button = app._button(maintenance_actions, "Remove cached download…", self.remove_cached)
+        self.cancel_button = ttk.Button(maintenance_actions, text="Cancel update transfer", command=self.cancel.set)
+        self.cancel_button.pack(side="left")
         self.progress = tk.StringVar(value="")
-        ttk.Label(self.frame, textvariable=self.progress, wraplength=740).pack(anchor="w")
-        ttk.Label(self.frame, text="Review the version and download size before transferring. Installation closes the app, backs up your profile, and reopens the verified release. Finish or cancel queued work first.", wraplength=740).pack(anchor="w", pady=(12, 6))
-        ttk.Label(self.frame, text="A rollback needs a saved installer and current signed metadata for a lower version compatible with your profile. Clearing a feed candidate removes its download; selected local rollback files stay where you chose them.", wraplength=740).pack(anchor="w")
+        ttk.Label(body, textvariable=self.progress, wraplength=740).pack(anchor="w")
+        ttk.Label(body, text="Review the version and download size before transferring. Installation closes the app, backs up your profile, and reopens the verified release. Finish or cancel queued work first.", wraplength=740).pack(anchor="w", pady=(12, 6))
+        ttk.Label(body, text="A rollback needs a saved installer and current signed metadata for a lower version compatible with your profile. Clearing a feed candidate removes its download; selected local rollback files stay where you chose them.", wraplength=740).pack(anchor="w")
+        self._scroll.bind_content()
         self.sync_controls()
 
     def _start(self, kind, operation):

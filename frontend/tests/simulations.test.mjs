@@ -181,12 +181,24 @@ test("a missing run waits for an explicit retry", async t => {
   api.getSimulation = async () => { if (++reads === 1) throw new ApiError("Run not found", 404); return complete(); };
   const mounted = await hook(t);
   assert.equal(mounted.state.error, "Run not found");
+  assert.equal(mounted.state.recordMissing, true);
   await act(async () => t.mock.timers.tick(30_000));
   assert.equal(reads, 1);
   await act(async () => mounted.state.refresh());
   assert.equal(reads, 2);
   assert.equal(mounted.state.record.simulation.status, "completed");
   assert.equal(mounted.state.error, null);
+  assert.equal(mounted.state.recordMissing, false);
+});
+
+test("a missing result does not mark its recorded run as missing", async t => {
+  defaults();
+  api.getSimulation = async () => record(1, "completed");
+  api.getSimulationResult = async () => { throw new ApiError("Result not found", 404); };
+  const mounted = await hook(t);
+  assert.equal(mounted.state.error, "Result not found");
+  assert.equal(mounted.state.record.simulation.status, "completed");
+  assert.equal(mounted.state.recordMissing, false);
 });
 
 test("transient progress failures retain the last measurement and retry with backoff", async t => {

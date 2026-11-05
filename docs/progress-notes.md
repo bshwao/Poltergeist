@@ -1,14 +1,19 @@
 # S0–S19 progress notes
 
-Updated November 3, 2026. The latest work covers
+Updated November 5, 2026. The latest checks cover the
+[S8 public recording review](validation/s8-public-wan-20261104.md),
+[S10 HTTPS update route](evidence-capacity-release.md#s10-signing-and-safe-update-tooling),
+[S11 visual usability](visual-usability.md#november-4-checks-on-this-pc) and
+[S12 first-time tester preparation](guided-experimentation.md#acceptance-record).
+Earlier work covers
 [S6 local reliability](validation/s6-local-reliability-20261103.md) and
 [public S5 deployment](validation/s5-vps-deployment-20261103.md). The earlier
 [S1–S3 local completion](validation/s1-s3-local-completion-20261102.md)
 used this PC.
 This adds a map-aware first CARLA run, current reproducible delivery artifacts
-and a correction to recovery ownership during uninstall. The user limited this
-acceptance pass to this PC; independent-machine and external-tester gates remain
-open. The previous [repository polish receipt](validation/repository-polish-20261102.md)
+and a correction to recovery ownership during uninstall. The current acceptance
+pass uses this PC, including the first-time tester session. The previous
+[repository polish receipt](validation/repository-polish-20261102.md)
 records the broader regression review.
 **S19 optional local GitHub regression checks are implemented**,
 with live App/CI acceptance open. **S18 optional local OpenAI assistance is implemented**,
@@ -17,12 +22,12 @@ alongside the open acceptance
 gates for S3, S6 and S11. Previous checkpoint: **S8 live recording review locally
 validated; S9 private capacity target met; S10 native update tooling validated
 with signing/external acceptance deferred**.
-Physical and independent-machine acceptance remain open for S6. S7 has an
-independent-machine acceptance gate. S11–S19 have been assigned roadmap numbers.
+Abrupt power-loss acceptance remains open for S6. S11–S19 have been assigned
+roadmap numbers.
 The previous checkpoint branch was `codex/s16-s17-sensor-policy-huggingface`, based on GitHub `main`
 at `f146686`. The S14/S15 coverage checkpoint passed all five CI jobs and was
-fast-forwarded into GitHub and the original local main checkout. The 100-device S9 latency gate
-remains open. Earlier branch
+fast-forwarded into GitHub and the original local main checkout. The November 3
+capacity runs closed the local 100-device S9 latency gate. Earlier branch
 and CI references describe their recorded checkpoints.
 The S11 foundation is merged; its five-job branch validation passed.
 The earlier `codex/s7-managed-ai` branch is preserved separately.
@@ -33,24 +38,23 @@ This branch includes the earlier S0 collision presets, S1 private runtime and
 S2 desktop companion and S3 installer/setup flow. The latest changes add the
 account/pairing foundation and desktop consent controls for S4, plus the separate
 hosted dashboard for S5.
-The full [roadmap](scalability-plan.md) retains all completion gates; a working
-private prototype does not close independent-machine or release validation.
+The full [roadmap](scalability-plan.md) also tracks broader release qualification.
 
 | Step | Current state | Evidence or remaining work |
 | --- | --- | --- |
 | S0 — Collision stress scenarios | Implemented and locally validated | Twelve presets; 36 calibration and 60 held-out CARLA trials with the unchanged baseline. See [measurements and limits](collision-stress.md). |
-| S1 — Standalone packaging | Implemented and locally validated; independent-machine gate open | Current offline builds are byte-identical; relocated private-runtime, synthetic/CARLA/SDK checks pass on this PC. Redistribution review and a native support matrix remain open. |
+| S1 — Standalone packaging | Implemented and validated on this PC | Current offline builds are byte-identical; relocated private-runtime, synthetic/CARLA/SDK checks pass on this PC. Redistribution review and a native support matrix remain open. |
 | S2 — Companion application | Private implementation locally validated | Interactive synthetic and live CARLA runs, exports and history after reopening. Native callbacks also cover diagnostics and imports. See [desktop guide](companion.md). |
-| S3 — Installer and onboarding | Private prototype locally validated, external gate open | Per-user installer, CARLA discovery/setup, visual onboarding, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. External clean-machine/workflow testing remains open. |
+| S3 — Installer and onboarding | Private prototype validated on this PC | Per-user installer, CARLA discovery/setup, visual onboarding, compatibility/hardware checks, opt-in shortcuts/startup, repair and data-preserving uninstall. |
 | **S4 — Hosted backend and pairing** | **Private completion criterion verified on this PC** | Owner control, cross-account denial and revocation pass with real loopback TLS/WSS. The current installed Companion proof also verifies Windows DPAPI, explicit consent and durable results. See [current validation](validation/s4-s5-local-20261102.md). |
 | **S5 — Website integration** | **Public acceptance passed on this PC** | The public dashboard paired the packaged Companion, completed a real CARLA baseline, and recovered its result after browser reload. See [VPS deployment and acceptance](validation/s5-vps-deployment-20261103.md). |
-| **S6 — Reliable remote execution** | **Local fault, Windows sleep and Wi-Fi outage checks passed** | The coordinator fences queued sends against revoked or expired connections. Browser TCP interruption preserves device isolation and reconciles cancellation. Real coordinator and CARLA process loss, native CARLA cancellation/finalization, and the installed Companion suspension workflow have local evidence. The packaged Companion recovered the original result from the production VPS after Windows sleep and a physical Wi-Fi outage. Power-loss and independent-machine acceptance remain open. See [reliability evidence](remote-reliability.md). |
-| **S7 — Managed AI installations** | **CPU implementation delivered; independent-machine gate open** | Separate pinned interpreter/dependencies, verified weights, actual import/inference checks, explicit local registration, starter choice, repair/removal and execution use leases. See [managed AI installations](managed-ai.md) and [environment validation](validation/s7-environment.md). |
-| S8 — Evidence delivery | Local acceptance passed at the 120-second hosted limit | The browser reviewed 4,802 camera and LiDAR samples using 3.61 MB of responses from a 606 MB capture. The ZIP, local quota and explicit removal checks passed. Independent hardware and public-network performance remain open. See the [S8 validation record](validation/s8-120-local-20261103.md). |
-| S9 — Multi-user capacity | 25-device and 100-device simulated targets passed on this PC | Two 100-device runs each completed 500 commands and 100 ownership denials at p95 1.672 s and 1.687 s. The 25-device run passed at 0.422 s. Coordinator allocation peaks were below 24 MiB. Physical-PC and provider acceptance remain open. See the [capacity record](evidence-capacity-release.md#november-3-capacity-acceptance-on-this-pc). |
-| S10 — Distribution and release | Private tooling; signing and external acceptance deferred | Pinned publisher verification, installer/uninstaller signing adapter, signed metadata, explicit bounded HTTPS delivery, staged cohorts, native update/rollback review, closed-process helper, backups and compatible rollback. Publisher/feed configuration is unset; actual signed acceptance, deployed delivery and [external beta](private-beta.md) remain open. |
-| **S11 — Visual design and usability** | **In progress; shared foundation implemented** | Shared light browser palette, readable typography, connection states, keyboard skip links/table scrolling and native tab traversal. Browser accessibility checks and companion regression tests cover this first checkpoint. Full workflow visual review, additional display/theme coverage and first-run testers remain. See [S11 plan](visual-usability.md). |
-| S12 — Guided experimentation and adoption | Application delivered; independent tester gate open | Guided first experiment, sixteen illustrated scenes, saved suites, per-case matched comparisons, exact-frame highlights and deliberate feedback in both dashboards. Desktop/mobile browser journeys and accessibility checks pass. Actual new-tester feedback and verified follow-up changes remain. See [workflow guide](guided-experimentation.md). |
+| **S6 — Reliable remote execution** | **Local fault, Windows sleep and Wi-Fi outage checks passed** | The coordinator fences queued sends against revoked or expired connections. Browser TCP interruption preserves device isolation and reconciles cancellation. Real coordinator and CARLA process loss, native CARLA cancellation/finalization, and the installed Companion suspension workflow have local evidence. The packaged Companion recovered the original result from the production VPS after Windows sleep and a physical Wi-Fi outage. Abrupt power-loss acceptance remains open. See [reliability evidence](remote-reliability.md). |
+| **S7 — Managed AI installations** | **CPU implementation validated on this PC** | Separate pinned interpreter/dependencies, verified weights, actual import/inference checks, explicit local registration, starter choice, repair/removal and execution use leases. See [managed AI installations](managed-ai.md) and [environment validation](validation/s7-environment.md). |
+| S8 — Evidence delivery | Loopback and single-client public acceptance passed at the 120-second hosted limit | The public browser reviewed 4,802 camera and LiDAR samples in 193 pages using 3.61 MB of responses from a 606 MB capture. Preview integrity and reload passed. The local ZIP, quota and explicit removal checks also passed. See [public validation](validation/s8-public-wan-20261104.md) and [loopback validation](validation/s8-120-local-20261103.md). |
+| S9 — Multi-user capacity | Simulated 25- and 100-device HTTPS targets passed; concurrent local CARLA exceeded the latency target | The adjusted Caddy pool passed twice at 100 devices, with p95 of 1.703 s and 1.781 s. The later same-PC CARLA overlap completed all 500 commands and 100 cross-owner denials at 2.656 s p95. Production load and provider costs remain open. See the [upstream pool comparison](evidence-capacity-release.md#caddy-upstream-connection-reuse) and [CARLA overlap](evidence-capacity-release.md#concurrent-local-carla-recording). |
+| S10 — Distribution and release | HTTPS delivery and signing preflight validated locally | The update route passed verified loopback TLS. Windows verified the local Microsoft SignTool, and release preflight rejected a missing certificate before creating build files. Signed install, update, rollback and public feed activation require a publisher identity. See [release acceptance](evidence-capacity-release.md#s10-signing-and-safe-update-tooling). |
+| **S11 — Visual design and usability** | **In progress. Experimental accessibility install and repair passed** | Browser layout and native Windows visual checks passed. All 35 native callback cases passed. Two Tk 9.1 validation archives matched byte for byte. A separate MSAA client completed a synthetic first run in the installed Companion. Repair preserved the database byte for byte, and the repaired Companion reopened the same run. Windows contrast themes, screen-reader interaction and first-time user acceptance remain open. See [S11 plan](visual-usability.md). |
+| S12 — Guided experimentation and adoption | Application delivered; first-time tester session prepared | Guided first experiment, sixteen illustrated scenes, saved suites, per-case matched comparisons, exact-frame highlights and deliberate feedback in both dashboards. A clean test workspace is ready on this PC. Consented tester observations and verified follow-up changes remain. See [workflow guide](guided-experimentation.md). |
 | S13 — Failure Discovery Agent | Private implementation delivered; locally validated | Digest/revision-bound approval, frozen candidates/agents/settings, execution/simulated/absolute-wall budgets, exact confirmation repeats and complete negative/unknown journals. Registered local agents and scoped remote consent/ownership checks pass. Current live CARLA attempts retained startup/RPC failures as unknown; no driving failure was claimed. |
 | S14 — Evidence Analyst Agent | Private implementation; synthetic and initial same-laptop CARLA checks validated | Exact native frame/time links and contact counts match saved CARLA evidence. Empty event lists now retain unchecked rule channels as partial coverage. Independent human review and broader representative evidence remain. See [agent guide](evidence-regression-agents.md). |
 | S15 — Regression Agent | Private implementation; synthetic and initial same-laptop CARLA checks validated | Two registered SDK fixtures show a contact regression in all three matched fixed-spawn CARLA pairs. Measurement-specific coverage preserves inconclusive severity/rules. Remote execution retains its baseline-only boundary; representative model/hardware comparisons remain. See [agent guide](evidence-regression-agents.md). |

@@ -11,6 +11,14 @@ from scripts.build_portable import ROOT, sha256, write_json
 from scripts.portable import verify_bundle
 
 
+def compiler_version(compiler):
+    lock = json.loads((ROOT / "packaging/windows-x64/installer-toolchain.json").read_bytes())
+    version = subprocess.check_output([str(compiler), "--version"], text=True, timeout=10).strip()
+    if version != lock["version"]:
+        raise ValueError("Installer compiler version differs from the pinned toolchain")
+    return version
+
+
 def build(bundle, output, compiler, *, validation_profile=None, signing=None, release_version="0.1.0"):
     if sys.platform != "win32":
         raise ValueError("Build this installer on Windows x64")
@@ -21,10 +29,7 @@ def build(bundle, output, compiler, *, validation_profile=None, signing=None, re
     verify_bundle(bundle)
     if not (bundle / "runtime/Lib/site-packages/scripts/install_check.py").is_file():
         raise ValueError("Build a fresh S3 bundle containing install_check and onboarding first")
-    lock = json.loads((ROOT / "packaging/windows-x64/installer-toolchain.json").read_bytes())
-    version = subprocess.check_output([str(compiler), "--version"], text=True, timeout=10).strip()
-    if version != lock["version"]:
-        raise ValueError("Installer compiler version differs from the pinned toolchain")
+    version = compiler_version(compiler)
     manifest = json.loads((bundle / "bundle.json").read_bytes())
     source_identity = manifest["project_wheel"]["sha256"]
     if not re.fullmatch(r"[0-9a-f]{64}", source_identity):

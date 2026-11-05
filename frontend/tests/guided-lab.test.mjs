@@ -64,7 +64,7 @@ test("typed budgets reject insufficient confirmation reserves, duplicates and no
 });
 test("first visit and scene selection start no executions; launch needs an explicit click", async t => {
   let runs = 0;
-  const value = client({ launchSimulation: async input => { runs++; assert.equal(input.mode, "test"); assert.deepEqual(input.scenario, fixture.gallery[0].scenario); return fixture.run; } });
+  const value = client({ launchGuidedSimulation: async (input, requestId) => { runs++; assert.match(requestId, /^[0-9a-f-]{36}$/); assert.equal(input.mode, "test"); assert.deepEqual(input.scenario, fixture.gallery[0].scenario); return fixture.run; } });
   const view = await render(t, GuidedLab, { active: true, client: value });
   assert.equal(runs, 0);
   const first = view.root.findAllByType("button").find(n => text(n).startsWith("Choose "));

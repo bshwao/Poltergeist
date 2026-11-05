@@ -5,10 +5,11 @@ import json
 from pathlib import Path
 from threading import Event
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, font, messagebox, ttk
 
 from scenarios import validate_scenario
 from scenarios.stress_presets import STRESS_PRESETS
+from shared.models.simulation import SimulationStatus
 
 from .controller import read_json
 from .profile import CompanionConfig
@@ -47,18 +48,15 @@ class CompanionWindow:
         root.title("Poltergeist Companion — private prototype")
         configure_design(root)
         root.geometry(f"960x{min(800, max(600, root.winfo_screenheight() - 100))}")
-        root.minsize(700, 600)
         root.protocol("WM_DELETE_WINDOW", self.request_close)
         outer = ttk.Frame(root, padding=16)
         outer.pack(fill="both", expand=True)
         ttk.Label(outer, text="Poltergeist Companion", style="Lab.Title.TLabel").pack(anchor="w")
-        ttk.Label(outer, text="Your local experiment runtime · Private Windows preview", style="Lab.Subtitle.TLabel").pack(anchor="w")
         self.runtime_text = tk.StringVar(value="Local runtime: starting…" if autostart else "Local runtime: stopped")
         ttk.Label(outer, textvariable=self.runtime_text, style="Lab.Runtime.TLabel").pack(anchor="w")
-        ttk.Label(outer, text="Private account connection preview. Remote requests need pairing, local consent and an explicit connection.", wraplength=790).pack(anchor="w", pady=(4, 8))
         toolbar = ttk.Frame(outer)
-        toolbar.pack(fill="x", pady=(0, 10))
-        self.start_button = self._button(toolbar, "Start local runtime", lambda: self._run(self._start_runtime, self._apply_snapshot))
+        toolbar.pack(fill="x", pady=(4, 10))
+        self.start_button = self._button(toolbar, "Start local runtime", self._start)
         self.stop_button = self._button(toolbar, "Stop local runtime", self._stop)
         # Reserve the status area before the expanding notebook requests space.
         # Otherwise a tall tab can push recovery messages outside the window.
@@ -71,15 +69,16 @@ class CompanionWindow:
         tabs.pack(fill="both", expand=True)
         self._execution_scroll = ScrollPanel(tabs)
         execution = self._execution_scroll.frame
-        settings = ttk.Frame(tabs, padding=12)
-        diagnostics = ttk.Frame(tabs, padding=12)
-        archives = ttk.Frame(tabs, padding=12)
-        for frame, label in ((execution, "Local execution"), (settings, "Settings"),
-                             (diagnostics, "Diagnostics"), (archives, "Imported reports")):
+        settings = ScrollPanel(tabs)
+        diagnostics = ScrollPanel(tabs)
+        archives = ScrollPanel(tabs)
+        for frame, label in ((execution, "Local execution"), (settings.frame, "Settings"),
+                             (diagnostics.frame, "Diagnostics"), (archives.frame, "Imported reports")):
             tabs.add(frame, text=label)
         self._build_execution(self._execution_scroll.content)
         self._execution_scroll.bind_content()
-        self._build_settings(settings)
+        self._build_settings(settings.content)
+        settings.bind_content()
         from .model_ui import ModelPanel
         self.models = ModelPanel(self, tabs)
         tabs.add(self.models.frame, text="AI models")
@@ -93,23 +92,50 @@ class CompanionWindow:
         from .update_ui import UpdatePanel
         self.updates = UpdatePanel(self, tabs)
         tabs.add(self.updates.frame, text="Updates")
+        self._tab_labels = tuple(tabs.tab(tab, "text") for tab in tabs.tabs())
+        compact_labels = {"Local execution": "Run", "Diagnostics": "Checks", "Imported reports": "Reports",
+                          "AI models": "Models", "Connection": "Connect"}
+        self._compact_tab_labels = tuple(compact_labels.get(label, label) for label in self._tab_labels)
+        tab_font = font.nametofont("TkDefaultFont", root=root)
+        # Reserve the window margins and the native tab borders and padding.
+        tab_chrome = 32 + 24 * len(self._tab_labels)
+        self._full_tab_width = tab_chrome + sum(tab_font.measure(label) for label in self._tab_labels)
+        compact_tab_width = tab_chrome + sum(tab_font.measure(label) for label in self._compact_tab_labels)
+        self._compact_tabs = False
+        root.minsize(max(700, compact_tab_width), 600)
         if not controller.config.setup_completed:
             tabs.select(self.setup.frame)
-        self._build_diagnostics(diagnostics)
-        self._build_archives(archives)
+        self._build_diagnostics(diagnostics.content)
+        self._build_archives(archives.content)
+        diagnostics.bind_content()
+        archives.bind_content()
         root.bind("<Configure>", self._resize_text, add="+")
         root.after(50, self._pump)
         if autostart:
             if startup_check:
                 self.runtime_text.set("Local runtime: checking installed files…")
             self._run(self._start_runtime, self._apply_snapshot)
-        elif not controller.config.setup_completed:
-            root.after(100, self.setup.scan)
+        else:
+            self._refresh_controls()
+            if not controller.config.setup_completed:
+                root.after(100, self.setup.scan)
 
     def _check_files(self):
         if not self._files_checked:
             self._startup_check()
             self._files_checked = True
+
+    def _start(self):
+        if self._future is not None or self._closing or self._destroyed:
+            return
+        self.message.set("Starting the local runtime…" if self._files_checked else "Checking installed files before starting…")
+
+        def started(snapshot):
+            if not self._closing:
+                self.message.set("Local runtime started.")
+            self._apply_snapshot(snapshot)
+
+        self._run(self._start_runtime, started)
 
     def _start_runtime(self):
         self._check_files()
@@ -126,12 +152,12 @@ class CompanionWindow:
     def _build_execution(self, frame):
         ttk.Label(frame, text="Run an existing recipe locally", font=("Segoe UI", 12, "bold")).pack(anchor="w")
         ttk.Label(frame, text="Scenario editing and detailed analysis remain in the dashboard. Import a scenario JSON or use a bundled check.", wraplength=750).pack(anchor="w", pady=(5, 10))
-        row = ttk.Frame(frame)
-        row.pack(fill="x")
-        self.preset = ttk.Combobox(row, state="readonly", width=45,
+        self.preset = ttk.Combobox(frame, state="readonly", width=45,
             values=["Synthetic installation check", "CARLA installation check", *[p.id for p in STRESS_PRESETS]])
         self.preset.current(0)
-        self.preset.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self.preset.pack(fill="x", pady=(0, 4))
+        row = ttk.Frame(frame)
+        row.pack(fill="x")
         self._button(row, "Load preset", self._load_preset)
         self._button(row, "Import scenario…", self._import_scenario)
         self.recipe_text = tk.StringVar()
@@ -155,10 +181,17 @@ class CompanionWindow:
         ttk.Label(frame, text="Recent local runs (latest 100)").pack(anchor="w")
         columns = ("name", "mode", "status", "progress")
         self.runs = ttk.Treeview(frame, columns=columns, show="headings", height=7, selectmode="browse")
-        for name, label, width in (("name", "Scenario", 300), ("mode", "Mode", 70),
-                                    ("status", "Status", 95), ("progress", "Progress", 70)):
+        row_font = font.nametofont("TkDefaultFont", root=self.root)
+        heading_font = font.Font(root=self.root, font=ttk.Style(self.root).lookup("Treeview.Heading", "font"))
+        for name, label, width, values in (("name", "Scenario", 300, ()),
+                                            ("mode", "Mode", 70, ("Synthetic", "CARLA")),
+                                            ("status", "Status", 95, SimulationStatus),
+                                            ("progress", "Progress", 70, ("100%",))):
+            text_widths = [heading_font.measure(label)]
+            text_widths.extend(row_font.measure(value) for value in values)
+            minimum = max(55, max(text_widths) + 16)
             self.runs.heading(name, text=label)
-            self.runs.column(name, width=width, minwidth=55, stretch=name == "name")
+            self.runs.column(name, width=max(width, minimum), minwidth=minimum, stretch=name == "name")
         self.runs.pack(side="top", fill="both", expand=True)
         # Tree wheel/keyboard scrolling remains available with compact layouts.
         self.runs.bind("<<TreeviewSelect>>", self._show_run)
@@ -226,6 +259,12 @@ class CompanionWindow:
     def _resize_text(self, event):
         if event.widget is not self.root:
             return
+        compact = event.width < self._full_tab_width
+        if compact != self._compact_tabs:
+            labels = self._compact_tab_labels if compact else self._tab_labels
+            for tab, label in zip(self._tabs.tabs(), labels, strict=True):
+                self._tabs.tab(tab, text=label)
+            self._compact_tabs = compact
         width = max(250, event.width - 85)
         if width == self._wrap_width:
             return
@@ -252,6 +291,10 @@ class CompanionWindow:
         busy = self._future is not None or self._closing
         for button in self._buttons:
             button.state(["disabled"] if busy else ["!disabled"])
+        if not busy:
+            state = self._last_snapshot["queue"]["state"] if self._last_snapshot else "stopped"
+            self.start_button.state(["!disabled"] if state == "stopped" else ["disabled"])
+            self.stop_button.state(["disabled"] if state == "stopped" else ["!disabled"])
         self.pairing.sync_controls()
         self.models.sync_controls()
         self.updates.sync_controls()

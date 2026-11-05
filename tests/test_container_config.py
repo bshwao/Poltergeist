@@ -152,4 +152,7 @@ def test_hosted_caddy_owns_public_ports_and_shares_only_its_loopback_with_coordi
     assert {mount["target"]: mount["source"] for mount in caddy["volumes"] if mount["type"] == "volume"} == {
         "/data": "caddy-data", "/config": "caddy-config",
     }
+    release_files = next(mount for mount in caddy["volumes"] if mount["target"] == "/srv/companion-updates")
+    assert release_files["type"] == "bind" and release_files["read_only"] is True
+    assert release_files["bind"]["create_host_path"] is False
     assert any(mount["type"] == "volume" and mount["target"] == "/data" for mount in coordinator["volumes"])

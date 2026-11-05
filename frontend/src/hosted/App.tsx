@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Icon } from "../components/Icon";
 import { SkipLink } from "../components/SkipLink";
 import { readNumericField } from "../components/scenario-form";
+import { GUIDED_SUBMISSION_PREFIX } from "../services/lab-client";
 import type { BrowserDeviceView, BrowserScenarioPreset, BrowserSession, PairingStatus, PermissionScope, RemoteCommandView, Scenario } from "../types/generated";
 import { createHostedClient, HostedError } from "./client";
 import type { HostedCommand } from "./client";
@@ -230,7 +231,15 @@ export function HostedApp({ client: provided }: { client?: Client } = {}) {
     setDevices([]); setDevicesLoading(true); setPresets([]); setSelectedId(""); setRuns([]); runsRef.current = [];
     setClaim(null); setRevokeTarget(null); setPending(null); pendingRef.current = null; resultRequests.current.clear();
     setLabRoute({ section: "legacy" }); setLabVisited(false);
-    if (typeof window !== "undefined") window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      try {
+        for (const name of Object.keys(window.sessionStorage)) {
+          // Hosted scope keys are serialized account and device tuples.
+          if (name.startsWith(`${GUIDED_SUBMISSION_PREFIX}[`)) window.sessionStorage.removeItem(name);
+        }
+      } catch { /* Browser storage can be disabled. */ }
+    }
   }
   function failed(error: unknown, context?: string) {
     if (context !== undefined && context !== scope.current) return;

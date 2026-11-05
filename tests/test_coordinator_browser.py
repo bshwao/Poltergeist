@@ -127,6 +127,22 @@ def test_history_applies_current_result_scope_before_reading_reply(web):
     assert client.get(f"/v1/devices/{device}/commands", params={"before": str(result.request_id)}, headers=alice).status_code == 404
 
 
+def test_history_checks_payload_scope_even_when_operation_column_is_allowed(web):
+    client, app, device, credential, alice, _ = web
+    owner = app.state.pairing.authenticate_device(credential)["owner_id"]
+    command = StatusCommand(request_id=uuid4())
+    app.state.commands.admit(owner, device, command, connected=True)
+    mismatched = ResultCommand(request_id=command.request_id, simulation_id=uuid4())
+    with app.state.store.transaction() as connection:
+        connection.execute("UPDATE commands SET payload_json=? WHERE request_id=?",
+            (mismatched.model_dump_json(), str(command.request_id)))
+        connection.execute("DELETE FROM device_grants WHERE device_id=? AND scope='result:read'", (str(device),))
+    response = client.get(f"/v1/devices/{device}/commands", headers=alice)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "permission_denied"
+    assert str(command.request_id) not in response.text
+
+
 def test_browser_catalogue_requires_a_session_and_preserves_calibrated_recipes(web):
     client, app, device, credential, alice, bob = web
     assert client.get("/v1/browser/scenarios").status_code == 403

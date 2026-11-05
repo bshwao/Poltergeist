@@ -1,14 +1,18 @@
 # Poltergeist roadmap: S0–S19
 
-Status: S0 locally validated. S1–S3 have locally validated private implementations
-with independent-machine acceptance open. S4 pairing is locally verified and S5
-public HTTPS acceptance passed. **S6 reliability is locally validated, with
-physical and independent-machine acceptance open. S7's managed CPU pack is
-implemented, with independent-machine acceptance open.**
+The current S0–S12 acceptance pass uses the user's Windows PC, including the
+first-time tester session for S11 and S12. Tests requiring a second PC belong
+to future release qualification across supported hardware.
+
+Status: S0 locally validated. S1–S3 have locally validated private implementations.
+S4 pairing is locally verified and S5 public HTTPS acceptance passed. **S6
+passed local fault, Windows sleep and Wi-Fi recovery checks. Abrupt power loss
+remains unverified. S7's managed CPU pack ran pretrained inference and a CARLA
+experiment in a fresh profile on this PC.**
 S8–S10 now have private implementations with
 outstanding product, signing and external acceptance gates. **S11 visual design
 and usability is in progress**. S12's guided workflows are implemented, with
-independent new-tester acceptance open; S13's bounded discovery implementation
+the first-time tester session pending on this PC. S13's bounded discovery implementation
 is locally validated. S14/S15 have locally validated private implementations;
 S16's managed camera policy and S17's curated Hub lifecycle are locally validated
 private implementations, with broader machine and release gates open. S18 has an
@@ -154,17 +158,14 @@ model or establish general road safety.
 
 ### S1 — Prove packaging and define the split
 
-**Status: packaging implemented and locally validated; independent-machine gate open.** The [portable prototype](portable-prototype.md) includes a
+**Status: packaged execution verified on this PC.** The [portable prototype](portable-prototype.md) includes a
 pinned private runtime/client, resources/examples, reproducible build/integrity
 tooling, isolated writable profiles, a real SDK interpreter probe and the typed
-[coordinator/runner v1 boundary](runner-boundary.md). This does not implement a
-hosted dispatcher, public transport or installer. The separate S2 prototype adds
-a companion UI; same-machine
-relocation and native checks do not close the separate no-developer-tools machine
-gate. Redistribution decisions and the native support matrix also remain open.
+[coordinator/runner v1 boundary](runner-boundary.md). Redistribution decisions
+and the native support matrix remain release work.
 The [local validation record](s1-validation.md) records identical offline builds,
 relocated synthetic/SDK checks and a short packaged CARLA comparison on the
-development laptop. These results do not satisfy the independent-machine gate.
+development laptop.
 
 - Define versioned boundaries between the hosted coordinator and local runner,
   including device capabilities and existing features that remain local.
@@ -175,7 +176,7 @@ development laptop. These results do not satisfy the independent-machine gate.
   must not accidentally launch that launcher again as an agent worker.
 - Identify native libraries, redistribution terms and supported platform limits.
 
-**Complete when:** a machine without developer tools can run a packaged synthetic
+**Release qualification:** a machine without developer tools can run a packaged synthetic
 experiment, a short CARLA baseline experiment and an SDK worker smoke check.
 
 ### S2 — Build Poltergeist Companion
@@ -201,14 +202,14 @@ an experiment and preserves its results after restarting the application.
 
 ### S3 — Installer and first-run setup
 
-**Status: private prototype locally validated; external gate open.** A pinned per-user Windows installer,
+**Status: installer and setup verified on this PC.** A pinned per-user Windows installer,
 native dependency checks, first-run CARLA discovery/configuration, explicit
 startup and version/map checks, opt-in login startup, offline repair and
 data-preserving uninstall are implemented. Same-laptop installer tests cover
 synthetic and short live CARLA execution, persistence, clean repair, shortcuts and
 ownership-aware profile removal.
 The [installer guide](installer-onboarding.md) records the build and validation
-scope. The external tester gate below remains open.
+scope.
 
 - Build an installer with shortcuts, repair and uninstall support; make optional
   login startup a user choice.
@@ -219,7 +220,7 @@ scope. The external tester gate below remains open.
 - Keep user data across repairs and offer an explicit preservation choice during
   uninstall. Include all required core dependencies in the release package.
 
-**Complete when:** an external tester installs CARLA and the companion and runs
+**Release qualification:** an external tester installs CARLA and the companion and runs
 the supported local workflow without Python, Node.js, Git, Docker or pip setup.
 
 ### S4 — Hosted backend, accounts and secure pairing
@@ -265,18 +266,19 @@ launches local CARLA and reviews a completed baseline experiment through the sit
 **Complete when:** fault tests show no duplicate execution, cross-device queue
 mixups or false completion after disconnect/restart, and cancellations reconcile.
 The [November 3 local validation](validation/s6-local-reliability-20261103.md)
-records the checks on this PC and the remaining physical and independent-machine
-acceptance.
+records the process and connection fault checks. The [public rollout record](validation/s6-vps-rollout-20261103.md)
+records Windows sleep and Wi-Fi recovery on this PC. Abrupt power-loss recovery
+remains unverified.
 
 ### S7 — App-managed AI environments and model packs
 
-**Status: CPU implementation delivered; independent-machine acceptance open.**
+**Status: managed CPU installation and execution verified on this PC.**
 The Companion installs revision-pinned PlanT weights and a separate Windows x64
 CPU interpreter/dependency pack with verified downloads, progress, pause, repair,
 removal, import compatibility and actual pretrained inference checks. Explicit
 trusted registration makes the pack available for local CARLA runs in the Agent
 selector. Integrity manifests and use leases cover the environment through
-execution. CUDA installation and independent-machine acceptance are not claimed.
+execution. The validated package targets Windows x64 CPU execution.
 See [managed AI installations](managed-ai.md) and
 [environment validation](validation/s7-environment.md).
 
@@ -288,18 +290,20 @@ See [managed AI installations](managed-ai.md) and
 - Define the supported custom-agent dependency contract and retain local trust
   approval; installing an arbitrary package is not a sandbox for untrusted code.
 
-**Complete when:** a fresh supported computer can prepare and execute the reference
+**Release qualification:** a fresh supported computer can prepare and execute the reference
 AI through the app without manual interpreter or dependency installation.
 
 ### S8 — Results, recordings and bandwidth management
 
-**Status: local acceptance passed at the 120-second hosted limit.** Explicit
+**Status: loopback and single-client public acceptance passed at the 120-second hosted limit.** Explicit
 local consent, telemetry pages, recording sample chunks, integrity/version checks,
 per-device/global transfer limits, disk budgets and evidence export/removal are
 implemented. The browser reviewed 4,802 samples from a 606 MB CARLA capture
 with 3.61 MB transferred and bounded retained heap. The local quota and removal
-checks passed. Independent hardware and public-network performance remain open.
-See the [S8 validation record](validation/s8-120-local-20261103.md).
+checks passed. The public dashboard also paged all 4,802 samples, verified
+exact-frame previews and recovered the completed result after reload. See the
+[loopback validation](validation/s8-120-local-20261103.md) and
+[public validation](validation/s8-public-wan-20261104.md).
 
 - Send summaries/progress first; page telemetry and retrieve sensor samples only
   when the user requests them. Keep AI observations local during execution.
@@ -315,12 +319,12 @@ uploads, memory growth or inaccessible evidence being presented as a valid zero.
 
 ### S9 — Multi-user service capacity and operations
 
-**Status: simulated service targets passed on this PC.** The single-process
-coordinator has monitoring, limits and generation-safe routing. Two loopback
-runs at the configured 100-device ceiling each completed 500 commands and
-100 ownership denials below the two-second p95 target. Coordinator allocation
-peaks were below 24 MiB. Representative physical execution, provider costs and
-deployed performance remain open. See the [capacity record](evidence-capacity-release.md#november-3-capacity-acceptance-on-this-pc).
+**Status: the 25- and 100-device simulated HTTPS targets passed on this PC.**
+The single-process coordinator has monitoring, limits and generation-safe
+routing. Two 100-device runs with the adjusted Caddy pool completed all 500
+commands, preserved account boundaries and measured 1.703 and 1.781 seconds p95.
+Representative execution, provider costs and deployed performance remain open.
+See the [upstream pool comparison](evidence-capacity-release.md#caddy-upstream-connection-reuse).
 
 - Measure and agree on initial connected-device, active-run and transfer targets.
 - Add hosted monitoring, request limits, per-user/device quotas and routing.
@@ -336,12 +340,13 @@ routing, bounded resource use and no interference between users' devices.
 
 ### S10 — Signed releases, updates and external beta
 
-**Status: private tooling; blocked on deferred signing/external acceptance.** The signing
+**Status: private tooling and verified loopback HTTPS delivery.** The signing
 adapter, trusted publisher policy, signed metadata, explicit HTTPS delivery,
 staged cohorts, native update/rollback review, safe-point helper, migration backup
-and compatible rollback paths are implemented. Signing/tester details are
-deferred by the owner; publisher pins/feed remain unset. Actual signed installed
-acceptance, deployed delivery, external PCs and public distribution remain open.
+and compatible rollback paths are implemented. The local Caddy feed rehearsal
+passed. The owner has no signing identity yet and the installed publisher
+pin remains unset. Signed install, update and rollback and public feed activation
+remain open. The current acceptance pass uses the owner's PC.
 See [release scope](evidence-capacity-release.md)
 and [beta record](private-beta.md). The local unsigned
 [native lifecycle](validation/s10-native-lifecycle-20261029.json) now passes,
@@ -364,9 +369,12 @@ update and troubleshoot without repository access or developer assistance.
 
 **Status: in progress.** The first checkpoint adds shared browser design tokens,
 readable typography, keyboard skip links and telemetry scrolling, explicit
-connection recovery states, native companion typography/tab traversal and
-automated browser accessibility checks. S11.2 workflow visual review and S11.3
-new-tester acceptance remain open. See the [implementation plan](visual-usability.md).
+connection recovery states, native Companion typography and tab traversal, and
+automated browser accessibility checks. Both dashboards follow light and dark
+browser appearance. The Companion passed a visual review in the normal Windows
+theme at 100%, 150%, and 200% Tk text scales. Windows contrast themes,
+screen-reader review and first-run acceptance remain open.
+See the [implementation plan](visual-usability.md).
 
 - Establish a consistent dashboard and companion design, typography, themes,
   responsive charts/layouts and readable device/experiment status.
@@ -378,11 +386,11 @@ first-run testing on supported desktop displays and phone viewport sizes.
 
 ### S12 — Guided experimentation and adoption
 
-**Status: application implementation delivered; independent tester gate open.**
+**Status: application implementation delivered; first-time tester gate open.**
 Both dashboards now offer first-run guidance, illustrated galleries, saved
 suites, per-case comparisons, exact-frame highlights and deliberate feedback.
-Automated desktop/mobile journeys pass; new-tester feedback and verified
-feedback-driven changes still require actual participants. See the
+Automated desktop/mobile journeys pass. An isolated test workspace on the
+owner's PC is ready for new-tester feedback and a follow-up check. See the
 [workflow and acceptance guide](guided-experimentation.md).
 
 - Guide a first experiment with an illustrated scenario gallery and clear next

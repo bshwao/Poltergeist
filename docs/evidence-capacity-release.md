@@ -97,7 +97,11 @@ The [November 3 acceptance run](validation/s8-120-local-20261103.md) passed
 at the 120-second hosted limit on this PC. Chromium reviewed 4,802 samples
 across 193 pages using 3.61 MB of evidence responses from a 606 MB capture.
 The local quota check, verified ZIP export and dashboard removal state passed.
-Independent hardware and public-network performance remain open.
+The [November 4 public acceptance run](validation/s8-public-wan-20261104.md)
+reviewed 4,802 samples across 193 pages on the same PC through the deployed
+dashboard. The browser decoded 3.61 MB of successful evidence responses and
+verified early camera and LiDAR previews plus the last recorded frame. Successful
+metadata requests had a p95 of 60.7 ms, with one separate 36-second rate-limit wait.
 
 ## S9: capacity and operations
 
@@ -123,8 +127,8 @@ authentication and pairing abuse limits remain persisted in SQLite. The HTTP
 boundary limits concurrent requests to 64, bounds bodies to 32 KiB and times out
 an idle body receive after ten seconds. The CLI sets Uvicorn's concurrency
 threshold to the device ceiling plus 128 HTTP slots (228 by default), WebSocket
-receive queue one and keepalive five seconds. Enforce deployment
-proxy connection/header deadlines too; hosting has not yet been deployed.
+receive queue one and keepalive five seconds. The proxy boundary is documented
+in the [public deployment record](validation/s5-vps-deployment-20261103.md).
 
 `GET /v1/operations` requires a separate high-entropy bearer token from
 `POLTERGEIST_MONITOR_TOKEN` (43–128 URL-safe characters). Ordinary account sessions
@@ -332,8 +336,157 @@ python -m scripts.load_coordinator --isolate-clients --users 100 --rounds 5 --ou
 python -m scripts.load_coordinator --isolate-clients --users 25 --rounds 20 --output capacity-25.json
 ```
 
-Representative physical PCs, concurrent CARLA/GPU execution, TLS/WAN overhead
-and deployed hosting costs remain separate acceptance gates.
+Representative concurrent CARLA/GPU execution, production WAN performance and
+deployed hosting costs remain separate acceptance gates.
+
+### November 4 loopback HTTPS capacity check
+
+The same workload can run through Caddy using `--caddy`. The fixture binds both
+services to loopback and uses Caddy's temporary CA to verify HTTPS and WSS.
+The Windows trust store stays unchanged. Browser simulation uses HTTP/1.1 and
+the coordinator keeps the same admission limits, retry budget and deadlines.
+The allocation measurement covers Python in the coordinator process.
+
+| Transport and devices | Completed and routed | Cross-owner denials | p95 | Result |
+| --- | --- | --- | --- | --- |
+| HTTPS/WSS, 25 | 500 / 500 | 25 | 1.797 s | Passed, with no overload retries |
+| HTTPS/WSS, 100 | 193 / 231 | 100 | Unavailable | A request hit its deadline |
+| HTTPS/WSS, 100 repeat | 220 / 231 | 100 | Unavailable | A request hit its deadline |
+| Direct HTTP/WS, 100 | 500 / 500 | 100 | 9.875 s | Completed above the 2 s target |
+
+All runs stopped their fixture processes and removed their temporary storage.
+Both 100-device runs completed all device handshakes and owner probes. The
+workloads stopped with incomplete readback and reported no latency percentile.
+The Windows loop also logged an accept error during shutdown of the first
+100-device run. The direct control also exceeded the latency target on November
+4, so the slowdown cannot be attributed to Caddy from these runs. The earlier
+November 3 passes are retained above. The current coordinator app, command and
+relay files matched the hashes from those passes. This PC used its Silent power
+plan during the November 4 checks. Public VPS capacity and cost remain open.
+
+A diagnostic without allocation tracing completed 406 of 500 HTTPS commands,
+routed 426 and denied all 100 cross-owner requests before a request hit its
+deadline. A separate direct diagnostic with transaction timing completed and
+routed all 500 commands, denied all 100 cross-owner requests and measured
+4.922 seconds p95. Its 3,102 filesystem path validations took 10.419 seconds
+in total during a 31.576-second profiled interval that includes client startup
+and teardown. These diagnostics leave the two-second target unchanged.
+
+The direct comparison in Ubuntu WSL2 used Python 3.14.4, SQLite 3.46.1, the
+pinned coordinator dependencies and an ext4 database on this PC. At 100 devices,
+it denied all 100 cross-owner requests and hit a deadline after 231 commands
+completed and 284 routed. Of 651 successful status reads, 420 still reported
+queued. The stress fixture repeats queued reads after 5 ms. The hosted dashboard
+waits three seconds between history polls and reads its pending command in that
+cycle. This difference limits comparisons between stress-fixture latency and
+what a dashboard user sees.
+
+The WSL2 run through checksum-verified Caddy 2.11.7 also hit a deadline, after
+260 commands completed and 270 routed. It denied all 100 cross-owner requests.
+Both Linux fixtures cleaned up. [Caddy release archive and checksum](https://github.com/caddyserver/caddy/releases/expanded_assets/v2.11.7)
+
+The dashboard history endpoint now reuses the ownership and permission checks
+from its current read transaction for the page. Each stored command is still
+parsed and checked against those permissions before its reply is returned.
+The browser and command transaction suites passed. A separate regression
+confirmed that an allowed operation column cannot bypass the payload's scope.
+
+An experimental relay combined first-frame selection and authorization under
+the send lock. All 16 focused delivery and reconnect tests passed, including
+credential expiry during commit. The matched WSL2 HTTPS/WSS run still hit a
+deadline after 250 commands completed and 260 routed, with all 100 cross-owner
+denials correct. The prior run completed 260 and routed 270. The deadline
+recurred, so the existing delivery path was restored.
+
+An instrumented WSL2 HTTPS/WSS run on the restored relay completed 244 commands,
+routed 255 and returned 100 cross-owner denials. The request that reached its
+command deadline was a status readback. The coordinator forwarded its HTTP 200
+headers in 9.6 ms and sent its body. The client trace reached response closure
+as the cumulative command deadline expired, about 0.243 seconds into that
+readback. This sample shows that a deadline can expire even when the coordinator
+answers the final readback promptly.
+
+A later Windows comparison used the restored relay and the same 100-device
+workload. Both transports completed and routed all 500 commands, denied all 100
+cross-owner requests and cleaned up. HTTPS/WSS measured 5.704 seconds p95 through
+Caddy. Direct HTTP/WS measured 2.125 seconds p95. Both exceeded the two-second
+target. These runs establish full command completion on this PC over both
+transports before tuning Caddy's upstream pool.
+
+#### Caddy upstream connection reuse
+
+Three sequential Windows runs compared Caddy's default pool with a four-second
+idle timeout and up to 100 idle connections to the coordinator. The shorter
+idle timeout closes pooled sockets before the coordinator's five-second HTTP
+keepalive. Each run connected 100 devices, completed and routed 500 commands,
+denied 100 cross-owner requests and cleaned up.
+
+| Caddy upstream pool | p50 | p95 | Commands/s |
+| --- | --- | --- | --- |
+| Adjusted | 1.719 s | 2.235 s | 43.72 |
+| Default control | 0.750 s | 5.547 s | 44.44 |
+| Adjusted repeat | 1.578 s | 1.703 s | 49.77 |
+| Repository configuration | 1.656 s | 1.781 s | 46.72 |
+
+The adjusted pool reduced the tail and raised the median relative to the default
+control. Both repeat runs met the two-second p95 target. The deployment Caddyfile
+and benchmark fixture now use the tested values. The final run used 24.84 MiB
+of traced coordinator allocations against the 128 MiB limit. Deployed load and
+provider costs remain open. [Caddy upstream transport settings](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#the-http-transport)
+
+The [rollout rehearsal](validation/s5-vps-deployment-20261103.md#s9-caddy-pool-rollout-and-rollback)
+verified HTTPS, session continuity, reconnect and durable commands across the
+tuned restart and rollback. Live rollout awaits VPS SSH access.
+
+```powershell
+python -m scripts.load_coordinator --isolate-clients --users 25 --rounds 20 --caddy C:\tools\caddy.exe --output capacity-25-https.json
+python -m scripts.load_coordinator --isolate-clients --users 100 --rounds 5 --caddy C:\tools\caddy.exe --output capacity-100-https.json
+```
+
+### Concurrent local CARLA recording
+
+The November 4 run overlapped all 500 HTTPS status commands with measured
+progress from a real 120-second CARLA recording on this PC. The 100 simulated
+devices connected, all 500 commands were routed and completed, and all 100
+cross-owner requests were denied. The measured p95 was **2.656 seconds**,
+exceeding the two-second target. The coordinator's traced Python peak was
+25,767,499 bytes. All 28 overload replies recovered within the existing budget.
+
+The same-PC CARLA 0.9.16 episode used Low graphics on `Town10HD_Opt`, a
+320 × 180 camera and run `73e77ee6-41b3-460b-8610-b5adeb3e3837`. It completed
+with 2,401 telemetry frames. The capacity workload overlapped measured native
+progress for its full 19.969-second window. Original world settings and actor
+counts matched after the run, both fixture processes released their resources,
+and the owned CARLA listener closed. This was a latency failure under local
+simulator load. Production WAN performance and provider costs remain open.
+The [recorded result](validation/s9-carla-overlap-20261104.json) retains the
+workload timing, target failure and cleanup checks.
+
+### OCI transfer and storage estimates
+
+The [public S8 run](validation/s8-public-wan-20261104.md) used 3,608,375 decoded
+response bytes for one 120-second recording review. At that review pattern,
+100 devices doing one review each day would generate about 10.83 GB of
+decoded evidence bodies over 30 days. At ten reviews per device per day the
+figure would be 108.25 GB. These are workload examples. The provider measures
+network traffic, which includes traffic outside the evidence workflow and
+depends on compression, retries and protocol overhead.
+
+Oracle lists the first 10 TB per month of outbound data transfer as free.
+The North America, Europe and UK price above the allowance starts at
+US$0.0085 per GB. Actual charges depend on the region, remaining allowance and
+the account's usage. [OCI outbound pricing](https://www.oracle.com/apac/a/ocom/docs/corporate/pricing/oracle-paas-and-iaas-global-price-list.pdf)
+
+The two passing 100-device fixtures used 1,163,264 and 1,175,552 bytes in the
+coordinator database after 500 status commands each. The November 3 deployment
+backup after public acceptance was 143,360 bytes. These are database file
+sizes. OCI storage charges also depend on the allocated boot and block volumes,
+their performance settings and any backups. Raw recordings in the current
+workflow stay on the Companion. Compare the VNIC's `VnicToNetworkBytes` over
+the review window with the application counters, and use OCI cost data for
+actual billed transfer and storage. The VNIC metric includes other traffic on
+that interface. [OCI VNIC metrics](https://docs.oracle.com/en-us/iaas/Content/Network/Reference/vnicmetrics.htm) and
+[OCI block volume performance](https://docs.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeperformance.htm)
 
 ## S10: signing and safe update tooling
 
@@ -377,6 +530,15 @@ python -m scripts.build_release --output C:\release\candidate --cache C:\release
 ```
 
 The example version requires the same version in the packaged project wheel.
+Add `--preflight` to check the local signing inputs without building. The
+preflight accepts the same compiler, version, SignTool, certificate and timestamp
+arguments. `--output` and `--cache` are only required for an actual build.
+The regular build runs the same checks before creating its output directory.
+Windows checks the exact store certificate, public fingerprint, validity,
+signing usage and private-key association. The preflight also checks the pinned
+Inno Setup version and the SignTool path. Actual signing still establishes
+whether the provider can use its key and the timestamp services respond.
+
 The native **Updates** tab checks only on request. It reviews the verified signed
 metadata's version, size and expiry before a separate download action. A bundled
 `feed_url` supplies metadata over HTTPS; installer downloads must use that same
@@ -398,7 +560,42 @@ expiry; changing a remote rollout does not revoke a previously downloaded copy.
 
 Configure the real public feed in the bundled policy before building the first
 signed baseline. Use `--installer-url`, `--rollout-percent` and `--rollout-salt`
-with the release builder to sign those delivery fields. No feed is deployed here.
+with the release builder to sign those delivery fields.
+
+The hosted Caddy configuration now reserves `/companion-updates/release.ps1`
+and `/companion-updates/<version>/Setup.exe` on the dashboard's HTTPS origin.
+It reads a dedicated, read-only mount and sends those files without compression
+or caching. The directory, other file names, and writes return 404. The
+default staging directory is `deploy/releases`. On the VPS, set
+`POLTERGEIST_RELEASE_FILES_DIR` to a persistent directory outside the source
+checkout before rolling out the proxy. Keep only approved release files in
+that directory and use regular files, without symbolic links.
+
+For the signed baseline, set `feed_url` in the bundled policy to the dashboard
+origin followed by `/companion-updates/release.ps1`. Build the candidate with
+`--installer-url` set to the same origin and its versioned `Setup.exe` path.
+Verify the finished installer and metadata using the bundled publisher pin.
+Stage each version's installer first and confirm its HTTPS response size and
+hash. Then replace the feed metadata atomically within the mounted directory.
+Keep earlier installers and matching signed metadata for compatible rollback.
+
+On November 4, Caddy 2.11.7 served the new route over verified loopback HTTPS.
+The Companion checked metadata separately and verified the downloaded 330,000-byte
+fixture against its expected hash. Empty and unapproved paths returned 404 and
+the upstream health route stayed reachable. The test used a process-local TLS
+trust context and a fixture for publisher signatures. Public deployment and
+the signed install, update and rollback are awaiting a Windows publisher identity.
+
+The November 4 signing check used the x64 SignTool from Microsoft's Windows SDK
+BuildTools `10.0.28000.2705`. Windows verified the tool's Microsoft Authenticode
+signature before it ran. SignTool verified the installed Edge executable and its
+RFC 3161 timestamp. The Companion's verifier accepted the same trusted fixture
+with its exact public pin and rejected a different pin and a modified copy.
+The release preflight rejected an absent certificate through the actual Windows
+store before creating the requested output or cache directory. The focused
+release, installer, update and proxy suite passed all 71 tests.
+[Microsoft SDK BuildTools](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools/10.0.28000.2705)
+
 The installed runtime also supports explicit check/download commands:
 
 ```powershell
@@ -412,11 +609,15 @@ The downloaded-file update CLI, run from the installed current version, remains:
 python -m scripts.update_companion --data-dir C:\path\CompanionPrototype --installer C:\downloads\Setup.exe --manifest C:\downloads\release.ps1 --install-root C:\path\Companion
 ```
 
-The native **Close and install candidate** action verifies the release again,
-checks queued work and closes the Companion. A separate helper waits for the
-entire old process and its installer mutex to exit, then rechecks the durable
-queue and both leases. On success it reopens the verified installed release.
-Failures retain their receipts/backups and show a recovery message.
+The native **Close and install candidate** action verifies the reviewed release
+again, checks queued work and closes the Companion. The review binds the
+verified metadata, including the exact installer and bundle digests, to the
+download and helper handoff. The helper waits for the old process and installer
+mutex to exit, then checks the release identity, durable queue and both leases.
+It verifies the staged copy against that same release before running Setup.
+On success it reopens the verified installed release. If the reviewed files
+change, select the candidate again. A change detected during staging retains
+the backup and a failed receipt before any installer starts.
 
 The Companion must be closed. Its profile lease and the database worker lease
 exclude live execution; active/queued simulations or optimization work prevent
@@ -430,7 +631,9 @@ or failed/preserved. Failed installation/migration keeps its backup and staged
 payload for recovery; it does not report success.
 
 The native **Select signed rollback…** action, or an explicit `--rollback`, accepts a lower signed version only when that release
-supports the current profile schema; the present default window is schema 6.
+supports the current profile schema. The builder writes schema 6 through the
+bundled runtime's current revision, now 7. Legacy manifests that omit the
+window default to schema 6 only.
 It takes another backup and preserves newer results. Expired rollback metadata
 needs a newly signed validity window around the same retained installer. An
 incompatible schema rollback is refused. Recovery from a failed migration must
@@ -521,3 +724,14 @@ installer SHA-256 is
 Windows still reports **NotSigned**. These checks do not establish real signed
 upgrade/rollback, hardware mouse input, a machine without developer tools, or an
 external beta. Signing identity/tester details remain deferred by the owner.
+
+On November 4 the reviewed-release handoff shipped in a fresh offline validation
+bundle. Its private interpreter rejected a substituted release with the same
+version and a different bundle digest using fixture signature checks. The helper
+created no backup and launched no installer. The unsigned validation installer
+SHA-256 was `1d689679775bf127435dd25aeb946c988495b8b122f8a1e22b7683559673a78a`.
+The installed build `private-7446dbcb83c105ad` passed the native dependency probe,
+then executed and reopened both synthetic baseline and SDK runs through desktop
+callbacks in a separate automated profile. The Windows registration used an
+isolated validation identity. Publisher-signed installation and updates remain
+pending.
