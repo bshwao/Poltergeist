@@ -245,6 +245,17 @@ pair and the displayed denominators.**
 
 ## Other implemented workflows
 
+### November 5 native trained-model comparison follow-up
+
+Open [the saved AIM/TransFuser suite](http://localhost:5175/#lab/suite-run/97d512f2-8505-4e9c-a7f0-190c33bc3ff2).
+The tester confirmed completed status and both named cases (F-N1); this is only
+navigation/case-visibility acceptance. Continue one prompted action at a time:
+select **Peak deceleration** (default threshold 1 m/s², minimum 3 pairs), review
+the resulting report, compare values and unavailable severity, then export and
+reopen. Those remaining actions are NOT RUN until explicitly reported. This
+workspace contains engineering runs and is separate from first-time Guided lab
+acceptance and the earlier synthetic journey.
+
 Each item is a separate **NOT RUN** test. Perform it only after the preceding
 core journey and report its result before continuing.
 

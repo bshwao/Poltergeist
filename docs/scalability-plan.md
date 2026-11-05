@@ -454,7 +454,17 @@ boundary. Two registered SDK versions demonstrate a repeated introduced contact
 regression on three matched synthetic seeds and three fixed-spawn CARLA seed
 pairs. Coverage is specific to each measurement: contacts remain reviewable while
 unknown rule channels keep severity inconclusive. Broader representative
-live/hardware comparisons remain. See the [agent guide](evidence-regression-agents.md).
+live/hardware comparisons remain. The [November 5 trained-model comparison](validation/s15-trained-models-20261105.json)
+adds twelve Epic Town03 runs: AIM camera versus TransFuser, a common declared
+sensor rig, clear/wet-dusk lead braking and three matched seeds per case.
+Independent audits verify all 1,452 native frames, 1,440 controls and twelve
+metric assessments. Clear-case braking/clearance worsen under the selected
+thresholds; severity and clear-case TTC remain unavailable. Same Python and
+dependency fingerprints do not make this a weights-only comparison: architecture,
+preprocessing and checkpoint change, and AIM explicitly ignores the declared
+LiDAR. The tester confirmed opening the completed comparison and both cases;
+report review/export/reopen and broader human/hardware acceptance remain.
+See the [agent guide](evidence-regression-agents.md).
 
 - Compare frozen model versions on matched saved recipes and seeds, recording
   input/execution differences, sample counts, uncertainty and incomplete results.

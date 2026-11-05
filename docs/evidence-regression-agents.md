@@ -43,6 +43,24 @@ claim when it contradicts that evidence.
 
 ## S15 — Regression Agent
 
+The [November 5 native receipt](validation/s15-trained-models-20261105.json)
+records a frozen AIM-to-TransFuser stack comparison: two weather cases, three
+matched seeds each, twelve six-second Epic Town03 executions. Both register the
+same available camera/LiDAR rig; AIM explicitly discards LiDAR and reports its
+ignored input hash. Identical interpreter/dependency fingerprints and retained
+wrapper source make the comparison reproducible, while architecture/checkpoint
+differences prevent attribution to weights alone. All 1,452 frames, 1,440 applied
+decisions, six matched pairs and twelve assessments were independently audited.
+
+For clear lead braking, all three pairs exceed the selected peak-deceleration
+threshold of 1 m/s² (mean candidate-minus-reference change +3.667 m/s²), hard-braking
+threshold of zero (+2 episodes) and clearance worsening threshold of 0.5 m
+(mean change −1.040 m). These are observations under the declared regression
+policy, not a general ranking of the models. Contacts do not worsen; severity
+and clear-case TTC are inconclusive because their required observations are
+incomplete or unavailable. Wet-dusk selected observed differences do not cross
+their worsening thresholds. The manual report separately records tester actions.
+
 Create a local saved suite with at least two registered controller versions, the
 reference first, and matched seeds/repetitions. Launch that suite deliberately.
 Its frozen journal retains recipes, ordered controller snapshots, execution and

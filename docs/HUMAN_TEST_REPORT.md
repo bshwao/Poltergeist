@@ -214,6 +214,26 @@ observations when a later retest passes.
 
 ## Release assessment and remaining work
 
+### November 5 human S15 comparison check
+
+This is a separate engineering-results workspace on source `be11f1d`, served at
+`http://localhost:5175` with API `http://127.0.0.1:8011` and preserved storage
+`validation-evidence/s10-s19-20261105/data`. It does not replace the earlier
+assisted journey or establish first-time Guided lab acceptance.
+
+Suite run: `97d512f2-8505-4e9c-a7f0-190c33bc3ff2`.
+
+| Manual action | Tester observation | Result and scope |
+| --- | --- | --- |
+| F-N1 open the permanent trained-model suite comparison | “Completed suite and both cases are visible” after opening the supplied link, expecting completed status, Clear lead braking, Wet dusk lead braking and AIM/TransFuser comparison | PASS for opening the completed suite and case visibility only |
+| F-N2 select Peak deceleration in Regression Agent | Awaiting observation | NOT RUN |
+| F-N3 review displayed regression values and missing measurements | Awaiting observation | NOT RUN |
+| F-N4 export and reopen the saved comparison | Awaiting observation | NOT RUN |
+
+Native execution, independent metric/report audits and CI are engineering
+evidence recorded separately. They do not mark F-N2–F-N4 or earlier A11–A14 as
+manually passed.
+
 ### November 5 engineering findings under the adjusted S10–S19 plan
 
 These are engineering reproductions and checks, not new personal PASS results.

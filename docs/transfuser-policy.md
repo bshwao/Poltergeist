@@ -105,5 +105,16 @@ policy-budget rejection check passed afterward. Contract checks, dashboard build
 The wheel contains no checkpoint. Full CI and human visual acceptance are
 tracked independently; local engineering checks do not close those gates.
 
+The subsequent [S15 matched-model suite](validation/s15-trained-models-20261105.json)
+adds six native AIM camera and six TransFuser runs across clear and wet-dusk lead
+braking, three matched seeds per weather case. Both models receive the same
+declared rig; AIM explicitly ignores LiDAR. All 1,440 decisions preserve proposed
+controls and native sensor-frame/hash provenance. AIM policy-step p95 ranges
+from 89.6–102.9 ms across runs; TransFuser ranges from 248.8–273.6 ms. No two-second
+policy-step budget is exceeded. These are policy timings, not total application
+latency or 20 Hz wall-time qualification. The observed clear-case braking and
+clearance regressions are retained and reviewed rather than presented as improved
+driving quality. Broader hardware, human and distribution gates stay open.
+
 See [managed AI](managed-ai.md), the [camera policy](sensor-driving-policy.md)
 and the [roadmap](scalability-plan.md) for lifecycle and remaining release gates.
