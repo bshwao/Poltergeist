@@ -42,7 +42,7 @@ def _engine_version(record):
         return "comparison-v1/" + _FAILURE_POLICY_VERSION
     if record.request.kind == "search":
         version = SearchManager(record.request).version
-        return version + ("/agent-v1" if record.agent_snapshot is not None or record.request.driving_task is not None else "") + "/" + _FAILURE_POLICY_VERSION
+        return version + "/" + _FAILURE_POLICY_VERSION + ("/agent-v1" if record.agent_snapshot is not None or record.request.driving_task is not None else "")
     return _FAILURE_POLICY_VERSION + ("/agent-v1" if record.agent_snapshot is not None else "")
 
 

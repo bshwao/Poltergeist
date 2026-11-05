@@ -179,10 +179,10 @@
         "evidence": [
           {
             "source": "telemetry",
-            "first_frame": 100,
-            "last_frame": 123,
-            "first_time_s": 0.0,
-            "last_time_s": 1.1500000000000001
+            "first_frame": 104,
+            "last_frame": 104,
+            "first_time_s": 0.2,
+            "last_time_s": 0.2
           }
         ]
       },

@@ -7,9 +7,22 @@ import shutil
 import subprocess
 
 import pytest
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.parametrize("file,service,target", [
+    ("compose.hosted.yml", "coordinator", "/tls"),
+    ("compose.hosted.caddy.yml", "caddy", "/srv/companion-updates"),
+])
+def test_sensitive_bind_mounts_explicitly_disable_host_path_creation(file, service, target):
+    authored = yaml.safe_load((ROOT / file).read_text(encoding="utf-8"))
+    mount = next(item for item in authored["services"][service]["volumes"]
+                 if isinstance(item, dict) and item["target"] == target)
+    assert mount["type"] == "bind" and mount["read_only"] is True
+    assert mount["bind"]["create_host_path"] is False
 
 
 def compose_config(*, carla=False, overrides=None, file=None):
@@ -132,7 +145,9 @@ def test_hosted_stack_separates_private_storage_and_read_only_tls(tmp_path):
     assert mounts["/data"]["source"] in config["volumes"]
     assert mounts["/tls"]["type"] == "bind"
     assert mounts["/tls"]["read_only"] is True
-    assert mounts["/tls"]["bind"]["create_host_path"] is False
+    # Compose-Go versions with bool/omitempty omit false from normalized JSON.
+    # The authored configuration is checked separately, even without Docker.
+    assert mounts["/tls"].get("bind", {}).get("create_host_path", False) is False
 
 
 def test_hosted_caddy_owns_public_ports_and_shares_only_its_loopback_with_coordinator():
@@ -154,5 +169,5 @@ def test_hosted_caddy_owns_public_ports_and_shares_only_its_loopback_with_coordi
     }
     release_files = next(mount for mount in caddy["volumes"] if mount["target"] == "/srv/companion-updates")
     assert release_files["type"] == "bind" and release_files["read_only"] is True
-    assert release_files["bind"]["create_host_path"] is False
+    assert release_files.get("bind", {}).get("create_host_path", False) is False
     assert any(mount["type"] == "volume" and mount["target"] == "/data" for mount in coordinator["volumes"])

@@ -14,14 +14,24 @@ import xml.etree.ElementTree as ET
 import pytest
 
 CASES = Path(__file__).with_name("companion_ui_cases.py")
-CASE_NAMES = [node.name for node in ast.parse(CASES.read_text(encoding="utf-8")).body
-              if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")]
+CASE_NAMES = []
+for node in ast.parse(CASES.read_text(encoding="utf-8")).body:
+    if not isinstance(node, ast.FunctionDef) or not node.name.startswith("test_"):
+        continue
+    # Each scaling parameter needs its own Tcl process too. These cases use
+    # literal window scales and pytest's default IDs; no GUI is imported here.
+    scales = None
+    for decorator in node.decorator_list:
+        if isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Attribute) and decorator.func.attr == "parametrize":
+            assert ast.literal_eval(decorator.args[0]) == "window"
+            scales = ast.literal_eval(decorator.args[1])
+    CASE_NAMES.extend([node.name] if scales is None else [f"{node.name}[{scale}]" for scale in scales])
 
 
 @pytest.mark.parametrize("case", CASE_NAMES)
 def test_gui_application_process(case, tmp_path):
     report = tmp_path / "gui-case.xml"
-    result = subprocess.run([sys.executable, "-m", "pytest", "-q", str(CASES), "-k", case,
+    result = subprocess.run([sys.executable, "-m", "pytest", "-q", f"{CASES}::{case}",
                              f"--junitxml={report}"], capture_output=True, text=True, timeout=360)
     output = result.stdout + "\n" + result.stderr
     assert result.returncode in (0, 5), output

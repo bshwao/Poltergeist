@@ -233,8 +233,9 @@ plans, failed attempts, source/trace fingerprints and regression receipts.
   `failure-policy-v2` now permits an explicit kind with no severity filter to use
   its own observations, preserves null scores through saved reports/UI and
   still requires valid severity for a positive severity threshold. The original
-  journal is unchanged. Automated regression passes; a fresh reviewed live
-  confirmation batch is pending. Human retest: NOT RUN.
+  journal is unchanged. Automated regression and the approved six-run Epic
+  batch pass: two candidates, two matching confirmations each, within budget.
+  Human retest: NOT RUN.
 - **E06 — Medium: peak-deceleration link opened the review-window start.**
   The native peak occurs at frame 59275 / 0.20 s; the original Analyst linked
   frame 59271 / 0 s. Braking/behavior evidence now retains the actual witness,

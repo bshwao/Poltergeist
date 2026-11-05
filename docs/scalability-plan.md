@@ -403,11 +403,18 @@ outcome without assistance, with feedback driving verified usability changes.
 
 ### S13 — Failure Discovery Agent
 
-**Status: private implementation delivered and locally validated.** Typed plans
+**Status: private implementation and same-PC live discovery validated.** The
+[November 5 Epic run](validation/s13-live-epic-20261105.json) completed six
+CARLA executions under explicit approval: two seeded candidates and two exact
+confirmations each, 60 reserved simulated seconds and 72.43 wall-clock seconds
+within a 600-second limit. Unknown overall severity remains null; the explicitly
+selected hard-braking rule uses its recorded observations. Earlier inconclusive
+attempts are retained. This is not trained-model or general safety acceptance.
+Typed plans
 freeze all recipes, identities and settings before explicit budget approval.
 Serial search/confirmation retains every trial and preserves budgets across
 resume. Registered local agents, confirmed synthetic failures, inconclusive and
-negative searches, device ownership and revoked-consent checks pass. Live CARLA
+negative searches, device ownership and revoked-consent checks pass. Earlier CARLA
 startup failures are retained as unknown evidence; see the dated
 [validation notes](progress-notes.md) for the current hardware result.
 
