@@ -323,11 +323,18 @@ export function createApiClient(baseUrl = API_BASE_URL) {
     const attrs = value.attributes;
     const keys = value.type === "sensor.camera.rgb" ? ["image_size_x", "image_size_y", "fov", "sensor_tick"]
       : value.type === "sensor.lidar.ray_cast" ? ["channels", "range", "points_per_second", "rotation_frequency", "upper_fov", "lower_fov", "sensor_tick"] : [];
-    if (!keys.length || Object.keys(attrs).length !== keys.length || !keys.every(key => finiteNumber(attrs[key])) || attrs.sensor_tick !== 0) return false;
+    const optional: Record<string, [number, number]> = value.type === "sensor.camera.rgb" ? {
+      lens_circle_multiplier: [0, 10], lens_circle_falloff: [0, 10],
+      chromatic_aberration_intensity: [0, 1], chromatic_aberration_offset: [0, 1],
+    } : { atmosphere_attenuation_rate: [0, 1], dropoff_general_rate: [0, 1],
+      dropoff_intensity_limit: [0, 1], dropoff_zero_intensity: [0, 1] };
+    if (!keys.length || !keys.every(key => finiteNumber(attrs[key])) || attrs.sensor_tick !== 0
+      || !Object.keys(attrs).every(key => keys.includes(key)
+        || (Object.prototype.hasOwnProperty.call(optional, key) && bounded(attrs[key], ...optional[key])))) return false;
     if (value.type === "sensor.camera.rgb") return integer(attrs.image_size_x, 1) && attrs.image_size_x <= 1024
       && integer(attrs.image_size_y, 1) && attrs.image_size_y <= 768 && bounded(attrs.fov, 10, 140);
     return integer(attrs.channels, 1) && attrs.channels <= 128 && bounded(attrs.range, 1, 200)
-      && integer(attrs.points_per_second, 1000) && attrs.points_per_second <= 500000
+      && integer(attrs.points_per_second, 1000) && attrs.points_per_second <= 600000
       && bounded(attrs.rotation_frequency, 1, 100) && bounded(attrs.lower_fov, -89, 89)
       && bounded(attrs.upper_fov, -89, 89) && (attrs.lower_fov as number) < (attrs.upper_fov as number);
   };

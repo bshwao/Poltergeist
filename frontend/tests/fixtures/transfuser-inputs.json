@@ -1,0 +1,67 @@
+{
+  "observation_mode": "sensors",
+  "source": "deterministic_fixture",
+  "ego_state_source": "simulated_ego_kinematics",
+  "sensors": [
+    {
+      "id": "front-camera",
+      "type": "sensor.camera.rgb",
+      "attributes": {
+        "image_size_x": 400,
+        "image_size_y": 300,
+        "fov": 100.0,
+        "sensor_tick": 0.0,
+        "lens_circle_multiplier": 3.0,
+        "lens_circle_falloff": 3.0,
+        "chromatic_aberration_intensity": 0.5,
+        "chromatic_aberration_offset": 0.0
+      },
+      "mount": {
+        "position": {
+          "x": 1.3,
+          "y": 0.0,
+          "z": 2.3
+        },
+        "rotation": {
+          "pitch_deg": 0.0,
+          "yaw_deg": 0.0,
+          "roll_deg": 0.0
+        }
+      }
+    },
+    {
+      "id": "lidar",
+      "type": "sensor.lidar.ray_cast",
+      "attributes": {
+        "channels": 64,
+        "range": 85.0,
+        "points_per_second": 600000,
+        "rotation_frequency": 10.0,
+        "upper_fov": 10.0,
+        "lower_fov": -30.0,
+        "sensor_tick": 0.0,
+        "atmosphere_attenuation_rate": 0.004,
+        "dropoff_general_rate": 0.45,
+        "dropoff_intensity_limit": 0.8,
+        "dropoff_zero_intensity": 0.4
+      },
+      "mount": {
+        "position": {
+          "x": 1.3,
+          "y": 0.0,
+          "z": 2.5
+        },
+        "rotation": {
+          "pitch_deg": 0.0,
+          "yaw_deg": -90.0,
+          "roll_deg": 0.0
+        }
+      }
+    }
+  ],
+  "ground_truth_actor_inputs": false,
+  "assistance": [
+    "ideal_ego_kinematics",
+    "framework_navigation"
+  ]
+}

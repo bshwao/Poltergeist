@@ -27,7 +27,7 @@ def guarded(name, *args, **kwargs):
 builtins.__import__ = guarded
 from companion.controller import CompanionController
 from companion.model_catalog import model_options
-assert [item['id'] for item in model_options()] == ['plant', 'aim']
+assert [item['id'] for item in model_options()] == ['plant', 'aim', 'transfuser']
 '''
     subprocess.run([sys.executable, '-B', '-c', code], check=True, timeout=30, capture_output=True)
 

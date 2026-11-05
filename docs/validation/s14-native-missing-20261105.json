@@ -1,0 +1,182 @@
+{
+  "passed": true,
+  "scope": "Six real native runs; missing/corrupt/truncated/dropped-frame probes alter private copies only. Not human acceptance or recording-integrity validation.",
+  "real_runs": 6,
+  "degraded_copy_cases": 24,
+  "results": [
+    {
+      "simulation_id": "b3be8730-32c9-4544-bfab-e615ba353ccd",
+      "original_sha256": "a65e6d8753ba323531d7b95094fb8e023f3cfab25d412bccfbb7f4ce74b5fef9",
+      "native_state": "partial",
+      "exact_references_checked": 5,
+      "copy_only_cases": [
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ],
+      "original_preserved": true
+    },
+    {
+      "simulation_id": "be06c55d-251c-4b7b-b6c2-48add20233c8",
+      "original_sha256": "8a8f853b0037a54041fff6068b62844d3257131855f29c7cc5172afee57f6b96",
+      "native_state": "partial",
+      "exact_references_checked": 5,
+      "copy_only_cases": [
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ],
+      "original_preserved": true
+    },
+    {
+      "simulation_id": "6de6bc0d-94a0-40ba-b2d9-e4dd9fb1673b",
+      "original_sha256": "f662536db83f2d51d935de405b1ed12041e5168ba525d113b0c6e799557d1e77",
+      "native_state": "partial",
+      "exact_references_checked": 5,
+      "copy_only_cases": [
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ],
+      "original_preserved": true
+    },
+    {
+      "simulation_id": "7ee88f29-869a-4535-9d51-6282c37f1502",
+      "original_sha256": "3fc1f2d2b71901ec359d295a4d3c26fa362126224da28eefcd24bbc8323885ad",
+      "native_state": "partial",
+      "exact_references_checked": 5,
+      "copy_only_cases": [
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ],
+      "original_preserved": true
+    },
+    {
+      "simulation_id": "1f572065-6065-48aa-9299-a29794f383eb",
+      "original_sha256": "096d44611790ac1b8d6fb51b54c4c3ec6b72fd45349ff6137e80a14c0f7d99e6",
+      "native_state": "partial",
+      "exact_references_checked": 5,
+      "copy_only_cases": [
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ],
+      "original_preserved": true
+    },
+    {
+      "simulation_id": "31122918-0258-45cb-93ad-e03b8ef508a3",
+      "original_sha256": "772d88f4b9f979b26ea51719f533c565cb5baff1bf688e7504cac274ec709521",
+      "native_state": "partial",
+      "exact_references_checked": 5,
+      "copy_only_cases": [
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ],
+      "original_preserved": true
+    }
+  ]
+}

@@ -2,9 +2,18 @@
 from .model_assets import ModelAsset, PLANT_WEIGHTS
 from simulator.agents.aim.checkpoint import (CHECKPOINT_BYTES, CHECKPOINT_FILENAME, CHECKPOINT_SHA256,
     CHECKPOINT_URL, MODEL_ID, SOURCE_BYTES, SOURCE_OFFSET, SOURCE_REVISION)
+from simulator.agents.transfuser import checkpoint as fusion_checkpoint
 
 AIM_WEIGHTS = ModelAsset(MODEL_ID, CHECKPOINT_FILENAME, CHECKPOINT_URL, CHECKPOINT_BYTES,
     CHECKPOINT_SHA256, range_start=SOURCE_OFFSET, source_size=SOURCE_BYTES)
+TRANSFUSER_WEIGHTS = ModelAsset(fusion_checkpoint.MODEL_ID, fusion_checkpoint.CHECKPOINT_FILENAME,
+    fusion_checkpoint.CHECKPOINT_URL, fusion_checkpoint.CHECKPOINT_BYTES, fusion_checkpoint.CHECKPOINT_SHA256,
+    range_start=fusion_checkpoint.SOURCE_OFFSET, source_size=fusion_checkpoint.SOURCE_BYTES)
+
+
+def model_asset(kind):
+    model_info(kind)
+    return {"plant": PLANT_WEIGHTS, "aim": AIM_WEIGHTS, "transfuser": TRANSFUSER_WEIGHTS}[kind]
 
 
 def aim_manifest(weights):
@@ -28,8 +37,13 @@ def model_info(kind):
             "description": "Learned waypoints from front RGB pixels, with declared ideal simulated ego kinematics and a supplied route. Other actors' ground-truth state is excluded.",
             "source": "Official TransFuser CVPR 2021 AIM release · MIT integration; checkpoint terms not separately declared by upstream",
             "notice": "Downloads only the pinned AIM member from the official archive. Restricted weight loading follows full size/hash verification. Initial compatibility work does not establish road safety or real-time performance."}
+    if kind == "transfuser":
+        return {"id": "transfuser", "name": "TransFuser RGB + LiDAR (CPU)", "size": TRANSFUSER_WEIGHTS.size, "huggingface": False,
+            "description": "Trained front RGB and LiDAR fusion predicts driving waypoints, using declared ideal ego kinematics and a supplied route. Other actors' ground-truth state is excluded.",
+            "source": "Official TransFuser CVPR 2021 release · MIT integration; checkpoint terms not separately declared by upstream",
+            "notice": "Downloads the pinned TransFuser checkpoint. One warmup tick precedes inference; later predictions are refreshed every other tick. Live driving quality and real-time performance require separate validation. Checkpoint redistribution rights remain unconfirmed."}
     raise ValueError("Unknown supported AI model")
 
 
 def model_options():
-    return [model_info(kind) for kind in ("plant", "aim")]
+    return [model_info(kind) for kind in ("plant", "aim", "transfuser")]

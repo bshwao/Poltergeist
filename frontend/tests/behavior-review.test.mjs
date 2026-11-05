@@ -47,6 +47,26 @@ test("analysis client accepts backend fixture, retains identity and forwards can
   assert.deepEqual(await createApiClient("/api").getBehaviorAnalysis(ID, { signal: controller.signal }), fixture.analysis);
 });
 
+test("analysis accepts released fusion calibration and rejects unbounded or unknown sensor settings", async () => {
+  const inputs = JSON.parse(await readFile(new URL("fixtures/transfuser-inputs.json", import.meta.url), "utf8"));
+  const client = createApiClient("/api");
+  const data = clone(); data.agent_inputs = inputs;
+  globalThis.fetch = async () => response(data);
+  assert.deepEqual((await client.getBehaviorAnalysis(ID)).agent_inputs, inputs);
+  for (const change of [
+    a => a.sensors[1].attributes.points_per_second = 600001,
+    a => a.sensors[1].attributes.dropoff_general_rate = 1.01,
+    a => a.sensors[0].attributes.chromatic_aberration_offset = true,
+    a => a.sensors[0].attributes.lens_circle_falloff = -1,
+    a => a.sensors[1].attributes.unknown_setting = 0,
+    a => a.sensors.push({ ...structuredClone(a.sensors[1]), id: "extra-lidar" }),
+  ]) {
+    const invalid = clone(); invalid.agent_inputs = structuredClone(inputs); change(invalid.agent_inputs);
+    globalThis.fetch = async () => response(invalid);
+    await assert.rejects(client.getBehaviorAnalysis(ID), ApiError);
+  }
+});
+
 test("analysis client rejects malformed nested evidence, clocks, channels, status and identity", async () => {
   const client = createApiClient("/api");
   for (const change of [

@@ -1,6 +1,7 @@
 # Managed AI preparation
 
-**AI models** in the Companion installs supported **PlanT 2.0** and **AIM camera** CPU packs on
+**AI models** in the Companion installs supported **PlanT 2.0**, **AIM camera**
+and **TransFuser RGB + LiDAR** CPU packs on
 Windows x64: a separate Python 3.12.10 interpreter, pinned dependencies and official
 weights. **Manage AI…** beside the Agent selector opens these controls. Users need
 no manual Python or pip setup. The baseline remains available without downloads;
@@ -9,7 +10,8 @@ S7's implementation and local evidence are described in the
 [environment validation record](validation/s7-environment.md). Independent-machine
 acceptance remains a release gate. CUDA installation is outside this CPU pack.
 Choose the supported model before preparation; the choice survives reopening.
-The [AIM guide](sensor-driving-policy.md) documents its actual camera inputs,
+The [fusion policy guide](transfuser-policy.md) documents trained RGB/LiDAR
+inputs, their timing and checkpoint terms. The [AIM guide](sensor-driving-policy.md) documents its actual camera inputs,
 checkpoint terms and separate driving validation. The PlanT details below retain
 their existing structured-scene scope.
 
@@ -77,7 +79,7 @@ An explicitly configured token is sent only to the official HTTPS Hugging Face
 origin; it is stripped on redirects, including signed CDN redirects. Access
 denials and rate limits produce actionable errors without exposing tokens or
 signed URLs. The catalogue is curated, rather than an arbitrary repository
-browser. AIM uses the official project archive and never receives Hub credentials.
+browser. AIM and TransFuser use the official project archive and never receive Hub credentials.
 The provider behavior follows Hugging Face's
 [revision-pinned downloads](https://huggingface.co/docs/huggingface_hub/guides/download)
 and [read-token access](https://huggingface.co/docs/hub/security-tokens).

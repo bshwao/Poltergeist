@@ -9,7 +9,7 @@ from .model_assets import AssetError, AssetStore, DownloadPaused
 from .model_environment import ModelEnvironment
 from .credential_store import CredentialStoreError
 from .huggingface import CATALOGUE, HuggingFaceAccount, HuggingFaceSource
-from .model_catalog import AIM_WEIGHTS, model_info, model_options
+from .model_catalog import model_asset, model_info, model_options
 from .model_selection import ModelSelection
 
 
@@ -18,14 +18,14 @@ class ModelManager:
         self.profile = profile
         self._selection = ModelSelection(profile)
         self.kind, self._selection_error = self._selection.read()
-        self._store = AssetStore(profile, AIM_WEIGHTS) if self.kind == "aim" else AssetStore(profile)
-        self.environment = ModelEnvironment(profile, kind="aim") if self.kind == "aim" else ModelEnvironment(profile)
+        self._store = AssetStore(profile) if self.kind == "plant" else AssetStore(profile, model_asset(self.kind))
+        self.environment = ModelEnvironment(profile) if self.kind == "plant" else ModelEnvironment(profile, kind=self.kind)
         self.hub_account = HuggingFaceAccount(profile)
         self.hub_source = HuggingFaceSource(account=self.hub_account)
         if self._store.asset == self.hub_source.model.asset() and self._store._open is None:
             self._store._open = self.hub_source.open_asset
         self._source_status = {"state": "unchecked", "message": "Pinned Hub source has not been checked."} if self.kind == "plant" else {
-            "state": "fixed", "message": "AIM uses the pinned official project archive. Hugging Face credentials are not sent to this source."}
+            "state": "fixed", "message": "This model uses the pinned official project archive. Hugging Face credentials are not sent to this source."}
         try:
             self._account_status = self.hub_account.status()
         except (CredentialStoreError, ValueError, OSError):
@@ -52,7 +52,7 @@ class ModelManager:
             self._require_idle()
             if kind == self.kind and not self._selection_error:
                 return
-            store = AssetStore(self.profile, AIM_WEIGHTS) if kind == "aim" else AssetStore(self.profile)
+            store = AssetStore(self.profile) if kind == "plant" else AssetStore(self.profile, model_asset(kind))
             environment = ModelEnvironment(self.profile, kind=kind)
             if kind == "plant":
                 store._open = self.hub_source.open_asset
@@ -62,7 +62,7 @@ class ModelManager:
             self._readiness = None
             self._status = {"state": "unchecked", "bytes": 0, "total": info["size"], "message": "Check saved weights or prepare this selected model."}
             self._source_status = {"state": "unchecked", "message": "Pinned Hub source has not been checked."} if kind == "plant" else {
-                "state": "fixed", "message": "AIM uses the pinned official project archive. Hugging Face credentials are not sent to this source."}
+                "state": "fixed", "message": "This model uses the pinned official project archive. Hugging Face credentials are not sent to this source."}
 
     def _require_idle(self):
         if self._closed:

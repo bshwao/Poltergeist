@@ -476,8 +476,14 @@ outputs; the initially stationary ego moves 1.31 m with real front-camera inputs
 Policy p95 is 92 ms with zero one-second budget misses. Model choice persists, camera inputs
 exclude other actors' ground truth, checkpoint bytes are pinned and restricted-load
 verified, and timing failures stop the run without substituting another policy.
-Broader hardware, trained LiDAR and upstream checkpoint-terms review remain.
-See [policy inputs, provenance and limits](sensor-driving-policy.md).
+The separate [TransFuser RGB/LiDAR pack](transfuser-policy.md) now adds genuine
+trained sensor fusion. Offline outputs match the pinned upstream network exactly;
+a four-second Epic Town03 run verifies 80 native controls, 81 RGB/LiDAR frame
+pairs and restoration. The ego moves 13.85 m from about 2 m/s; the time window
+expires before arrival. Policy-step p95 is 290 ms, with no two-second budget
+misses. See its [receipt](validation/s16-transfuser-20261105.json).
+Broader camera/model/hardware testing, human acceptance and upstream checkpoint
+redistribution terms remain open. See [camera-policy inputs and limits](sensor-driving-policy.md).
 
 - Integrate supported trained camera/LiDAR driving policies through the existing
   agent worker, validating real sensor inputs and actual model vehicle control.

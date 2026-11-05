@@ -1,0 +1,165 @@
+{
+  "scope": "Engineering managed RGB/LiDAR trained-policy integration, not broad driving quality, human acceptance or checkpoint redistribution approval",
+  "source_base_commit": "c37dc545a4160ae8f02ca9a76eeed33e30c99f49",
+  "source_file_sha256": {
+    "companion/model_catalog.py": "3c07ac29cf78610288599030d9e9b2421bfd0a836991006bf8cdb3985d43c515",
+    "companion/model_environment.py": "af287e56e5f7501420221da623abf090ff1d8a74e6bd681c5301c77d5a3968ba",
+    "companion/model_manager.py": "114de1cdeb0ddb0dd3bb04852ea820b6b068d4a107c78e0ff3a7b24340910d92",
+    "companion/model_probe.py": "b421d7371054c9870776f66d5780f146770b1c6fab63c1dca0638c12957f85a7",
+    "companion/model_selection.py": "0f627cefcf0a38b0509eedd2e61cc439ba73c2a15922b1031cacc75b31e47de1",
+    "frontend/src/services/api.ts": "ea5ba2c640a666704be647e5579837e8ed9bdccf1fc390fb6c96e225b3e8a5da",
+    "shared/models/agent.py": "1ed71aee2eeaecd6c1171f4330abf8594b9a7b1bd48aab5106e87d26e7e11ced",
+    "shared/sensor_calibration.py": "4acdeb641673ba98887b8089ae13a5927d2350bf4b1e19e0d5f3fb7b1c10412a",
+    "simulator/agent_sensors.py": "21984af4874e2baba8104f52b7dfad24b196ba3022dcef44bbccf7c48013f3cf",
+    "simulator/agents/transfuser/__init__.py": "7de5092a8fe0e6754f46599e89f867483ec6782f986013aea5d0bddff81d1ac5",
+    "simulator/agents/transfuser/agent.py": "6ac74f83601ce6381af8ee5de96db86229821d57bbce0dfa4dd906c74c7211fb",
+    "simulator/agents/transfuser/checkpoint.py": "e74d9e5fdb6ed1617275700b7ae23e55c86b6a6ac342ccb135600c22267aae16",
+    "simulator/agents/transfuser/config.py": "1f745bc062c8793957e3c89f3fb8d05861df0230c1bc70e60757e314d447b9dd",
+    "simulator/agents/transfuser/LICENSE.transfuser": "702a64a46d7289d3e8f19ee2b887ec0203983549344c9e7b8e708e5320a4d880",
+    "simulator/agents/transfuser/network.py": "924e90184ce72e2e059c584b1a661a297a8c4186c162db8ad861d0e7cb31c4d5",
+    "simulator/agents/transfuser/preprocessing.py": "76e9b0f9f3611e1da1f4848bad2210d8933cab2dc6432bee7afe572e7afbac41",
+    "simulator/agents/transfuser/rig.py": "51796155c2c830e093538431d390c39d4026b71b14381d20ee5a25b50ce46573"
+  },
+  "upstream_source_revision": "6d1d0421598e3767ced97a113739a40a621cdc25",
+  "checkpoint_sha256": "16256a96134d9f83fdea30bfaf04b26a3710896e64be11be03d8f282946f5994",
+  "checkpoint_bytes": 265617761,
+  "parameter_count": 66293634,
+  "offline_upstream_parity": {
+    "passed": true,
+    "scope": "Offline pretrained numerical parity, not native driving or managed installation",
+    "torch": "2.6.0+cpu",
+    "numpy": "2.2.4",
+    "parameters": 66293634,
+    "fixtures": 4,
+    "lidar_points_per_fixture": 30000,
+    "max_waypoint_error": 0.0,
+    "inference_times_s": [
+      0.2487866999945254,
+      0.26148420000390615,
+      0.2605344999974477,
+      0.25362950000271667
+    ],
+    "total_wall_s": 4.732230800000252,
+    "checkpoint_sha256": "16256a96134d9f83fdea30bfaf04b26a3710896e64be11be03d8f282946f5994"
+  },
+  "managed_environment": {
+    "python": "3.12.10",
+    "torch": "2.6.0+cpu",
+    "device": "cpu",
+    "actual_pretrained_inference_s": 0.2752078000048641,
+    "separate_owned_environment": true
+  },
+  "native": {
+    "simulation_id": "ff5e30b3-312a-4e2a-b657-3c3e438bada8",
+    "frames": 81,
+    "controls": 80,
+    "learned_predictions": 41,
+    "native_control_mismatches": 0,
+    "displacement_m": 13.854522405931773,
+    "policy_step_p95_s": 0.2902935999954934,
+    "policy_step_max_s": 0.34819769999739947,
+    "budget_misses": 0,
+    "sensor_samples": 162,
+    "camera_frame_hashes": 81,
+    "lidar_frame_hashes": 81,
+    "restored": true,
+    "total_wall_s": 52.48706690000108
+  },
+  "map": "Town03",
+  "quality": "Epic",
+  "carla_version": "0.9.16",
+  "duration_s": 4.0,
+  "fixed_delta_seconds": 0.05,
+  "initial_speed_mps": 2.0591250575148767,
+  "route_status": "timed_out",
+  "final_distance_to_goal_m": 16.08253956047973,
+  "collision_count": 0,
+  "severity": null,
+  "traffic_rule_frames": 80,
+  "agent_input_info": {
+    "observation_mode": "sensors",
+    "source": "carla_sensors",
+    "ego_state_source": "simulated_ego_kinematics",
+    "sensors": [
+      {
+        "id": "front-camera",
+        "type": "sensor.camera.rgb",
+        "attributes": {
+          "image_size_x": 400,
+          "image_size_y": 300,
+          "fov": 100.0,
+          "sensor_tick": 0.0,
+          "lens_circle_multiplier": 3.0,
+          "lens_circle_falloff": 3.0,
+          "chromatic_aberration_intensity": 0.5,
+          "chromatic_aberration_offset": 0.0
+        },
+        "mount": {
+          "position": {
+            "x": 1.3,
+            "y": 0.0,
+            "z": 2.3
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": 0.0,
+            "roll_deg": 0.0
+          }
+        }
+      },
+      {
+        "id": "lidar",
+        "type": "sensor.lidar.ray_cast",
+        "attributes": {
+          "channels": 64,
+          "range": 85.0,
+          "points_per_second": 600000,
+          "rotation_frequency": 10.0,
+          "upper_fov": 10.0,
+          "lower_fov": -30.0,
+          "sensor_tick": 0.0,
+          "atmosphere_attenuation_rate": 0.004,
+          "dropoff_general_rate": 0.45,
+          "dropoff_intensity_limit": 0.8,
+          "dropoff_zero_intensity": 0.4
+        },
+        "mount": {
+          "position": {
+            "x": 1.3,
+            "y": 0.0,
+            "z": 2.5
+          },
+          "rotation": {
+            "pitch_deg": 0.0,
+            "yaw_deg": -90.0,
+            "roll_deg": 0.0
+          }
+        }
+      }
+    ],
+    "ground_truth_actor_inputs": false,
+    "assistance": [
+      "ideal_ego_kinematics",
+      "framework_navigation"
+    ]
+  },
+  "attempts": [
+    {
+      "outcome": "callback_instrumentation_failure",
+      "world_restored": true,
+      "receipt_retained": true
+    },
+    {
+      "outcome": "passed",
+      "world_restored": true
+    }
+  ],
+  "limitations": [
+    "One short same-PC integration check; initial speed was about 2 m/s, not a stationary launch.",
+    "The four-second window elapsed before arrival; route completion is not claimed.",
+    "CPU policy times exceed a 20 Hz wall-time decision period; synchronous simulation can run slower than wall time.",
+    "Full sensor recording/replay integrity, installed-app human acceptance and broad model quality remain separate.",
+    "Upstream code is MIT; reviewed checkpoint redistribution terms remain undeclared. No weights bundled."
+  ],
+  "private_native_receipt_sha256": "ad7dfc3eaaa19929562f103907d49c11b0bf1a03020fc7de80fc32b4560a6c15"
+}

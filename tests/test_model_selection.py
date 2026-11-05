@@ -39,6 +39,29 @@ def test_aim_selection_reopens_the_same_pack_without_downloading_or_starting_exe
         assert reopened.close()
 
 
+def test_transfuser_selection_has_separate_owned_weights_and_environment_without_starting_them(tmp_path):
+    from companion.model_catalog import TRANSFUSER_WEIGHTS, AIM_WEIGHTS
+    from companion.model_environment import ModelEnvironment
+    manager = ModelManager(tmp_path)
+    try:
+        manager.select_model("transfuser")
+        assert manager._store.asset == TRANSFUSER_WEIGHTS
+        assert manager._store.asset.sha256 != AIM_WEIGHTS.sha256
+        assert manager.environment.identity["model"] == "transfuser"
+        assert manager.environment.directory != ModelEnvironment(tmp_path, kind="aim").directory
+        assert manager.environment.identity["checkpoint_sha256"] == TRANSFUSER_WEIGHTS.sha256
+        assert not manager.snapshot()["inference_ready"]
+        assert not (tmp_path / "models").exists() and not (tmp_path / "environments").exists()
+    finally:
+        assert manager.close()
+    reopened = ModelManager(tmp_path)
+    try:
+        assert reopened.kind == "transfuser" and reopened.snapshot()["source"]["state"] == "fixed"
+        assert not reopened.snapshot()["inference_ready"]
+    finally:
+        assert reopened.close()
+
+
 def test_corrupt_model_choice_requires_explicit_reselection_before_any_action(tmp_path):
     (tmp_path / "model-selection.json").write_text('{"model":"unknown"}', encoding="utf-8")
     manager = ModelManager(tmp_path)

@@ -93,8 +93,9 @@ imported models and experiment evidence are preserved.
 
 See [managed AI](managed-ai.md) for lifecycle controls and the
 [roadmap](scalability-plan.md) for remaining machine, performance and release gates.
-This initial supported camera integration does not add a trained LiDAR policy,
-CUDA installation, broad driving-quality evaluation or road-safety certification.
+The separate [TransFuser fusion pack](transfuser-policy.md) adds a trained RGB
+and LiDAR policy. CUDA installation, broad driving-quality evaluation and
+road-safety certification remain outside this initial camera validation.
 
 ## Local validation
 

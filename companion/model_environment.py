@@ -129,13 +129,13 @@ def unpack(archive, destination, kind, cancelled=lambda: False):
 
 class ModelEnvironment:
     def __init__(self, profile, *, kind="plant"):
-        if kind not in {"plant", "aim"}:
+        if kind not in {"plant", "aim", "transfuser"}:
             raise ValueError("Unknown supported model environment")
         self.kind = kind
-        self.name = "PlanT" if kind == "plant" else "AIM camera"
+        self.name = {"plant": "PlanT", "aim": "AIM camera", "transfuser": "TransFuser RGB + LiDAR"}[kind]
         self.profile = Path(profile)
         self.lock = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
-        self.directory = self.profile / "environments" / (self.lock["id"] if kind == "plant" else "aim-cpu-win64-v1")
+        self.directory = self.profile / "environments" / (self.lock["id"] if kind == "plant" else f"{kind}-cpu-win64-v1")
         self.runtime = self.directory / "runtime"
         self.python = self.runtime / "python.exe"
         self.package = self.runtime / "agent"
@@ -143,9 +143,10 @@ class ModelEnvironment:
         self.receipt = self.directory / "ready.json"
         self._lease = WorkerLease(SimpleNamespace(file_path=self.directory / "environment"))
         self.identity = {"schema": self.lock["schema"], "lock_sha256": digest(LOCK_PATH)}
-        if kind == "aim":
-            from simulator.agents.aim.checkpoint import SOURCE_REVISION, CHECKPOINT_SHA256
-            self.identity.update(model="aim", policy_revision=SOURCE_REVISION, checkpoint_sha256=CHECKPOINT_SHA256)
+        if kind in {"aim", "transfuser"}:
+            from .model_catalog import model_asset
+            from simulator.agents.aim.checkpoint import SOURCE_REVISION
+            self.identity.update(model=kind, policy_revision=SOURCE_REVISION, checkpoint_sha256=model_asset(kind).sha256)
 
     def supported(self):
         if os.name != "nt" or platform.machine().lower() not in {"amd64", "x86_64"}:
@@ -263,6 +264,10 @@ class ModelEnvironment:
                 from .model_catalog import aim_manifest
                 manifest = aim_manifest(weights)
                 (package / "agent.py").write_text("from simulator.agents.aim import AIMCameraAgent\nclass AIMAgent(AIMCameraAgent):\n    pass\n", encoding="utf-8")
+            elif self.kind == "transfuser":
+                from simulator.agents.transfuser.rig import manifest as fusion_manifest
+                manifest = fusion_manifest(weights)
+                (package / "agent.py").write_text("from simulator.agents.transfuser import TransFuserAgent\n", encoding="utf-8")
             (package / "agent.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
             notices = staging / "notices"
             notices.mkdir()
@@ -275,6 +280,10 @@ class ModelEnvironment:
                 from simulator.agents.aim.checkpoint import SOURCE_REVISION, CHECKPOINT_SHA256
                 shutil.copy2(APP_ROOT / "simulator/agents/aim/LICENSE.aim", notices / "LICENSE.aim")
                 (notices / "MODEL.txt").write_text(f"AIM camera policy from autonomousvision/transfuser {SOURCE_REVISION}.\nIntegration code: MIT (LICENSE.aim). Checkpoint distributed in the official project archive; no separate checkpoint license declaration was found. No checkpoint redistribution license is inferred.\nPinned checkpoint SHA-256: {CHECKPOINT_SHA256}.\nThe shared CPU dependency lock also carries PlanT-related dependency notices; those do not license the AIM weights.\nCPU pack; no CUDA, road-safety or real-time guarantee.\n", encoding="utf-8")
+            elif self.kind == "transfuser":
+                from simulator.agents.transfuser.checkpoint import SOURCE_REVISION, CHECKPOINT_SHA256
+                shutil.copy2(APP_ROOT / "simulator/agents/transfuser/LICENSE.transfuser", notices / "LICENSE.transfuser")
+                (notices / "MODEL.txt").write_text(f"TransFuser RGB + LiDAR policy from autonomousvision/transfuser {SOURCE_REVISION}.\nIntegration code: MIT (LICENSE.transfuser). Checkpoint terms are not separately declared; no redistribution license is inferred.\nPinned checkpoint SHA-256: {CHECKPOINT_SHA256}.\nShared dependency notices do not license these weights.\nCPU pack; no CUDA, road-safety or real-time guarantee.\n", encoding="utf-8")
             _check_pause(cancelled)
             staging.rename(self.runtime)
             progress("checking_environment", 0, 1)

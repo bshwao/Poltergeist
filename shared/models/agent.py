@@ -18,6 +18,7 @@ from pydantic import Field, JsonValue, StrictBool, StrictStr, field_validator, m
 from .base import ContractModel, NonEmptyString, NonNegativeFloat, NonNegativeInt, PositiveFloat, Seed
 from .scenario import DrivingTask, Transform, Vector3
 from .telemetry import ActorState, BoundingBoxExtent, ControlInput
+from shared.sensor_calibration import CAMERA_OPTIONAL_BOUNDS, LIDAR_OPTIONAL_BOUNDS
 
 AGENT_PROTOCOL_VERSION = "1.0"
 AgentProtocolVersion = Literal["1.0", "1.1", "1.2", "1.3"]
@@ -185,13 +186,17 @@ class AgentInputInfo(ContractModel):
                 required = {"image_size_x", "image_size_y", "fov", "sensor_tick"} if spec.type == "sensor.camera.rgb" else {
                     "channels", "range", "points_per_second", "rotation_frequency", "upper_fov", "lower_fov", "sensor_tick",
                 }
-                if set(spec.attributes) != required or spec.attributes.get("sensor_tick") != 0.0:
+                optional = CAMERA_OPTIONAL_BOUNDS if spec.type == "sensor.camera.rgb" else LIDAR_OPTIONAL_BOUNDS
+                if (not required <= spec.attributes.keys() or spec.attributes.keys() - required - optional.keys()
+                        or spec.attributes.get("sensor_tick") != 0.0):
                     raise ValueError("Persisted sensor calibration must contain the complete resolved attribute set")
                 if any(type(item) not in (int, float) or not math.isfinite(item) for item in spec.attributes.values()):
                     raise ValueError("Persisted sensor calibration attributes must be finite JSON numbers")
                 if any(abs(getattr(spec.mount.position, axis)) > 10 for axis in ("x", "y", "z")):
                     raise ValueError("Persisted sensor mounts must remain within 10 metres of the ego origin")
                 attrs = spec.attributes
+                if any(not minimum <= attrs[name] <= maximum for name, (minimum, maximum) in optional.items() if name in attrs):
+                    raise ValueError("Persisted optional sensor calibration is outside supported bounds")
                 if spec.type == "sensor.camera.rgb":
                     if (type(attrs["image_size_x"]) is not int or not 1 <= attrs["image_size_x"] <= 1024
                             or type(attrs["image_size_y"]) is not int or not 1 <= attrs["image_size_y"] <= 768
@@ -201,7 +206,7 @@ class AgentInputInfo(ContractModel):
                 else:
                     if (type(attrs["channels"]) is not int or not 1 <= attrs["channels"] <= 128
                             or not 1 <= attrs["range"] <= 200
-                            or type(attrs["points_per_second"]) is not int or not 1000 <= attrs["points_per_second"] <= 500000
+                            or type(attrs["points_per_second"]) is not int or not 1000 <= attrs["points_per_second"] <= 600000
                             or not 1 <= attrs["rotation_frequency"] <= 100
                             or not -89 <= attrs["lower_fov"] < attrs["upper_fov"] <= 89):
                         raise ValueError("Persisted LiDAR calibration is outside supported scan bounds")

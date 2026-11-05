@@ -6,6 +6,7 @@ import hashlib
 import struct
 
 from shared.models import AgentSensorFrame, AgentSensorSpec, Transform
+from shared.sensor_calibration import CAMERA_OPTIONAL_BOUNDS, LIDAR_OPTIONAL_BOUNDS
 
 
 MAX_AGENT_SENSORS = 4
@@ -44,14 +45,19 @@ def resolve_sensor_specs(specs) -> list[AgentSensorSpec]:
             raise ValueError("Agent sensor mounts must remain within 10 metres of the ego origin")
         if spec.type == "sensor.camera.rgb":
             defaults = CAMERA_DEFAULTS
+            optional = CAMERA_OPTIONAL_BOUNDS
         elif spec.type == "sensor.lidar.ray_cast":
             defaults = LIDAR_DEFAULTS
+            optional = LIDAR_OPTIONAL_BOUNDS
         else:
             raise ValueError("SDK sensor delivery supports RGB camera and ray-cast LiDAR only")
-        unknown = set(spec.attributes) - defaults.keys()
+        unknown = set(spec.attributes) - defaults.keys() - optional.keys()
         if unknown:
             raise ValueError(f"Unsupported attributes for {spec.type}: {', '.join(sorted(unknown))}")
         attrs = defaults | spec.attributes
+        for name, (minimum, maximum) in optional.items():
+            if name in attrs:
+                attrs[name] = _number(attrs[name], name, minimum, maximum)
         attrs["sensor_tick"] = _number(attrs["sensor_tick"], "sensor_tick", 0, 0)
         if spec.type == "sensor.camera.rgb":
             attrs["image_size_x"] = _number(attrs["image_size_x"], "image_size_x", 1, 1024, integer=True)
@@ -64,7 +70,7 @@ def resolve_sensor_specs(specs) -> list[AgentSensorSpec]:
         else:
             attrs["channels"] = _number(attrs["channels"], "channels", 1, 128, integer=True)
             attrs["range"] = _number(attrs["range"], "range", 1, 200)
-            attrs["points_per_second"] = _number(attrs["points_per_second"], "points_per_second", 1000, 500000, integer=True)
+            attrs["points_per_second"] = _number(attrs["points_per_second"], "points_per_second", 1000, 600000, integer=True)
             attrs["rotation_frequency"] = _number(attrs["rotation_frequency"], "rotation_frequency", 1, 100)
             attrs["upper_fov"] = _number(attrs["upper_fov"], "upper_fov", -89, 89)
             attrs["lower_fov"] = _number(attrs["lower_fov"], "lower_fov", -89, 89)

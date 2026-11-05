@@ -26,14 +26,14 @@ class ModelSelection:
                 raise ValueError("Oversized preference")
             value = json.loads(data)
             if (not isinstance(value, dict) or set(value) != {"schema", "model"}
-                    or value["schema"] != "poltergeist-model-selection-v1" or value["model"] not in ("plant", "aim")):
+                    or value["schema"] != "poltergeist-model-selection-v1" or value["model"] not in ("plant", "aim", "transfuser")):
                 raise ValueError("Unknown preference")
             return value["model"], None
         except (OSError, ValueError, AssetError):
             return "plant", "Saved AI selection could not be read. Select a supported model again before preparing it."
 
     def save(self, kind):
-        if kind not in ("plant", "aim"):
+        if kind not in ("plant", "aim", "transfuser"):
             raise ValueError("Unknown supported AI model")
         _plain(self.path)
         self.profile.mkdir(parents=True, exist_ok=True)

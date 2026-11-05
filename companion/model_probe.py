@@ -71,7 +71,7 @@ print(json.dumps({'python': sys.version.split()[0], 'torch': torch.__version__, 
     try:
         agent.load(agent.package.manifest.configuration)
         pose = lambda x: Transform(position=Vector3(x=float(x)))
-        if getattr(environment, "kind", "plant") == "aim":
+        if getattr(environment, "kind", "plant") in {"aim", "transfuser"}:
             from simulator.agent_sensors import resolve_sensor_specs
             from simulator.sensor_fixtures import build_sensor_fixture
             sensors = resolve_sensor_specs(agent.package.manifest.sensors)
@@ -89,6 +89,12 @@ print(json.dumps({'python': sys.version.split()[0], 'torch': torch.__version__, 
                 scene=AgentSceneContext(source="synthetic", route=[pose(x) for x in range(41)], objects=[], speed_limit_mps=50/3.6,
                     road_raster=AgentRoadRaster(width=128, height=128, pixels_per_meter=2., classes=[1] * 16384, ego_row=64., ego_column=64.)))
         result = agent.step(observed)
+        if getattr(environment, "kind", "plant") == "transfuser":
+            if result.diagnostics.maneuver != "fusion_warmup" or result.control != type(result.control)():
+                raise AssetError("TransFuser initialization did not preserve its declared warmup")
+            observed = observed.model_copy(update={"frame": 2, "time_s": .05,
+                "sensors": build_sensor_fixture(sensors, 2, .05)})
+            result = agent.step(observed)
         metadata = result.diagnostics.metadata
         if metadata["device"] != "cpu" or metadata["inference_wall_time_s"] <= 0:
             raise AssetError("The managed model did not produce a measured CPU inference")
@@ -98,6 +104,13 @@ print(json.dumps({'python': sys.version.split()[0], 'torch': torch.__version__, 
                     or metadata["input_source"] != "deterministic_fixture"
                     or metadata["camera_sha256"] != observed.sensors[0].sha256):
                 raise AssetError("AIM inference did not preserve the pinned model and declared camera input")
+        elif getattr(environment, "kind", "plant") == "transfuser":
+            from simulator.agents.transfuser.checkpoint import CHECKPOINT_SHA256
+            if (metadata["checkpoint_sha256"] != CHECKPOINT_SHA256 or metadata["parameter_count"] != 66293634
+                    or metadata["input_source"] != "deterministic_fixture" or not metadata["model_inference_performed"]
+                    or metadata["camera_sha256"] != observed.sensors[0].sha256
+                    or metadata["lidar_sha256"] != observed.sensors[1].sha256):
+                raise AssetError("TransFuser inference did not preserve its pinned model and both sensor inputs")
         return {"imports": imports, "checkpoint_sha256": metadata["checkpoint_sha256"],
                 "inference_wall_time_s": metadata["inference_wall_time_s"], "control": result.control.model_dump(mode="json"),
                 "scope": "Actual pretrained inference from a synthetic observation; driving and real-time performance are separate checks."}
