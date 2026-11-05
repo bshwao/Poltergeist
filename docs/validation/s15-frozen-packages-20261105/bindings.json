@@ -1,0 +1,37 @@
+{
+  "suite_run": "97d512f2-8505-4e9c-a7f0-190c33bc3ff2",
+  "controllers": [
+    {
+      "agent_index": 0,
+      "registration_id": "cfa06f41-3b45-43dd-8d1e-f3ec2c9edc0c",
+      "package_root": "docs/validation/s15-frozen-packages-20261105/reference",
+      "model_paths": [
+        "docs/validation/s15-frozen-packages-20261105/reference-pins/model-00.json",
+        "docs/validation/s15-frozen-packages-20261105/reference-pins/model-01.json",
+        "docs/validation/s15-frozen-packages-20261105/reference-pins/model-02.json",
+        "docs/validation/s15-frozen-packages-20261105/reference-pins/model-03.json",
+        "docs/validation/s15-frozen-packages-20261105/reference-pins/model-04.json",
+        "docs/validation/s15-frozen-packages-20261105/reference-pins/model-05.json",
+        "docs/validation/s15-frozen-packages-20261105/reference-pins/model-06.json"
+      ],
+      "note": "Exact captured package bytes; checkpoint path is specific to this PC. Pins bind bytes, not training origin or redistribution rights."
+    },
+    {
+      "agent_index": 1,
+      "registration_id": "0c2ac612-8e27-4635-b6ba-4a3a7fd7d807",
+      "package_root": "docs/validation/s15-frozen-packages-20261105/candidate",
+      "model_paths": [
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-00.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-01.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-02.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-03.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-04.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-05.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-06.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-07.json",
+        "docs/validation/s15-frozen-packages-20261105/candidate-pins/model-08.json"
+      ],
+      "note": "Exact captured package bytes; checkpoint path is specific to this PC. Pins bind bytes, not training origin or redistribution rights."
+    }
+  ]
+}

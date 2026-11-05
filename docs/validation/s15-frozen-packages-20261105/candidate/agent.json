@@ -1,0 +1,63 @@
+{
+  "protocol_version": "1.3",
+  "agent_id": "s15-transfuser-fusion-v2",
+  "name": "S15 transfuser-fusion-v2 on matched RGB/LiDAR rig",
+  "version": "cvpr2021-transfuser-fusion-v2-common-rig-v1",
+  "entry_point": "agent:TransFuserAgent",
+  "observation_mode": "sensors",
+  "control_mode": "vehicle_control",
+  "navigation_mode": "provided_route",
+  "assets": [],
+  "sensors": [
+    {
+      "id": "front-camera",
+      "type": "sensor.camera.rgb",
+      "attributes": {
+        "image_size_x": 400,
+        "image_size_y": 300,
+        "fov": 100.0,
+        "lens_circle_multiplier": 3.0,
+        "lens_circle_falloff": 3.0,
+        "chromatic_aberration_intensity": 0.5,
+        "chromatic_aberration_offset": 0.0
+      },
+      "mount": {
+        "position": {
+          "x": 1.3,
+          "z": 2.3
+        }
+      }
+    },
+    {
+      "id": "lidar",
+      "type": "sensor.lidar.ray_cast",
+      "attributes": {
+        "channels": 64,
+        "range": 85.0,
+        "points_per_second": 600000,
+        "rotation_frequency": 10.0,
+        "upper_fov": 10.0,
+        "lower_fov": -30.0,
+        "atmosphere_attenuation_rate": 0.004,
+        "dropoff_general_rate": 0.45,
+        "dropoff_intensity_limit": 0.8,
+        "dropoff_zero_intensity": 0.4
+      },
+      "mount": {
+        "position": {
+          "x": 1.3,
+          "z": 2.5
+        },
+        "rotation": {
+          "yaw_deg": -90.0
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "checkpoint_path": "C:\\Users\\glass\\.codex\\worktrees\\087f\\Poltergeist\\validation-evidence\\s16-managed-c-20261101\\models\\transfuser-fusion-6d1d0421598e\\transfuser-best_model.pth",
+    "device": "cpu",
+    "torch_threads": 2,
+    "inference_budget_s": 2.0
+  }
+}
