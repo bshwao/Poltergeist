@@ -206,13 +206,19 @@ would return. Capture their consented feedback and the exact app version. Record
 each usability change and repeat the relevant task with the tester. Automated
 browser acceptance alone does not satisfy this human gate.
 
-The tester workspace uses a separate loopback profile on this PC. The current
-build was restored and verified on November 5.
-Its production dashboard build uses source base `ec363fc` plus the current
-working-tree recovery and usability changes. The served index SHA-256 is
+The tester workspace uses a separate loopback profile on this PC. The earlier
+November 5 production build used source base `ec363fc` plus recovery/usability
+changes, with index SHA-256
 `6df6eb78f96e9b12b030429bcbdfe8f9fe01234dacc8cc35f549cb665c0d8dd1`.
-The previous build assets were retained. The workspace had empty run, feedback
-and suite histories when the current build was verified. In a fresh private
+Those assets and profiles remain preserved. The latest
+[current-source workspace](validation/s12-current-readiness-20261105.json)
+serves the `be11f1d` application code in a new isolated profile under
+`validation-evidence/s12-firsttime-be11-20261105`. Its production index SHA-256 is
+`2118164e85fcbe993f18c84cf47e3dc70169900e1e961a07a78ad551b138ca45`.
+All 17 production files match their HTTP responses; scenario, run, optimization,
+suite and feedback histories are empty. No experiment or feedback was submitted
+during preparation. This is readiness evidence, not a first-time human PASS.
+In a fresh private
 browser session, open the [test dashboard](http://127.0.0.1:8069/) so the tester
 can find the lab unaided. The tester may submit feedback in the app and explain
 the result to the person observing the session.
@@ -248,3 +254,15 @@ selected replay highlight at exact native frame 1579. The original world
 settings and dynamic actor counts matched after the run. Run ID
 `f355a246-f6e3-41dd-b0c2-2614040df914`. This was an engineering check. The
 first-time tester workspace remains separate.
+
+The latest native QA installation is also separate: **Poltergeist Companion
+Validation S10S19FusionQA** in the Windows Start menu. Its new per-user identity
+and shortcut were verified, its installed dependency check passed, and its
+first-time profile contained only the ownership marker. The previous validation
+registration remained unchanged. The corresponding portable build exercised
+actual managed TransFuser preparation, labelled synthetic execution, three
+exports and reopening in an engineering profile; see the
+[packaged receipt](validation/s16-packaged-fusion-20261105.json).
+That engineering history is not in the untouched native first-time profile.
+This ordinary Tk 8.6 build is unsigned private QA: it does not establish trusted
+distribution, Windows contrast-theme, screen-reader or first-time human acceptance.

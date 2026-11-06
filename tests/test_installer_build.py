@@ -109,3 +109,37 @@ def test_damaged_bundle_is_refused_before_invoking_the_compiler(tmp_path, compil
 
     assert not compiler[1]
     assert not (tmp_path / "output").exists()
+
+
+def test_named_validation_builds_have_separate_registration_shortcuts_and_profiles(tmp_path, compiler):
+    source = bundle(tmp_path / "bundle")
+    built = []
+    for tag in ("FusionQA", "ReaderQA"):
+        profile = tmp_path / tag / "CompanionPrototype"
+        definitions, report = compile_bundle(compiler, source, tmp_path / (tag + "-output"),
+            validation_profile=profile, validation_tag=tag)
+        assert definitions["AppIdentity"] == report["validation_app_identity"]
+        assert definitions["ProductName"] == report["validation_product_name"]
+        assert definitions["ProfileDir"] == str(profile)
+        assert report["validation_tag"] == tag and report["validation_only"] and not report["signed"]
+        assert not profile.exists()
+        built.append(definitions)
+    assert built[0]["AppIdentity"] != built[1]["AppIdentity"]
+    assert built[0]["ProductName"] != built[1]["ProductName"]
+    assert built[0]["ProfileDir"] != built[1]["ProfileDir"]
+
+
+@pytest.mark.parametrize("tag", ["", "../other", "QA name", 'QA"', "QA\n", "a" * 25, "_QA", True])
+def test_invalid_validation_identity_is_refused_before_compiling(tmp_path, compiler, tag):
+    source = bundle(tmp_path / "bundle")
+    with pytest.raises(ValueError, match="validation tag"):
+        build_installer.build(source, tmp_path / "output", compiler[0],
+            validation_profile=tmp_path / "profile" / "CompanionPrototype", validation_tag=tag)
+    assert not compiler[1] and not (tmp_path / "output").exists()
+
+
+def test_validation_tag_cannot_change_a_normal_installation_identity(tmp_path, compiler):
+    source = bundle(tmp_path / "bundle")
+    with pytest.raises(ValueError, match="isolated validation profile"):
+        build_installer.build(source, tmp_path / "output", compiler[0], validation_tag="FusionQA")
+    assert not compiler[1] and not (tmp_path / "output").exists()

@@ -273,6 +273,26 @@ core journey and report its result before continuing.
 
 ### M — managed camera and Hugging Face controls — NOT RUN
 
+The current source also includes **TransFuser RGB + LiDAR (CPU)**. Use a verified
+current QA bundle/source build for that check; an older installed Companion is
+not updated by pulling Git. Its separate [policy guide](transfuser-policy.md)
+documents the genuine checkpoint, assistance, timing and unresolved distribution
+terms. Manual follow-up, one prompted action at a time, should verify:
+
+- Selecting the fusion model persists the choice and starts no download/run.
+- Preparation reports progress and verifies actual inference after warmup before
+  **AI ready**. Missing weights/dependencies remain actionable failures.
+- Explicit enablement creates the selected registered controller. A 20 Hz,
+  framework-route run retains the released camera and 64-channel LiDAR rig.
+- Native input frames/hashes, learned/held-prediction origins and proposed/applied
+  controls are visible in recorded decisions. Synthetic fixture inputs remain
+  clearly distinguished from native CARLA measurements.
+- Export and reopening retain the same model/run identity and unknown metrics.
+
+These are prepared checks, not manual passes. No model-internal reasoning,
+general driving quality, 20 Hz wall-time performance or checkpoint redistribution
+rights follow from an engineering run.
+
 These controls live in the Windows Companion, not this browser's Agents page.
 Before testing, the assistant must identify a compatible current build and a
 separate acceptance profile; never remove an existing user's model environment.

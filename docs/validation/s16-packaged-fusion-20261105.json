@@ -1,0 +1,82 @@
+{
+  "scope": "Private unsigned portable Companion: model preparation, labelled synthetic execution, export and reopen through the bundled interpreter. Installed UI and trusted signing are separate.",
+  "packaged_source_commit": "5c0fdb47d707bb80906be941467221138b106b15",
+  "application_code_commit": "be11f1db49fb6f72c758b6a273278dcfe9880dec",
+  "archive_sha256": "1afa3fcf87564dd7689271078a60f2b57b715a61e9b2d25d3534060a5eb7f364",
+  "archive_bytes": 87990541,
+  "bundle_manifest_sha256": "f607a43643b982c25a3a006e80fe27b28ef50e7c1a74563b8525226250e7c9bb",
+  "project_wheel_sha256": "cd19a8725136491deef746d6d17705ab95cb191ed2654609abb65ae0ee772554",
+  "source_modules_matched": 235,
+  "integrity_before": {
+    "schema_version": "poltergeist-portable-integrity-v1",
+    "passed": true,
+    "files": 6338,
+    "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+  },
+  "integrity_after": {
+    "schema_version": "poltergeist-portable-integrity-v1",
+    "passed": true,
+    "files": 6338,
+    "scope": "File integrity against the bundled unsigned manifest; not publisher authentication."
+  },
+  "selected_model": "transfuser",
+  "model_options": [
+    "plant",
+    "aim",
+    "transfuser"
+  ],
+  "inference_ready": true,
+  "run_id": "916e5e9a-80da-4059-afb5-137ec43edc47",
+  "mode": "test",
+  "sensor_source": "deterministic_fixture",
+  "status": "completed",
+  "telemetry_frames": 4,
+  "applied_controls_verified": 3,
+  "actual_learned_predictions_verified": 2,
+  "reopened_same_result": true,
+  "controller_closed": true,
+  "exports": [
+    {
+      "format": "json",
+      "sha256": "b8b6d9f01c2831eac73d8df7242d6bd58d0f62a89ef4d5e9d3e7326542e4dc3b",
+      "bytes": 153631
+    },
+    {
+      "format": "csv",
+      "sha256": "40baac36f79f2232b904fd34d1f86310a1c0870d55a300cee5d7514d9fa3fe38",
+      "bytes": 210677
+    },
+    {
+      "format": "html",
+      "sha256": "6c4e0ea5a9337e2d09007c834be7f7fbfd7e8440fcc655ec4b1c37d4e5c7641a",
+      "bytes": 181066
+    }
+  ],
+  "weights_bundled": false,
+  "human_acceptance": false,
+  "trusted_signed_release": false,
+  "limitations": [
+    "Actual pretrained inference uses deterministic manufactured camera/LiDAR data; it is not a native driving check.",
+    "No window control or human visual/screen-reader acceptance is claimed.",
+    "This unsigned private QA artifact does not close S10 publisher/feed, signed update or rollback requirements.",
+    "Native installation/dependency checks passed on this PC; no user GUI, contrast-theme or screen-reader PASS is inferred."
+  ],
+  "named_private_installation": {
+    "build_id": "private-f607a43643b982c2",
+    "installer_sha256": "0fc9fa977fe2c35114b6a3d6ff3fae86c6e8ab71dcc604143104a00c647c08c7",
+    "bytes": 58976684,
+    "compiler_version": "7.1.0",
+    "signed": false,
+    "validation_only": true,
+    "validation_tag": "S10S19FusionQA",
+    "validation_app_identity": "Poltergeist.Private.Companion.Validation.S10S19FusionQA",
+    "validation_product_name": "Poltergeist Companion Validation S10S19FusionQA",
+    "native_dependency_check_passed": true,
+    "first_time_profile_only_owner_marker": true,
+    "existing_user_registrations_unchanged": true,
+    "existing_user_registration_count": 1,
+    "new_registration_count": 1,
+    "start_menu_shortcut_target_and_profile_verified": true,
+    "authenticode_status": "NotSigned"
+  }
+}

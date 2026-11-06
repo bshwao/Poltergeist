@@ -116,5 +116,13 @@ latency or 20 Hz wall-time qualification. The observed clear-case braking and
 clearance regressions are retained and reviewed rather than presented as improved
 driving quality. Broader hardware, human and distribution gates stay open.
 
+The [current private Windows package](validation/s16-packaged-fusion-20261105.json)
+also passes non-editable managed-model preparation, actual pretrained synthetic
+inference, JSON/CSV/HTML exports and reopening. All 6,338 bundle files remain
+unchanged and 235 shipped first-party modules match the source as built. A named
+per-user QA installation passes its native dependency check with a fresh profile;
+the previous QA registration is preserved. Those checks qualify this private
+package path, not signed distribution or manual UI/screen-reader acceptance.
+
 See [managed AI](managed-ai.md), the [camera policy](sensor-driving-policy.md)
 and the [roadmap](scalability-plan.md) for lifecycle and remaining release gates.

@@ -226,12 +226,12 @@ Suite run: `97d512f2-8505-4e9c-a7f0-190c33bc3ff2`.
 | Manual action | Tester observation | Result and scope |
 | --- | --- | --- |
 | F-N1 open the permanent trained-model suite comparison | “Completed suite and both cases are visible” after opening the supplied link, expecting completed status, Clear lead braking, Wet dusk lead braking and AIM/TransFuser comparison | PASS for opening the completed suite and case visibility only |
-| F-N2 select Peak deceleration in Regression Agent | Awaiting observation | NOT RUN |
+| F-N2 select Peak deceleration in Regression Agent | “Peak deceleration stays selected” after the instruction to retain the 1 m/s² threshold and minimum 3 matched pairs | PASS for checkbox selection retention only; report values not yet manually verified |
 | F-N3 review displayed regression values and missing measurements | Awaiting observation | NOT RUN |
 | F-N4 export and reopen the saved comparison | Awaiting observation | NOT RUN |
 
 Native execution, independent metric/report audits and CI are engineering
-evidence recorded separately. They do not mark F-N2–F-N4 or earlier A11–A14 as
+evidence recorded separately. They do not mark F-N3–F-N4 or earlier A11–A14 as
 manually passed.
 
 ### November 5 engineering findings under the adjusted S10–S19 plan

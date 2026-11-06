@@ -19,9 +19,14 @@ def compiler_version(compiler):
     return version
 
 
-def build(bundle, output, compiler, *, validation_profile=None, signing=None, release_version="0.1.0"):
+def build(bundle, output, compiler, *, validation_profile=None, validation_tag=None, signing=None, release_version="0.1.0"):
     if sys.platform != "win32":
         raise ValueError("Build this installer on Windows x64")
+    if validation_tag is not None:
+        if validation_profile is None:
+            raise ValueError("A validation tag requires an isolated validation profile")
+        if not isinstance(validation_tag, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9-]{0,23}", validation_tag):
+            raise ValueError("Use a validation tag of 1–24 ASCII letters, digits or hyphens, starting with a letter")
     bundle, output, compiler = (Path(value).resolve() for value in (bundle, output, compiler))
     for path in (bundle, output, compiler, validation_profile):
         if path is not None and any(char in str(path) for char in ('"', '\r', '\n')):
@@ -67,8 +72,11 @@ def build(bundle, output, compiler, *, validation_profile=None, signing=None, re
             raise ValueError("Use an absolute isolated validation profile ending in CompanionPrototype")
         if profile.resolve().is_relative_to(output) or profile.resolve().is_relative_to(bundle):
             raise ValueError("Validation data must be outside the installed bundle/output")
-        arguments.extend(["--define=AppIdentity=Poltergeist.Private.Companion.Validation",
-                          "--define=ProductName=Poltergeist Companion Validation", f"--define=ProfileDir={profile}"])
+        suffix = "." + validation_tag if validation_tag else ""
+        app_identity = "Poltergeist.Private.Companion.Validation" + suffix
+        product_name = "Poltergeist Companion Validation" + (" " + validation_tag if validation_tag else "")
+        arguments.extend([f"--define=AppIdentity={app_identity}",
+                          f"--define=ProductName={product_name}", f"--define=ProfileDir={profile}"])
     output.mkdir(parents=True, exist_ok=False)
     with (output / "compiler.log").open("w", encoding="utf-8") as stream:
         subprocess.run([*arguments, str(ROOT / "packaging/windows-x64/companion.iss")],
@@ -85,6 +93,9 @@ def build(bundle, output, compiler, *, validation_profile=None, signing=None, re
         "bundle_manifest_sha256": identity, "installer_sha256": sha256(installer),
         "bytes": installer.stat().st_size, "max_install_folder_characters": maximum_folder,
         "validation_only": validation_profile is not None,
+        "validation_tag": validation_tag,
+        "validation_app_identity": app_identity if validation_profile is not None else None,
+        "validation_product_name": product_name if validation_profile is not None else None,
         "validation_profile": str(profile) if validation_profile is not None else None})
     return installer
 
@@ -95,6 +106,7 @@ def main(argv=None):
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--compiler", type=Path, default=ROOT / "validation-evidence/installer-tools/inno-7.1.0/ISCC.exe")
     parser.add_argument("--validation-profile", type=Path)
+    parser.add_argument("--validation-tag", help="Distinct application/shortcut identity for an isolated QA installation")
     parser.add_argument("--release-version", default="0.1.0")
     parser.add_argument("--signtool", type=Path)
     parser.add_argument("--certificate-thumbprint")
@@ -106,7 +118,7 @@ def main(argv=None):
         parser.error("Supply all four signing arguments")
     signing = dict(tool=args.signtool, thumbprint=args.certificate_thumbprint,
         timestamp_url=args.timestamp_url, publisher=args.publisher_sha256) if all(supplied) else None
-    print(build(args.bundle, args.output, args.compiler, validation_profile=args.validation_profile,
+    print(build(args.bundle, args.output, args.compiler, validation_profile=args.validation_profile, validation_tag=args.validation_tag,
         signing=signing, release_version=args.release_version))
     return 0
 
