@@ -9,7 +9,7 @@ const fixture = JSON.parse(await readFile(new URL("./fixtures/experimentation.js
 const loaded = await loadComponents("pages/GuidedLab.tsx");
 const { GuidedLab, GuidanceFeedbackForm } = loaded.module;
 const { Discovery, DiscoveryFindings } = await loaded.moduleAt("pages/Discovery.tsx");
-const { SuiteManager } = await loaded.moduleAt("components/SuiteManager.tsx");
+const { SuiteManager, SuiteResults } = await loaded.moduleAt("components/SuiteManager.tsx");
 const { discoveryDefaults, discoveryProposal, suiteDefaults, suiteInput } = await loaded.moduleAt("components/lab-form.ts");
 const { api } = await loaded.moduleAt("services/api.ts");
 const { useLabMutation, useLabReport } = await loaded.moduleAt("hooks/useLab.ts");
@@ -144,6 +144,29 @@ test("saved suites expose durable past comparisons and direct links reopen their
   assert.ok(view.root.findAllByType("a").some(n => n.props.href === `#lab/suite-run/${operation.id}`));
   await act(async () => view.update(React.createElement(SuiteManager, { active: true, incoming: null, client: value, initialRunId: operation.id })));
   assert.match(text(view.root), /Suite run · completed/); assert.match(text(view.root), /Braking approach/);
+});
+test("suite results surface failed simulations during execution and when the batch ends", async t => {
+  const report = clone(fixture.suite_report);
+  const trials = report.evidence.trials;
+  assert.ok(trials.length);
+  for (const group of report.cases.flatMap(scenario => scenario.groups)) {
+    group.completed_runs = 0;
+    group.status_counts = { failed: group.simulation_ids.length };
+  }
+  const failedGroup = report.cases.flatMap(scenario => scenario.groups).find(group => group.simulation_ids.length);
+  const completedOperation = report.evidence.operation;
+  report.evidence.operation = { ...completedOperation, status: "running", outcome: null };
+  const view = await render(t, SuiteResults, { report, client: client() });
+  assert.match(text(view.root), /simulations submitted · 0 completed/);
+  assert.match(text(view.root), new RegExp(`${trials.length} simulations? failed`));
+  const link = label => view.root.findAllByType("a").find(node => text(node) === label);
+  assert.equal(link("Track latest simulation").props.href, `#simulations/${trials[trials.length - 1].simulation_id}`);
+  assert.equal(link("Open a failed attempt").props.href, `#simulations/${failedGroup.simulation_ids[0]}`);
+
+  const finished = { ...report, evidence: { ...report.evidence, operation: completedOperation } };
+  await act(async () => view.update(React.createElement(SuiteResults, { report: finished, client: client() })));
+  assert.match(text(view.root), /No simulations completed/);
+  assert.equal(link("Track latest simulation"), undefined);
 });
 test("mutation timeout releases a hung adapter and ignores its eventual acknowledgement", async t => {
   t.mock.timers.enable({ apis: ["setTimeout"] }); const pending = deferred(); let hook, accepted = 0;

@@ -245,16 +245,25 @@ pair and the displayed denominators.**
 
 ## Other implemented workflows
 
-### November 5 native trained-model comparison follow-up
+### November 5–6 native trained-model comparison follow-up
 
 Open [the saved AIM/TransFuser suite](http://localhost:5175/#lab/suite-run/97d512f2-8505-4e9c-a7f0-190c33bc3ff2).
-The tester confirmed completed status and both named cases (F-N1); this is only
-navigation/case-visibility acceptance. Continue one prompted action at a time:
-select **Peak deceleration** (default threshold 1 m/s², minimum 3 pairs), review
-the resulting report, compare values and unavailable severity, then export and
-reopen. Those remaining actions are NOT RUN until explicitly reported. This
-workspace contains engineering runs and is separate from first-time Guided lab
-acceptance and the earlier synthetic journey.
+The tester explicitly confirmed completed status and both named cases, retained
+Peak deceleration selection, the clear-case worsening result (3/3 pairs, mean
+about +3.667 with threshold 1 m/s² / minimum 3), unavailable severity under the
+default policy, the JSON download and the saved comparison after refresh.
+The report records each scoped PASS; downloaded file contents and recovery
+after restarting the backend have not been inspected by the tester. These
+observations do not pass the separate synthetic Test F procedure above.
+
+The tester also opened native candidate
+`1033955b-efe0-4003-9682-2a01296909dc`, confirming completed/CARLA/121 frames,
+then confirmed its Analyst summary and peak citation (about 26.4 m/s²,
+frame 815261 / 1.200 s), then confirmed that following the link selects that
+frame/time and about 26.351 m/s² in Measured motion. The tester also confirmed
+the first native decision, the verified camera preview and the verified LiDAR
+point count. This workspace contains engineering runs and is separate from
+first-time Guided lab acceptance and the earlier synthetic journey.
 
 Each item is a separate **NOT RUN** test. Perform it only after the preceding
 core journey and report its result before continuing.

@@ -1,0 +1,655 @@
+{
+  "passed": true,
+  "source_commit": "e761628c4877be2901e6ec7af11a10766667f576",
+  "suite_run": "97d512f2-8505-4e9c-a7f0-190c33bc3ff2",
+  "scope": "Read-only Analyst report/JSON export checks on twelve existing native AIM/TransFuser runs, independently projected peak witnesses and missing/contradictory evidence in private copies. Not human acceptance or decision/recording integrity validation.",
+  "runs": 12,
+  "frames": 1452,
+  "exact_telemetry_references": 48,
+  "private_copy_probes": 72,
+  "all_source_artifact_hashes_unchanged": true,
+  "source_artifacts_checked": 36,
+  "run_history_unchanged": true,
+  "new_simulations_started": 0,
+  "reports_remain_partial": true,
+  "missing_severity_remains_null": true,
+  "observed_contact_severity_preserved": true,
+  "results": [
+    {
+      "simulation_id": "490d54d0-f42c-4ed3-aa5a-d4337991ddf4",
+      "candidate_index": 0,
+      "case_name": "Clear lead braking",
+      "agent_index": 0,
+      "seed": 101,
+      "source_digest": "7a8401f1bc00f6cb11ff5e6a85144644ed7ae52826077eda5f5da80dc36e3b14",
+      "telemetry_digest": "622ccf17ccaf66a26a0979bc7bb23a05a37e99e012eebfdc30a67db1ba0c0696",
+      "report_sha256": "4277bfd822a46a323aa7d965be5b5aa992088d3f7100edb0c4ea8bf2724bcc0a",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 3,
+      "peak_frame": 811663,
+      "peak_time_s": 0.20000000298023224,
+      "peak_deceleration_mps2": 22.13687231806236,
+      "collision_episodes": 0,
+      "contact_frames": 0.0,
+      "stored_severity": null,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "1033955b-efe0-4003-9682-2a01296909dc",
+      "candidate_index": 0,
+      "case_name": "Clear lead braking",
+      "agent_index": 1,
+      "seed": 101,
+      "source_digest": "518b2490220bdd14bd20da63645320b819a458fe9e7af71d16a5fb05cf8b5698",
+      "telemetry_digest": "3937c67166afcf8dc550d3adfc8c468bfa2f9bb758d791dd75e3642b85700e4b",
+      "report_sha256": "6b8a0c6838510c2650c932bc7617d06dff713044cf63fd7097ca8f35ec7b15c5",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 3,
+      "peak_frame": 815261,
+      "peak_time_s": 1.2000000178813934,
+      "peak_deceleration_mps2": 26.351335781898037,
+      "collision_episodes": 0,
+      "contact_frames": 0.0,
+      "stored_severity": null,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "c386eb87-d527-4c9b-97dc-4628b4a6b127",
+      "candidate_index": 1,
+      "case_name": "Clear lead braking",
+      "agent_index": 0,
+      "seed": 102,
+      "source_digest": "79bedcbb5c1e837bd3548c66ff8e85023a6cab092662b53e28dc8ad6e3580bd4",
+      "telemetry_digest": "8da9d1775c20e248811cfc58fc09d958f1b87bdbd03161da7b81e9f59cb55261",
+      "report_sha256": "3d4b2bbb7ba65e5b84563a1e61d967b70bd79b0b4dbb4284446011911cd7e947",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 3,
+      "peak_frame": 818472,
+      "peak_time_s": 0.20000000298023224,
+      "peak_deceleration_mps2": 22.150263724697687,
+      "collision_episodes": 0,
+      "contact_frames": 0.0,
+      "stored_severity": null,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "08b5e929-b8e9-476f-b77e-45ef51d47ea8",
+      "candidate_index": 1,
+      "case_name": "Clear lead braking",
+      "agent_index": 1,
+      "seed": 102,
+      "source_digest": "9cad28272d4c3fb705a93cae71b3ea9bb77b69772f66676564c5431561fbb033",
+      "telemetry_digest": "0760c667492bd4124c4c48dedfbc07c640277e1051292f8461049e1fc0898371",
+      "report_sha256": "635eab079c55d42f336d950ce8828f332025067cba06756bf42db5df68ded6dc",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 3,
+      "peak_frame": 821927,
+      "peak_time_s": 0.6500000096857548,
+      "peak_deceleration_mps2": 25.542765073317508,
+      "collision_episodes": 0,
+      "contact_frames": 0.0,
+      "stored_severity": null,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "c13641a5-0d0d-479d-a43e-8bd3728f23ad",
+      "candidate_index": 2,
+      "case_name": "Clear lead braking",
+      "agent_index": 0,
+      "seed": 103,
+      "source_digest": "b32bce6381d0e661f35d4a879932a67fceffb6206238f6d10d962f886b71eced",
+      "telemetry_digest": "bac8c44c02dcf1af7ba6cb805315927b9769f551e612ccd79a35dc00aceb8ba1",
+      "report_sha256": "e3e341394684e6cac1b33cf12b5654a2ab99eba6ee8588a8bfde89d8e27bc4f2",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 3,
+      "peak_frame": 825147,
+      "peak_time_s": 0.20000000298023224,
+      "peak_deceleration_mps2": 22.15030822153592,
+      "collision_episodes": 0,
+      "contact_frames": 0.0,
+      "stored_severity": null,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "8aa88d6c-e8d6-492b-908c-582f1cf9960f",
+      "candidate_index": 2,
+      "case_name": "Clear lead braking",
+      "agent_index": 1,
+      "seed": 103,
+      "source_digest": "48c6459b20b130d706f11c61d382fa5cac16fe2a3a4b69150ae2dfe976b2ded6",
+      "telemetry_digest": "6ab404e192a5086edba72e2e222812d8a7479ebdd1241c1108b9077132f95df3",
+      "report_sha256": "eb53632604a1aec1eb9768701df591a0e65e35f67db503a0b32b378a8aa43e05",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 3,
+      "peak_frame": 828683,
+      "peak_time_s": 0.6500000096857548,
+      "peak_deceleration_mps2": 25.543560422069742,
+      "collision_episodes": 0,
+      "contact_frames": 0.0,
+      "stored_severity": null,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "3e4d1df5-e920-411c-b499-6dc0a8c985b0",
+      "candidate_index": 3,
+      "case_name": "Wet dusk lead braking",
+      "agent_index": 0,
+      "seed": 101,
+      "source_digest": "94179c0fc403089a8f93cb341b0358f46db63c6614795492200d08d6a67fbee8",
+      "telemetry_digest": "90cbb13d7684533edefb25afb1cc99d543fd2bb2e03fd86cbd887d94fbbbabd4",
+      "report_sha256": "e337444b7ad158c80db97df3e064556c27dc157d9cc943e7cb211d4c2e7a3db0",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 5,
+      "peak_frame": 831952,
+      "peak_time_s": 1.3000000193715096,
+      "peak_deceleration_mps2": 24.46441672045421,
+      "collision_episodes": 1,
+      "contact_frames": 43.0,
+      "stored_severity": 100.0,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "a3a2cfab-797a-4b8d-9946-1ddafc2197bb",
+      "candidate_index": 3,
+      "case_name": "Wet dusk lead braking",
+      "agent_index": 1,
+      "seed": 101,
+      "source_digest": "1f1e42dca8176eb21cffddcc22ae6e9aea0c01f138506c196de686b1495fb2a9",
+      "telemetry_digest": "a82b4129945d5599c6a9821b30bbd9369f4a30abf6ae2ddf2f307c15c65ed66e",
+      "report_sha256": "3ad80ac6744e38e137f7ecc52309f5a16910a1e758fb0fe07eefa28a81c3be7a",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 5,
+      "peak_frame": 835506,
+      "peak_time_s": 0.20000000298023224,
+      "peak_deceleration_mps2": 8.206617177736769,
+      "collision_episodes": 1,
+      "contact_frames": 71.0,
+      "stored_severity": 100.0,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "8fd1a7d7-6efa-49b7-b084-67dae1a28b58",
+      "candidate_index": 4,
+      "case_name": "Wet dusk lead braking",
+      "agent_index": 0,
+      "seed": 102,
+      "source_digest": "9391dd3efe4b2ef5d87a4827a8a1df1d3bb32d2a40ffbb14832e9ad26d4a731f",
+      "telemetry_digest": "c2b0016c0353174ed35f3b19a7454458f4b4d1318859ac991a77fa4b2542f457",
+      "report_sha256": "64f5a9cc9533323f4ba38a71bc05066ae9259f217cbaad7a256259d380a31980",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 5,
+      "peak_frame": 838764,
+      "peak_time_s": 0.20000000298023224,
+      "peak_deceleration_mps2": 7.963235294738378,
+      "collision_episodes": 1,
+      "contact_frames": 68.0,
+      "stored_severity": 100.0,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "6c0af37f-c679-440b-a2b2-664a3ab5e3a9",
+      "candidate_index": 4,
+      "case_name": "Wet dusk lead braking",
+      "agent_index": 1,
+      "seed": 102,
+      "source_digest": "bcbcc168cea2c026f0de73440c6cea7b0d60f241da59adc40dffe77c0d3c9d32",
+      "telemetry_digest": "ff42c1e8cc4148f35375c6f4a03079be6080c36e963e75d91b25b47af1cb7980",
+      "report_sha256": "606a7692ecb85787c85835fb64a9ed2de7c0f590592b7b1e879128059fa93ab2",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 5,
+      "peak_frame": 842187,
+      "peak_time_s": 0.20000000298023224,
+      "peak_deceleration_mps2": 8.184409092472134,
+      "collision_episodes": 1,
+      "contact_frames": 72.0,
+      "stored_severity": 100.0,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "de49a9f7-b482-4d3a-9d61-50b86f7564c9",
+      "candidate_index": 5,
+      "case_name": "Wet dusk lead braking",
+      "agent_index": 0,
+      "seed": 103,
+      "source_digest": "a69159bb541ecd24c9543271474228774f222c1c204011b9abbdd3336472505e",
+      "telemetry_digest": "4796a9c0634eee5314065b72ae55cc584ed9e90d3c19eda738463fe385d632e6",
+      "report_sha256": "a23ad3aab5a2005299e8cb568120c51ba8e0631aa252a960df06f8346f503f01",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 5,
+      "peak_frame": 845477,
+      "peak_time_s": 1.4500000216066837,
+      "peak_deceleration_mps2": 19.764168755152564,
+      "collision_episodes": 1,
+      "contact_frames": 58.0,
+      "stored_severity": 100.0,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    },
+    {
+      "simulation_id": "354a8eb7-474a-4765-ba66-a4a6993ec27a",
+      "candidate_index": 5,
+      "case_name": "Wet dusk lead braking",
+      "agent_index": 1,
+      "seed": 103,
+      "source_digest": "40891f10916c7db8a3f7557a22f8a5cce40f476e584432c8e92de7bd3a0006a3",
+      "telemetry_digest": "3ae249d7805a3138dbac2d117bc3466e51fdff4bf8338a9fbfb5bed5ce2e9665",
+      "report_sha256": "703c8b722e0d1bb82f98e06ab780964b8faf58d8505fd7120ff80f5477a0d000",
+      "native_state": "partial",
+      "frames": 121,
+      "exact_telemetry_references": 5,
+      "peak_frame": 848993,
+      "peak_time_s": 0.20000000298023224,
+      "peak_deceleration_mps2": 8.207367551920587,
+      "collision_episodes": 1,
+      "contact_frames": 72.0,
+      "stored_severity": 100.0,
+      "download_matches_review": true,
+      "repeat_review_matches": true,
+      "private_copy_probes": [
+        {
+          "case": "missing",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "corrupt",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "truncated",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "dropped_frame",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "contradictory_peak",
+          "state": "unavailable",
+          "observations": 0
+        },
+        {
+          "case": "fabricated_severity",
+          "state": "unavailable",
+          "observations": 0
+        }
+      ]
+    }
+  ]
+}

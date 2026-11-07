@@ -13,7 +13,23 @@ export { saveLabJson } from "./lab-download";
 const metric = (value: number | null) => value === null ? "Not measured" : Number(value.toFixed(2)).toString();
 
 export function SuiteResults({ report, runHref = simulationLink, client = api, active = true, reviewAvailable = true }: { report: SuiteReport; runHref?: (id: string) => string; client?: LabClient; active?: boolean; reviewAvailable?: boolean }) {
-  return <div className="lab-stack"><p>{report.evidence.operation.outcome?.summary ?? "Suite execution is in progress. Unfinished cells remain explicit."}</p>
+  const { operation, trials } = report.evidence;
+  const groups = report.cases.flatMap(scenario => scenario.groups);
+  const planned = groups.reduce((total, group) => total + group.planned_runs, 0);
+  const completed = groups.reduce((total, group) => total + group.completed_runs, 0);
+  const running = operation.status === "queued" || operation.status === "running";
+  const failed = groups.reduce((total, group) => total + (group.status_counts.failed ?? 0), 0);
+  const failedExample = groups.find(group => group.simulation_ids.length > 0 && group.status_counts.failed === group.simulation_ids.length)?.simulation_ids[0];
+  const latest = trials[trials.length - 1];
+  return <div className="lab-stack">
+    <p role="status">{operation.execution.mode === "carla" ? "CARLA" : "Synthetic"} · {trials.length} / {planned} simulations submitted · {completed} completed</p>
+    {failed > 0 ? <div className="notice error-notice" role="alert">
+      {!running && completed === 0 && <p><strong>No simulations completed</strong></p>}
+      <p>{failed} {failed === 1 ? "simulation failed" : "simulations failed"}.</p>
+      {failedExample ? <p><a href={runHref(failedExample)}>Open a failed attempt</a> to see the execution error.</p>
+        : <p>Open the individual run evidence below for execution details.</p>}
+    </div> : <p>{operation.outcome?.summary ?? "The suite is preparing or running its simulations."}</p>}
+    {running && latest && <a href={runHref(latest.simulation_id)}>Track latest simulation</a>}
     <button type="button" className="button secondary" onClick={() => saveLabJson(report, `poltergeist-suite-report-${report.evidence.operation.id}.json`)}>Download suite comparison evidence</button>
     {report.cases.map(c => <section className="lab-case-results" key={c.case_index}><h3>{c.name}</h3><p className="field-hint">Compare agents on this scenario's matched seeds and repetitions.</p>
       <div className="table-scroll" tabIndex={0} role="region" aria-label={`Comparison for ${c.name}`}><table className="data-table"><thead><tr><th>Agent / version</th><th>Completed / planned</th><th>Mean severity</th><th>Contacts (mean)</th><th>Unknown / unfinished</th></tr></thead><tbody>{c.groups.map(g => <tr key={g.agent_index}><th scope="row">{g.name}{g.version && <small>Version {g.version}</small>}</th><td>{g.completed_runs} / {g.planned_runs}</td><td>{metric(g.metrics.severity?.mean ?? null)}<small>{g.metrics.severity?.observed_results ?? 0} observed results</small></td><td>{metric(g.metrics.collision_count?.mean ?? null)}<small>{g.metrics.collision_count?.observed_results ?? 0} observed results</small></td><td>{g.unknown_runs} / {g.unassessed_runs}</td></tr>)}</tbody></table></div>
@@ -89,6 +105,7 @@ export function SuiteManager({ active, incoming, client = api, runHref = simulat
   let executions: number | null = null;
   try { const input = suiteInput(draft).definition; executions = input.cases.length * input.agents.length * input.seeds.length * input.repeats; } catch { /* Full validation runs on save. */ }
   const operation = report.value?.evidence.operation;
+  const runStatus = operation ? `${report.error ? "last seen " : ""}${operation.status}` : report.error ? "unavailable" : "loading";
   const choices = [{ id: "baseline", name: "Built-in baseline" }, ...(agents.value ?? []).map(a => ({ id: a.id, name: `${a.snapshot.manifest.name} · ${a.snapshot.manifest.version}` }))];
   draft.agents.filter(id => !choices.some(a => a.id === id)).forEach(id => choices.push({ id, name: `Unavailable registration ${id}. Remove it or reactivate it locally before launch.` }));
   return <div className="lab-stack"><section className="panel"><div className="panel-header"><h2>Build a reusable experiment suite</h2></div><form className="panel-body lab-form" onSubmit={e => { e.preventDefault(); save(false); }}>
@@ -128,7 +145,7 @@ export function SuiteManager({ active, incoming, client = api, runHref = simulat
       <ul className="lab-saved-list">{(past.value ?? []).slice(0, 10).map(row => <li key={row.id}><div><p>{row.status} · Saved revision {row.request.kind === "suite" ? row.request.suite_revision : "unknown"}</p><small>{new Date(row.created_at).toLocaleString()} · {row.id}</small></div><a className="button secondary small" href={suiteRunLink(row.id)}>Review suite comparison {row.id.slice(0, 8)}</a></li>)}</ul>
       <div className="button-row"><button className="button secondary small" disabled={!pastOffset || past.loading} onClick={() => setPastOffset(n => Math.max(0, n - 10))}>Previous suite runs</button><span>Page {pastOffset / 10 + 1}</span><button className="button secondary small" disabled={past.loading || (past.value?.length ?? 0) <= 10} onClick={() => setPastOffset(n => n + 10)}>Next suite runs</button></div>
     </div></section>}
-    {runId && <section className="panel lab-suite-run"><div className="panel-header"><h2>Suite run · {operation?.status ?? "loading"}</h2><button className="button secondary small" onClick={report.refresh}>Refresh suite result</button></div><div className="panel-body"><a href={suiteRunLink(runId)}>Permanent link to this suite comparison</a>{report.error && <p role="alert">{report.error}</p>}{report.loading && !report.value && <p role="status">Loading suite evidence…</p>}
+    {runId && <section className="panel lab-suite-run"><div className="panel-header"><h2>Suite run · {runStatus}</h2><button className="button secondary small" onClick={report.refresh}>Refresh suite result</button></div><div className="panel-body"><a href={suiteRunLink(runId)}>Permanent link to this suite comparison</a>{report.error && <p role="alert">{report.error}{operation && " Showing the last confirmed suite status."}</p>}{report.loading && !report.value && <p role="status">Loading suite evidence…</p>}
       {operation && <><p><code>{operation.id}</code> · {report.value!.evidence.trials.length} executions submitted</p>{operation.error && <p role="alert">{operation.error}</p>}<div className="button-row">{["queued", "running"].includes(operation.status) && <button className="button secondary" disabled={mutation.busy || operation.cancel_requested} onClick={() => void mutation.run(signal => client.cancelOptimization(operation.id, { signal }), report.refresh)}>{operation.cancel_requested ? "Suite cancellation requested" : "Cancel suite"}</button>}{operation.status === "interrupted" && <button className="button secondary" disabled={mutation.busy} onClick={() => void mutation.run(signal => client.resumeOptimization(operation.id, operation.revision, { signal }), report.refresh)}>Resume remaining suite runs</button>}</div><SuiteResults report={report.value!} runHref={runHref} client={client} active={active} reviewAvailable={reviewAvailable} /></>}
     </div></section>}
   </div>;

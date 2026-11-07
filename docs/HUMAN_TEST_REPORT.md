@@ -30,7 +30,7 @@ answers. Automated and source-inspection evidence are recorded separately.
   are historical identities, not permission to stop a reused PID.
 - No browser automation or native window control was used for this session.
 
-## Verified environment and feature boundaries
+## Initial November 2 environment and feature boundaries
 
 | Item | Agent-observed state | Acceptance implication |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ answers. Automated and source-inspection evidence are recorded separately.
 | CARLA | Client package 0.9.16 present; launcher exists at `C:\Users\glass\Downloads\poltergiest\CARLA_0.9.16\CarlaUE4.exe`; acceptance backend has no configured/discovered executable | Current dashboard may correctly report missing installation configuration; native client/server match, idle world and live execution remain untested in this session |
 | Optional simulation/search packages | NumPy present; OpenCV, Optuna and SciPy absent | Do not advertise the full simulation/optimization extras as installed. Random search is separate from optional Optuna |
 | Baseline / starter / sensor pilot | Implemented rule-based controllers | Do not describe these as pretrained perception |
-| S16 AIM / S17 Hub | Implemented and previously locally validated, with separate managed CPU environments and pinned assets | Current acceptance installation/inference/driving/account checks remain NOT RUN; no trained LiDAR or managed CUDA support |
+| S16 AIM / S17 Hub at the initial checkpoint | Implemented and previously locally validated, with separate managed CPU environments and pinned assets | That initial source had no trained LiDAR or managed CUDA support. The subsequent [trained TransFuser integration](transfuser-policy.md) adds CPU RGB/LiDAR inference with separate engineering and human checks; gated-account access remains unverified. |
 | OpenAI / GitHub | Explicitly disabled for this session | Local deterministic Analyst/Regression/Discovery remain separate; no live provider call or publication claimed |
 | Replay | Saved telemetry frames and raw sensor sample inspection | No encoded video player or reconstructed-world playback is implemented |
 | Companion / hosted / distribution | Separate application and release surfaces | This local browser session does not accept the installer, account pairing, public hosting, signing or independent hardware |
@@ -208,13 +208,38 @@ time. Its expected outcomes are test criteria, not observations.
 - **Evidence/retest:** Local documentation diff/source inspection; manual agent
   workflow and human retest NOT RUN.
 
-No Critical or High defect has been established by this session's available
-evidence. This is not proof that none exist. Retain failed receipts and original
-observations when a later retest passes.
+### H04 — Live suite appeared stuck and all simulations failed
+
+**Severity High.** On November 6 the tester reported that the dashboard stayed
+on “executing” while nothing happened in CARLA. The saved Epic CARLA suite
+`8935ef07-4e50-4a30-8b13-42a97cf9207b` requested Town03 with map reload off.
+All 12 executions stopped at setup with zero frames because the server had
+loaded Town10HD_Opt. The batch finished after about 316 seconds and displayed a
+generic completed summary. This obscured the failed simulations.
+
+The suite page now shows submitted, planned and completed simulation counts,
+surfaces recorded failures while it runs and links to a failed attempt when a
+whole group failed. It labels cached status when a refresh fails. The full
+frontend suite passed 402 checks and the production build passed. A separate
+browser check loaded the actual failed batch and followed the failure link to
+the recorded Town03/Town10HD_Opt error.
+
+The freshly started local CARLA instance again loaded Town10HD_Opt despite the
+requested map argument. The additional startup override was also ineffective.
+After verifying that the new Epic process owned the endpoint and its world was
+empty, the assistant loaded Town03 on that instance. The first standalone
+TransFuser retest `4c982385-9326-4ab9-9d1e-1d2c563f9007` recorded 33 frames
+and 1.60 simulated seconds before the 120-second cancellation request. The
+second retest `8749e36a-81bd-4177-bf42-73c31682c770` completed the same wet dusk
+recipe and seed with 121 frames, 6.00 simulated seconds and 8.02 m of ego
+displacement. Both restored the world after the run. Native map preparation
+was a local recovery step. A fresh server can still start on its default map.
+The human retest of the changed failure display and successful live execution
+is pending.
 
 ## Release assessment and remaining work
 
-### November 5 human S15 comparison check
+### November 5–6 human S15 comparison and native evidence checks
 
 This is a separate engineering-results workspace on source `be11f1d`, served at
 `http://localhost:5175` with API `http://127.0.0.1:8011` and preserved storage
@@ -227,12 +252,21 @@ Suite run: `97d512f2-8505-4e9c-a7f0-190c33bc3ff2`.
 | --- | --- | --- |
 | F-N1 open the permanent trained-model suite comparison | “Completed suite and both cases are visible” after opening the supplied link, expecting completed status, Clear lead braking, Wet dusk lead braking and AIM/TransFuser comparison | PASS for opening the completed suite and case visibility only |
 | F-N2 select Peak deceleration in Regression Agent | “Peak deceleration stays selected” after the instruction to retain the 1 m/s² threshold and minimum 3 matched pairs | PASS for checkbox selection retention only; report values not yet manually verified |
-| F-N3 review displayed regression values and missing measurements | Awaiting observation | NOT RUN |
-| F-N4 export and reopen the saved comparison | Awaiting observation | NOT RUN |
+| F-N3a review the peak-deceleration result | “Yes, those results match” for Clear lead braking, Worsening pattern observed, 3/3 pairs and mean change about +3.667, with threshold 1 m/s² and minimum 3 pairs | PASS for these displayed values only |
+| F-N3b review missing severity after refresh | “Yes, severity is unavailable and the review is inconclusive” using the default Heuristic severity / Contact episodes selection | PASS for visible unavailable severity and the default-policy outcome |
+| F-N4a download the regression review | “Yes, the JSON file downloaded” after Download regression review, expecting `poltergeist-regression-97d512f2-8505-4e9c-a7f0-190c33bc3ff2.json` | PASS for the observed browser download; downloaded file contents have not been inspected |
+| F-N4b reopen the saved comparison | “Yes, the saved comparison is still there” after refreshing, expecting completed status, both named cases and AIM/TransFuser | PASS for persistence across browser refresh; not a backend restart test |
+| N-A1 open the saved native candidate | “Yes, all three match” for completed status, CARLA mode and 121 telemetry frames on `1033955b-efe0-4003-9682-2a01296909dc` | PASS for visible run identity/status/mode/frame count |
+| N-A2 analyze the saved candidate | “Yes, the coverage, value and frame match” for 121 reviewed frames, incomplete safety coverage and about 26.4 m/s² at frame 815261 / 1.200 s | PASS for the displayed Analyst summary and braking citation |
+| N-A3 follow the peak-frame link | “Yes, it selects that frame and value” after Inspect frame 815261, expecting Measured motion at 1.200 s and about 26.351 m/s² | PASS for the selected frame/time and displayed deceleration |
+| N-D1 inspect the first recorded decision | “Yes, those details match” for input 815237 → result 815238, `carla_sensors`, withheld actor inputs and no script interventions | PASS for the displayed input, outcome and control context |
+| N-S1 inspect the recorded front camera input | “Yes, the image and verification appear” after Inspect recorded input for frame 815237 | PASS for the image and byte length / SHA-256 verification badge |
+| N-S2 inspect the recorded LiDAR input | “Yes, the point count and verification match” for 15,255 XYZI points and the verification badge on the same decision | PASS for the count and verification display |
 
 Native execution, independent metric/report audits and CI are engineering
-evidence recorded separately. They do not mark F-N3–F-N4 or earlier A11–A14 as
-manually passed.
+evidence recorded separately. Only the explicit observations above establish
+these manual passes. Earlier A11–A14, file-content inspection and backend-restart
+recovery remain unobserved.
 
 ### November 5 engineering findings under the adjusted S10–S19 plan
 
@@ -261,7 +295,9 @@ plans, failed attempts, source/trace fingerprints and regression receipts.
   frame 59271 / 0 s. Braking/behavior evidence now retains the actual witness,
   including both frames for a velocity-derived interval. Regression cases and
   the same saved native trace verify the corrected link; source and telemetry
-  fingerprints are unchanged. Human retest: NOT RUN.
+  fingerprints are unchanged. The original baseline-run human retest remains
+  NOT RUN. The separate trained-run N-A3 observation now confirms the same
+  actual-peak navigation behavior on frame 815261 / 1.200 s.
 
 **Not accepted for release.** Local preparation, automated synthetic evidence
 and the first human navigation/readiness checks support continuing manual QA.

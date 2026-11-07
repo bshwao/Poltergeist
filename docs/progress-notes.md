@@ -841,3 +841,30 @@ external-tester, support-matrix, redistribution and signing gates remain open.
 After the owner granted Computer Use access, the packaged Companion passed
 interactive first-run setup, synthetic and real CARLA runs, report export and
 history restoration after closing and reopening on this PC.
+
+## November 6 — acceptance evidence and isolated QA merge
+
+The named QA installer/package change `e761628` passed all five supported CI
+jobs and was fast-forwarded into main after a fresh incoming-change review.
+The twelve saved trained-model runs now also pass a read-only Analyst audit:
+1,452 frames, 48 exact citations, matching report JSON exports, 72 missing or
+contradictory evidence probes on private copies, and unchanged source artifacts.
+No additional simulation or renewed execution budget was used.
+
+The tester confirmed the clear-case peak-deceleration regression (3/3 pairs,
+mean about +3.667), unavailable severity/default-policy inconclusive result,
+JSON download and persistence across browser refresh. One native candidate and
+its partial Analyst report also match the tester's observations. Following its
+link selects the expected peak frame/time and deceleration. The tester verified
+the first decision and inspected its camera and LiDAR inputs. A separate audit
+checks all 2,904 raw samples and the origins of 348 held fusion predictions.
+Signing/feed, first-time and visual acceptance, remaining manual journeys and
+live S17–S19 integrations remain open. The owner reports no live provider
+accounts are set up. [Human report](HUMAN_TEST_REPORT.md)
+
+The tester's separate Epic suite stopped twelve times at the Town03 map check.
+The dashboard now exposes execution counts and links to a failed attempt.
+Loading Town03 on the owned server allowed a standalone wet dusk TransFuser
+confirmation to complete with 121 frames and 8.02 m of ego displacement. The
+first cancelled diagnostic and failed suite remain in the evidence record.
+All 402 frontend tests and the production build passed. [Recovery details](validation/s10-s19-acceptance-20261105.md#november-6-live-suite-failure-and-recovery)
